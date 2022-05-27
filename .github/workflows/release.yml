@@ -33,3 +33,4 @@ jobs:
       with:
         path: '.artifacts'
         destination: 'zitadel-charts/zitadel'
+        parent: false
