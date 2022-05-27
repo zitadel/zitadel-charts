@@ -7,6 +7,9 @@ on:
 
 jobs:
   job_id:
+
+    runs-on: ubuntu-20.04
+
     permissions:
       contents: 'read'
       id-token: 'write'
