@@ -22,6 +22,7 @@ jobs:
       run: |
         docker run --rm --volume $(pwd):/in --volume $(pwd)/.artifacts:/out alpine/helm:3.9.0 package /in --destination /out
         docker run --rm --volume $(pwd)/.artifacts:/out alpine/helm:3.9.0 repo index /out
+        cp artifacthub-repo.yml ./artifacts/
 
     - id: 'repo-auth'
       uses: 'google-github-actions/auth@v0'
