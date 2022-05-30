@@ -18,36 +18,6 @@ jobs:
     - id: 'checkout'
       uses: 'actions/checkout@v3'
 
-    - id: 'set-up-helm'
-      uses: 'azure/setup-helm@v1'
-      with:
-        version: 'v3.8.1'
-
-    - id: 'set-up-python'
-      uses: 'actions/setup-python@v2'
-      with:
-        python-version: 3.7
-
-    - id: 'set-up-chart-testing'
-      uses: 'helm/chart-testing-action@v2.2.1'
-
-    - id: 'list-changed'
-      run: |
-        changed=$(ct list-changed --target-branch ${{ github.event.repository.default_branch }})
-        if [[ -n "$changed" ]]; then
-          echo "::set-output name=changed::true"
-        fi
-
-    - id: 'lint'
-      run: 'ct lint --target-branch ${{ github.event.repository.default_branch }}'
-
-    - name: 'create-kind'
-      uses: 'helm/kind-action@v1.2.0'
-      if: steps.list-changed.outputs.changed == 'true'
-
-    - name: 'install'
-      run: 'ct install'
-
     - id: 'configure-git'
       run: |
         git config user.name "$GITHUB_ACTOR"
