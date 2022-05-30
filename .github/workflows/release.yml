@@ -1,14 +1,14 @@
-name: Release Charts
+name: 'Release Charts'
 
 on:
   push:
     branches:
-      - main
+      - 'main'
 
 jobs:
   release:
 
-    runs-on: ubuntu-20.04
+    runs-on: 'ubuntu-20.04'
 
     permissions:
       contents: 'read'
@@ -18,20 +18,43 @@ jobs:
     - id: 'checkout'
       uses: 'actions/checkout@v3'
 
-    - id: 'package'
+    - id: 'set-up-helm'
+      uses: 'azure/setup-helm@v1'
+      with:
+        version: 'v3.8.1'
+
+    - id: 'set-up-python'
+      uses: 'actions/setup-python@v2'
+      with:
+        python-version: 3.7
+
+    - id: 'set-up-chart-testing'
+      uses: 'helm/chart-testing-action@v2.2.1'
+
+    - id: 'list-changed'
       run: |
-        docker run --rm --volume $(pwd):/in --volume $(pwd)/.artifacts:/out alpine/helm:3.9.0 package /in --destination /out
-        docker run --rm --volume $(pwd)/.artifacts:/out alpine/helm:3.9.0 repo index /out
-        cp artifacthub-repo.yml ./artifacts/
+        changed=$(ct list-changed --target-branch ${{ github.event.repository.default_branch }})
+        if [[ -n "$changed" ]]; then
+          echo "::set-output name=changed::true"
+        fi
 
-    - id: 'repo-auth'
-      uses: 'google-github-actions/auth@v0'
-      with:
-        credentials_json: '${{ secrets.GOOGLE_CREDENTIALS }}'
+    - id: 'lint'
+      run: 'ct lint --target-branch ${{ github.event.repository.default_branch }}'
 
-    - id: 'repo-upload'
-      uses: 'google-github-actions/upload-cloud-storage@v0'
-      with:
-        path: '.artifacts'
-        destination: 'zitadel-charts/zitadel'
-        parent: false
+    - name: 'create-kind'
+      uses: 'helm/kind-action@v1.2.0'
+      if: steps.list-changed.outputs.changed == 'true'
+
+    - name: 'install'
+      run: 'ct install'
+
+    - id: 'configure-git'
+      run: |
+        git config user.name "$GITHUB_ACTOR"
+        git config user.email "$GITHUB_ACTOR@users.noreply.github.com"
+
+    - id: 'release'
+      uses: 'helm/chart-releaser-action@v1.1.0'
+      env:
+        CR_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+
