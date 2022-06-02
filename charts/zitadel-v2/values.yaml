@@ -5,8 +5,16 @@ zitadel:
   # See all defaults here:
   # https://github.com/zitadel/zitadel/blob/v2-alpha/cmd/defaults.yaml
   configmapConfig:
+
     Database:
-      Host: '{{ .Release.Name }}-cockroachdb-public'
+      Host: "{{ .Release.Name }}-cockroachdb-public"
+      User:
+        SSL:
+          Mode: "verify-full"
+
+    AdminUser:
+      SSL:
+        Mode: "verify-full"
 
   # The ZITADEL config under secretConfig is written to a Kubernetes Secret
   # See all defaults here:
@@ -19,6 +27,9 @@ zitadel:
 
   # The root CA Certificate needed for establishing secure database connections
   dbSslRootCrt: ''
+
+  # The Secret containing the root CA Certificate at key ca.crt needed for establishing secure database connections
+  dbSslRootCrtSecret: 'my-zitadel-cockroachdb-ca-secret'
 
 replicaCount: 1
 
@@ -89,22 +100,7 @@ nodeSelector: {}
 
 tolerations: []
 
-affinity:
-  podAntiAffinity:
-    requiredDuringSchedulingIgnoredDuringExecution:
-    - labelSelector:
-        matchExpressions:
-        - key: app.kubernetes.io/name
-          operator: In
-          values:
-          - zitadel
-      topologyKey: kubernetes.io/hostname
+affinity: {}
 
 cockroachdb:
   enabled: true
-  statefulset:
-    replicas: 1
-  conf:
-    single-node: true
-  tls:
-    enabled: false

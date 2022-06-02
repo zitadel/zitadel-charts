@@ -50,11 +50,17 @@ spec:
                 fieldRef:
                   apiVersion: v1
                   fieldPath: status.podIP
-            {{- if .Values.zitadel.dbSslRootCrt }}
+            {{- if (or .Values.zitadel.dbSslRootCrt .Values.zitadel.dbSslRootCrtSecret) }}
             - name: ZITADEL_DATABASE_USER_SSL_ROOTCERT
-              value: /.secrets/db-ssl-root-crt
+              value: /.secrets/ca.crt
             - name: ZITADEL_ADMINUSER_SSL_ROOTCERT
-              value: /.secrets/db-ssl-root-crt
+              value: /.secrets/ca.crt
+            {{- end}}
+            {{- if .Values.cockroachdb.enabled }}
+            - name: ZITADEL_ADMINUSER_SSL_CERT
+              value: /.secrets/tls.crt
+            - name: ZITADEL_ADMINUSER_SSL_KEY
+              value: /.secrets/tls.key            
             {{- end}}
           ports:
           - containerPort: 8080
@@ -69,8 +75,12 @@ spec:
             {{- toYaml .Values.resources | nindent 14 }}
       initContainers:
         - args:
-          # TODO: template a safer command that can exit with status 1
-          - cp /zitadel-secrets-yaml/* /chowned-secrets/ || cp /db-ssl-root-crt/* /chowned-secrets/ || cp /zitadel-masterkey/* /chowned-secrets/ && ls -la /chowned-secrets/ && chown -R 1000:1000 /chowned-secrets/* && chmod 400 /chowned-secrets/*
+          - "{{ include "zitadel.joincpcommands" (dict "commands" (list
+            (include "zitadel.makecpcommand" (dict "value" .Values.zitadel.secretConfig "path" "/zitadel-secrets-yaml/*" ))
+            (include "zitadel.makecpcommand" (dict "value" (or .Values.zitadel.dbSslRootCrt .Values.zitadel.dbSslRootCrtSecret) "path" "/db-ssl-root-crt/*" ))
+            (include "zitadel.makecpcommand" (dict "value" .Values.zitadel.masterkey "path" "/zitadel-masterkey/*" ))
+            (include "zitadel.makecpcommand" (dict "value" .Values.cockroachdb.enabled "path" "/root-certs/*" ))
+          )) }} chown -R 1000:1000 /chowned-secrets/* && chmod 400 /chowned-secrets/*"
           command:
           - sh
           - -c
@@ -86,9 +96,13 @@ spec:
           - name: zitadel-secrets-yaml
             mountPath: /zitadel-secrets-yaml
           {{- end}}
-          {{- if .Values.zitadel.dbSslRootCrt }}
+          {{- if (or .Values.zitadel.dbSslRootCrt .Values.zitadel.dbSslRootCrtSecret) }}
           - name: db-ssl-root-crt
             mountPath: /db-ssl-root-crt
+          {{- end}}
+          {{- if .Values.cockroachdb.enabled }}
+          - name: root-certs
+            mountPath: /root-certs
           {{- end}}
           securityContext:
             runAsNonRoot: false
@@ -107,12 +121,21 @@ spec:
         secret:
           secretName: db-ssl-root-crt
       {{- end }}
+      {{- if .Values.zitadel.dbSslRootCrtSecret }}
+      - name: db-ssl-root-crt
+        secret:
+          secretName: {{ .Values.zitadel.dbSslRootCrtSecret }}
+      {{- end }}
+      {{- if .Values.cockroachdb.enabled }}
+      - name: root-certs
+        secret:
+          secretName: my-zitadel-cockroachdb-client-secret
+      {{- end }}
       - name: zitadel-masterkey
         secret:
           secretName: zitadel-masterkey
       - name: chowned-secrets
         emptyDir: {}
-
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
