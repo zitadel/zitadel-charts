@@ -19,3 +19,4 @@ ZITADEL is designed to be easily runnable and configurable. This chart installs 
 $ helm repo add zitadel https://zitadel-charts.storage.googleapis.com/zitadel
 $ helm install my-zitadel zitadel/zitadel
 ```
+

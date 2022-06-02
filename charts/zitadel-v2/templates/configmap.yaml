@@ -4,7 +4,5 @@ metadata:
   name: zitadel-config-yaml
   annotations:
     external-domain-configured: {{ required "A valid .Values.zitadel.configmapConfig.ExternalDomain entry is required!" .Values.zitadel.configmapConfig.ExternalDomain }}
-    database-host-configured: {{ required "A valid .Values.zitadel.configmapConfig.Database.Host entry is required!" .Values.zitadel.configmapConfig.Database.Host }}
 data:
-  zitadel-config-yaml: |-
-{{ .Values.zitadel.configmapConfig | toYaml | nindent 6 }}
+  zitadel-config-yaml: {{- tpl (.Values.zitadel.configmapConfig | toYaml) . | toYaml | nindent 4 }}

@@ -36,8 +36,10 @@ spec:
             - start-from-init
             - --config
             - /config/zitadel-config-yaml
+            {{- if .Values.zitadel.secretConfig }}
             - --config
             - /.secrets/zitadel-secrets-yaml
+            {{- end}}
             - --steps
             - /config/zitadel-config-yaml
             - --masterkeyFile
@@ -48,10 +50,12 @@ spec:
                 fieldRef:
                   apiVersion: v1
                   fieldPath: status.podIP
+            {{- if .Values.zitadel.dbSslRootCrt }}
             - name: ZITADEL_DATABASE_USER_SSL_ROOTCERT
               value: /.secrets/db-ssl-root-crt
             - name: ZITADEL_ADMINUSER_SSL_ROOTCERT
               value: /.secrets/db-ssl-root-crt
+            {{- end}}
           ports:
           - containerPort: 8080
             name: server
@@ -65,7 +69,8 @@ spec:
             {{- toYaml .Values.resources | nindent 14 }}
       initContainers:
         - args:
-          - cp /zitadel-secrets-yaml/* /chowned-secrets/ && cp /db-ssl-root-crt/* /chowned-secrets/ && cp /zitadel-masterkey/* /chowned-secrets/ && ls -la /chowned-secrets/ && chown -R 1000:1000 /chowned-secrets/* && chmod 400 /chowned-secrets/*
+          # TODO: template a safer command that can exit with status 1
+          - cp /zitadel-secrets-yaml/* /chowned-secrets/ || cp /db-ssl-root-crt/* /chowned-secrets/ || cp /zitadel-masterkey/* /chowned-secrets/ && ls -la /chowned-secrets/ && chown -R 1000:1000 /chowned-secrets/* && chmod 400 /chowned-secrets/*
           command:
           - sh
           - -c
@@ -74,41 +79,34 @@ spec:
           name: chown
           volumeMounts:
           - name: chowned-secrets
-            mountPath: /chowned-secrets          
-          - name: zitadel-secrets-yaml
-            mountPath: /zitadel-secrets-yaml
-          - name: db-ssl-root-crt
-            mountPath: /db-ssl-root-crt
+            mountPath: /chowned-secrets
           - name: zitadel-masterkey
             mountPath: /zitadel-masterkey
+          {{- if .Values.zitadel.secretConfig }}
+          - name: zitadel-secrets-yaml
+            mountPath: /zitadel-secrets-yaml
+          {{- end}}
+          {{- if .Values.zitadel.dbSslRootCrt }}
+          - name: db-ssl-root-crt
+            mountPath: /db-ssl-root-crt
+          {{- end}}
           securityContext:
             runAsNonRoot: false
             runAsUser: 0      
-        - args:
-          - cat /config/zitadel-config-yaml
-          command:
-          - sh
-          - -c
-          image: "{{ .Values.chownImage.repository }}:{{ .Values.chownImage.tag }}"
-          imagePullPolicy: {{ .Values.chownImage.pullPolicy }}
-          name: debug
-          volumeMounts:
-          - name: zitadel-config-yaml
-            mountPath: /config
-          - name: chowned-secrets
-            mountPath: /.secrets
-          securityContext:
-            {{- toYaml .Values.podSecurityContext | nindent 14 }}
       volumes:
       - name: zitadel-config-yaml
         configMap:
           name: zitadel-config-yaml
+      {{- if .Values.zitadel.secretConfig }}
       - name: zitadel-secrets-yaml
         secret:
           secretName: zitadel-secrets-yaml
+      {{- end }}
+      {{- if .Values.zitadel.dbSslRootCrt }}
       - name: db-ssl-root-crt
         secret:
           secretName: db-ssl-root-crt
+      {{- end }}
       - name: zitadel-masterkey
         secret:
           secretName: zitadel-masterkey

@@ -1,11 +1,24 @@
 # Default values for zitadel.
-# This is a YAML-formatted file.
-# Declare variables to be passed into your templates.
-
 zitadel:
+
+  # The ZITADEL config under configmapConfig is written to a Kubernetes ConfigMap
+  # See all defaults here:
+  # https://github.com/zitadel/zitadel/blob/v2-alpha/cmd/defaults.yaml
   configmapConfig:
     Database:
-      Host: ""
+      Host: '{{ .Release.Name }}-cockroachdb-public'
+
+  # The ZITADEL config under secretConfig is written to a Kubernetes Secret
+  # See all defaults here:
+  # https://github.com/zitadel/zitadel/blob/v2-alpha/cmd/defaults.yaml
+  secretConfig:
+
+  # ZITADEL uses the masterkey for symmetric encryption.
+  # You can generate it for example with tr -dc A-Za-z0-9 </dev/urandom | head -c 32
+  masterkey: ''
+
+  # The root CA Certificate needed for establishing secure database connections
+  dbSslRootCrt: ''
 
 replicaCount: 1
 
@@ -86,3 +99,12 @@ affinity:
           values:
           - zitadel
       topologyKey: kubernetes.io/hostname
+
+cockroachdb:
+  enabled: true
+  statefulset:
+    replicas: 1
+  conf:
+    single-node: true
+  tls:
+    enabled: false
