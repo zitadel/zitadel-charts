@@ -29,6 +29,8 @@ jobs:
 
     - id: 'set-up-chart-testing'
       uses: 'helm/chart-testing-action@v2.2.1'
+      with:
+        version: 'v3.6.0'
 
     - id: 'list-changed'
       run: |
