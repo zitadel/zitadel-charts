@@ -11,6 +11,6 @@ dependencies:
   repository: https://charts.cockroachdb.com/
   condition: cockroachdb.enabled
 maintainers:
-- name: ZITADEL Staff
+- name: eliobischof
   email: support@zitadel.com
   url: https://zitadel.com
