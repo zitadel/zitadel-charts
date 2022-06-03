@@ -1,8 +1,9 @@
+{{- if (not .Values.zitadel.configmapConfig.ExternalDomain )}}
+{{- fail ".Values.zitadel.configmapConfig.ExternalDomain is mandatory"}}
+{{- end }}
 apiVersion: v1
 kind: ConfigMap
 metadata:
   name: zitadel-config-yaml
-  annotations:
-    external-domain-configured: {{ required "A valid .Values.zitadel.configmapConfig.ExternalDomain entry is required" .Values.zitadel.configmapConfig.ExternalDomain }}
 data:
   zitadel-config-yaml: {{- tpl (.Values.zitadel.configmapConfig | toYaml) . | toYaml | nindent 4 }}
