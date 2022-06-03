@@ -63,7 +63,7 @@ serviceAccount:
 
 podAnnotations: {}
 
-podSecurityContext: 
+podSecurityContext:
   runAsNonRoot: true
   runAsUser: 1000
 
