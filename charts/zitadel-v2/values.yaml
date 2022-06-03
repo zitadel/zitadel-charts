@@ -6,8 +6,18 @@ zitadel:
   # https://github.com/zitadel/zitadel/blob/v2-alpha/cmd/defaults.yaml
   configmapConfig:
 
+    Log:
+      Level: info
+      Formatter:
+        Format: text
+
+    ExternalSecure: true
+
     Database:
       Host: "{{ .Release.Name }}-cockroachdb-public"
+      MaxOpenConns: 100
+      MaxConnLifetime: 30m
+      MaxConnIdleTime: 5m
       User:
         SSL:
           Mode: "verify-full"
@@ -93,6 +103,6 @@ affinity: {}
 
 cockroachdb:
   enabled: true
-  fullnameOverride: crdb
-  tls:
-    enabled: true
+#  fullnameOverride: crdb
+#  tls:
+#    enabled: true
