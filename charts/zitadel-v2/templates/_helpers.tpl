@@ -60,3 +60,25 @@ Create the name of the service account to use
 {{- default "default" .Values.serviceAccount.name }}
 {{- end }}
 {{- end }}
+
+{{/*
+Create copy command or empty string
+*/}}
+{{- define "zitadel.makecpcommand" -}}
+{{- if .value -}}
+{{ printf "cp %s /chowned-secrets/" .path }}
+{{- end -}}
+{{- end -}}
+
+{{/*
+Join copy commands
+*/}}
+{{- define "zitadel.joincpcommands" -}}
+{{- $cmd := "" }}
+    {{- range .commands -}}
+        {{- if . -}}
+            {{- $cmd = printf "%s && %s" ( default "yes" . ) $cmd  -}}
+        {{- end -}}
+    {{- end -}}
+{{ print $cmd }}
+{{- end -}}
