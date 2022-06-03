@@ -93,5 +93,6 @@ affinity: {}
 
 cockroachdb:
   enabled: true
+  fullnameOverride: crdb
   tls:
     enabled: true
