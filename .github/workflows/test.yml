@@ -50,5 +50,5 @@ jobs:
       if: steps.list-changed.outputs.changed == 'true'
 
     - name: 'install'
-      run: 'ct install --helm-extra-set-args "--set=zitadel.masterkey=\"$(tr -dc A-Za-z0-9 </dev/urandom | head -c 32)\" --set=zitadel.configmapConfig.ExternalDomain=\"test.domain\" --set=zitadel.secretConfig.Database.User.Password=\"$(tr -dc A-Za-z0-9 </dev/urandom | head -c 32)\""'
+      run: 'ct install --all --helm-extra-set-args "--set=zitadel.masterkey=\"$(tr -dc A-Za-z0-9 </dev/urandom | head -c 32)\" --set=zitadel.configmapConfig.ExternalDomain=\"test.domain\" --set=zitadel.secretConfig.Database.User.Password=\"$(tr -dc A-Za-z0-9 </dev/urandom | head -c 32)\""'
 
