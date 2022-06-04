@@ -124,7 +124,7 @@ spec:
       {{- if .Values.zitadel.dbSslRootCrtSecret }}
       - name: db-ssl-root-crt
         secret:
-          secretName: .Values.zitadel.dbSslRootCrtSecret
+          secretName: {{.Values.zitadel.dbSslRootCrtSecret}}
       {{- end }}
       {{- if .Values.cockroachdb.enabled }}
       - name: root-certs
