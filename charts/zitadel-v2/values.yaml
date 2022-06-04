@@ -14,7 +14,7 @@ zitadel:
     ExternalSecure: true
 
     Database:
-      Host: "{{ .Release.Name }}-cockroachdb-public"
+      Host: "{{ .Release.Name }}-crdb-public"
       MaxOpenConns: 100
       MaxConnLifetime: 30m
       MaxConnIdleTime: 5m
@@ -42,7 +42,7 @@ zitadel:
   dbSslRootCrt: ''
 
   # The Secret containing the root CA Certificate at key ca.crt needed for establishing secure database connections
-  dbSslRootCrtSecret: 'my-zitadel-cockroachdb-ca-secret'
+  dbSslRootCrtSecret: '{{ .Release.Name }}-crdb-ca-secret'
 
 replicaCount: 3
 

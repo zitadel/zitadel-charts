@@ -124,12 +124,12 @@ spec:
       {{- if .Values.zitadel.dbSslRootCrtSecret }}
       - name: db-ssl-root-crt
         secret:
-          secretName: {{ .Values.zitadel.dbSslRootCrtSecret }}
+          secretName: {{ tpl .Values.zitadel.dbSslRootCrtSecret . | toYaml }}
       {{- end }}
       {{- if .Values.cockroachdb.enabled }}
       - name: root-certs
         secret:
-          secretName: my-zitadel-cockroachdb-client-secret
+          secretName: {{ .Release.Name }}-crdb-client-secret
       {{- end }}
       - name: zitadel-masterkey
         secret:
