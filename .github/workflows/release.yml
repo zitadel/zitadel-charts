@@ -24,7 +24,7 @@ jobs:
         git config user.email "$GITHUB_ACTOR@users.noreply.github.com"
 
     - id: 'release'
-      uses: 'helm/chart-releaser-action@v1.1.0'
+      uses: 'helm/chart-releaser-action@v1.4.0'
       env:
         CR_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
 
