@@ -11,9 +11,8 @@ jobs:
     runs-on: 'ubuntu-20.04'
 
     permissions:
-      contents: 'read'
+      contents: 'write'
       id-token: 'write'
-      pages: 'write'
 
     steps:
     - id: 'checkout'
