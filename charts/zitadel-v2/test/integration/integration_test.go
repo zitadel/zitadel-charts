@@ -15,13 +15,12 @@ import (
 )
 
 func TestIntegration(t *testing.T) {
-	kubecontext := "kind-kind"
 
 	chartPath, err := filepath.Abs("../../")
 	require.NoError(t, err)
 
 	namespace := createNamespaceName()
-	kubeOptions := k8s.NewKubectlOptions(kubecontext, "", namespace)
+	kubeOptions := k8s.NewKubectlOptions("", "", namespace)
 
 	it := &integrationTest{
 		chartPath:   chartPath,
