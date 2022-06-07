@@ -27,7 +27,7 @@ Checkout the values.yaml for all configuration options.
 
 ```bash
 # Add the helm repository
-helm repo add zitadel https://charts.zitadel.com/zitadel
+helm repo add zitadel https://zitadel.github.io/zitadel-charts
 
 # generate keys (store them securely)
 ZITADEL_MASTERKEY=$(tr -dc A-Za-z0-9 </dev/urandom | head -c 32)
