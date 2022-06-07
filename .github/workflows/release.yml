@@ -25,6 +25,9 @@ jobs:
         git config user.name "$GITHUB_ACTOR"
         git config user.email "$GITHUB_ACTOR@users.noreply.github.com"
 
+    - id: 'add-cockroachdb-repo'
+      run: 'helm repo add cockroachdb https://charts.cockroachdb.com/'
+
     - id: 'release'
       uses: 'helm/chart-releaser-action@v1.4.0'
       env:
