@@ -3,11 +3,15 @@ name: zitadel
 description: A Helm chart for ZITADEL v2
 type: application
 version: 2.0.0
-appVersion: "v2.0.0-v2-alpha.19-amd64"
+appVersion: "v2.0.0-v2-alpha.21-amd64"
+kubeVersion: '>= 1.16.15 < 1.25.0'
 icon: https://zitadel.zitadel.cloud/ui/login/resources/themes/zitadel/logo-dark.svg
-dependencies: 
+dependencies:
 - name: cockroachdb
   version: ~8.0.0
   repository: https://charts.cockroachdb.com/
   condition: cockroachdb.enabled
-
+maintainers:
+- name: zitadel
+  email: support@zitadel.com
+  url: https://zitadel.com

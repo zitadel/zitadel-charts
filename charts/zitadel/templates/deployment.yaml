@@ -60,7 +60,7 @@ spec:
             - name: ZITADEL_ADMINUSER_SSL_CERT
               value: /.secrets/tls.crt
             - name: ZITADEL_ADMINUSER_SSL_KEY
-              value: /.secrets/tls.key            
+              value: /.secrets/tls.key
             {{- end}}
           ports:
           - containerPort: 8080
@@ -106,7 +106,7 @@ spec:
           {{- end}}
           securityContext:
             runAsNonRoot: false
-            runAsUser: 0      
+            runAsUser: 0
       volumes:
       - name: zitadel-config-yaml
         configMap:
@@ -124,12 +124,12 @@ spec:
       {{- if .Values.zitadel.dbSslRootCrtSecret }}
       - name: db-ssl-root-crt
         secret:
-          secretName: {{ .Values.zitadel.dbSslRootCrtSecret }}
+          secretName: {{.Values.zitadel.dbSslRootCrtSecret}}
       {{- end }}
       {{- if .Values.cockroachdb.enabled }}
       - name: root-certs
         secret:
-          secretName: my-zitadel-cockroachdb-client-secret
+          secretName: crdb-client-secret
       {{- end }}
       - name: zitadel-masterkey
         secret:
