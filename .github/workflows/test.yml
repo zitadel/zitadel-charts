@@ -53,7 +53,7 @@ jobs:
       uses: 'helm/kind-action@v1.2.0'
       if: steps.list-changed.outputs.changed == 'true'
       with:
-        node_image: '${{ matrix.kind-k8s-version }}'
+        node_image: 'kindest/node:v${{ matrix.kind-k8s-version }}'
         version: 'v0.14.0'
 
     - name: 'test'
