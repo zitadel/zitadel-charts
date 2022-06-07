@@ -25,12 +25,6 @@ jobs:
         git config user.name "$GITHUB_ACTOR"
         git config user.email "$GITHUB_ACTOR@users.noreply.github.com"
 
-    - id: 'build-dependencies'
-      run: |
-        for dir in $(ls -d charts/*); do
-          helm dependency build $dir;
-        done
-
     - id: 'release'
       uses: 'helm/chart-releaser-action@v1.4.0'
       env:
