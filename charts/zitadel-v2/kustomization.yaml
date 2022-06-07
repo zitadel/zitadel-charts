@@ -1,0 +1,10 @@
+resources:
+  - all.yaml
+patches:
+- target:
+    kind: Job
+    name: '.*-init'
+  patch: |-
+    - op: remove
+      path: /metadata/annotations/helm.sh~1hook
+

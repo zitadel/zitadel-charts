@@ -1,0 +1,3 @@
+# fix-version.patch.yaml
+- op: remove
+  path: metadata/annotations/helm.sh\/hook
