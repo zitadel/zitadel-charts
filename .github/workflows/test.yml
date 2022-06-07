@@ -5,6 +5,10 @@ on: 'pull_request'
 jobs:
   release:
 
+    strategy:
+      matrix:
+        kind-k8s-version: ['1.16.15', '1.17.17', '1.18.20', '1.19.16', '1.20.15', '1.21.12', '1.22.9', '1.23.6', '1.24.1']
+
     runs-on: 'ubuntu-20.04'
 
     permissions:
@@ -14,6 +18,8 @@ jobs:
     steps:
     - id: 'checkout'
       uses: 'actions/checkout@v3'
+      with:
+        fetch-depth: 0
 
     - id: 'set-up-helm'
       uses: 'azure/setup-helm@v1'
@@ -27,6 +33,8 @@ jobs:
 
     - id: 'set-up-chart-testing'
       uses: 'helm/chart-testing-action@v2.2.1'
+      with:
+        version: 'v3.6.0'
 
     - id: 'list-changed'
       run: |
@@ -35,13 +43,19 @@ jobs:
           echo "::set-output name=changed::true"
         fi
 
+    - id: 'add-cockroachdb-repo'
+      run: 'helm repo add cockroachdb https://charts.cockroachdb.com/'
+
     - id: 'lint'
       run: 'ct lint --target-branch ${{ github.event.repository.default_branch }}'
 
     - name: 'create-kind'
       uses: 'helm/kind-action@v1.2.0'
       if: steps.list-changed.outputs.changed == 'true'
+      with:
+        node_image: 'kindest/node:v${{ matrix.kind-k8s-version }}'
+        version: 'v0.14.0'
 
-    - name: 'install'
-      run: 'ct install'
+    - name: 'test'
+      run: 'go test -tags integration -count 1 ./charts/zitadel-v2/test/integration/*.go'
 

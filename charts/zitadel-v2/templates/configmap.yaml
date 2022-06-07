@@ -6,4 +6,5 @@ kind: ConfigMap
 metadata:
   name: zitadel-config-yaml
 data:
-  zitadel-config-yaml: {{- tpl (.Values.zitadel.configmapConfig | toYaml) . | toYaml | nindent 4 }}
+  zitadel-config-yaml: |-
+    {{ .Values.zitadel.configmapConfig | toYaml | nindent 4 }}
