@@ -7,14 +7,7 @@ jobs:
 
     strategy:
       matrix:
-        kindConfig:
-        - 'kind/k8s-v1.24.yaml'
-        - 'kind/k8s-v1.23.yaml'
-        - 'kind/k8s-v1.22.yaml'
-        - 'kind/k8s-v1.21.yaml'
-        - 'kind/k8s-v1.20.yaml'
-        - 'kind/k8s-v1.19.yaml'
-        - 'kind/k8s-v1.18.yaml'
+        kind-k8s-version: ['1.16.15', '1.17.17', '1.18.20', '1.19.16', '1.20.15', '1.21.12', '1.22.9', '1.23.6', '1.24.1']
 
     runs-on: 'ubuntu-20.04'
 
@@ -60,7 +53,8 @@ jobs:
       uses: 'helm/kind-action@v1.2.0'
       if: steps.list-changed.outputs.changed == 'true'
       with:
-        config: ${{ matrix.kindConfig }}
+        node_image: '${{ matrix.kind-k8s-version }}'
+        version: 'v0.14.0'
 
     - name: 'test'
       run: 'go test -tags integration -count 1 ./charts/zitadel-v2/test/integration/*.go'
