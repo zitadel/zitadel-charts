@@ -3,7 +3,7 @@ name: 'Test Charts'
 on: 'pull_request'
 
 jobs:
-  release:
+  test:
 
     strategy:
       matrix:
