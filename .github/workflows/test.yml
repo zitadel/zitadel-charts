@@ -57,5 +57,5 @@ jobs:
         version: 'v0.14.0'
 
     - name: 'test'
-      run: 'go test -tags integration -count 1 ./charts/zitadel-v2/test/integration/*.go'
+      run: 'go test -tags integration ./...'
 
