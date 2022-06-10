@@ -20,14 +20,13 @@ For the ZITADEL startup configuration, you need to bring:
 - the password for the CockroachDB user (ZITADEL creates the user if it doesn't exist)
 - the domain where you will publish your ZITADEL instance
 
-Checkout the values.yaml for all configuration options.
-<!--TODO: link values.yaml -->
+Checkout the [values.yaml for all configuration options](https://github.com/zitadel/zitadel-charts/blob/main/charts/zitadel/values.yaml).
 
 ## Install the Chart
 
 ```bash
 # Add the helm repository
-helm repo add zitadel https://zitadel.github.io/zitadel-charts
+helm repo add zitadel https://charts.zitadel.com
 
 # generate keys (store them securely)
 ZITADEL_MASTERKEY=$(tr -dc A-Za-z0-9 </dev/urandom | head -c 32)
@@ -39,11 +38,13 @@ ZITADEL_DOMAIN=zitadel.mydomain.com
 helm install --namespace zitadel --create-namespace my-zitadel zitadel/zitadel \
   --set zitadel.masterkey=${ZITADEL_MASTERKEY} \
   --set zitadel.secretConfig.Database.User.Password=${ZITADEL_CRDB_PASSWORD} \
-  --set zitadel.configmapConfig.ExternalDomain=${ZITADEL_DOMAIN} 
+  --set zitadel.configmapConfig.ExternalDomain=${ZITADEL_DOMAIN} \
+  --set zitadel.configmapConfig.S3CustomDomain=${ZITADEL_DOMAIN}
 ```
 
-Enjoy watching a highly available and secure ZITADEL instance starting up.
-<!--TODO: gif here -->
+Enjoy watching a highly available and secure ZITADEL instance starting up in less than a second.
+The following GIF was made with a local KinD cluster on a 32 RAM and 8 CPU cores machine.
+![watch pods](https://github.com/zitadel/zitadel-charts/raw/main/watch-pods.gif "Watch Pods")
 
 ## Route traffic to ZITADEL
 
