@@ -30,9 +30,6 @@ zitadel:
   # See all defaults here:
   # https://github.com/zitadel/zitadel/blob/v2-alpha/cmd/defaults.yaml
   secretConfig:
-    Database:
-      User:
-        Password: ""
 
   # ZITADEL uses the masterkey for symmetric encryption.
   # You can generate it for example with tr -dc A-Za-z0-9 </dev/urandom | head -c 32
@@ -43,6 +40,9 @@ zitadel:
 
   # The Secret containing the root CA Certificate at key ca.crt needed for establishing secure database connections
   dbSslRootCrtSecret: 'crdb-ca-secret'
+
+  # The Secret containing the client CA Certificate and key at tls.crt and tls.key needed for establishing secure database connections
+  dbSslClientCrtSecret: 'crdb-client-secret'
 
 replicaCount: 3
 
