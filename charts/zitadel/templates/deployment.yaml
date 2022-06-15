@@ -56,7 +56,7 @@ spec:
             - name: ZITADEL_ADMINUSER_SSL_ROOTCERT
               value: /.secrets/ca.crt
             {{- end}}
-            {{- if .Values.cockroachdb.enabled }}
+            {{- if .Values.zitadel.dbSslClientCrtSecret }}
             - name: ZITADEL_ADMINUSER_SSL_CERT
               value: /.secrets/tls.crt
             - name: ZITADEL_ADMINUSER_SSL_KEY
@@ -77,9 +77,9 @@ spec:
         - args:
           - "{{ include "zitadel.joincpcommands" (dict "commands" (list
             (include "zitadel.makecpcommand" (dict "value" .Values.zitadel.secretConfig "path" "/zitadel-secrets-yaml/*" ))
-            (include "zitadel.makecpcommand" (dict "value" (or .Values.zitadel.dbSslRootCrt .Values.zitadel.dbSslRootCrtSecret) "path" "/db-ssl-root-crt/*" ))
             (include "zitadel.makecpcommand" (dict "value" .Values.zitadel.masterkey "path" "/zitadel-masterkey/*" ))
-            (include "zitadel.makecpcommand" (dict "value" .Values.cockroachdb.enabled "path" "/root-certs/*" ))
+            (include "zitadel.makecpcommand" (dict "value" (or .Values.zitadel.dbSslRootCrt .Values.zitadel.dbSslRootCrtSecret) "path" "/db-ssl-root-crt/*" ))
+            (include "zitadel.makecpcommand" (dict "value" .Values.zitadel.dbSslClientCrtSecret "path" "/db-ssl-client-crt/*" ))
           )) }} chown -R 1000:1000 /chowned-secrets/* && chmod 400 /chowned-secrets/*"
           command:
           - sh
@@ -100,9 +100,9 @@ spec:
           - name: db-ssl-root-crt
             mountPath: /db-ssl-root-crt
           {{- end}}
-          {{- if .Values.cockroachdb.enabled }}
-          - name: root-certs
-            mountPath: /root-certs
+          {{- if (and .Values.cockroachdb.enabled .Values.cockroachdb.tls.enabled) }}
+          - name: db-ssl-client-crt
+            mountPath: /db-ssl-client-crt
           {{- end}}
           securityContext:
             runAsNonRoot: false
@@ -111,25 +111,25 @@ spec:
       - name: zitadel-config-yaml
         configMap:
           name: zitadel-config-yaml
-      {{- if .Values.zitadel.secretConfig }}
+      {{- if (not ( empty .Values.zitadel.secretConfig)) }}
       - name: zitadel-secrets-yaml
         secret:
           secretName: zitadel-secrets-yaml
       {{- end }}
-      {{- if .Values.zitadel.dbSslRootCrt }}
+      {{- if (not ( empty .Values.zitadel.dbSslRootCrt)) }}
       - name: db-ssl-root-crt
         secret:
           secretName: db-ssl-root-crt
       {{- end }}
-      {{- if .Values.zitadel.dbSslRootCrtSecret }}
+      {{- if (not ( empty .Values.zitadel.dbSslRootCrtSecret )) }}
       - name: db-ssl-root-crt
         secret:
           secretName: {{.Values.zitadel.dbSslRootCrtSecret}}
       {{- end }}
-      {{- if .Values.cockroachdb.enabled }}
-      - name: root-certs
+      {{- if (not ( empty .Values.zitadel.dbSslClientCrtSecret )) }}
+      - name: db-ssl-client-crt
         secret:
-          secretName: crdb-client-secret
+          secretName: {{.Values.zitadel.dbSslClientCrtSecret}}
       {{- end }}
       - name: zitadel-masterkey
         secret:
