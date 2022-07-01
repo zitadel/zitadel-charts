@@ -39,7 +39,7 @@ helm install --namespace zitadel --create-namespace my-zitadel zitadel/zitadel \
   --set zitadel.masterkey=${ZITADEL_MASTERKEY} \
   --set zitadel.secretConfig.Database.User.Password=${ZITADEL_CRDB_PASSWORD} \
   --set zitadel.configmapConfig.ExternalDomain=${ZITADEL_DOMAIN} \
-  --set zitadel.configmapConfig.S3CustomDomain=${ZITADEL_DOMAIN}
+  --set zitadel.configmapConfig.S3DefaultInstance.CustomDomain=${ZITADEL_DOMAIN}
 ```
 
 Enjoy watching a highly available and secure ZITADEL instance starting up in less than a second.
@@ -49,5 +49,10 @@ The following GIF was made with a local KinD cluster on a 32 RAM and 8 CPU cores
 ## Route traffic to ZITADEL
 
 You can use the Ingress resource from the ZITADEL chart to route traffic to ZITADEL.
-Make sure your network sends end-to-end HTTP/2 traffic.
+Make sure your network sends [end-to-end HTTP/2](https://docs.zitadel.com/docs/guides/installation/http2-support) traffic.
 
+## Login
+
+Use the zitadel admin user for the initial login:
+- *username*: zitadel-admin@zitadel.my.domain
+- *password*: Password1!
