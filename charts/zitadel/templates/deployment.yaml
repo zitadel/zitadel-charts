@@ -101,7 +101,7 @@ spec:
           - name: db-ssl-root-crt
             mountPath: /db-ssl-root-crt
           {{- end}}
-          {{- if (and .Values.cockroachdb.enabled .Values.cockroachdb.tls.enabled) }}
+          {{- if (not ( empty .Values.zitadel.dbSslClientCrtSecret )) }}
           - name: db-ssl-client-crt
             mountPath: /db-ssl-client-crt
           {{- end}}
