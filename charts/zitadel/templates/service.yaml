@@ -11,5 +11,6 @@ spec:
       targetPort: 8080
       protocol: TCP
       name: server
+      appProtocol: http2
   selector:
     {{- include "zitadel.selectorLabels" . | nindent 4 }}
