@@ -33,7 +33,7 @@ ZITADEL_MASTERKEY=$(tr -dc A-Za-z0-9 </dev/urandom | head -c 32)
 ZITADEL_CRDB_PASSWORD=$(tr -dc A-Za-z0-9 </dev/urandom | head -c 32)
 
 # configure your domain
-ZITADEL_DOMAIN=zitadel.mydomain.com
+ZITADEL_DOMAIN=my.domain
 
 helm install --namespace zitadel --create-namespace my-zitadel zitadel/zitadel \
   --set zitadel.masterkey=${ZITADEL_MASTERKEY} \
