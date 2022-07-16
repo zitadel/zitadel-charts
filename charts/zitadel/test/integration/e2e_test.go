@@ -14,7 +14,7 @@ func (s *integrationTest) TestZITADELEnd2End() {
 		SetStrValues: map[string]string{
 			"zitadel.masterkey":                           "x123456789012345678901234567891y",
 			"zitadel.secretConfig.Database.User.Password": "xy",
-			"zitadel.configmapConfig.ExternalDomain":      "test.domain",
+			"zitadel.configmapConfig.ExternalPort":        "8080",
 		},
 	}
 
