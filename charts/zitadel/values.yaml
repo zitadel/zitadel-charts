@@ -81,6 +81,7 @@ securityContext: {}
 service:
   type: ClusterIP
   port: 80
+  protocol: http2
 
 ingress:
   enabled: false

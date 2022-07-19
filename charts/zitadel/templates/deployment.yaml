@@ -68,7 +68,7 @@ spec:
             {{- end}}
           ports:
           - containerPort: 8080
-            name: server
+            name: {{ .Values.service.protocol }}-server
             protocol: TCP
           volumeMounts:
           - name: zitadel-config-yaml
