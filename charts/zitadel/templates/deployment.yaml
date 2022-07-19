@@ -11,10 +11,13 @@ spec:
       {{- include "zitadel.selectorLabels" . | nindent 6 }}
   template:
     metadata:
-      {{- with .Values.podAnnotations }}
       annotations:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
+        {{- with .Values.podAnnotations }}
+          {{- toYaml . | nindent 8 }}
+        {{- end }}
+        checksum/configmap: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
+        checksum/secret-db-ssl-root-crt: {{ include (print $.Template.BasePath "/secret_db-ssl-root-crt.yaml") . | sha256sum }}
+        checksum/secret-zitadel-secrets: {{ include (print $.Template.BasePath "/secret_zitadel-secrets.yaml") . | sha256sum }}
       labels:
         {{- include "zitadel.selectorLabels" . | nindent 8 }}
     spec:
@@ -25,6 +28,7 @@ spec:
       serviceAccountName: {{ include "zitadel.serviceAccountName" . }}
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      enableServiceLinks: false
       containers:
         - name: {{ .Chart.Name }}
           securityContext:
@@ -64,7 +68,7 @@ spec:
             {{- end}}
           ports:
           - containerPort: 8080
-            name: server
+            name: {{ .Values.service.protocol }}-server
             protocol: TCP
           volumeMounts:
           - name: zitadel-config-yaml
@@ -100,7 +104,7 @@ spec:
           - name: db-ssl-root-crt
             mountPath: /db-ssl-root-crt
           {{- end}}
-          {{- if (and .Values.cockroachdb.enabled .Values.cockroachdb.tls.enabled) }}
+          {{- if (not ( empty .Values.zitadel.dbSslClientCrtSecret )) }}
           - name: db-ssl-client-crt
             mountPath: /db-ssl-client-crt
           {{- end}}
