@@ -1,6 +1,3 @@
-{{- if (not .Values.zitadel.configmapConfig.ExternalDomain )}}
-{{- fail ".Values.zitadel.configmapConfig.ExternalDomain is mandatory"}}
-{{- end }}
 apiVersion: v1
 kind: ConfigMap
 metadata:

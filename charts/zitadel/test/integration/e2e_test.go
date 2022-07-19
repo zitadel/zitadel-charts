@@ -3,8 +3,8 @@ package integration
 import (
 	"github.com/gruntwork-io/terratest/modules/helm"
 	"github.com/gruntwork-io/terratest/modules/k8s"
-	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"time"
+	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 func (s *integrationTest) TestZITADELEnd2End() {
@@ -14,7 +14,7 @@ func (s *integrationTest) TestZITADELEnd2End() {
 		SetStrValues: map[string]string{
 			"zitadel.masterkey":                           "x123456789012345678901234567891y",
 			"zitadel.secretConfig.Database.User.Password": "xy",
-			"zitadel.configmapConfig.ExternalDomain":      "test.domain",
+			"zitadel.configmapConfig.ExternalPort":        "8080",
 		},
 	}
 
@@ -23,10 +23,15 @@ func (s *integrationTest) TestZITADELEnd2End() {
 
 	// then
 	// await that all zitadel related pods become ready
-	pods := k8s.ListPods(s.T(), s.kubeOptions, v1.ListOptions{LabelSelector: `app.kubernetes.io/instance=zitadel-test, app.kubernetes.io/component notin (init)`})
-
-	for _, pod := range pods {
-		k8s.WaitUntilPodAvailable(s.T(), s.kubeOptions, pod.Name, 180, time.Second)
+	pods := k8s.ListPods(s.T(), s.kubeOptions, metav1.ListOptions{LabelSelector: `app.kubernetes.io/instance=zitadel-test, app.kubernetes.io/component notin (init)`})
+	s.awaitAvailability(pods)
+	zitadelPods := make([]corev1.Pod, 0)
+	for i := range pods {
+		pod := pods[i]
+		if name, ok := pod.GetObjectMeta().GetLabels()["app.kubernetes.io/name"]; ok && name == "zitadel" {
+			zitadelPods = append(zitadelPods, pod)
+		}
 	}
-
+	s.awaitListening(zitadelPods)
+	s.awaitAccessibility(zitadelPods)
 }

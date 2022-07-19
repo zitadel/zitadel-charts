@@ -4,7 +4,9 @@
 package integration
 
 import (
+	"context"
 	"github.com/gruntwork-io/terratest/modules/k8s"
+	"github.com/gruntwork-io/terratest/modules/logger"
 	"github.com/gruntwork-io/terratest/modules/random"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
@@ -23,6 +25,8 @@ func TestIntegration(t *testing.T) {
 	kubeOptions := k8s.NewKubectlOptions("", "", namespace)
 
 	it := &integrationTest{
+		context:     context.Background(),
+		log:         logger.New(logger.Terratest),
 		chartPath:   chartPath,
 		release:     "zitadel-test",
 		namespace:   namespace,
