@@ -137,7 +137,7 @@ spec:
       {{- end }}
       - name: zitadel-masterkey
         secret:
-          secretName: zitadel-masterkey
+          secretName: {{ default "zitadel-masterkey" .Values.zitadel.existingSecretMasterkey }}
       - name: chowned-secrets
         emptyDir: {}
       {{- with .Values.nodeSelector }}
