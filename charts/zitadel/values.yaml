@@ -8,16 +8,9 @@ zitadel:
 
     Log:
       Level: info
-      Formatter:
-        Format: text
-
-    ExternalSecure: true
 
     Database:
       Host: "crdb-public"
-      MaxOpenConns: 100
-      MaxConnLifetime: 30m
-      MaxConnIdleTime: 5m
       User:
         SSL:
           Mode: "verify-full"
@@ -25,6 +18,13 @@ zitadel:
     AdminUser:
       SSL:
         Mode: "verify-full"
+
+    Machine:
+      Identification:
+        Hostname:
+          Enabled: true
+        Webhook:
+          Enabled: false
 
   # The ZITADEL config under secretConfig is written to a Kubernetes Secret
   # See all defaults here:
@@ -80,7 +80,7 @@ securityContext: {}
 
 service:
   type: ClusterIP
-  port: 80
+  port: 8080
   protocol: http2
 
 ingress:

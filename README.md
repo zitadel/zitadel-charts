@@ -34,7 +34,9 @@ ZITADEL_CRDB_PASSWORD=$(tr -dc A-Za-z0-9 </dev/urandom | head -c 32)
 # install a zitadel release that is accessible via port forwarding to localhost
 helm install --namespace zitadel --create-namespace my-zitadel zitadel/zitadel \
   --set zitadel.masterkey=${ZITADEL_MASTERKEY} \
-  --set zitadel.secretConfig.Database.User.Password=${ZITADEL_CRDB_PASSWORD} 
+  --set zitadel.secretConfig.Database.User.Password=${ZITADEL_CRDB_PASSWORD} \
+  --set zitadel.configmapConfig.ExternalSecure=false \
+  --set zitadel.configmapConfig.TLS.Enabled=false
 ```
 
 Enjoy watching a highly available and secure ZITADEL instance starting up in less than a minute.
