@@ -1,0 +1,30 @@
+{{- if and .Values.metrics.enabled .Values.metrics.serviceMonitor.enabled }}
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ include "zitadel.fullname" . }}
+  {{- if .Values.metrics.serviceMonitor.namespace }}
+  namespace: {{ .Values.metrics.serviceMonitor.namespace }}
+  {{- end }}
+  labels:
+    {{- include "zitadel.labels" . | nindent 4 }}
+    {{- if .Values.metrics.serviceMonitor.additionalLabels }}
+        {{- toYaml .Values.metrics.serviceMonitor.additionalLabels | nindent 4 }}
+    {{- end }}
+spec:
+  endpoints:
+  - interval: "{{ .Values.metrics.serviceMonitor.interval }}"
+    port: {{ .Values.service.protocol }}-server
+    {{- if .Values.metrics.serviceMonitor.relabellings }}
+    metricRelabelings:
+      {{- toYaml .Values.metrics.serviceMonitor.relabellings | indent 6 }}
+    {{- end }}
+    path: /debug/metrics
+  jobLabel: {{ include "zitadel.fullname" . }}
+  namespaceSelector:
+    matchNames:
+    - "{{ $.Release.Namespace }}"
+  selector:
+    matchLabels:
+    {{- include "zitadel.selectorLabels" . | nindent 6 }}
+{{- end }}

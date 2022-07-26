@@ -88,7 +88,7 @@ ingress:
   className: ""
   annotations: {}
   hosts:
-    - host: chart-example.local
+    - host: localhost
       paths:
         - path: /
           pathType: Prefix
@@ -101,6 +101,19 @@ nodeSelector: {}
 tolerations: []
 
 affinity: {}
+
+metrics:
+  enabled: false
+  serviceMonitor:
+
+    # If true, the chart creates a ServiceMonitor that is compatible with Prometheus Operator
+    # https://github.com/prometheus-operator/prometheus-operator.
+    # The Prometheus community Helm chart installs this operator
+    # https://github.com/prometheus-community/helm-charts/tree/main/charts/kube-prometheus-stack#kube-prometheus-stack
+    enabled: false
+    interval: 30s
+    additionalLabels: {}
+    relabellings: []
 
 cockroachdb:
   enabled: true
