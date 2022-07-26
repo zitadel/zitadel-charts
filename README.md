@@ -45,6 +45,13 @@ The following GIF was made with a local KinD cluster on a 32 RAM and 8 CPU cores
 
 ## Login
 
+Forward the ZITADEL port to localhost.
+
+```
+kubectl -n zitadel port-forward svc/my-zitadel 8080
+```
+
+Open your favourite browser at http://localhost:8080/ui/console.
 Use the zitadel admin user for the initial login:
 - *username*: zitadel-admin@zitadel.localhost
 - *password*: Password1!
