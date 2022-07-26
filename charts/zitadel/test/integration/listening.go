@@ -13,7 +13,7 @@ import (
 )
 
 func (s *integrationTest) awaitListening(pods []corev1.Pod) {
-	ctx, cancel := context.WithTimeout(s.context, 5*time.Minute)
+	ctx, cancel := context.WithTimeout(s.context, 10*time.Minute)
 	defer cancel()
 
 	k8sClient, err := k8s.GetKubernetesClientE(s.T())
