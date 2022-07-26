@@ -6,9 +6,6 @@ zitadel:
   # https://github.com/zitadel/zitadel/blob/v2-alpha/cmd/defaults.yaml
   configmapConfig:
 
-    Log:
-      Level: info
-
     Database:
       Host: "crdb-public"
       User:
