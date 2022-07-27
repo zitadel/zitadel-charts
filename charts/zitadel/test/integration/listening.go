@@ -3,17 +3,18 @@ package integration
 import (
 	"bufio"
 	"context"
-	"github.com/gruntwork-io/terratest/modules/k8s"
-	corev1 "k8s.io/api/core/v1"
-	v1 "k8s.io/client-go/kubernetes/typed/core/v1"
 	"strings"
 	"sync"
 	"testing"
 	"time"
+
+	"github.com/gruntwork-io/terratest/modules/k8s"
+	corev1 "k8s.io/api/core/v1"
+	v1 "k8s.io/client-go/kubernetes/typed/core/v1"
 )
 
 func (s *integrationTest) awaitListening(pods []corev1.Pod) {
-	ctx, cancel := context.WithTimeout(s.context, 10*time.Minute)
+	ctx, cancel := context.WithTimeout(s.context, 15*time.Minute)
 	defer cancel()
 
 	k8sClient, err := k8s.GetKubernetesClientE(s.T())
