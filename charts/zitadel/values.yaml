@@ -104,13 +104,12 @@ metrics:
   serviceMonitor:
 
     # If true, the chart creates a ServiceMonitor that is compatible with Prometheus Operator
-    # https://github.com/prometheus-operator/prometheus-operator.
+    # https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api.md#monitoring.coreos.com/v1.ServiceMonitor.
     # The Prometheus community Helm chart installs this operator
     # https://github.com/prometheus-community/helm-charts/tree/main/charts/kube-prometheus-stack#kube-prometheus-stack
     enabled: false
-    interval: 30s
-    additionalLabels: {}
-    relabellings: []
+    honorLabels: false
+    honorTimestamps: true
 
 cockroachdb:
   enabled: true

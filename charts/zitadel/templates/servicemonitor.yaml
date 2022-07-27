@@ -13,13 +13,33 @@ metadata:
     {{- end }}
 spec:
   endpoints:
-  - interval: "{{ .Values.metrics.serviceMonitor.interval }}"
-    port: {{ .Values.service.protocol }}-server
+  - port: {{ .Values.service.protocol }}-server
+    {{- if .Values.metrics.serviceMonitor.scrapeInterval }}
+    interval: {{ .Values.metrics.serviceMonitor.scrapeInterval }}
+    {{- end }}
+    {{- if .Values.metrics.serviceMonitor.scrapeTimeout }}
+    scrapeTimeout: {{ .Values.metrics.serviceMonitor.scrapeTimeout }}
+    {{- end }}
     {{- if .Values.metrics.serviceMonitor.relabellings }}
-    metricRelabelings:
+    relabelings:
       {{- toYaml .Values.metrics.serviceMonitor.relabellings | indent 6 }}
     {{- end }}
+    {{- if .Values.metrics.serviceMonitor.metricRelabellings }}
+    metricRelabelings:
+      {{- toYaml .Values.metrics.serviceMonitor.metricRelabellings | indent 6 }}
+    {{- end }}
     path: /debug/metrics
+    {{- if .Values.metrics.serviceMonitor.scheme }}
+    scheme: {{ .Values.metrics.serviceMonitor.scheme }}
+    {{- end }}
+    {{- if .Values.metrics.serviceMonitor.tlsConfig }}
+    tlsConfig: {{ .Values.metrics.serviceMonitor.tlsConfig }}
+    {{- end }}
+    {{- if .Values.metrics.serviceMonitor.proxyUrl }}
+    proxyUrl: {{ .Values.metrics.serviceMonitor.proxyUrl }}
+    {{- end }}
+    honorLabels: {{ .Values.metrics.serviceMonitor.honorLabels }}
+    honorTimestamps: {{ .Values.metrics.serviceMonitor.honorTimestamps }}
   jobLabel: {{ include "zitadel.fullname" . }}
   namespaceSelector:
     matchNames:
