@@ -69,6 +69,18 @@ spec:
           - containerPort: 8080
             name: {{ .Values.service.protocol }}-server
             protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /debug/healthz
+              port: {{ .Values.service.protocol }}-server
+            initialDelaySeconds: 60
+            periodSeconds: 5
+          readinessProbe:
+            httpGet:
+              path: /debug/ready
+              port: {{ .Values.service.protocol }}-server
+            initialDelaySeconds: 60
+            periodSeconds: 5
           volumeMounts:
           - name: zitadel-config-yaml
             mountPath: /config

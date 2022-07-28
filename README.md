@@ -36,6 +36,7 @@ helm install --namespace zitadel --create-namespace my-zitadel zitadel/zitadel \
   --set zitadel.masterkey=${ZITADEL_MASTERKEY} \
   --set zitadel.secretConfig.Database.User.Password=${ZITADEL_CRDB_PASSWORD} \
   --set zitadel.configmapConfig.ExternalSecure=false \
+  --set zitadel.configmapConfig.ExternalPort=8080 \
   --set zitadel.configmapConfig.TLS.Enabled=false
 ```
 

@@ -4,16 +4,16 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/gruntwork-io/terratest/modules/k8s"
-	"github.com/gruntwork-io/terratest/modules/logger"
 	"io"
 	"io/ioutil"
-	corev1 "k8s.io/api/core/v1"
 	"net/http"
 	"strings"
 	"sync"
 	"testing"
 	"time"
+
+	"github.com/gruntwork-io/terratest/modules/k8s"
+	corev1 "k8s.io/api/core/v1"
 )
 
 type checkOptions struct {
@@ -21,26 +21,31 @@ type checkOptions struct {
 	test   func(response *http.Response) error
 }
 
-func (c *checkOptions) execute(t *testing.T, log *logger.Logger) bool {
-	resp, err := http.Get(c.getUrl)
-	if errors.Is(err, io.EOF) {
-		log.Logf(t, "checking url %s: %s", c.getUrl, err)
-		return false
-	}
+func (c *checkOptions) execute(ctx context.Context, t *testing.T, wg *sync.WaitGroup) {
+	checkCtx, checkCancel := context.WithTimeout(ctx, 5*time.Second)
+	defer checkCancel()
+	defer wg.Done()
+	req, err := http.NewRequestWithContext(checkCtx, http.MethodGet, c.getUrl, nil)
 	if err != nil {
 		t.Fatal(err)
+		return
+	}
+
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		t.Fatal(err)
+		return
 	}
 	defer resp.Body.Close()
 
-	if err := c.test(resp); err != nil {
-		log.Logf(t, "checking url %s: %s", c.getUrl, err)
-		return false
+	if err = c.test(resp); err != nil {
+		t.Fatal(err)
+		return
 	}
-	return true
 }
 
-func (s *integrationTest) awaitAccessibility(pods []corev1.Pod) {
-	ctx, cancel := context.WithTimeout(s.context, 5*time.Minute)
+func (s *integrationTest) checkAccessibility(pods []corev1.Pod) {
+	ctx, cancel := context.WithTimeout(s.context, time.Minute)
 	defer cancel()
 
 	k8s.NewTunnel(s.kubeOptions, k8s.ResourceTypeService, s.release, 8080, 8080).ForwardPort(s.T())
@@ -60,8 +65,8 @@ func (s *integrationTest) awaitAccessibility(pods []corev1.Pod) {
 			bodyStr := string(body)
 
 			for _, expect := range []string{
-				`"api":"https://localhost:8080"`,
-				`"issuer":"https://localhost:8080"`,
+				`"api":"http://localhost:8080"`,
+				`"issuer":"http://localhost:8080"`,
 			} {
 				if !strings.Contains(bodyStr, expect) {
 					return fmt.Errorf("couldn't find %s in environment.json content %s", expect, bodyStr)
@@ -82,19 +87,9 @@ func (s *integrationTest) awaitAccessibility(pods []corev1.Pod) {
 	wg := sync.WaitGroup{}
 	for _, check := range checks {
 		wg.Add(1)
-		go executeChecks(s.T(), s.log, &wg, check)
+		go check.execute(ctx, s.T(), &wg)
 	}
 	wait(ctx, s.T(), &wg, "accessibility")
-}
-
-func executeChecks(t *testing.T, log *logger.Logger, wg *sync.WaitGroup, check *checkOptions) {
-	for {
-		if check.execute(t, log) {
-			break
-		}
-		time.Sleep(time.Second)
-	}
-	wg.Done()
 }
 
 func zitadelStatusChecks(port int) []*checkOptions {
