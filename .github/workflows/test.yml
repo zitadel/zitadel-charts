@@ -45,9 +45,11 @@ jobs:
 
     - id: 'add-cockroachdb-repo'
       run: 'helm repo add cockroachdb https://charts.cockroachdb.com/'
+      if: steps.list-changed.outputs.changed == 'true'
 
     - id: 'lint'
       run: 'ct lint --target-branch ${{ github.event.repository.default_branch }}'
+      if: steps.list-changed.outputs.changed == 'true'
 
     - name: 'create-kind'
       uses: 'helm/kind-action@v1.2.0'
@@ -58,4 +60,4 @@ jobs:
 
     - name: 'test'
       run: 'go test -tags integration ./...'
-
+      if: steps.list-changed.outputs.changed == 'true'
