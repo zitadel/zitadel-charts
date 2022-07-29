@@ -50,6 +50,6 @@ Use the zitadel admin user for the initial login:
 ## Configuring ZITADEL
 
 For learning how to run ZITADEL in production, please read the following docs:
-- [configuration docs](https://docs.zitadel.com/docs/guides/installation/configure)
-- [load balancing example docs](https://docs.zitadel.com/docs/guides/installation/loadbalancing-example)
+- [configuration docs](https://docs.zitadel.com/docs/guides/manage/self-hosted/configure)
+- [load balancing example docs](https://docs.zitadel.com/docs/guides/deploy/loadbalancing-example)
 
