@@ -9,9 +9,6 @@ zitadel:
     Database:
       cockroach:
         Host: "crdb-public"
-        MaxOpenConns: 100
-        MaxConnLifetime: 30m
-        MaxConnIdleTime: 5m
         User:
           SSL:
             Mode: "verify-full"
