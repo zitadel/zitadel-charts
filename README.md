@@ -34,7 +34,10 @@ ZITADEL_CRDB_PASSWORD=$(tr -dc A-Za-z0-9 </dev/urandom | head -c 32)
 # install a zitadel release that is accessible via port forwarding to localhost
 helm install --namespace zitadel --create-namespace my-zitadel zitadel/zitadel \
   --set zitadel.masterkey=${ZITADEL_MASTERKEY} \
-  --set zitadel.secretConfig.Database.User.Password=${ZITADEL_CRDB_PASSWORD} 
+  --set zitadel.secretConfig.Database.User.Password=${ZITADEL_CRDB_PASSWORD} \
+  --set zitadel.configmapConfig.ExternalSecure=false \
+  --set zitadel.configmapConfig.ExternalPort=8080 \
+  --set zitadel.configmapConfig.TLS.Enabled=false
 ```
 
 Enjoy watching a highly available and secure ZITADEL instance starting up in less than a minute.
@@ -43,6 +46,13 @@ The following GIF was made with a local KinD cluster on a 32 RAM and 8 CPU cores
 
 ## Login
 
+Forward the ZITADEL port to localhost.
+
+```
+kubectl -n zitadel port-forward svc/my-zitadel 8080
+```
+
+Open your favourite browser at http://localhost:8080/ui/console.
 Use the zitadel admin user for the initial login:
 - *username*: zitadel-admin@zitadel.localhost
 - *password*: Password1!
