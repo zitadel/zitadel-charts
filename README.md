@@ -34,7 +34,7 @@ ZITADEL_CRDB_PASSWORD=$(tr -dc A-Za-z0-9 </dev/urandom | head -c 32)
 # install a zitadel release that is accessible via port forwarding to localhost
 helm install --namespace zitadel --create-namespace my-zitadel zitadel/zitadel \
   --set zitadel.masterkey=${ZITADEL_MASTERKEY} \
-  --set zitadel.secretConfig.Database.User.Password=${ZITADEL_CRDB_PASSWORD} \
+  --set zitadel.secretConfig.Database.cockroach.User.Password=${ZITADEL_CRDB_PASSWORD} \
   --set zitadel.configmapConfig.ExternalSecure=false \
   --set zitadel.configmapConfig.ExternalPort=8080 \
   --set zitadel.configmapConfig.TLS.Enabled=false
@@ -60,6 +60,6 @@ Use the zitadel admin user for the initial login:
 ## Configuring ZITADEL
 
 For learning how to run ZITADEL in production, please read the following docs:
-- [configuration docs](https://docs.zitadel.com/docs/guides/installation/configure)
-- [load balancing example docs](https://docs.zitadel.com/docs/guides/installation/loadbalancing-example)
+- [configuration docs](https://docs.zitadel.com/docs/guides/manage/self-hosted/configure)
+- [load balancing example docs](https://docs.zitadel.com/docs/guides/deploy/loadbalancing-example)
 

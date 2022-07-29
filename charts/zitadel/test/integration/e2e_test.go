@@ -12,11 +12,11 @@ func (s *integrationTest) TestZITADELEnd2End() {
 	options := &helm.Options{
 		KubectlOptions: s.kubeOptions,
 		SetValues: map[string]string{
-			"zitadel.masterkey":                           "x123456789012345678901234567891y",
-			"zitadel.secretConfig.Database.User.Password": "xy",
-			"zitadel.configmapConfig.ExternalPort":        "8080",
-			"zitadel.configmapConfig.ExternalSecure":      "false",
-			"zitadel.configmapConfig.TLS.Enabled":         "false",
+			"zitadel.masterkey": "x123456789012345678901234567891y",
+			"zitadel.secretConfig.Database.cockroach.User.Password": "xy",
+			"zitadel.configmapConfig.ExternalPort":                  "8080",
+			"zitadel.configmapConfig.ExternalSecure":                "false",
+			"zitadel.configmapConfig.TLS.Enabled":                   "false",
 		},
 	}
 

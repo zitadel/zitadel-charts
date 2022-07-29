@@ -3,18 +3,18 @@ zitadel:
 
   # The ZITADEL config under configmapConfig is written to a Kubernetes ConfigMap
   # See all defaults here:
-  # https://github.com/zitadel/zitadel/blob/v2-alpha/cmd/defaults.yaml
+  # https://github.com/zitadel/zitadel/blob/main/cmd/defaults.yaml
   configmapConfig:
 
     Database:
-      Host: "crdb-public"
-      User:
-        SSL:
-          Mode: "verify-full"
-
-    AdminUser:
-      SSL:
-        Mode: "verify-full"
+      cockroach:
+        Host: "crdb-public"
+        User:
+          SSL:
+            Mode: "verify-full"
+        Admin:
+          SSL:
+            Mode: "verify-full"
 
     Machine:
       Identification:
@@ -25,7 +25,7 @@ zitadel:
 
   # The ZITADEL config under secretConfig is written to a Kubernetes Secret
   # See all defaults here:
-  # https://github.com/zitadel/zitadel/blob/v2-alpha/cmd/defaults.yaml
+  # https://github.com/zitadel/zitadel/blob/main/cmd/defaults.yaml
   secretConfig:
 
   # ZITADEL uses the masterkey for symmetric encryption.

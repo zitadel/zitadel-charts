@@ -54,15 +54,15 @@ spec:
                   apiVersion: v1
                   fieldPath: status.podIP
             {{- if (or .Values.zitadel.dbSslRootCrt .Values.zitadel.dbSslRootCrtSecret) }}
-            - name: ZITADEL_DATABASE_USER_SSL_ROOTCERT
+            - name: ZITADEL_DATABASE_COCKROACH_USER_SSL_ROOTCERT
               value: /.secrets/ca.crt
-            - name: ZITADEL_ADMINUSER_SSL_ROOTCERT
+            - name: ZITADEL_DATABASE_COCKROACH_ADMIN_SSL_ROOTCERT
               value: /.secrets/ca.crt
             {{- end}}
             {{- if .Values.zitadel.dbSslClientCrtSecret }}
-            - name: ZITADEL_ADMINUSER_SSL_CERT
+            - name: ZITADEL_DATABASE_COCKROACH_ADMIN_SSL_CERT
               value: /.secrets/tls.crt
-            - name: ZITADEL_ADMINUSER_SSL_KEY
+            - name: ZITADEL_DATABASE_COCKROACH_ADMIN_SSL_KEY
               value: /.secrets/tls.key
             {{- end}}
           ports:
