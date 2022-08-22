@@ -36,7 +36,6 @@ spec:
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           args:
-            - admin
             - start-from-init
             - --config
             - /config/zitadel-config-yaml
@@ -55,21 +54,33 @@ spec:
                   apiVersion: v1
                   fieldPath: status.podIP
             {{- if (or .Values.zitadel.dbSslRootCrt .Values.zitadel.dbSslRootCrtSecret) }}
-            - name: ZITADEL_DATABASE_USER_SSL_ROOTCERT
+            - name: ZITADEL_DATABASE_COCKROACH_USER_SSL_ROOTCERT
               value: /.secrets/ca.crt
-            - name: ZITADEL_ADMINUSER_SSL_ROOTCERT
+            - name: ZITADEL_DATABASE_COCKROACH_ADMIN_SSL_ROOTCERT
               value: /.secrets/ca.crt
             {{- end}}
             {{- if .Values.zitadel.dbSslClientCrtSecret }}
-            - name: ZITADEL_ADMINUSER_SSL_CERT
+            - name: ZITADEL_DATABASE_COCKROACH_ADMIN_SSL_CERT
               value: /.secrets/tls.crt
-            - name: ZITADEL_ADMINUSER_SSL_KEY
+            - name: ZITADEL_DATABASE_COCKROACH_ADMIN_SSL_KEY
               value: /.secrets/tls.key
             {{- end}}
           ports:
           - containerPort: 8080
             name: {{ .Values.service.protocol }}-server
             protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /debug/healthz
+              port: {{ .Values.service.protocol }}-server
+            initialDelaySeconds: 60
+            periodSeconds: 5
+          readinessProbe:
+            httpGet:
+              path: /debug/ready
+              port: {{ .Values.service.protocol }}-server
+            initialDelaySeconds: 60
+            periodSeconds: 5
           volumeMounts:
           - name: zitadel-config-yaml
             mountPath: /config

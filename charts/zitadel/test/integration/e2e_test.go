@@ -11,10 +11,12 @@ func (s *integrationTest) TestZITADELEnd2End() {
 	// given
 	options := &helm.Options{
 		KubectlOptions: s.kubeOptions,
-		SetStrValues: map[string]string{
-			"zitadel.masterkey":                           "x123456789012345678901234567891y",
-			"zitadel.secretConfig.Database.User.Password": "xy",
-			"zitadel.configmapConfig.ExternalPort":        "8080",
+		SetValues: map[string]string{
+			"zitadel.masterkey": "x123456789012345678901234567891y",
+			"zitadel.secretConfig.Database.cockroach.User.Password": "xy",
+			"zitadel.configmapConfig.ExternalPort":                  "8080",
+			"zitadel.configmapConfig.ExternalSecure":                "false",
+			"zitadel.configmapConfig.TLS.Enabled":                   "false",
 		},
 	}
 
@@ -24,7 +26,7 @@ func (s *integrationTest) TestZITADELEnd2End() {
 	// then
 	// await that all zitadel related pods become ready
 	pods := k8s.ListPods(s.T(), s.kubeOptions, metav1.ListOptions{LabelSelector: `app.kubernetes.io/instance=zitadel-test, app.kubernetes.io/component notin (init)`})
-	s.awaitAvailability(pods)
+	s.awaitReadiness(pods)
 	zitadelPods := make([]corev1.Pod, 0)
 	for i := range pods {
 		pod := pods[i]
@@ -32,6 +34,6 @@ func (s *integrationTest) TestZITADELEnd2End() {
 			zitadelPods = append(zitadelPods, pod)
 		}
 	}
-	s.awaitListening(zitadelPods)
-	s.awaitAccessibility(zitadelPods)
+	s.log.Logf(s.T(), "ZITADEL pods are ready")
+	s.checkAccessibility(zitadelPods)
 }

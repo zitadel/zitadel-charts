@@ -3,32 +3,29 @@ zitadel:
 
   # The ZITADEL config under configmapConfig is written to a Kubernetes ConfigMap
   # See all defaults here:
-  # https://github.com/zitadel/zitadel/blob/v2-alpha/cmd/defaults.yaml
+  # https://github.com/zitadel/zitadel/blob/main/cmd/defaults.yaml
   configmapConfig:
 
-    Log:
-      Level: info
-      Formatter:
-        Format: text
-
-    ExternalSecure: true
-
     Database:
-      Host: "crdb-public"
-      MaxOpenConns: 100
-      MaxConnLifetime: 30m
-      MaxConnIdleTime: 5m
-      User:
-        SSL:
-          Mode: "verify-full"
+      cockroach:
+        Host: "crdb-public"
+        User:
+          SSL:
+            Mode: "verify-full"
+        Admin:
+          SSL:
+            Mode: "verify-full"
 
-    AdminUser:
-      SSL:
-        Mode: "verify-full"
+    Machine:
+      Identification:
+        Hostname:
+          Enabled: true
+        Webhook:
+          Enabled: false
 
   # The ZITADEL config under secretConfig is written to a Kubernetes Secret
   # See all defaults here:
-  # https://github.com/zitadel/zitadel/blob/v2-alpha/cmd/defaults.yaml
+  # https://github.com/zitadel/zitadel/blob/main/cmd/defaults.yaml
   secretConfig:
 
   # ZITADEL uses the masterkey for symmetric encryption.
@@ -83,7 +80,7 @@ securityContext: {}
 
 service:
   type: ClusterIP
-  port: 80
+  port: 8080
   protocol: http2
 
 ingress:
@@ -91,7 +88,7 @@ ingress:
   className: ""
   annotations: {}
   hosts:
-    - host: chart-example.local
+    - host: localhost
       paths:
         - path: /
           pathType: Prefix
@@ -104,6 +101,18 @@ nodeSelector: {}
 tolerations: []
 
 affinity: {}
+
+metrics:
+  enabled: false
+  serviceMonitor:
+
+    # If true, the chart creates a ServiceMonitor that is compatible with Prometheus Operator
+    # https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api.md#monitoring.coreos.com/v1.ServiceMonitor.
+    # The Prometheus community Helm chart installs this operator
+    # https://github.com/prometheus-community/helm-charts/tree/main/charts/kube-prometheus-stack#kube-prometheus-stack
+    enabled: false
+    honorLabels: false
+    honorTimestamps: true
 
 cockroachdb:
   enabled: true
