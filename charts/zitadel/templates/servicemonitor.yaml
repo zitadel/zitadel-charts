@@ -33,7 +33,8 @@ spec:
     scheme: {{ .Values.metrics.serviceMonitor.scheme }}
     {{- end }}
     {{- if .Values.metrics.serviceMonitor.tlsConfig }}
-    tlsConfig: {{ .Values.metrics.serviceMonitor.tlsConfig }}
+    tlsConfig:
+      {{- toYaml .Values.metrics.serviceMonitor.tlsConfig | nindent 6 }}
     {{- end }}
     {{- if .Values.metrics.serviceMonitor.proxyUrl }}
     proxyUrl: {{ .Values.metrics.serviceMonitor.proxyUrl }}
