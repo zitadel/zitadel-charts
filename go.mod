@@ -4,6 +4,7 @@ go 1.17
 
 require (
 	github.com/gruntwork-io/terratest v0.40.15
+	github.com/jinzhu/copier v0.0.0-20190924061706-b57f9002281a
 	github.com/stretchr/testify v1.7.2
 	k8s.io/api v0.21.3
 	k8s.io/apimachinery v0.21.3

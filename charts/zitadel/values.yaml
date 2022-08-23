@@ -28,20 +28,28 @@ zitadel:
   # https://github.com/zitadel/zitadel/blob/main/cmd/defaults.yaml
   secretConfig:
 
+  # Reference the name of a secret that contains ZITADEL configuration.
+  # The key should be named "config-yaml".
+  configSecretName:
+
   # ZITADEL uses the masterkey for symmetric encryption.
   # You can generate it for example with tr -dc A-Za-z0-9 </dev/urandom | head -c 32
   masterkey: ''
   # Reference the name of the secret that contains the masterkey. The key should be named "zitadel-masterkey".
   # Note: `zitadel.masterkey` is ignored when `zitadel.existingSecretMasterkey` is set
-  existingSecretMasterkey: ""
+  masterkeySecretName: ""
 
   # The root CA Certificate needed for establishing secure database connections
   dbSslRootCrt: ''
 
   # The Secret containing the root CA Certificate at key ca.crt needed for establishing secure database connections
+  dbSslRootCrtSecretName: 'crdb-ca-secret'
+  # Deprecated: Use dbSslRootCrtSecretName instead
   dbSslRootCrtSecret: 'crdb-ca-secret'
 
   # The Secret containing the client CA Certificate and key at tls.crt and tls.key needed for establishing secure database connections
+  dbSslClientCrtSecretName: 'crdb-client-secret'
+  # Deprecated: Use dbSslClientCrtSecretName instead
   dbSslClientCrtSecret: 'crdb-client-secret'
 
 replicaCount: 3
