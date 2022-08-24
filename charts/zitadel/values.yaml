@@ -28,9 +28,16 @@ zitadel:
   # https://github.com/zitadel/zitadel/blob/main/cmd/defaults.yaml
   secretConfig:
 
+  # Reference the name of a secret that contains ZITADEL configuration.
+  # The key should be named "config-yaml".
+  configSecretName:
+
   # ZITADEL uses the masterkey for symmetric encryption.
   # You can generate it for example with tr -dc A-Za-z0-9 </dev/urandom | head -c 32
   masterkey: ''
+  # Reference the name of the secret that contains the masterkey. The key should be named "zitadel-masterkey".
+  # Note: Eighter zitadel.masterkey or zitadel.masterkeySecretName must be set
+  masterkeySecretName: ""
 
   # The root CA Certificate needed for establishing secure database connections
   dbSslRootCrt: ''

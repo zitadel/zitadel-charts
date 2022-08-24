@@ -42,11 +42,15 @@ spec:
             {{- if .Values.zitadel.secretConfig }}
             - --config
             - /.secrets/zitadel-secrets-yaml
-            {{- end}}
+            {{- end }}
+            {{- if .Values.zitadel.configSecretName }}
+            - --config
+            - /.secrets/config-yaml
+            {{- end }}
             - --steps
             - /config/zitadel-config-yaml
             - --masterkeyFile
-            - /.secrets/zitadel-masterkey
+            - /.secrets/masterkey
           env:
             - name: POD_IP
               valueFrom:
@@ -92,9 +96,11 @@ spec:
         - args:
           - "{{ include "zitadel.joincpcommands" (dict "commands" (list
             (include "zitadel.makecpcommand" (dict "value" .Values.zitadel.secretConfig "path" "/zitadel-secrets-yaml/*" ))
-            (include "zitadel.makecpcommand" (dict "value" .Values.zitadel.masterkey "path" "/zitadel-masterkey/*" ))
+            (include "zitadel.makecpcommand" (dict "value" .Values.zitadel.masterkey "path" "/masterkey/*" ))
+            (include "zitadel.makecpcommand" (dict "value" .Values.zitadel.masterkeySecretName "path" "/masterkey/*" ))
             (include "zitadel.makecpcommand" (dict "value" (or .Values.zitadel.dbSslRootCrt .Values.zitadel.dbSslRootCrtSecret) "path" "/db-ssl-root-crt/*" ))
             (include "zitadel.makecpcommand" (dict "value" .Values.zitadel.dbSslClientCrtSecret "path" "/db-ssl-client-crt/*" ))
+            (include "zitadel.makecpcommand" (dict "value" .Values.zitadel.configSecretName "path" "/zitadel-config-yaml/*" ))
           )) }} chown -R 1000:1000 /chowned-secrets/* && chmod 400 /chowned-secrets/*"
           command:
           - sh
@@ -105,20 +111,24 @@ spec:
           volumeMounts:
           - name: chowned-secrets
             mountPath: /chowned-secrets
-          - name: zitadel-masterkey
-            mountPath: /zitadel-masterkey
+          - name: masterkey
+            mountPath: /masterkey
           {{- if .Values.zitadel.secretConfig }}
           - name: zitadel-secrets-yaml
             mountPath: /zitadel-secrets-yaml
-          {{- end}}
+          {{- end }}
+          {{- if .Values.zitadel.configSecretName }}
+          - name: zitadel-secret-config-yaml
+            mountPath: /zitadel-config-yaml
+          {{- end }}
           {{- if (or .Values.zitadel.dbSslRootCrt .Values.zitadel.dbSslRootCrtSecret) }}
           - name: db-ssl-root-crt
             mountPath: /db-ssl-root-crt
-          {{- end}}
-          {{- if (not ( empty .Values.zitadel.dbSslClientCrtSecret )) }}
+          {{- end }}
+          {{- if .Values.zitadel.dbSslClientCrtSecret }}
           - name: db-ssl-client-crt
             mountPath: /db-ssl-client-crt
-          {{- end}}
+          {{- end }}
           securityContext:
             runAsNonRoot: false
             runAsUser: 0
@@ -126,29 +136,37 @@ spec:
       - name: zitadel-config-yaml
         configMap:
           name: zitadel-config-yaml
-      {{- if (not ( empty .Values.zitadel.secretConfig)) }}
+      {{- if .Values.zitadel.secretConfig }}
       - name: zitadel-secrets-yaml
         secret:
           secretName: zitadel-secrets-yaml
       {{- end }}
-      {{- if (not ( empty .Values.zitadel.dbSslRootCrt)) }}
+      {{- if .Values.zitadel.configSecretName }}
+      - name: zitadel-secret-config-yaml
+        secret:
+          secretName: {{ .Values.zitadel.configSecretName }}
+      {{- end }}
+      {{- if .Values.zitadel.dbSslRootCrt }}
       - name: db-ssl-root-crt
         secret:
           secretName: db-ssl-root-crt
       {{- end }}
-      {{- if (not ( empty .Values.zitadel.dbSslRootCrtSecret )) }}
+      {{- if .Values.zitadel.dbSslRootCrtSecret }}
       - name: db-ssl-root-crt
         secret:
-          secretName: {{.Values.zitadel.dbSslRootCrtSecret}}
+          secretName: {{ .Values.zitadel.dbSslRootCrtSecret }}
       {{- end }}
-      {{- if (not ( empty .Values.zitadel.dbSslClientCrtSecret )) }}
+      {{- if .Values.zitadel.dbSslClientCrtSecret }}
       - name: db-ssl-client-crt
         secret:
-          secretName: {{.Values.zitadel.dbSslClientCrtSecret}}
+          secretName: {{ .Values.zitadel.dbSslClientCrtSecret }}
       {{- end }}
-      - name: zitadel-masterkey
+{{- if (or (and .Values.zitadel.masterkey .Values.zitadel.masterkeySecretName) (and (not .Values.zitadel.masterkey) (not .Values.zitadel.masterkeySecretName)) ) }}
+{{- fail "Eighter set .Values.zitadel.masterkey or .Values.zitadel.masterkeySecretName exclusively" }}
+{{- end }}
+      - name: masterkey
         secret:
-          secretName: zitadel-masterkey
+          secretName: {{ default "zitadel-masterkey" .Values.zitadel.masterkeySecretName }}
       - name: chowned-secrets
         emptyDir: {}
       {{- with .Values.nodeSelector }}

@@ -1,4 +1,4 @@
-package integration
+package installation
 
 import (
 	"context"
@@ -44,11 +44,19 @@ func (c *checkOptions) execute(ctx context.Context, t *testing.T, wg *sync.WaitG
 	}
 }
 
-func (s *integrationTest) checkAccessibility(pods []corev1.Pod) {
+func (s *configurationTest) checkAccessibility(pods []corev1.Pod) {
 	ctx, cancel := context.WithTimeout(s.context, time.Minute)
 	defer cancel()
 
-	k8s.NewTunnel(s.kubeOptions, k8s.ResourceTypeService, s.release, 8080, 8080).ForwardPort(s.T())
+	serviceTunnel := k8s.NewTunnel(s.options.KubectlOptions, k8s.ResourceTypeService, s.release, 8080, 8080)
+	serviceTunnel.ForwardPort(s.T())
+
+	tunnels := []*k8s.Tunnel{serviceTunnel}
+	defer func() {
+		for _, t := range tunnels {
+			t.Close()
+		}
+	}()
 
 	checks := append(zitadelStatusChecks(8080), &checkOptions{
 		getUrl: "http://localhost:8080/ui/console/assets/environment.json",
@@ -80,7 +88,9 @@ func (s *integrationTest) checkAccessibility(pods []corev1.Pod) {
 		pod := pods[i]
 		port := 8081 + i
 
-		k8s.NewTunnel(s.kubeOptions, k8s.ResourceTypePod, pod.Name, port, 8080).ForwardPort(s.T())
+		podTunnel := k8s.NewTunnel(s.options.KubectlOptions, k8s.ResourceTypePod, pod.Name, port, 8080)
+		podTunnel.ForwardPort(s.T())
+		tunnels = append(tunnels, podTunnel)
 		checks = append(checks, zitadelStatusChecks(port)...)
 	}
 
