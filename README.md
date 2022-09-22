@@ -18,3 +18,9 @@ By default, this chart installs:
 ## Install the Chart
 
 Follow the [guide for deploying ZITADEL on Kubernetes](https://docs.zitadel.com/docs/guides/deploy/kubernetes).
+
+## Contributors
+
+<a href="https://github.com/zitadel/zitadel-charts/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=zitadel/zitadel-charts" />
+</a>
