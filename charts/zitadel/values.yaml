@@ -86,6 +86,7 @@ service:
   type: ClusterIP
   port: 8080
   protocol: http2
+  annotations: {}
 
 ingress:
   enabled: false
