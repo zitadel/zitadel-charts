@@ -77,12 +77,22 @@ spec:
             httpGet:
               path: /debug/healthz
               port: {{ .Values.service.protocol }}-server
+              {{- if .Values.zitadel.configmapConfig.ExternalDomain }}
+              httpHeaders:
+                - name: Host
+                  value: {{ .Values.zitadel.configmapConfig.ExternalDomain }}
+              {{- end }}
             initialDelaySeconds: 60
             periodSeconds: 5
           readinessProbe:
             httpGet:
               path: /debug/ready
               port: {{ .Values.service.protocol }}-server
+              {{- if .Values.zitadel.configmapConfig.ExternalDomain }}
+              httpHeaders:
+                - name: Host
+                  value: {{ .Values.zitadel.configmapConfig.ExternalDomain }}
+              {{- end }}
             initialDelaySeconds: 60
             periodSeconds: 5
           volumeMounts:
