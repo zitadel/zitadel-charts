@@ -69,6 +69,9 @@ spec:
             - name: ZITADEL_DATABASE_COCKROACH_ADMIN_SSL_KEY
               value: /.secrets/tls.key
             {{- end}}
+            {{- with .Values.env }}
+              {{- toYaml . | nindent 12 }}
+            {{- end }}
           ports:
           - containerPort: 8080
             name: {{ .Values.service.protocol }}-server

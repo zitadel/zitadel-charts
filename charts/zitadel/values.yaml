@@ -82,6 +82,14 @@ podSecurityContext:
 
 securityContext: {}
 
+# Additional environment variables
+env: []
+  # - name: ZITADEL_DATABASE_POSTGRES_HOST
+  #   valueFrom:
+  #     secretKeyRef:
+  #       name: postgres-pguser-postgres
+  #       key: host
+
 service:
   type: ClusterIP
   port: 8080
