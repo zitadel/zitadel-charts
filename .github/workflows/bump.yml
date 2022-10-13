@@ -70,7 +70,6 @@ jobs:
         commitChange: false
         createPR: false
 
-
     - name: Update Chart Version
       uses: fjogeleit/yaml-update-action@main
       with:
