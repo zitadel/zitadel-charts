@@ -33,6 +33,12 @@ jobs:
         file: './charts/zitadel/Chart.yaml'
         key-path: '["version", "appVersion"]'
 
+    - name: Print Current Versions
+      run: |
+        echo "Read Data: ${{ steps.current-versions.outputs.data }}"
+        echo "Chart Version: ${{ steps.current-versions.outputs.data.version }}"
+        echo "ZITADEL Version: ${{ steps.current-versions.outputs.data.appVersion }}"
+
     - name: Parse Last ZITADEL Version
       id: last-zitadel-version
       uses: booxmedialtd/ws-action-parse-semver@v1
