@@ -1,4 +1,8 @@
-name: Trigger Version Bump 
+name: Test Version Bump Trigger
+
+permissions:
+  contents: write
+  packages: write
 
 on:
   workflow_dispatch:
@@ -16,5 +20,6 @@ jobs:
       - name: Bump Chart Version
         uses: peter-evans/repository-dispatch@v2
         with:
+          token: ${{ secrets.CHART_REPO_ACCESS_TOKEN }}
           event-type: zitadel-released
           client-payload: '{"semanticoutput": "${{ github.event.inputs.semanticoutput }}"}'
