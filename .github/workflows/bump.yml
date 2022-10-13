@@ -71,7 +71,7 @@ jobs:
         valueFile: 'charts/zitadel/Chart.yaml'
         propertyPath: 'version'
         value: ${{ steps.bumped-chart-version.outputs.bumped-semantic-version }}
-        commmitChange: false
+        commitChange: false
         createPR: false
 
     - name: Create Pull Request
