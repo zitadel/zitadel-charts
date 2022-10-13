@@ -1,0 +1,56 @@
+name: Bump Version
+
+on:
+  repository_dispatch:
+
+jobs:
+  bump:
+    runs-on: ubuntu-20.04
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+    - id: checkout
+      uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+
+    - name: Bump ZITADEL Version
+      uses: fjogeleit/yaml-update-action@main
+      with:
+        valueFile: 'charts/zitadel/Chart.yaml'
+        propertyPath: 'appVersion'
+        value: ${{ github.event.client_payload.version }}
+        commmitChange: false
+        createPR: false
+
+    - name: Read Current Chart Version
+      id: current-chart-version
+      uses: jbutcher5/read-yaml@1.6
+      with:
+        file: './action.yml'
+        key-path: 
+        - "version"
+
+    - name: Bump Chart Version
+      id: bumped-chart-version
+      uses: ./
+      with:
+        semantic-version: ${{ steps.current-chart-version.outputs.data.version }}
+        version-type: ${{ github.event.client_payload.majorminorpatch }}
+
+    - name: Update Chart Version
+      uses: fjogeleit/yaml-update-action@main
+      with:
+        valueFile: 'charts/zitadel/Chart.yaml'
+        propertyPath: 'version'
+        value: ${{ steps.bumped-chart-version.outputs.bumped-semantic-version }}
+        commmitChange: false
+        createPR: false
+
+    - name: Create Pull Request
+      uses: peter-evans/create-pull-request@v4
+      with:
+        title: Bump ZITADEL Version
+        branch: create-pull-request/bump
+        delete-branch: true
