@@ -17,16 +17,6 @@ jobs:
       with:
         fetch-depth: 0
 
-    - name: Bump ZITADEL Version
-      uses: fjogeleit/yaml-update-action@main
-      with:
-        valueFile: 'charts/zitadel/Chart.yaml'
-        propertyPath: 'appVersion'
-        value: ${{ github.event.client_payload.semanticoutputs.new_release_version }}
-        updateFile: true
-        commitChange: false
-        createPR: false
-
     - name: Read Current Chart Version
       id: current-chart-version
       uses: jbutcher5/read-yaml@1.6
@@ -66,6 +56,17 @@ jobs:
         semantic-version: ${{ steps.current-chart-version.outputs.data }}
         version-type: ${{ steps.set-version-type.outputs.type }}
 
+    - name: Update ZITADEL Version
+      uses: fjogeleit/yaml-update-action@main
+      with:
+        valueFile: 'charts/zitadel/Chart.yaml'
+        propertyPath: 'appVersion'
+        value: ${{ github.event.client_payload.semanticoutputs.new_release_version }}
+        updateFile: true
+        commitChange: false
+        createPR: false
+
+
     - name: Update Chart Version
       uses: fjogeleit/yaml-update-action@main
       with:
@@ -78,6 +79,7 @@ jobs:
 
     - name: Print Chart.yaml
       run: cat charts/zitadel/Chart.yaml
+
     - name: Create Pull Request
       uses: peter-evans/create-pull-request@v4
       with:
