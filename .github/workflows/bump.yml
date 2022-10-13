@@ -59,8 +59,8 @@ jobs:
         [ ${{ github.event.client_payload.semanticoutputs.new_release_major_version }} -gt ${{ steps.parsed-last-zitadel-version.outputs.major }} ] && echo '::set-output name=type::MAJOR' || true
 
     - name: Bump Chart Version
+      uses: jessicalostinspace/bump-semantic-version-action@v1.0.1
       id: bumped-chart-version
-      uses: ./
       with:
         semantic-version: ${{ steps.current-chart-version.outputs.data }}
         version-type: ${{ steps.set-version-type.outputs.type }}
