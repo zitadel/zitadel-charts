@@ -22,4 +22,4 @@ jobs:
         with:
           token: ${{ secrets.CHART_REPO_ACCESS_TOKEN }}
           event-type: zitadel-released
-          client-payload: '{"semanticoutput": "${{ github.event.inputs.semanticoutput }}"}'
+          client-payload: '{"semanticoutput": "${{ inputs.semanticoutputs }}"}'
