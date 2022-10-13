@@ -42,18 +42,14 @@ jobs:
 
     - name: Print Current Versions
       run: |
-        echo "Chart Version Outputs: ${{ steps.current-chart-version.outputs }}"
-        echo "Chart Version Data: ${{ steps.current-chart-version.outputs.data }}"
-        echo "Chart Version: ${{ steps.current-chart-version.outputs.data.version }}"
-        echo "ZITADEL Version Outputs: ${{ steps.current-zitadel-version.outputs }}"
-        echo "ZITADEL Version Data: ${{ steps.current-zitadel-version.outputs.data }}"
-        echo "ZITADEL Version: ${{ steps.current-zitadel-version.outputs.data.appVersion }}"
+        echo "Chart Version: ${{ steps.current-chart-version.outputs.data }}"
+        echo "ZITADEL Version: ${{ steps.current-zitadel-version.outputs.data }}"
 
     - name: Parse Last ZITADEL Version
       id: parsed-last-zitadel-version
       uses: booxmedialtd/ws-action-parse-semver@v1
       with:
-        input_string: ${{ steps.current-zitadel-version.outputs.data.appVersion }}
+        input_string: ${{ steps.current-zitadel-version.outputs.data }}
 
     - name: Set Version Type
       id: set-version-type
@@ -66,7 +62,7 @@ jobs:
       id: bumped-chart-version
       uses: ./
       with:
-        semantic-version: ${{ steps.current-chart-version.outputs.data.version }}
+        semantic-version: ${{ steps.current-chart-version.outputs.data }}
         version-type: ${{ steps.set-version-type.outputs.type }}
 
     - name: Update Chart Version
