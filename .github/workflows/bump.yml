@@ -54,9 +54,9 @@ jobs:
     - name: Set Version Type
       id: set-version-type
       run: |
-        [ ${{ github.event.client_payload.semanticoutputs.new_release_patch_version }} -gt  ${{ steps.parsed-last-zitadel-version.outputs.patch }}] && echo '::set-output name=type::PATCH'
-        [ ${{ github.event.client_payload.semanticoutputs.new_release_minor_version }} -gt  ${{ steps.parsed-last-zitadel-version.outputs.minor }}] && echo '::set-output name=type::MINOR'
-        [ ${{ github.event.client_payload.semanticoutputs.new_release_major_version }} -gt  ${{ steps.parsed-last-zitadel-version.outputs.major }}] && echo '::set-output name=type::MAJOR'
+        [ ${{ github.event.client_payload.semanticoutputs.new_release_patch_version }} -gt ${{ steps.parsed-last-zitadel-version.outputs.patch }} ] && echo '::set-output name=type::PATCH'
+        [ ${{ github.event.client_payload.semanticoutputs.new_release_minor_version }} -gt ${{ steps.parsed-last-zitadel-version.outputs.minor }} ] && echo '::set-output name=type::MINOR'
+        [ ${{ github.event.client_payload.semanticoutputs.new_release_major_version }} -gt ${{ steps.parsed-last-zitadel-version.outputs.major }} ] && echo '::set-output name=type::MAJOR'
 
     - name: Bump Chart Version
       id: bumped-chart-version
