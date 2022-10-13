@@ -74,6 +74,8 @@ jobs:
         commitChange: false
         createPR: false
 
+    - name: Print Chart.yaml
+      run: cat charts/zitadel/Chart.yaml
     - name: Create Pull Request
       uses: peter-evans/create-pull-request@v4
       with:
