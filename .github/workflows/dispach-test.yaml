@@ -1,0 +1,25 @@
+name: Test Version Bump Trigger
+
+permissions:
+  contents: write
+  packages: write
+
+on:
+  workflow_dispatch:
+    inputs:
+      semanticoutputs:
+        description: JSON containing semantic release action outputs
+        type: string
+        default: '{"new_release_published": "true", "new_release_version": "v2.2.1", "new_release_major_version": "2", "new_release_minor_version": "2", "new_release_patch_version": "1", "new_release_notes": "NOTESSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS", "last_release_version": "v2.2.0" }'
+
+jobs:
+  bump:
+    runs-on: ubuntu-20.04
+    steps:
+
+      - name: Bump Chart Version
+        uses: peter-evans/repository-dispatch@v2
+        with:
+          token: ${{ secrets.CHART_REPO_ACCESS_TOKEN }}
+          event-type: zitadel-released
+          client-payload: '{"semanticoutputs": ${{ inputs.semanticoutputs }}}'
