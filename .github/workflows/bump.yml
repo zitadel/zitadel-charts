@@ -30,7 +30,7 @@ jobs:
       id: current-versions
       uses: jbutcher5/read-yaml@1.6
       with:
-        file: './charts/zitadel/Chart.yml'
+        file: './charts/zitadel/Chart.yaml'
         key-path: '["version", "appVersion"]'
 
     - name: Parse Last ZITADEL Version
