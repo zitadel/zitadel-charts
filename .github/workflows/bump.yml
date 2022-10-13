@@ -2,6 +2,8 @@ name: Bump Version
 
 on:
   repository_dispatch:
+    types:
+    - zitadel-released
 
 jobs:
   bump:
