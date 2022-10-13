@@ -42,7 +42,11 @@ jobs:
 
     - name: Print Current Versions
       run: |
+        echo "Chart Version Outputs: ${{ steps.current-chart-version.outputs }}"
+        echo "Chart Version Data: ${{ steps.current-chart-version.outputs.data }}"
         echo "Chart Version: ${{ steps.current-chart-version.outputs.data.version }}"
+        echo "ZITADEL Version Outputs: ${{ steps.current-zitadel-version.outputs }}"
+        echo "ZITADEL Version Data: ${{ steps.current-zitadel-version.outputs.data }}"
         echo "ZITADEL Version: ${{ steps.current-zitadel-version.outputs.data.appVersion }}"
 
     - name: Parse Last ZITADEL Version
