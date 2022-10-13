@@ -20,24 +20,38 @@ jobs:
       with:
         valueFile: 'charts/zitadel/Chart.yaml'
         propertyPath: 'appVersion'
-        value: ${{ github.event.client_payload.version }}
+        value: ${{ github.event.client_payload.semanticoutput.new_release_version }}
         commmitChange: false
         createPR: false
 
-    - name: Read Current Chart Version
-      id: current-chart-version
+    - name: Read Current Versions
+      id: current-versions
       uses: jbutcher5/read-yaml@1.6
       with:
-        file: './action.yml'
+        file: './charts/zitadel/Chart.yml'
         key-path: 
         - "version"
+        - "appVersion"
+
+    - name: Parse Last ZITADEL Version
+      id: last-zitadel-version
+      uses: booxmedialtd/ws-action-parse-semver@v1
+      with:
+        input_string: ${{ steps.current-chart-version.outputs.data.appVersion }}
+
+    - name: Set Version Type
+      id: set-version-type
+      run: |
+        [ ${{ github.event.client_payload.semanticoutput.new_release_patch_version }} -gt  ${{ steps.last-zitadel-version.outputs.patch }}] && echo '::set-output name=type::PATCH'
+        [ ${{ github.event.client_payload.semanticoutput.new_release_minor_version }} -gt  ${{ steps.last-zitadel-version.outputs.minor }}] && echo '::set-output name=type::MINOR'
+        [ ${{ github.event.client_payload.semanticoutput.new_release_major_version }} -gt  ${{ steps.last-zitadel-version.outputs.major }}] && echo '::set-output name=type::MAJOR'
 
     - name: Bump Chart Version
       id: bumped-chart-version
       uses: ./
       with:
         semantic-version: ${{ steps.current-chart-version.outputs.data.version }}
-        version-type: ${{ github.event.client_payload.majorminorpatch }}
+        version-type: ${{ steps.set-version-type.outputs.type }}
 
     - name: Update Chart Version
       uses: fjogeleit/yaml-update-action@main
