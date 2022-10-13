@@ -1,4 +1,4 @@
-name: Bump Version
+name: Trigger Version Bump 
 
 on:
   workflow_dispatch:
@@ -6,7 +6,7 @@ on:
       semanticoutputs:
         description: JSON containing semantic release action outputs
         type: string
-        default: {"new_release_published": "true", "new_release_version": "v2.2.1", "new_release_major_version": "2", "new_release_minor_version": "2", "new_release_patch_version": "1", "new_release_notes": "NOTESSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS", "last_release_version": "v2.2.0" }
+        default: '{"new_release_published": "true", "new_release_version": "v2.2.1", "new_release_major_version": "2", "new_release_minor_version": "2", "new_release_patch_version": "1", "new_release_notes": "NOTESSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS", "last_release_version": "v2.2.0" }'
 
 jobs:
   bump:
