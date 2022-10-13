@@ -37,7 +37,7 @@ jobs:
       id: last-zitadel-version
       uses: booxmedialtd/ws-action-parse-semver@v1
       with:
-        input_string: ${{ steps.current-chart-version.outputs.data.appVersion }}
+        input_string: ${{ steps.current-versions.outputs.data.appVersion }}
 
     - name: Set Version Type
       id: set-version-type
@@ -50,7 +50,7 @@ jobs:
       id: bumped-chart-version
       uses: ./
       with:
-        semantic-version: ${{ steps.current-chart-version.outputs.data.version }}
+        semantic-version: ${{ steps.current-versions.outputs.data.version }}
         version-type: ${{ steps.set-version-type.outputs.type }}
 
     - name: Update Chart Version
