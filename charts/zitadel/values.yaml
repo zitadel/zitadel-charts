@@ -35,7 +35,7 @@ zitadel:
   # ZITADEL uses the masterkey for symmetric encryption.
   # You can generate it for example with tr -dc A-Za-z0-9 </dev/urandom | head -c 32
   masterkey: ''
-  # Reference the name of the secret that contains the masterkey. The key should be named "zitadel-masterkey".
+  # Reference the name of the secret that contains the masterkey. The key should be named "masterkey".
   # Note: Eighter zitadel.masterkey or zitadel.masterkeySecretName must be set
   masterkeySecretName: ""
 
