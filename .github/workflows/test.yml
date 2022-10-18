@@ -52,7 +52,7 @@ jobs:
       run: |
         changed=$(ct list-changed --target-branch ${{ github.event.repository.default_branch }})
         if [[ -n "$changed" ]]; then
-          echo "changed=true" >> $GITHUB_ENV
+          echo "::set-output name=changed::true"
         fi
 
     - id: 'add-cockroachdb-repo'
