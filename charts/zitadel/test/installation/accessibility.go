@@ -27,19 +27,19 @@ func (c *checkOptions) execute(ctx context.Context, t *testing.T, wg *sync.WaitG
 	defer wg.Done()
 	req, err := http.NewRequestWithContext(checkCtx, http.MethodGet, c.getUrl, nil)
 	if err != nil {
-		t.Fatal(err)
+		t.Fatalf("creating request failed: %s", err.Error())
 		return
 	}
 
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
-		t.Fatal(err)
+		t.Fatalf("sending request %+v failed: %s", *req, err)
 		return
 	}
 	defer resp.Body.Close()
 
 	if err = c.test(resp); err != nil {
-		t.Fatal(err)
+		t.Fatalf("checking response failed: %s", err)
 		return
 	}
 }
@@ -97,7 +97,7 @@ func (s *configurationTest) checkAccessibility(pods []corev1.Pod) {
 	wg := sync.WaitGroup{}
 	for _, check := range checks {
 		wg.Add(1)
-		go check.execute(ctx, s.T(), &wg)
+		go s.Run(fmt.Sprintf("checking url %s", check.getUrl), func() { check.execute(ctx, s.T(), &wg) })
 	}
 	wait(ctx, s.T(), &wg, "accessibility")
 }
