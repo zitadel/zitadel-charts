@@ -27,19 +27,19 @@ func (c *checkOptions) execute(ctx context.Context, t *testing.T, wg *sync.WaitG
 	defer wg.Done()
 	req, err := http.NewRequestWithContext(checkCtx, http.MethodGet, c.getUrl, nil)
 	if err != nil {
-		t.Fatal(err)
+		t.Fatalf("creating request for url %s failed: %s", c.getUrl, err.Error())
 		return
 	}
 
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
-		t.Fatal(err)
+		t.Fatalf("sending request %+v failed: %s", *req, err)
 		return
 	}
 	defer resp.Body.Close()
 
 	if err = c.test(resp); err != nil {
-		t.Fatal(err)
+		t.Fatalf("checking response to request %+v failed: %s", *req, err)
 		return
 	}
 }
