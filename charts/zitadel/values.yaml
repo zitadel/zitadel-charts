@@ -115,6 +115,15 @@ tolerations: []
 
 affinity: {}
 
+readinessProbe:
+  enabled: true
+
+livenessProbe:
+  enabled: true
+
+startupProbe:
+  enabled: true
+
 metrics:
   enabled: false
   serviceMonitor:
