@@ -4,7 +4,7 @@ description: A Helm chart for ZITADEL v2
 type: application
 appVersion: "v2.14.2"
 version: 3.6.0
-kubeVersion: ">= 1.16.15-0"
+kubeVersion: ">= 1.18.20-0"
 icon: https://zitadel.zitadel.cloud/ui/login/resources/themes/zitadel/logo-dark.svg
 dependencies:
   - name: cockroachdb
