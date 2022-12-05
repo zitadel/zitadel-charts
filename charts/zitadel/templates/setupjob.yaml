@@ -73,6 +73,9 @@ spec:
             mountPath: /.secrets
           resources:
             {{- toYaml .Values.setupJob.resources | nindent 14 }}
+        {{- if .Values.setupJob.extraContainers }}
+        {{- toYaml .Values.setupJob.extraContainers | nindent 8 }}
+        {{- end }}
       initContainers:
         - args:
           - "{{ include "zitadel.joincpcommands" (dict "commands" (list

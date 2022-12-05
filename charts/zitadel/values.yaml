@@ -117,6 +117,7 @@ affinity: {}
 setupJob:
   resources: {}
   activeDeadlineSeconds: 300
+  extraContainers: []
 
 readinessProbe:
   enabled: true
