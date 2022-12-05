@@ -109,7 +109,7 @@ spec:
             periodSeconds: {{ .Values.readinessProbe.periodSeconds }}
             failureThreshold: {{ .Values.readinessProbe.failureThreshold }}
           {{- end }}
-          {{- if .Values.startupProbe.enabled }}
+          {{- if or (and .Release.IsUpgrade .Values.startupProbe.upgrade.enabled) (and .Release.IsInstall .Values.startupProbe.install.enabled) }}
           startupProbe:
             httpGet:
               path: /debug/ready
@@ -119,8 +119,8 @@ spec:
                 - name: Host
                   value: {{ .Values.zitadel.configmapConfig.ExternalDomain }}
               {{- end }}
-            periodSeconds: {{ .Values.startupProbe.periodSeconds }}
-            failureThreshold: {{ .Values.startupProbe.failureThreshold }}
+            periodSeconds: {{ if .Release.IsInstall }}{{ .Values.startupProbe.install.periodSeconds }}{{ else }}{{ .Values.startupProbe.upgrade.periodSeconds }}{{ end }}
+            failureThreshold: {{ if .Release.IsInstall }}{{ .Values.startupProbe.install.failureThreshold }}{{ else }}{{ .Values.startupProbe.upgrade.failureThreshold }}{{ end }}
           {{- end }}
           volumeMounts:
           - name: zitadel-config-yaml

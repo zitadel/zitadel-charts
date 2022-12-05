@@ -114,22 +114,36 @@ tolerations: []
 
 affinity: {}
 
+initJob:
+  enabled: false
+  resources: {}
+  activeDeadlineSeconds: 60
+
+setupJob:
+  resources: {}
+  activeDeadlineSeconds: 300
+
 readinessProbe:
   enabled: true
-  initialDelaySeconds: 60
+  initialDelaySeconds: 0
   periodSeconds: 5
   failureThreshold: 3
 
 livenessProbe:
   enabled: true
-  initialDelaySeconds: 60
+  initialDelaySeconds: 0
   periodSeconds: 5
   failureThreshold: 3
 
 startupProbe:
-  enabled: true
-  periodSeconds: 10
-  failureThreshold: 30
+  install:
+    enabled: true
+    periodSeconds: 10
+    failureThreshold: 30
+  upgrade:
+    enabled: true
+    periodSeconds: 1
+    failureThreshold: 30
 
 metrics:
   enabled: false
@@ -141,15 +155,6 @@ metrics:
     enabled: false
     honorLabels: false
     honorTimestamps: true
-
-initJob:
-  enabled: false
-  resources: {}
-  activeDeadlineSeconds: 60
-
-setupJob:
-  resources: {}
-  activeDeadlineSeconds: 300
 
 cockroachdb:
   enabled: true
