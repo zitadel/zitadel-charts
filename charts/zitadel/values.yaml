@@ -1,11 +1,9 @@
 # Default values for zitadel.
 zitadel:
-
   # The ZITADEL config under configmapConfig is written to a Kubernetes ConfigMap
   # See all defaults here:
   # https://github.com/zitadel/zitadel/blob/main/cmd/defaults.yaml
   configmapConfig:
-
     Database:
       cockroach:
         Host: "crdb-public"
@@ -34,19 +32,19 @@ zitadel:
 
   # ZITADEL uses the masterkey for symmetric encryption.
   # You can generate it for example with tr -dc A-Za-z0-9 </dev/urandom | head -c 32
-  masterkey: ''
+  masterkey: ""
   # Reference the name of the secret that contains the masterkey. The key should be named "masterkey".
   # Note: Eighter zitadel.masterkey or zitadel.masterkeySecretName must be set
   masterkeySecretName: ""
 
   # The root CA Certificate needed for establishing secure database connections
-  dbSslRootCrt: ''
+  dbSslRootCrt: ""
 
   # The Secret containing the root CA Certificate at key ca.crt needed for establishing secure database connections
-  dbSslRootCrtSecret: 'crdb-ca-secret'
+  dbSslRootCrtSecret: "crdb-ca-secret"
 
   # The Secret containing the client CA Certificate and key at tls.crt and tls.key needed for establishing secure database connections
-  dbSslClientCrtSecret: 'crdb-client-secret'
+  dbSslClientCrtSecret: "crdb-client-secret"
 
 replicaCount: 3
 
@@ -83,7 +81,8 @@ podSecurityContext:
 securityContext: {}
 
 # Additional environment variables
-env: []
+env:
+  []
   # - name: ZITADEL_DATABASE_POSTGRES_HOST
   #   valueFrom:
   #     secretKeyRef:
@@ -118,7 +117,6 @@ affinity: {}
 metrics:
   enabled: false
   serviceMonitor:
-
     # If true, the chart creates a ServiceMonitor that is compatible with Prometheus Operator
     # https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api.md#monitoring.coreos.com/v1.ServiceMonitor.
     # The Prometheus community Helm chart installs this operator
@@ -126,6 +124,15 @@ metrics:
     enabled: false
     honorLabels: false
     honorTimestamps: true
+
+initJob:
+  enabled: false
+  resources: {}
+  activeDeadlineSeconds: 60
+
+setupJob:
+  resources: {}
+  activeDeadlineSeconds: 300
 
 cockroachdb:
   enabled: true

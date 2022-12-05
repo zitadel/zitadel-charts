@@ -1,26 +1,19 @@
-apiVersion: apps/v1
-kind: Deployment
+{{- if .Values.initJob.enabled -}}
+apiVersion: batch/v1
+kind: Job
 metadata:
-  name: {{ include "zitadel.fullname" . }}
+  name: "{{ include "zitadel.fullname" . }}-init"
   labels:
     {{- include "zitadel.labels" . | nindent 4 }}
-    app.kubernetes.io/component: start
+    app.kubernetes.io/component: init
+  annotations:
+    helm.sh/hook: pre-upgrade
+    helm.sh/hook-delete-policy: before-hook-creation
+    helm.sh/hook-weight: "1"
 spec:
-  replicas: {{ .Values.replicaCount }}
-  selector:
-    matchLabels:
-      {{- include "zitadel.selectorLabels" . | nindent 6 }}
+  backoffLimit: 5
+  activeDeadlineSeconds: {{ .Values.initJob.activeDeadlineSeconds }}
   template:
-    metadata:
-      annotations:
-        {{- with .Values.podAnnotations }}
-          {{- toYaml . | nindent 8 }}
-        {{- end }}
-        checksum/configmap: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
-        checksum/secret-db-ssl-root-crt: {{ include (print $.Template.BasePath "/secret_db-ssl-root-crt.yaml") . | sha256sum }}
-        checksum/secret-zitadel-secrets: {{ include (print $.Template.BasePath "/secret_zitadel-secrets.yaml") . | sha256sum }}
-      labels:
-        {{- include "zitadel.selectorLabels" . | nindent 8 }}
     spec:
       {{- with .Values.imagePullSecrets }}
       imagePullSecrets:
@@ -30,20 +23,15 @@ spec:
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
       enableServiceLinks: false
+      restartPolicy: OnFailure
       containers:
-        - name: {{ .Chart.Name }}
+        - name: "{{ .Chart.Name }}-init"
           securityContext:
             {{- toYaml .Values.securityContext | nindent 14 }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           args:
-          {{- if .Release.IsInstall }}
-            - start-from-init
-            - --steps
-            - /config/zitadel-config-yaml
-          {{- else }}
-            - start
-          {{- end }}
+            - init
             - --config
             - /config/zitadel-config-yaml
             {{- if .Values.zitadel.secretConfig }}
@@ -54,8 +42,6 @@ spec:
             - --config
             - /.secrets/config-yaml
             {{- end }}
-            - --masterkeyFile
-            - /.secrets/masterkey
           env:
             - name: POD_IP
               valueFrom:
@@ -77,45 +63,17 @@ spec:
             {{- with .Values.env }}
               {{- toYaml . | nindent 12 }}
             {{- end }}
-          ports:
-          - containerPort: 8080
-            name: {{ .Values.service.protocol }}-server
-            protocol: TCP
-          livenessProbe:
-            httpGet:
-              path: /debug/healthz
-              port: {{ .Values.service.protocol }}-server
-              {{- if .Values.zitadel.configmapConfig.ExternalDomain }}
-              httpHeaders:
-                - name: Host
-                  value: {{ .Values.zitadel.configmapConfig.ExternalDomain }}
-              {{- end }}
-            initialDelaySeconds: 60
-            periodSeconds: 5
-          readinessProbe:
-            httpGet:
-              path: /debug/ready
-              port: {{ .Values.service.protocol }}-server
-              {{- if .Values.zitadel.configmapConfig.ExternalDomain }}
-              httpHeaders:
-                - name: Host
-                  value: {{ .Values.zitadel.configmapConfig.ExternalDomain }}
-              {{- end }}
-            initialDelaySeconds: 60
-            periodSeconds: 5
           volumeMounts:
           - name: zitadel-config-yaml
             mountPath: /config
           - name: chowned-secrets
             mountPath: /.secrets
           resources:
-            {{- toYaml .Values.resources | nindent 14 }}
+            {{- toYaml .Values.initJob.resources | nindent 14 }}
       initContainers:
         - args:
           - "{{ include "zitadel.joincpcommands" (dict "commands" (list
             (include "zitadel.makecpcommand" (dict "value" .Values.zitadel.secretConfig "path" "/zitadel-secrets-yaml/*" ))
-            (include "zitadel.makecpcommand" (dict "value" .Values.zitadel.masterkey "path" "/masterkey/*" ))
-            (include "zitadel.makecpcommand" (dict "value" .Values.zitadel.masterkeySecretName "path" "/masterkey/*" ))
             (include "zitadel.makecpcommand" (dict "value" (or .Values.zitadel.dbSslRootCrt .Values.zitadel.dbSslRootCrtSecret) "path" "/db-ssl-root-crt/*" ))
             (include "zitadel.makecpcommand" (dict "value" .Values.zitadel.dbSslClientCrtSecret "path" "/db-ssl-client-crt/*" ))
             (include "zitadel.makecpcommand" (dict "value" .Values.zitadel.configSecretName "path" "/zitadel-config-yaml/*" ))
@@ -129,8 +87,6 @@ spec:
           volumeMounts:
           - name: chowned-secrets
             mountPath: /chowned-secrets
-          - name: masterkey
-            mountPath: /masterkey
           {{- if .Values.zitadel.secretConfig }}
           - name: zitadel-secrets-yaml
             mountPath: /zitadel-secrets-yaml
@@ -182,9 +138,6 @@ spec:
 {{- if (or (and .Values.zitadel.masterkey .Values.zitadel.masterkeySecretName) (and (not .Values.zitadel.masterkey) (not .Values.zitadel.masterkeySecretName)) ) }}
 {{- fail "Eighter set .Values.zitadel.masterkey or .Values.zitadel.masterkeySecretName exclusively" }}
 {{- end }}
-      - name: masterkey
-        secret:
-          secretName: {{ default "zitadel-masterkey" .Values.zitadel.masterkeySecretName }}
       - name: chowned-secrets
         emptyDir: {}
       {{- with .Values.nodeSelector }}
@@ -199,3 +152,4 @@ spec:
       tolerations:
         {{- toYaml . | nindent 8 }}
       {{- end }}
+{{- end -}}
