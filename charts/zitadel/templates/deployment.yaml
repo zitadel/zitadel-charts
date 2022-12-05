@@ -81,6 +81,7 @@ spec:
           - containerPort: 8080
             name: {{ .Values.service.protocol }}-server
             protocol: TCP
+          {{- if .Values.livenessProbe.enabled }}
           livenessProbe:
             httpGet:
               path: /debug/healthz
@@ -90,8 +91,11 @@ spec:
                 - name: Host
                   value: {{ .Values.zitadel.configmapConfig.ExternalDomain }}
               {{- end }}
-            initialDelaySeconds: 60
-            periodSeconds: 5
+            initialDelaySeconds: {{ .Values.livenessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.livenessProbe.periodSeconds }}
+            failureThreshold: {{ .Values.livenessProbe.failureThreshold }}
+          {{- end }}
+          {{- if .Values.readinessProbe.enabled }}
           readinessProbe:
             httpGet:
               path: /debug/ready
@@ -101,8 +105,23 @@ spec:
                 - name: Host
                   value: {{ .Values.zitadel.configmapConfig.ExternalDomain }}
               {{- end }}
-            initialDelaySeconds: 60
-            periodSeconds: 5
+            initialDelaySeconds: {{ .Values.readinessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.readinessProbe.periodSeconds }}
+            failureThreshold: {{ .Values.readinessProbe.failureThreshold }}
+          {{- end }}
+          {{- if .Values.startupProbe.enabled }}
+          startupProbe:
+            httpGet:
+              path: /debug/ready
+              port: {{ .Values.service.protocol }}-server
+              {{- if .Values.zitadel.configmapConfig.ExternalDomain }}
+              httpHeaders:
+                - name: Host
+                  value: {{ .Values.zitadel.configmapConfig.ExternalDomain }}
+              {{- end }}
+            periodSeconds: {{ .Values.startupProbe.periodSeconds }}
+            failureThreshold: {{ .Values.startupProbe.failureThreshold }}
+          {{- end }}
           volumeMounts:
           - name: zitadel-config-yaml
             mountPath: /config

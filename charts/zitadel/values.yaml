@@ -114,6 +114,23 @@ tolerations: []
 
 affinity: {}
 
+readinessProbe:
+  enabled: true
+  initialDelaySeconds: 60
+  periodSeconds: 5
+  failureThreshold: 3
+
+livenessProbe:
+  enabled: true
+  initialDelaySeconds: 60
+  periodSeconds: 5
+  failureThreshold: 3
+
+startupProbe:
+  enabled: true
+  periodSeconds: 10
+  failureThreshold: 30
+
 metrics:
   enabled: false
   serviceMonitor:
