@@ -3,6 +3,27 @@ entries:
   zitadel:
   - apiVersion: v2
     appVersion: v2.13.1
+    created: "2022-12-05T09:50:16.100829185Z"
+    dependencies:
+    - condition: cockroachdb.enabled
+      name: cockroachdb
+      repository: https://charts.cockroachdb.com/
+      version: ~8.1.0
+    description: A Helm chart for ZITADEL v2
+    digest: 6a98b3b04c4c68290f8e8e88271f975b7f62712134cc0ff541965402006a5128
+    icon: https://zitadel.zitadel.cloud/ui/login/resources/themes/zitadel/logo-dark.svg
+    kubeVersion: '>= 1.16.15-0'
+    maintainers:
+    - email: support@zitadel.com
+      name: zitadel
+      url: https://zitadel.com
+    name: zitadel
+    type: application
+    urls:
+    - https://github.com/zitadel/zitadel-charts/releases/download/zitadel-3.5.0/zitadel-3.5.0.tgz
+    version: 3.5.0
+  - apiVersion: v2
+    appVersion: v2.13.1
     created: "2022-11-24T10:08:26.840031024Z"
     dependencies:
     - condition: cockroachdb.enabled
@@ -400,4 +421,4 @@ entries:
     urls:
     - https://github.com/zitadel/zitadel-charts/releases/download/zitadel-2.0.0/zitadel-2.0.0.tgz
     version: 2.0.0
-generated: "2022-11-24T10:08:26.840184126Z"
+generated: "2022-12-05T09:50:16.101016987Z"
