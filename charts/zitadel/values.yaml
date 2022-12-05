@@ -114,11 +114,6 @@ tolerations: []
 
 affinity: {}
 
-initJob:
-  enabled: false
-  resources: {}
-  activeDeadlineSeconds: 60
-
 setupJob:
   resources: {}
   activeDeadlineSeconds: 300
