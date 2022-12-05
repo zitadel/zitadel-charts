@@ -86,9 +86,9 @@ spec:
                 - name: Host
                   value: {{ .Values.zitadel.configmapConfig.ExternalDomain }}
               {{- end }}
-            initialDelaySeconds: {{ .Values.livenessProbe.initialDelaySeconds | default 60 }}
-            periodSeconds: {{ .Values.livenessProbe.periodSeconds | default 5 }}
-            failureThreshold: {{ .Values.livenessProbe.failureThreshold | default 3 }}
+            initialDelaySeconds: {{ .Values.livenessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.livenessProbe.periodSeconds }}
+            failureThreshold: {{ .Values.livenessProbe.failureThreshold }}
           {{- end }}
           {{- if .Values.readinessProbe.enabled }}
           readinessProbe:
@@ -100,9 +100,9 @@ spec:
                 - name: Host
                   value: {{ .Values.zitadel.configmapConfig.ExternalDomain }}
               {{- end }}
-            initialDelaySeconds: {{ .Values.readinessProbe.initialDelaySeconds | default 60 }}
-            periodSeconds: {{ .Values.readinessProbe.periodSeconds | default 5 }}
-            failureThreshold: {{ .Values.readinessProbe.failureThreshold | default 3 }}
+            initialDelaySeconds: {{ .Values.readinessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.readinessProbe.periodSeconds }}
+            failureThreshold: {{ .Values.readinessProbe.failureThreshold }}
           {{- end }}
           {{- if .Values.startupProbe.enabled }}
           startupProbe:
@@ -114,8 +114,8 @@ spec:
                 - name: Host
                   value: {{ .Values.zitadel.configmapConfig.ExternalDomain }}
               {{- end }}
-            periodSeconds: {{ .Values.startupProbe.periodSeconds | default 10 }}
-            failureThreshold: {{ .Values.startupProbe.failureThreshold | default 30 }}
+            periodSeconds: {{ .Values.startupProbe.periodSeconds }}
+            failureThreshold: {{ .Values.startupProbe.failureThreshold }}
           {{- end }}
           volumeMounts:
           - name: zitadel-config-yaml
