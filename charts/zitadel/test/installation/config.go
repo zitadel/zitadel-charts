@@ -2,6 +2,7 @@ package installation
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -26,6 +27,8 @@ type configurationTest struct {
 	crdbValues       map[string]string
 	zitadelChartPath string
 	zitadelRelease   string
+	crdbRepoName     string
+	crdbRepoURL      string
 	crdbChart        string
 	crdbVersion      string
 	crdbRelease      string
@@ -38,6 +41,7 @@ func TestConfiguration(t *testing.T, before beforeFunc, zitadelValues map[string
 	require.NoError(t, err)
 
 	namespace := createNamespaceName()
+	crdbRepoName := fmt.Sprintf("crdb-%s", strings.TrimPrefix(namespace, "zitadel-helm-"))
 	kubeOptions := k8s.NewKubectlOptions("", "", namespace)
 
 	it := &configurationTest{
@@ -50,7 +54,9 @@ func TestConfiguration(t *testing.T, before beforeFunc, zitadelValues map[string
 		},
 		zitadelChartPath: chartPath,
 		zitadelRelease:   "zitadel-test",
-		crdbChart:        "cockroachdb/cockroachdb",
+		crdbRepoURL:      "https://charts.cockroachdb.com/",
+		crdbRepoName:     crdbRepoName,
+		crdbChart:        fmt.Sprintf("%s/cockroachdb", crdbRepoName),
 		crdbRelease:      "crdb",
 		crdbVersion:      "10.0.0",
 		beforeFunc:       before,

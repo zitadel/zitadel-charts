@@ -12,6 +12,7 @@ import (
 
 func (s *configurationTest) TestZITADELInstallation() {
 
+	helm.AddRepo(s.T(), &helm.Options{}, s.crdbRepoName, s.crdbRepoURL)
 	helm.Install(s.T(), &helm.Options{
 		KubectlOptions: s.kubeOptions,
 		SetValues:      s.crdbValues,
