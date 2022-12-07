@@ -20,6 +20,7 @@ spec:
         checksum/secret-db-ssl-root-crt: {{ include (print $.Template.BasePath "/secret_db-ssl-root-crt.yaml") . | sha256sum }}
         checksum/secret-zitadel-secrets: {{ include (print $.Template.BasePath "/secret_zitadel-secrets.yaml") . | sha256sum }}
       labels:
+        app.kubernetes.io/component: start
         {{- include "zitadel.selectorLabels" . | nindent 8 }}
     spec:
       {{- with .Values.imagePullSecrets }}

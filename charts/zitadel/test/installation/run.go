@@ -1,6 +1,9 @@
 package installation
 
 import (
+	"testing"
+	"time"
+
 	"github.com/gruntwork-io/terratest/modules/helm"
 	"github.com/gruntwork-io/terratest/modules/k8s"
 	corev1 "k8s.io/api/core/v1"
@@ -8,15 +11,22 @@ import (
 )
 
 func (s *configurationTest) TestZITADELInstallation() {
-	// given
-	options := s.options
 
-	// when
-	helm.Install(s.T(), options, s.chartPath, s.release)
+	helm.Install(s.T(), &helm.Options{
+		KubectlOptions: s.kubeOptions,
+		SetValues:      s.crdbValues,
+		Version:        s.crdbVersion,
+	}, s.crdbChart, s.crdbRelease)
 
-	// then
-	// await that all zitadel related pods become ready
-	pods := k8s.ListPods(s.T(), s.options.KubectlOptions, metav1.ListOptions{LabelSelector: `app.kubernetes.io/instance=zitadel-test, app.kubernetes.io/component notin (init)`})
+	helm.Install(s.T(), &helm.Options{
+		KubectlOptions: s.kubeOptions,
+		SetValues:      s.zitadelValues,
+	}, s.zitadelChartPath, s.zitadelRelease)
+
+	k8s.WaitUntilJobSucceed(s.T(), s.kubeOptions, "zitadel-test-init", 300, time.Second)
+	k8s.WaitUntilJobSucceed(s.T(), s.kubeOptions, "zitadel-test-setup", 300, time.Second)
+
+	pods := listPods(s.T(), 5, s.kubeOptions)
 	s.awaitReadiness(pods)
 	zitadelPods := make([]corev1.Pod, 0)
 	for i := range pods {
@@ -27,4 +37,19 @@ func (s *configurationTest) TestZITADELInstallation() {
 	}
 	s.log.Logf(s.T(), "ZITADEL pods are ready")
 	s.checkAccessibility(zitadelPods)
+}
+
+// listPods retries until all three start pods are returned from the kubeapi
+func listPods(t *testing.T, try int, kubeOptions *k8s.KubectlOptions) []corev1.Pod {
+
+	if try == 0 {
+		t.Fatal("no trials left")
+	}
+
+	pods := k8s.ListPods(t, kubeOptions, metav1.ListOptions{LabelSelector: `app.kubernetes.io/instance=zitadel-test, app.kubernetes.io/component=start`})
+	if len(pods) == 3 {
+		return pods
+	}
+	time.Sleep(time.Second)
+	return listPods(t, try-1, kubeOptions)
 }

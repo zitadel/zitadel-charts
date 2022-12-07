@@ -13,6 +13,10 @@ spec:
   backoffLimit: 5
   activeDeadlineSeconds: {{ .Values.setupJob.activeDeadlineSeconds }}
   template:
+    metadata:
+      labels:
+        {{- include "zitadel.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: setup
     spec:
       {{- with .Values.imagePullSecrets }}
       imagePullSecrets:

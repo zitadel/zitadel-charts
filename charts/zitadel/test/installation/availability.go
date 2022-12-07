@@ -17,7 +17,7 @@ func (s *configurationTest) awaitReadiness(pods []corev1.Pod) {
 	for _, p := range pods {
 		wg.Add(1)
 		go func(pod corev1.Pod) {
-			k8s.WaitUntilPodAvailable(s.T(), s.options.KubectlOptions, pod.Name, 300, time.Second)
+			k8s.WaitUntilPodAvailable(s.T(), s.kubeOptions, pod.Name, 300, time.Second)
 			wg.Done()
 		}(p)
 	}

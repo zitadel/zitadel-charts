@@ -48,7 +48,7 @@ func (s *configurationTest) checkAccessibility(pods []corev1.Pod) {
 	ctx, cancel := context.WithTimeout(s.context, time.Minute)
 	defer cancel()
 
-	serviceTunnel := k8s.NewTunnel(s.options.KubectlOptions, k8s.ResourceTypeService, s.release, 8080, 8080)
+	serviceTunnel := k8s.NewTunnel(s.kubeOptions, k8s.ResourceTypeService, s.zitadelRelease, 8080, 8080)
 	serviceTunnel.ForwardPort(s.T())
 
 	tunnels := []*k8s.Tunnel{serviceTunnel}
@@ -88,7 +88,7 @@ func (s *configurationTest) checkAccessibility(pods []corev1.Pod) {
 		pod := pods[i]
 		port := 8081 + i
 
-		podTunnel := k8s.NewTunnel(s.options.KubectlOptions, k8s.ResourceTypePod, pod.Name, port, 8080)
+		podTunnel := k8s.NewTunnel(s.kubeOptions, k8s.ResourceTypePod, pod.Name, port, 8080)
 		podTunnel.ForwardPort(s.T())
 		tunnels = append(tunnels, podTunnel)
 		checks = append(checks, zitadelStatusChecks(port)...)
