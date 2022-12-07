@@ -114,6 +114,13 @@ tolerations: []
 
 affinity: {}
 
+initJob:
+  # Once ZITADEL is installed, the initJob can be disabled.
+  enabled: true
+  resources: {}
+  activeDeadlineSeconds: 300
+  extraContainers: []
+
 setupJob:
   resources: {}
   activeDeadlineSeconds: 300
@@ -132,14 +139,9 @@ livenessProbe:
   failureThreshold: 3
 
 startupProbe:
-  install:
-    enabled: true
-    periodSeconds: 10
-    failureThreshold: 30
-  upgrade:
-    enabled: true
-    periodSeconds: 1
-    failureThreshold: 30
+  enabled: true
+  periodSeconds: 1
+  failureThreshold: 30
 
 metrics:
   enabled: false
@@ -151,9 +153,3 @@ metrics:
     enabled: false
     honorLabels: false
     honorTimestamps: true
-
-cockroachdb:
-  enabled: true
-  fullnameOverride: crdb
-  tls:
-    enabled: true

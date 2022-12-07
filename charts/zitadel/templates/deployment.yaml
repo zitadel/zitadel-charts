@@ -37,13 +37,7 @@ spec:
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           args:
-          {{- if .Release.IsInstall }}
-            - start-from-init
-            - --steps
-            - /config/zitadel-config-yaml
-          {{- else }}
             - start
-          {{- end }}
             - --config
             - /config/zitadel-config-yaml
             {{- if .Values.zitadel.secretConfig }}
@@ -109,7 +103,7 @@ spec:
             periodSeconds: {{ .Values.readinessProbe.periodSeconds }}
             failureThreshold: {{ .Values.readinessProbe.failureThreshold }}
           {{- end }}
-          {{- if or (and .Release.IsUpgrade .Values.startupProbe.upgrade.enabled) (and .Release.IsInstall .Values.startupProbe.install.enabled) }}
+          {{- if .Values.startupProbe.enabled }}
           startupProbe:
             httpGet:
               path: /debug/ready
@@ -119,8 +113,8 @@ spec:
                 - name: Host
                   value: {{ .Values.zitadel.configmapConfig.ExternalDomain }}
               {{- end }}
-            periodSeconds: {{ if .Release.IsInstall }}{{ .Values.startupProbe.install.periodSeconds }}{{ else }}{{ .Values.startupProbe.upgrade.periodSeconds }}{{ end }}
-            failureThreshold: {{ if .Release.IsInstall }}{{ .Values.startupProbe.install.failureThreshold }}{{ else }}{{ .Values.startupProbe.upgrade.failureThreshold }}{{ end }}
+            periodSeconds: {{ .Values.startupProbe.periodSeconds }}
+            failureThreshold: {{ .Values.startupProbe.failureThreshold }}
           {{- end }}
           volumeMounts:
           - name: zitadel-config-yaml

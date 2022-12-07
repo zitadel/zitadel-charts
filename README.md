@@ -11,9 +11,7 @@ Learn more about ZITADEL by checking out the [source repository on GitHub](https
 
 ## What's in the Chart
 
-By default, this chart installs:
-- A highly available ZITADEL deployment.
-- A highly available and secure CockroachDB statefulset.
+By default, this chart installs a highly available ZITADEL deployment.
 
 ## Install the Chart
 
