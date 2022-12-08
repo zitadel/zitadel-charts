@@ -120,11 +120,13 @@ initJob:
   resources: {}
   activeDeadlineSeconds: 300
   extraContainers: []
+  annotations: {}
 
 setupJob:
   resources: {}
   activeDeadlineSeconds: 300
   extraContainers: []
+  annotations: {}
 
 readinessProbe:
   enabled: true

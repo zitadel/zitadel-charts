@@ -10,6 +10,10 @@ metadata:
     helm.sh/hook: pre-install,pre-upgrade
     helm.sh/hook-delete-policy: before-hook-creation
     helm.sh/hook-weight: "1"
+    {{- with .Values.initJob.annotations }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+
 spec:
   backoffLimit: 5
   activeDeadlineSeconds: {{ .Values.initJob.activeDeadlineSeconds }}
