@@ -121,12 +121,14 @@ initJob:
   activeDeadlineSeconds: 300
   extraContainers: []
   podAnnotations: {}
+  containerLifecycle: {}
 
 setupJob:
   resources: {}
   activeDeadlineSeconds: 300
   extraContainers: []
   podAnnotations: {}
+  containerLifecycle: {}
 
 readinessProbe:
   enabled: true
