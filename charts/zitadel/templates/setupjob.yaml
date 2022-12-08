@@ -9,10 +9,6 @@ metadata:
     helm.sh/hook: pre-install,pre-upgrade
     helm.sh/hook-delete-policy: before-hook-creation
     helm.sh/hook-weight: "2"
-    {{- with .Values.setupJob.annotations }}
-      {{- toYaml . | nindent 4 }}
-    {{- end }}
-
 spec:
   backoffLimit: 5
   activeDeadlineSeconds: {{ .Values.setupJob.activeDeadlineSeconds }}
@@ -21,6 +17,10 @@ spec:
       labels:
         {{- include "zitadel.selectorLabels" . | nindent 8 }}
         app.kubernetes.io/component: setup
+      {{- with .Values.setupJob.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
     spec:
       {{- with .Values.imagePullSecrets }}
       imagePullSecrets:
