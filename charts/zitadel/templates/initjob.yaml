@@ -78,8 +78,6 @@ spec:
             mountPath: /.secrets
           resources:
             {{- toYaml .Values.initJob.resources | nindent 14 }}
-          lifecycle:
-            {{- toYaml .Values.initJob.containerLifecycle | nindent 14 }}
         {{- if .Values.initJob.extraContainers }}
         {{- toYaml .Values.initJob.extraContainers | nindent 8 }}
         {{- end }}
