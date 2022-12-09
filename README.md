@@ -63,7 +63,7 @@ delete them manually:
 
 ```bash
 helm uninstall my-zitadel
-kubectl delete job -l app.kubernetes.io/name=zitadel,app.kubernetes.io/managed-by=Helm
+kubectl delete job --selector app.kubernetes.io/name=zitadel,app.kubernetes.io/managed-by=Helm
 ```
 
 ## Contributors
