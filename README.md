@@ -54,6 +54,17 @@ helm install crdb cockroachdb/cockroachdb --version 8.1.8 --set fullnameOverride
 helm install my-zitadel zitadel/zitadel --values ./my-zitadel-values.yaml
 ```
 
+## Uninstalling the Chart
+
+The ZITADEL chart uses Helm hooks,
+[which are not garbage collected by helm uninstall, yet](https://helm.sh/docs/topics/charts_hooks/#hook-resources-are-not-managed-with-corresponding-releases).
+Therefore, to also remove hooks installed by the ZITADEL Helm chart,
+delete them manually:
+
+```bash
+helm uninstall my-zitadel
+kubectl delete job -l app.kubernetes.io/name=zitadel,app.kubernetes.io/managed-by=Helm
+```
 
 ## Contributors
 
