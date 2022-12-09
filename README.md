@@ -49,9 +49,9 @@ following the example while zitadel is uninstalled.
 ```bash
 helm repo add cockroachdb https://charts.cockroachdb.com/
 helm repo update cockroachdb zitadel
-helm uninstall --namespace zitadel my-zitadel
-helm install --namespace zitadel --create-namespace crdb cockroachdb/cockroachdb --version 8.1.8 --set fullnameOverride=crdb
-helm install --namespace zitadel my-zitadel zitadel/zitadel --values ./my-zitadel-values.yaml
+helm uninstall my-zitadel
+helm install crdb cockroachdb/cockroachdb --version 8.1.8 --set fullnameOverride=crdb
+helm install my-zitadel zitadel/zitadel --values ./my-zitadel-values.yaml
 ```
 
 
