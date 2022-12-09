@@ -51,7 +51,7 @@ helm repo add cockroachdb https://charts.cockroachdb.com/
 helm repo update cockroachdb zitadel
 helm uninstall --namespace zitadel my-zitadel
 helm install --namespace zitadel --create-namespace crdb cockroachdb/cockroachdb --version 8.1.8 --set fullnameOverride=crdb
-helm install --namespace zitadel my-zitadel charts/zitadel/ --values ./my-zitadel-values.yaml
+helm install --namespace zitadel my-zitadel zitadel/zitadel --values ./my-zitadel-values.yaml
 ```
 
 
