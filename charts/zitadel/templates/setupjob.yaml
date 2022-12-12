@@ -32,6 +32,14 @@ spec:
       enableServiceLinks: false
       restartPolicy: OnFailure
       containers:
+        {{- if and (not (empty .Values.zitadel.configmapConfig.FirstInstance)) (and (not (empty .Values.zitadel.configmapConfig.FirstInstance.Org)) (not (empty .Values.zitadel.configmapConfig.FirstInstance.Org.Machine)))  }}
+        - name: "{{ .Chart.Name}}-machinekey"
+          image: alpine/k8s
+          command: ["sh","-c","until [ -f /machinekey/zitadel-admin-sa.json ]; do sleep 5; done && kubectl create secret generic zitadel-admin-sa --from-file=zitadel-admin-sa.json=/machinekey/zitadel-admin-sa.json"]
+          volumeMounts:
+            - name: machinekey
+              mountPath: /machinekey
+        {{- end}}
         - name: "{{ .Chart.Name }}-setup"
           securityContext:
             {{- toYaml .Values.securityContext | nindent 14 }}
@@ -152,6 +160,10 @@ spec:
       - name: db-ssl-client-crt
         secret:
           secretName: {{ .Values.zitadel.dbSslClientCrtSecret }}
+      {{- end }}
+      {{- if and (not (empty .Values.zitadel.configmapConfig.FirstInstance)) (and (not (empty .Values.zitadel.configmapConfig.FirstInstance.Org)) (not (empty .Values.zitadel.configmapConfig.FirstInstance.Org.Machine)))  }}
+      - name: machinekey
+        emptyDir: { }
       {{- end }}
 {{- if (or (and .Values.zitadel.masterkey .Values.zitadel.masterkeySecretName) (and (not .Values.zitadel.masterkey) (not .Values.zitadel.masterkeySecretName)) ) }}
 {{- fail "Eighter set .Values.zitadel.masterkey or .Values.zitadel.masterkeySecretName exclusively" }}
