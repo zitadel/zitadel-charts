@@ -8,7 +8,7 @@ import (
 func (s *configurationTest) SetupTest() {
 
 	clusterKubectl := new(k8s.KubectlOptions)
-	if err := copier.Copy(clusterKubectl, s.options.KubectlOptions); err != nil {
+	if err := copier.Copy(clusterKubectl, s.kubeOptions); err != nil {
 		s.T().Fatal(err)
 	}
 
@@ -30,22 +30,22 @@ metadata:
   name: crdb
 `)
 
-	if _, err := k8s.GetNamespaceE(s.T(), s.options.KubectlOptions, s.namespace); err != nil {
-		k8s.CreateNamespace(s.T(), s.options.KubectlOptions, s.namespace)
+	if _, err := k8s.GetNamespaceE(s.T(), s.kubeOptions, s.kubeOptions.Namespace); err != nil {
+		k8s.CreateNamespace(s.T(), s.kubeOptions, s.kubeOptions.Namespace)
 	} else {
-		s.log.Logf(s.T(), "Namespace: %s already exist!", s.namespace)
+		s.log.Logf(s.T(), "Namespace: %s already exist!", s.kubeOptions.Namespace)
 	}
 
 	if s.beforeFunc == nil {
 		return
 	}
 
-	clientset, err := k8s.GetKubernetesClientFromOptionsE(s.T(), s.options.KubectlOptions)
+	clientset, err := k8s.GetKubernetesClientFromOptionsE(s.T(), s.kubeOptions)
 	if err != nil {
 		s.T().Fatal(err)
 	}
 
-	if err = s.beforeFunc(s.context, s.options.KubectlOptions.Namespace, clientset); err != nil {
+	if err = s.beforeFunc(s.context, s.kubeOptions.Namespace, clientset); err != nil {
 		s.T().Fatal(err)
 	}
 }

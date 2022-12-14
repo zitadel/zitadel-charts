@@ -21,34 +21,46 @@ type checkOptions struct {
 	test   func(response *http.Response) error
 }
 
-func (c *checkOptions) execute(ctx context.Context, t *testing.T, wg *sync.WaitGroup) {
+func (c *checkOptions) try(ctx context.Context, t *testing.T, wg *sync.WaitGroup, try int) {
+
+	err := c.execute(ctx, t)
+	if err == nil {
+		wg.Done()
+		return
+	}
+
+	if try == 0 {
+		t.Fatal(err)
+	}
+	time.Sleep(time.Second)
+	c.try(ctx, t, wg, try-1)
+}
+
+func (c *checkOptions) execute(ctx context.Context, t *testing.T) (err error) {
 	checkCtx, checkCancel := context.WithTimeout(ctx, 5*time.Second)
 	defer checkCancel()
-	defer wg.Done()
 	req, err := http.NewRequestWithContext(checkCtx, http.MethodGet, c.getUrl, nil)
 	if err != nil {
-		t.Fatalf("creating request for url %s failed: %s", c.getUrl, err.Error())
-		return
+		return fmt.Errorf("creating request for url %s failed: %s", c.getUrl, err.Error())
 	}
 
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
-		t.Fatalf("sending request %+v failed: %s", *req, err)
-		return
+		return fmt.Errorf("sending request %+v failed: %s", *req, err)
 	}
 	defer resp.Body.Close()
 
 	if err = c.test(resp); err != nil {
-		t.Fatalf("checking response to request %+v failed: %s", *req, err)
-		return
+		return fmt.Errorf("checking response to request %+v failed: %s", *req, err)
 	}
+	return nil
 }
 
 func (s *configurationTest) checkAccessibility(pods []corev1.Pod) {
 	ctx, cancel := context.WithTimeout(s.context, time.Minute)
 	defer cancel()
 
-	serviceTunnel := k8s.NewTunnel(s.options.KubectlOptions, k8s.ResourceTypeService, s.release, 8080, 8080)
+	serviceTunnel := k8s.NewTunnel(s.kubeOptions, k8s.ResourceTypeService, s.zitadelRelease, 8080, 8080)
 	serviceTunnel.ForwardPort(s.T())
 
 	tunnels := []*k8s.Tunnel{serviceTunnel}
@@ -88,7 +100,7 @@ func (s *configurationTest) checkAccessibility(pods []corev1.Pod) {
 		pod := pods[i]
 		port := 8081 + i
 
-		podTunnel := k8s.NewTunnel(s.options.KubectlOptions, k8s.ResourceTypePod, pod.Name, port, 8080)
+		podTunnel := k8s.NewTunnel(s.kubeOptions, k8s.ResourceTypePod, pod.Name, port, 8080)
 		podTunnel.ForwardPort(s.T())
 		tunnels = append(tunnels, podTunnel)
 		checks = append(checks, zitadelStatusChecks(port)...)
@@ -97,7 +109,7 @@ func (s *configurationTest) checkAccessibility(pods []corev1.Pod) {
 	wg := sync.WaitGroup{}
 	for _, check := range checks {
 		wg.Add(1)
-		go check.execute(ctx, s.T(), &wg)
+		go check.try(ctx, s.T(), &wg, 60)
 	}
 	wait(ctx, s.T(), &wg, "accessibility")
 }
