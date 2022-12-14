@@ -29,7 +29,7 @@ func (c *checkOptions) try(ctx context.Context, t *testing.T, wg *sync.WaitGroup
 		return
 	}
 
-	if try == 1 {
+	if try == 0 {
 		t.Fatal(err)
 	}
 	time.Sleep(time.Second)
@@ -109,7 +109,7 @@ func (s *configurationTest) checkAccessibility(pods []corev1.Pod) {
 	wg := sync.WaitGroup{}
 	for _, check := range checks {
 		wg.Add(1)
-		go check.try(ctx, s.T(), &wg, 10)
+		go check.try(ctx, s.T(), &wg, 60)
 	}
 	wait(ctx, s.T(), &wg, "accessibility")
 }
