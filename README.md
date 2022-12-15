@@ -66,6 +66,26 @@ helm uninstall my-zitadel
 kubectl delete job --selector app.kubernetes.io/name=zitadel,app.kubernetes.io/managed-by=Helm
 ```
 
+## Contributing
+
+Lint the chart:
+
+```bash
+docker run -it --network host --workdir=/data --rm --volume $(pwd):/data quay.io/helmpack/chart-testing:v3.5.0 ct lint --charts charts/zitadel --target-branch main
+```
+
+Test the chart:
+
+```bash
+# Create a local Kubernetes cluster
+kind create cluster --image kindest/node:v1.25.2
+
+# Test the chart
+go test -tags integration ./...
+```
+
+Watch the Kubernetes resources if you want to see progress.
+
 ## Contributors
 
 <a href="https://github.com/zitadel/zitadel-charts/graphs/contributors">
