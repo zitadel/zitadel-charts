@@ -79,6 +79,8 @@ spec:
             mountPath: /config
           - name: chowned-secrets
             mountPath: /.secrets
+          resources:
+            {{- toYaml .Values.setupJob.resources | nindent 14 }}
           {{- if and (not (empty .Values.zitadel.configmapConfig.FirstInstance)) (not (empty .Values.zitadel.configmapConfig.FirstInstance.Org)) (not (empty .Values.zitadel.configmapConfig.FirstInstance.Org.Machine)) }}
           - name: machinekey
             mountPath: {{ dir .Values.zitadel.configmapConfig.FirstInstance.MachineKeyPath }}
