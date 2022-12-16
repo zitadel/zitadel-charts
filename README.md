@@ -63,7 +63,9 @@ delete them manually:
 
 ```bash
 helm uninstall my-zitadel
-kubectl delete job --selector app.kubernetes.io/name=zitadel,app.kubernetes.io/managed-by=Helm
+for k8sresourcetype in job configmap secret rolebinding role serviceaccount; do
+    kubectl delete $k8sresourcetype --selector app.kubernetes.io/name=zitadel,app.kubernetes.io/managed-by=Helm
+done
 ```
 
 ## Contributing

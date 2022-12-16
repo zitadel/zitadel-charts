@@ -6,6 +6,8 @@ metadata:
     helm.sh/hook: pre-install,pre-upgrade
     helm.sh/hook-delete-policy: before-hook-creation
     helm.sh/hook-weight: "0"
+  labels:
+    {{- include "zitadel.labels" . | nindent 4 }}
 data:
   zitadel-config-yaml: |-
     {{ .Values.zitadel.configmapConfig | toYaml | nindent 4 }}
