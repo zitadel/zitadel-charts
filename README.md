@@ -63,8 +63,30 @@ delete them manually:
 
 ```bash
 helm uninstall my-zitadel
-kubectl delete job --selector app.kubernetes.io/name=zitadel,app.kubernetes.io/managed-by=Helm
+for k8sresourcetype in job configmap secret rolebinding role serviceaccount; do
+    kubectl delete $k8sresourcetype --selector app.kubernetes.io/name=zitadel,app.kubernetes.io/managed-by=Helm
+done
 ```
+
+## Contributing
+
+Lint the chart:
+
+```bash
+docker run -it --network host --workdir=/data --rm --volume $(pwd):/data quay.io/helmpack/chart-testing:v3.5.0 ct lint --charts charts/zitadel --target-branch main
+```
+
+Test the chart:
+
+```bash
+# Create a local Kubernetes cluster
+kind create cluster --image kindest/node:v1.25.2
+
+# Test the chart
+go test -tags integration ./...
+```
+
+Watch the Kubernetes resources if you want to see progress.
 
 ## Contributors
 
