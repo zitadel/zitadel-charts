@@ -21,19 +21,19 @@ zitadel:
         Webhook:
           Enabled: false
 
-    ## If you want to setup ZITADEL only with a service account
-    #FirstInstance:
-    ## path used for volume mounts and to write the secret
-    #  MachineKeyPath: /machinekey/zitadel-admin-sa.json
-    #  Org:
-    #    Machine:
-    #      Machine:
-    ## Creates a service account with the name zitadel-admin-sa,
-    ## which results in a secret 'zitadel-admin-sa' with a key 'zitadel-admin-sa.json'
-    #        Username: zitadel-admin-sa
-    #        Name: Admin
-    #      MachineKey:
-    #        Type: 1
+    # If you want to setup ZITADEL only with a service account
+    FirstInstance:
+    # path used for volume mounts and to write the secret
+      MachineKeyPath: /machinekey/zitadel-admin-sa.json
+      Org:
+        Machine:
+          Machine:
+    # Creates a service account with the name zitadel-admin-sa,
+    # which results in a secret 'zitadel-admin-sa' with a key 'zitadel-admin-sa.json'
+            Username: zitadel-admin-sa
+            Name: Admin
+          MachineKey:
+            Type: 1
 
   # The ZITADEL config under secretConfig is written to a Kubernetes Secret
   # See all defaults here:

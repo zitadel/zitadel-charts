@@ -79,13 +79,13 @@ spec:
             mountPath: /config
           - name: chowned-secrets
             mountPath: /.secrets
-          {{- if and (not (empty .Values.zitadel.configmapConfig.FirstInstance)) (not (empty .Values.zitadel.configmapConfig.FirstInstance.Org)) (not (empty .Values.zitadel.configmapConfig.FirstInstance.Org.Machine)) }}
+          {{- if and .Values.zitadel.configmapConfig.FirstInstance .Values.zitadel.configmapConfig.FirstInstance.Org .Values.zitadel.configmapConfig.FirstInstance.Org.Machine }}
           - name: machinekey
             mountPath: {{ dir .Values.zitadel.configmapConfig.FirstInstance.MachineKeyPath }}
           {{- end}}
           resources:
             {{- toYaml .Values.setupJob.resources | nindent 14 }}
-        {{- if and (not (empty .Values.zitadel.configmapConfig.FirstInstance)) (not (empty .Values.zitadel.configmapConfig.FirstInstance.Org)) (not (empty .Values.zitadel.configmapConfig.FirstInstance.Org.Machine)) }}
+        {{- if and .Values.zitadel.configmapConfig.FirstInstance .Values.zitadel.configmapConfig.FirstInstance.Org .Values.zitadel.configmapConfig.FirstInstance.Org.Machine }}
         - name: "{{ .Chart.Name}}-machinekey"
           image: alpine/k8s:{{ include "zitadel.kubernetesVersion" . }}
           command: [ "sh","-c","until [ ! -z $(kubectl -n {{ .Release.Namespace }} get po ${POD_NAME} -o jsonpath=\"{.status.containerStatuses[?(@.name=='{{ .Chart.Name }}-setup')].state.terminated}\") ]; echo 'waiting for {{ .Chart.Name }}-setup container to terminate'; do sleep 5; done && echo '{{ .Chart.Name }}-setup container terminated' && if [ -f {{ .Values.zitadel.configmapConfig.FirstInstance.MachineKeyPath }} ]; then kubectl -n {{ .Release.Namespace }} create secret generic {{ .Values.zitadel.configmapConfig.FirstInstance.Org.Machine.Machine.Username }} --from-file={{ .Values.zitadel.configmapConfig.FirstInstance.Org.Machine.Machine.Username }}.json={{ .Values.zitadel.configmapConfig.FirstInstance.MachineKeyPath }}; fi;" ]
@@ -170,7 +170,7 @@ spec:
         secret:
           secretName: {{ .Values.zitadel.dbSslClientCrtSecret }}
       {{- end }}
-      {{- if and (not (empty .Values.zitadel.configmapConfig.FirstInstance)) (not (empty .Values.zitadel.configmapConfig.FirstInstance.Org)) (not (empty .Values.zitadel.configmapConfig.FirstInstance.Org.Machine))  }}
+      {{- if and .Values.zitadel.configmapConfig.FirstInstance .Values.zitadel.configmapConfig.FirstInstance.Org .Values.zitadel.configmapConfig.FirstInstance.Org.Machine }}
       - name: machinekey
         emptyDir: { }
       {{- end }}
