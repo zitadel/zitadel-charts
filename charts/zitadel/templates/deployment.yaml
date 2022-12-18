@@ -181,7 +181,7 @@ spec:
       {{- if .Values.zitadel.dbSslRootCrt }}
       - name: db-ssl-root-crt
         secret:
-          secretName: db-ssl-root-crt
+          secretName: {{ .Values.zitadel.dbSslRootCrt | default "db-ssl-root-crt" }}
       {{- end }}
       {{- if .Values.zitadel.dbSslRootCrtSecret }}
       - name: db-ssl-root-crt
