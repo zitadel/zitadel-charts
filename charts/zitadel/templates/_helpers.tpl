@@ -82,7 +82,3 @@ Join copy commands
     {{- end -}}
 {{ print $cmd }}
 {{- end -}}
-
-{{- define "zitadel.kubernetesVersion" -}}
-{{- trimPrefix "v" .Capabilities.KubeVersion.Version }}
-{{- end }}
