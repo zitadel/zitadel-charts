@@ -193,9 +193,6 @@ spec:
         secret:
           secretName: {{ .Values.zitadel.dbSslClientCrtSecret }}
       {{- end }}
-{{- if (or (and .Values.zitadel.masterkey .Values.zitadel.masterkeySecretName) (and (not .Values.zitadel.masterkey) (not .Values.zitadel.masterkeySecretName)) ) }}
-{{- fail "Eighter set .Values.zitadel.masterkey or .Values.zitadel.masterkeySecretName exclusively" }}
-{{- end }}
       - name: masterkey
         secret:
           secretName: {{ default "zitadel-masterkey" .Values.zitadel.masterkeySecretName }}
