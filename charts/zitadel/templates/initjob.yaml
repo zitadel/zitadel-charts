@@ -81,7 +81,7 @@ spec:
         {{- if .Values.initJob.extraContainers }}
         {{- toYaml .Values.initJob.extraContainers | nindent 8 }}
         {{- end }}
-      {{- if or .Values.zitadel.secretConfig .Values.zitadel.dbSslRootCrt .Values.zitadel.dbSslRootCrtSecret .Values.zitadel.dbSslClientCrtSecret .Values.zitadel.configSecretName -}}
+      {{- if or .Values.zitadel.secretConfig .Values.zitadel.dbSslRootCrt .Values.zitadel.dbSslRootCrtSecret .Values.zitadel.dbSslClientCrtSecret .Values.zitadel.configSecretName }}
       initContainers:
         - args:
           - "{{ include "zitadel.joincpcommands" (dict "commands" (list
