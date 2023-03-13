@@ -1,27 +1,26 @@
-apiVersion: apps/v1
-kind: Deployment
+apiVersion: batch/v1
+kind: Job
 metadata:
-  name: {{ include "zitadel.fullname" . }}
+  name: "{{ include "zitadel.fullname" . }}-setup"
   labels:
     {{- include "zitadel.labels" . | nindent 4 }}
-    app.kubernetes.io/component: start
+    app.kubernetes.io/component: setup
+  annotations:
+    helm.sh/hook: pre-install,pre-upgrade
+    helm.sh/hook-delete-policy: before-hook-creation
+    helm.sh/hook-weight: "2"
 spec:
-  replicas: {{ .Values.replicaCount }}
-  selector:
-    matchLabels:
-      {{- include "zitadel.selectorLabels" . | nindent 6 }}
+  backoffLimit: 5
+  activeDeadlineSeconds: {{ .Values.setupJob.activeDeadlineSeconds }}
   template:
     metadata:
-      annotations:
-        {{- with .Values.podAnnotations }}
-          {{- toYaml . | nindent 8 }}
-        {{- end }}
-        checksum/configmap: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
-        checksum/secret-db-ssl-root-crt: {{ include (print $.Template.BasePath "/secret_db-ssl-root-crt.yaml") . | sha256sum }}
-        checksum/secret-zitadel-secrets: {{ include (print $.Template.BasePath "/secret_zitadel-secrets.yaml") . | sha256sum }}
       labels:
-        app.kubernetes.io/component: start
         {{- include "zitadel.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: setup
+      {{- with .Values.setupJob.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
     spec:
       {{- with .Values.imagePullSecrets }}
       imagePullSecrets:
@@ -31,14 +30,15 @@ spec:
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
       enableServiceLinks: false
+      restartPolicy: OnFailure
       containers:
-        - name: {{ .Chart.Name }}
+        - name: "{{ .Chart.Name }}-setup"
           securityContext:
             {{- toYaml .Values.securityContext | nindent 14 }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           args:
-            - start
+            - setup
             - --config
             - /config/zitadel-config-yaml
             {{- if .Values.zitadel.secretConfig }}
@@ -49,6 +49,8 @@ spec:
             - --config
             - /.secrets/config-yaml
             {{- end }}
+            - --steps
+            - /config/zitadel-config-yaml
             - --masterkeyFile
             - /.secrets/masterkey
           env:
@@ -72,58 +74,33 @@ spec:
             {{- with .Values.env }}
               {{- toYaml . | nindent 12 }}
             {{- end }}
-          ports:
-          - containerPort: 8080
-            name: {{ .Values.service.protocol }}-server
-            protocol: TCP
-          {{- if .Values.livenessProbe.enabled }}
-          livenessProbe:
-            httpGet:
-              path: /debug/healthz
-              port: {{ .Values.service.protocol }}-server
-              {{- if .Values.zitadel.configmapConfig.ExternalDomain }}
-              httpHeaders:
-                - name: Host
-                  value: {{ .Values.zitadel.configmapConfig.ExternalDomain }}
-              {{- end }}
-            initialDelaySeconds: {{ .Values.livenessProbe.initialDelaySeconds }}
-            periodSeconds: {{ .Values.livenessProbe.periodSeconds }}
-            failureThreshold: {{ .Values.livenessProbe.failureThreshold }}
-          {{- end }}
-          {{- if .Values.readinessProbe.enabled }}
-          readinessProbe:
-            httpGet:
-              path: /debug/ready
-              port: {{ .Values.service.protocol }}-server
-              {{- if .Values.zitadel.configmapConfig.ExternalDomain }}
-              httpHeaders:
-                - name: Host
-                  value: {{ .Values.zitadel.configmapConfig.ExternalDomain }}
-              {{- end }}
-            initialDelaySeconds: {{ .Values.readinessProbe.initialDelaySeconds }}
-            periodSeconds: {{ .Values.readinessProbe.periodSeconds }}
-            failureThreshold: {{ .Values.readinessProbe.failureThreshold }}
-          {{- end }}
-          {{- if .Values.startupProbe.enabled }}
-          startupProbe:
-            httpGet:
-              path: /debug/ready
-              port: {{ .Values.service.protocol }}-server
-              {{- if .Values.zitadel.configmapConfig.ExternalDomain }}
-              httpHeaders:
-                - name: Host
-                  value: {{ .Values.zitadel.configmapConfig.ExternalDomain }}
-              {{- end }}
-            periodSeconds: {{ .Values.startupProbe.periodSeconds }}
-            failureThreshold: {{ .Values.startupProbe.failureThreshold }}
-          {{- end }}
           volumeMounts:
           - name: zitadel-config-yaml
             mountPath: /config
           - name: chowned-secrets
             mountPath: /.secrets
+          {{- if and .Values.zitadel.configmapConfig.FirstInstance .Values.zitadel.configmapConfig.FirstInstance.Org .Values.zitadel.configmapConfig.FirstInstance.Org.Machine }}
+          - name: machinekey
+            mountPath: {{ dir .Values.zitadel.configmapConfig.FirstInstance.MachineKeyPath }}
+          {{- end}}
           resources:
-            {{- toYaml .Values.resources | nindent 14 }}
+            {{- toYaml .Values.setupJob.resources | nindent 14 }}
+        {{- if and .Values.zitadel.configmapConfig.FirstInstance .Values.zitadel.configmapConfig.FirstInstance.Org .Values.zitadel.configmapConfig.FirstInstance.Org.Machine }}
+        - name: "{{ .Chart.Name}}-machinekey"
+          image: "{{ .Values.setupJob.machinekeyWriterImage.repository }}:{{ .Values.setupJob.machinekeyWriterImage.tag | default ( trimPrefix "v" .Capabilities.KubeVersion.Version ) }}"
+          command: [ "sh","-c","until [ ! -z $(kubectl -n {{ .Release.Namespace }} get po ${POD_NAME} -o jsonpath=\"{.status.containerStatuses[?(@.name=='{{ .Chart.Name }}-setup')].state.terminated}\") ]; do echo 'waiting for {{ .Chart.Name }}-setup container to terminate'; sleep 5; done && echo '{{ .Chart.Name }}-setup container terminated' && if [ -f {{ .Values.zitadel.configmapConfig.FirstInstance.MachineKeyPath }} ]; then kubectl -n {{ .Release.Namespace }} create secret generic {{ .Values.zitadel.configmapConfig.FirstInstance.Org.Machine.Machine.Username }} --from-file={{ .Values.zitadel.configmapConfig.FirstInstance.Org.Machine.Machine.Username }}.json={{ .Values.zitadel.configmapConfig.FirstInstance.MachineKeyPath }}; fi;" ]
+          env:
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+          volumeMounts:
+            - name: machinekey
+              mountPath: {{ dir .Values.zitadel.configmapConfig.FirstInstance.MachineKeyPath }}
+       {{- end }}
+        {{- if .Values.setupJob.extraContainers }}
+        {{- toYaml .Values.setupJob.extraContainers | nindent 8 }}
+        {{- end }}
       initContainers:
         - args:
           - "{{ include "zitadel.joincpcommands" (dict "commands" (list
@@ -192,6 +169,10 @@ spec:
       - name: db-ssl-client-crt
         secret:
           secretName: {{ .Values.zitadel.dbSslClientCrtSecret }}
+      {{- end }}
+      {{- if and .Values.zitadel.configmapConfig.FirstInstance .Values.zitadel.configmapConfig.FirstInstance.Org .Values.zitadel.configmapConfig.FirstInstance.Org.Machine }}
+      - name: machinekey
+        emptyDir: { }
       {{- end }}
       - name: masterkey
         secret:

@@ -29,7 +29,7 @@ jobs:
       run: 'helm repo add cockroachdb https://charts.cockroachdb.com/'
 
     - id: 'release'
-      uses: 'helm/chart-releaser-action@v1.4.0'
+      uses: 'helm/chart-releaser-action@v1.4.1'
       env:
         CR_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
 

@@ -2,51 +2,64 @@ package installation
 
 import (
 	"context"
-	"github.com/gruntwork-io/terratest/modules/helm"
+	"fmt"
+	"os"
+	"path/filepath"
+	"strings"
+	"testing"
+
 	"github.com/gruntwork-io/terratest/modules/k8s"
 	"github.com/gruntwork-io/terratest/modules/logger"
 	"github.com/gruntwork-io/terratest/modules/random"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 	"k8s.io/client-go/kubernetes"
-	"os"
-	"path/filepath"
-	"strings"
-	"testing"
 )
 
 type beforeFunc func(ctx context.Context, namespace string, k8sClient *kubernetes.Clientset) error
 
 type configurationTest struct {
 	suite.Suite
-	context    context.Context
-	log        *logger.Logger
-	chartPath  string
-	release    string
-	namespace  string
-	options    *helm.Options
-	beforeFunc beforeFunc
+	context          context.Context
+	log              *logger.Logger
+	kubeOptions      *k8s.KubectlOptions
+	zitadelValues    map[string]string
+	crdbValues       map[string]string
+	zitadelChartPath string
+	zitadelRelease   string
+	crdbRepoName     string
+	crdbRepoURL      string
+	crdbChart        string
+	crdbVersion      string
+	crdbRelease      string
+	beforeFunc       beforeFunc
 }
 
-func TestConfiguration(t *testing.T, before beforeFunc, values map[string]string) {
+func TestConfiguration(t *testing.T, before beforeFunc, zitadelValues map[string]string) {
 
 	chartPath, err := filepath.Abs("../../")
 	require.NoError(t, err)
 
 	namespace := createNamespaceName()
+	crdbRepoName := fmt.Sprintf("crdb-%s", strings.TrimPrefix(namespace, "zitadel-helm-"))
 	kubeOptions := k8s.NewKubectlOptions("", "", namespace)
 
 	it := &configurationTest{
-		context:   context.Background(),
-		log:       logger.New(logger.Terratest),
-		chartPath: chartPath,
-		release:   "zitadel-test",
-		namespace: namespace,
-		options: &helm.Options{
-			KubectlOptions: kubeOptions,
-			SetValues:      values,
+		context:       context.Background(),
+		log:           logger.New(logger.Terratest),
+		kubeOptions:   kubeOptions,
+		zitadelValues: zitadelValues,
+		crdbValues: map[string]string{
+			"fullnameOverride": "crdb",
 		},
-		beforeFunc: before,
+		zitadelChartPath: chartPath,
+		zitadelRelease:   "zitadel-test",
+		crdbRepoURL:      "https://charts.cockroachdb.com/",
+		crdbRepoName:     crdbRepoName,
+		crdbChart:        fmt.Sprintf("%s/cockroachdb", crdbRepoName),
+		crdbRelease:      "crdb",
+		crdbVersion:      "10.0.0",
+		beforeFunc:       before,
 	}
 	suite.Run(t, it)
 }
