@@ -15,7 +15,7 @@ By default, this chart installs a highly available ZITADEL deployment.
 
 ## Install the Chart
 
-Follow the [guide for deploying ZITADEL on Kubernetes](https://docs.zitadel.com/guides/deploy/kubernetes).
+Follow the [guide for deploying ZITADEL on Kubernetes](https://zitadel.com/docs/self-hosting/deploy/kubernetes).
 
 ## Upgrading from v3
 
