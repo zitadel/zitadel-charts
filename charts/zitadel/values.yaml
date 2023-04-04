@@ -175,3 +175,7 @@ metrics:
     enabled: false
     honorLabels: false
     honorTimestamps: true
+
+pdb:
+  enabled: false
+  minAvailable: 1
