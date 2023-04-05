@@ -178,6 +178,7 @@ metrics:
 
 pdb:
   enabled: false
+  # these values are used for the PDB and are mutally exclusive
   minAvailable: 1
-  maxUnavailable: 1
+  # maxUnavailable: 1
   annotations: {}

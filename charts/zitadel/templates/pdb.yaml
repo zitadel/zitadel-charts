@@ -14,8 +14,16 @@ metadata:
     {{- toYaml . | nindent 4 }}
   {{- end }}
 spec:
+  # test if both are set and if so return error
+  {{- if and .Values.pdb.minAvailable .Values.pdb.maxUnavailable }}
+  {{- fail "You can only set either minAvailable or maxUnavailable" }}
+  {{- end }}
+  {{- if .Values.pdb.minAvailable }}
   minAvailable: {{ .Values.pdb.minAvailable }}
+  {{- end }}
+  {{- if .Values.pdb.maxUnavailable }}
   maxUnavailable: {{ .Values.pdb.maxUnavailable }}
+  {{- end }}
   selector:
     matchLabels:
       {{- include "zitadel.selectorLabels" . | nindent 6 }}
