@@ -20,6 +20,8 @@ func TestWithInlineSecrets(t *testing.T) {
 		"zitadel.configmapConfig.ExternalPort":                  "8080",
 		"zitadel.configmapConfig.ExternalSecure":                "false",
 		"zitadel.configmapConfig.TLS.Enabled":                   "false",
+		"pdb.enabled":                                           "true",
+		"ingress.enabled":                                       "true",
 	})
 }
 
@@ -44,6 +46,8 @@ func TestWithReferencedSecrets(t *testing.T) {
 		"zitadel.configSecretName":                              zitadelConfigSecretName,
 		"zitadel.configmapConfig.ExternalPort":                  "8080",
 		"zitadel.configmapConfig.TLS.Enabled":                   "false",
+		"pdb.enabled":                                           "true",
+		"ingress.enabled":                                       "true",
 	})
 }
 
