@@ -1,21 +1,21 @@
 {{- if .Values.pdb.enabled }}
-{{- if .Values.pdb.apiVersion }}
-apiVersion: {{ .Values.pdb.apiVersion }}
-{{- else }}
+{{- if semverCompare ">=1.21-0" .Capabilities.KubeVersion.GitVersion -}}
 apiVersion: policy/v1beta1
+{{- else -}}
+apiVersion: policy/v1
 {{- end }}
 kind: PodDisruptionBudget
 metadata:
   name: {{ include "zitadel.fullname" . }}
   labels:
     {{- include "zitadel.labels" . | nindent 4 }}
+  {{- with .Values.pdb.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
 spec:
-  {{- if .Values.pdb.minAvailable }}
   minAvailable: {{ .Values.pdb.minAvailable }}
-  {{- end }}
-  {{- if .Values.pdb.maxUnavailable }}
   maxUnavailable: {{ .Values.pdb.maxUnavailable }}
-  {{- end }}
   selector:
     matchLabels:
       {{- include "zitadel.selectorLabels" . | nindent 6 }}
