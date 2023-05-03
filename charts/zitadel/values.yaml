@@ -37,6 +37,8 @@ zitadel:
     #       MachineKey:
     #         Type: 1
 
+  tlsMode:
+
   # The ZITADEL config under secretConfig is written to a Kubernetes Secret
   # See all defaults here:
   # https://github.com/zitadel/zitadel/blob/main/cmd/defaults.yaml
@@ -149,19 +151,19 @@ setupJob:
 
 
 readinessProbe:
-  enabled: true
+  enabled: false
   initialDelaySeconds: 0
   periodSeconds: 5
   failureThreshold: 3
 
 livenessProbe:
-  enabled: true
+  enabled: false
   initialDelaySeconds: 0
   periodSeconds: 5
   failureThreshold: 3
 
 startupProbe:
-  enabled: true
+  enabled: false
   periodSeconds: 1
   failureThreshold: 30
 

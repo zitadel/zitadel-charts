@@ -51,6 +51,10 @@ spec:
             {{- end }}
             - --masterkeyFile
             - /.secrets/masterkey
+            {{- if .Values.zitadel.tlsMode }}
+            - --tlsMode
+            - {{ .Values.zitadel.tlsMode }}
+            {{- end }}
           env:
             - name: POD_IP
               valueFrom:
