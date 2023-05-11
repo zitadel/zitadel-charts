@@ -151,19 +151,19 @@ setupJob:
 
 
 readinessProbe:
-  enabled: false
+  enabled: true
   initialDelaySeconds: 0
   periodSeconds: 5
   failureThreshold: 3
 
 livenessProbe:
-  enabled: false
+  enabled: true
   initialDelaySeconds: 0
   periodSeconds: 5
   failureThreshold: 3
 
 startupProbe:
-  enabled: false
+  enabled: true
   periodSeconds: 1
   failureThreshold: 30
 
