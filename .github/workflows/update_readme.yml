@@ -21,9 +21,9 @@ jobs:
       with:
         ref: 'gh-pages'
 
-    - name: 'Pull main'
-      id: 'pull'
-      run: 'git pull origin main'
+    - name: 'Fetch main'
+      id: 'fetch'
+      run: 'git fetch origin main'
 
     - name: 'Update README.md'
       id: 'update'
