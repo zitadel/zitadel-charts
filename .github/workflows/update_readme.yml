@@ -15,17 +15,24 @@ jobs:
       id-token: 'write'
 
     steps:
-    - id: 'checkout'
+    - name: "Checkout"
+      id: 'checkout'
       uses: 'actions/checkout@v3'
-
-    - name: Create Pull Request
-      uses: peter-evans/create-pull-request@v5
       with:
-        title: "docs: update README.md"
-        path: README.md
-        base: gh-pages
-        branch: update-repo-readme
+        branch: 'gh-pages'
+
+    - name: 'Update README.md'
+      id: 'update'
+      run: 'git checkout main -- README.md'
+
+    - name: 'Create Pull Request'
+      id: 'pr'
+      uses: 'peter-evans/create-pull-request@v5'
+      with:
+        title: 'docs: update README.md'
+        path: 'README.md'
+        branch: 'update-repo-readme'
         delete-branch: true
-        commit-message: "docs: update README.md"
-        assignees: "@stebenz,@eliobischof"
+        commit-message: 'docs: update README.md'
+        assignees: '@stebenz,@eliobischof'
 
