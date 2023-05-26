@@ -1,0 +1,33 @@
+name: 'Update Readme'
+
+on:
+  push:
+    branches:
+      - 'main'
+
+jobs:
+  release:
+
+    runs-on: 'ubuntu-20.04'
+
+    permissions:
+      contents: 'write'
+      id-token: 'write'
+
+    steps:
+    - id: 'checkout'
+      uses: 'actions/checkout@v3'
+      with:
+        fetch-depth: "0"
+
+    - name: Create Pull Request
+      uses: peter-evans/create-pull-request@v5
+      with:
+        title: "docs: update README.md"
+        path: README.md
+        base: gh-pages
+        branch: update-repo-readme
+        delete-branch: true
+        commit-message: "docs: update README.md"
+        assignees: "@stebenz,@eliobischof"
+
