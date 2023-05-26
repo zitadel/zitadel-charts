@@ -34,7 +34,6 @@ jobs:
       uses: 'peter-evans/create-pull-request@v5'
       with:
         title: 'docs: update README.md'
-        path: 'README.md'
         branch: 'update-repo-readme'
         delete-branch: true
         commit-message: 'docs: update README.md'
