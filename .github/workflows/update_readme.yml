@@ -3,7 +3,7 @@ name: 'Update Readme'
 on:
   push:
     branches:
-      - 'main'
+      - 'sync-readme'
 
 jobs:
   release:
@@ -37,5 +37,6 @@ jobs:
         branch: 'update-repo-readme'
         delete-branch: true
         commit-message: 'docs: update README.md'
-        assignees: 'stebenz,eliobischof'
+        assignees: github-actions
+        reviewers: 'stebenz,eliobischof'
 
