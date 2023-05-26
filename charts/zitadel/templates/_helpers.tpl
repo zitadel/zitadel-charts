@@ -82,3 +82,20 @@ Join copy commands
     {{- end -}}
 {{ print $cmd }}
 {{- end -}}
+
+{{/*
+Returns true if the full path is defined and the value at the end of the path is not empty
+*/}}
+{{- define "deepCheck" -}}
+  {{- if eq (len .path) 0 -}}
+    {{- if and .root (not (empty .root)) -}}
+      {{- true -}}
+    {{- end -}}
+  {{- else -}}
+    {{- $head := index .path 0 -}}
+    {{- $tail := slice .path 1 (len .path) -}}
+    {{- if hasKey .root $head -}}
+      {{- include "deepCheck" (dict "root" (index .root $head) "path" $tail) -}}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
