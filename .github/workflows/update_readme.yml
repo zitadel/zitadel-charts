@@ -17,8 +17,6 @@ jobs:
     steps:
     - id: 'checkout'
       uses: 'actions/checkout@v3'
-      with:
-        fetch-depth: "0"
 
     - name: Create Pull Request
       uses: peter-evans/create-pull-request@v5
