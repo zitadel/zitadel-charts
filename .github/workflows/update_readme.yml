@@ -37,6 +37,5 @@ jobs:
         branch: 'update-repo-readme'
         delete-branch: true
         commit-message: 'docs: update README.md'
-        assignees: github-actions
         reviewers: 'stebenz,eliobischof'
 
