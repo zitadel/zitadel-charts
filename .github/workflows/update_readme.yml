@@ -3,7 +3,7 @@ name: 'Update Readme'
 on:
   push:
     branches:
-      - 'sync-readme'
+      - 'main'
 
 jobs:
   release:
