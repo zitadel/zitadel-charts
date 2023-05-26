@@ -27,7 +27,7 @@ jobs:
 
     - name: 'Update README.md'
       id: 'update'
-      run: 'git checkout main -- README.md'
+      run: 'git checkout origin/main -- README.md'
 
     - name: 'Create Pull Request'
       id: 'pr'
