@@ -13,11 +13,9 @@ import (
 )
 
 func TestWithInlineSecrets(t *testing.T) {
-
 	installation.TestConfiguration(t, nil, map[string]string{
 		"zitadel.masterkey": "x123456789012345678901234567891y",
 		"zitadel.secretConfig.Database.cockroach.User.Password": "xy",
-		"zitadel.configmapConfig.ExternalPort":                  "8080",
 		"zitadel.configmapConfig.ExternalSecure":                "false",
 		"zitadel.configmapConfig.TLS.Enabled":                   "false",
 		"pdb.enabled":                                           "true",
@@ -26,20 +24,15 @@ func TestWithInlineSecrets(t *testing.T) {
 }
 
 func TestWithReferencedSecrets(t *testing.T) {
-
 	masterKeySecretName := "existing-zitadel-masterkey"
 	masterKeySecretKey := "masterkey"
 	zitadelConfigSecretName := "existing-zitadel-secrets"
 	zitadelConfigSecretKey := "config-yaml"
-
 	installation.TestConfiguration(t, func(ctx context.Context, namespace string, k8sClient *kubernetes.Clientset) error {
-
 		if err := createSecret(ctx, namespace, k8sClient, masterKeySecretName, masterKeySecretKey, "x123456789012345678901234567891y"); err != nil {
 			return err
 		}
-
 		return createSecret(ctx, namespace, k8sClient, zitadelConfigSecretName, zitadelConfigSecretKey, "ExternalSecure: false\n")
-
 	}, map[string]string{
 		"zitadel.masterkeySecretName":                           masterKeySecretName,
 		"zitadel.secretConfig.Database.cockroach.User.Password": "xy",
@@ -48,6 +41,19 @@ func TestWithReferencedSecrets(t *testing.T) {
 		"zitadel.configmapConfig.TLS.Enabled":                   "false",
 		"pdb.enabled":                                           "true",
 		"ingress.enabled":                                       "true",
+	})
+}
+
+func TestWithMachineKey(t *testing.T) {
+	installation.TestConfiguration(t, nil, map[string]string{
+		"zitadel.masterkey": "x123456789012345678901234567891y",
+		"zitadel.secretConfig.Database.cockroach.User.Password": "xy",
+		"zitadel.configmapConfig.TLS.Enabled":                   "false",
+		"pdb.enabled":                                           "true",
+		"ingress.enabled":                                       "true",
+		"zitadel.configmapConfig.FirstInstance.Org.Machine.Machine.Username": "zitadel-admin-sa",
+		"zitadel.configmapConfig.FirstInstance.Org.Machine.Machine.Name":     "Admin",
+		"zitadel.configmapConfig.FirstInstance.Org.Machine.MachineKey.Type":  "1",
 	})
 }
 
