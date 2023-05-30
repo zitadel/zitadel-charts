@@ -14,12 +14,12 @@ import (
 
 func TestWithInlineSecrets(t *testing.T) {
 	installation.TestConfiguration(t, nil, map[string]string{
-		"zitadel.masterkey": "x123456789012345678901234567891y",
-		"zitadel.secretConfig.Database.cockroach.User.Password": "xy",
 		"zitadel.configmapConfig.ExternalSecure":                "false",
 		"zitadel.configmapConfig.TLS.Enabled":                   "false",
-		"pdb.enabled":                                           "true",
-		"ingress.enabled":                                       "true",
+		"zitadel.secretConfig.Database.cockroach.User.Password": "xy",
+		"pdb.enabled":       "true",
+		"ingress.enabled":   "true",
+		"zitadel.masterkey": "x123456789012345678901234567891y",
 	})
 }
 
@@ -34,23 +34,24 @@ func TestWithReferencedSecrets(t *testing.T) {
 		}
 		return createSecret(ctx, namespace, k8sClient, zitadelConfigSecretName, zitadelConfigSecretKey, "ExternalSecure: false\n")
 	}, map[string]string{
-		"zitadel.masterkeySecretName":                           masterKeySecretName,
-		"zitadel.secretConfig.Database.cockroach.User.Password": "xy",
-		"zitadel.configSecretName":                              zitadelConfigSecretName,
-		"zitadel.configmapConfig.ExternalPort":                  "8080",
+		"zitadel.configmapConfig.ExternalSecure":                "false",
 		"zitadel.configmapConfig.TLS.Enabled":                   "false",
-		"pdb.enabled":                                           "true",
-		"ingress.enabled":                                       "true",
+		"zitadel.secretConfig.Database.cockroach.User.Password": "xy",
+		"pdb.enabled":                 "true",
+		"ingress.enabled":             "true",
+		"zitadel.masterkeySecretName": masterKeySecretName,
+		"zitadel.configSecretName":    zitadelConfigSecretName,
 	})
 }
 
 func TestWithMachineKey(t *testing.T) {
 	installation.TestConfiguration(t, nil, map[string]string{
-		"zitadel.masterkey": "x123456789012345678901234567891y",
-		"zitadel.secretConfig.Database.cockroach.User.Password": "xy",
+		"zitadel.configmapConfig.ExternalSecure":                "false",
 		"zitadel.configmapConfig.TLS.Enabled":                   "false",
-		"pdb.enabled":                                           "true",
-		"ingress.enabled":                                       "true",
+		"zitadel.secretConfig.Database.cockroach.User.Password": "xy",
+		"pdb.enabled":       "true",
+		"ingress.enabled":   "true",
+		"zitadel.masterkey": "x123456789012345678901234567891y",
 		"zitadel.configmapConfig.FirstInstance.Org.Machine.Machine.Username": "zitadel-admin-sa",
 		"zitadel.configmapConfig.FirstInstance.Org.Machine.Machine.Name":     "Admin",
 		"zitadel.configmapConfig.FirstInstance.Org.Machine.MachineKey.Type":  "1",
