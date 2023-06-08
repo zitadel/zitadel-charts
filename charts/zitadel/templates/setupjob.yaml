@@ -87,6 +87,8 @@ spec:
             {{- toYaml .Values.setupJob.resources | nindent 14 }}
         {{- if include "deepCheck" (dict "root" .Values "path" (splitList "." "zitadel.configmapConfig.FirstInstance.Org.Machine")) }}
         - name: "{{ .Chart.Name}}-machinekey"
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 14 }}
           image: "{{ .Values.setupJob.machinekeyWriterImage.repository }}:{{ .Values.setupJob.machinekeyWriterImage.tag | default ( trimPrefix "v" .Capabilities.KubeVersion.Version ) }}"
           env:
             - name: POD_NAME
