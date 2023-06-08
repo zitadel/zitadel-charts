@@ -5,10 +5,10 @@ metadata:
   labels:
     {{- include "zitadel.labels" . | nindent 4 }}
     app.kubernetes.io/component: setup
+    {{- with .Values.setupJob.annotations }}
   annotations:
-    helm.sh/hook: pre-install,pre-upgrade
-    helm.sh/hook-delete-policy: before-hook-creation
-    helm.sh/hook-weight: "2"
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
 spec:
   backoffLimit: 5
   activeDeadlineSeconds: {{ .Values.setupJob.activeDeadlineSeconds }}
