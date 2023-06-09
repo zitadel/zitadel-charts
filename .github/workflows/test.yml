@@ -86,6 +86,7 @@ jobs:
 
     - name: 'print-namespaces'
       run: echo "${{ steps.zitadel-test-namespaces.outputs.namespaces }}"
+      if: always()
 
     - name: 'report-namespaces'
       uses: jupyterhub/action-k8s-namespace-report@v1
