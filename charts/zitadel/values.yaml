@@ -152,7 +152,7 @@ setupJob:
   extraContainers: []
   podAnnotations: {}
   machinekeyWriterImage:
-    repository: alpine/k8s
+    repository: bitnami/kubectl
     tag: ""
 
 
