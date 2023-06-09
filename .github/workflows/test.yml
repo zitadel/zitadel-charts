@@ -88,6 +88,10 @@ jobs:
       run: echo "${{ steps.zitadel-test-namespaces.outputs.namespaces }}"
       if: always()
 
+    - name: 'unmarshal-namespaces'
+      run: echo "${{ fromJSON(steps.zitadel-test-namespaces.outputs.namespaces) }}"
+      if: always()
+
     - name: 'report-namespaces'
       uses: jupyterhub/action-k8s-namespace-report@v1
       if: always()
