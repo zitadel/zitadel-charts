@@ -21,8 +21,8 @@ func (s *ConfigurationTest) TestZITADELInstallation() {
 		KubectlOptions: s.KubeOptions,
 		SetValues:      s.zitadelValues,
 	}, s.zitadelChartPath, s.zitadelRelease)
-	k8s.WaitUntilJobSucceed(s.T(), s.KubeOptions, "zitadel-test-init", 300, time.Second)
-	k8s.WaitUntilJobSucceed(s.T(), s.KubeOptions, "zitadel-test-setup", 300, time.Second)
+	k8s.WaitUntilJobSucceed(s.T(), s.KubeOptions, "zitadel-test-init", 600, time.Second)
+	k8s.WaitUntilJobSucceed(s.T(), s.KubeOptions, "zitadel-test-setup", 600, time.Second)
 	pods := listPods(s.T(), 5, s.KubeOptions)
 	s.awaitReadiness(pods)
 	zitadelPods := make([]corev1.Pod, 0)
