@@ -84,7 +84,15 @@ jobs:
       run: echo "namespaces=[$(kubectl get namespaces --output name | grep zitadel-helm | cut -d / -f 2 | tr '\n' ',' | rev | cut -c2- | rev)]" >> "$GITHUB_OUTPUT"
       if: always()
 
-    - name: 'print-namespaces'
+    - name: 'list-namespaces'
+      run: echo "$(kubectl get namespaces --output name)"
+      if: always()
+
+    - name: 'list-namespaces-transformed'
+      run: echo "$(kubectl get namespaces --output name | grep zitadel-helm | cut -d / -f 2 | tr '\n' ',' | rev | cut -c2- | rev)"
+      if: always()
+
+    - name: 'get-namespaces-output'
       run: echo "${{ steps.zitadel-test-namespaces.outputs.namespaces }}"
       if: always()
 
