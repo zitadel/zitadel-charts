@@ -103,30 +103,40 @@ func testJWTProfileKey(audience, secretName, secretKey string) func(test *instal
 		}
 		closeTunnel := installation.ServiceTunnel(cfg)
 		defer closeTunnel()
-		form := url.Values{}
-		form.Add("grant_type", "urn:ietf:params:oauth:grant-type:jwt-bearer")
-		form.Add("scope", "openid profile email urn:zitadel:iam:org:project:id:zitadel:aud")
-		form.Add("assertion", jwt)
-		//nolint:bodyclose
-		resp, tokenBody, err := installation.HttpPost(cfg.Ctx, fmt.Sprintf("%s/oauth/v2/token", audience), func(req *http.Request) {
-			req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
-		}, strings.NewReader(form.Encode()))
-		if err != nil {
-			t.Fatal(err)
-		}
-		if resp.StatusCode != 200 {
-			t.Fatalf("expected token response 200, but got %d", resp.StatusCode)
-		}
-		token := struct {
-			AccessToken string `json:"access_token"`
-		}{}
-		if err = json.Unmarshal(tokenBody, &token); err != nil {
-			t.Fatal(err)
-		}
+		var token string
 		installation.Await(cfg.Ctx, t, nil, 60, func(ctx context.Context) error {
-			return callAuthenticatedEndpoint(ctx, audience, token.AccessToken)
+			var tokenErr error
+			token, tokenErr = getToken(ctx, t, audience, jwt)
+			return tokenErr
+		})
+		installation.Await(cfg.Ctx, t, nil, 60, func(ctx context.Context) error {
+			return callAuthenticatedEndpoint(ctx, audience, token)
 		})
 	}
+}
+
+func getToken(ctx context.Context, t *testing.T, audience, jwt string) (string, error) {
+	form := url.Values{}
+	form.Add("grant_type", "urn:ietf:params:oauth:grant-type:jwt-bearer")
+	form.Add("scope", "openid profile email urn:zitadel:iam:org:project:id:zitadel:aud")
+	form.Add("assertion", jwt)
+	//nolint:bodyclose
+	resp, tokenBody, err := installation.HttpPost(ctx, fmt.Sprintf("%s/oauth/v2/token", audience), func(req *http.Request) {
+		req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
+	}, strings.NewReader(form.Encode()))
+	if err != nil {
+		return "", err
+	}
+	if resp.StatusCode != 200 {
+		return "", fmt.Errorf("expected token response 200, but got %d", resp.StatusCode)
+	}
+	token := struct {
+		AccessToken string `json:"access_token"`
+	}{}
+	if err = json.Unmarshal(tokenBody, &token); err != nil {
+		t.Fatal(err)
+	}
+	return token.AccessToken, nil
 }
 
 func callAuthenticatedEndpoint(ctx context.Context, audience, token string) error {
