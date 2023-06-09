@@ -89,10 +89,10 @@ jobs:
     runs-on: 'ubuntu-20.04'
     strategy:
       matrix:
-        namespace: ${{ fromJSON(steps.random-color-generator.outputs.SELECTED_COLOR)}}
+        namespace: ${{ fromJSON(needs.test.outputs.namespaces)}}
     steps:
     - name: 'report-namespaces'
       uses: jupyterhub/action-k8s-namespace-report@v1
       if: always()
       with:
-        namespace: ${{ fromJSON(needs.test.outputs.namespaces) }}
+        namespace: ${{ matrix.namespace }}
