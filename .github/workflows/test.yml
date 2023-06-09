@@ -24,6 +24,8 @@ jobs:
         include:
         - kindest-image-tag: 'v1.27.2'
           helm-version: v3.9.0
+    outputs:
+      namespaces: ${{ steps.zitadel-test-namespaces.outputs.namespaces }}
 
     runs-on: 'ubuntu-20.04'
 
@@ -77,3 +79,20 @@ jobs:
     - name: 'test'
       run: 'go test -tags integration ./...'
       if: steps.list-changed.outputs.changed == 'true'
+
+    - name: 'zitadel-test-namespaces'
+      run: echo "namespaces=[$(kubectl get namespaces --output name | grep zitadel-helm | cut -d / -f 2 | tr '\n' ',' | rev | cut -c2- | rev)]" >> "$GITHUB_OUTPUT"
+      if: always()
+
+  report:
+    needs: test
+    runs-on: 'ubuntu-20.04'
+    strategy:
+      matrix:
+        namespace: ${{ fromJSON(steps.random-color-generator.outputs.SELECTED_COLOR)}}
+    steps:
+    - name: 'report-namespaces'
+      uses: jupyterhub/action-k8s-namespace-report@v1
+      if: always()
+      with:
+        namespace: ${{ fromJSON(needs.test.outputs.namespaces) }}
