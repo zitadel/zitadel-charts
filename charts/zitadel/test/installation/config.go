@@ -59,7 +59,7 @@ func Configure(t *testing.T, namespace string, zitadelValues map[string]string, 
 		crdbRepoName:     crdbRepoName,
 		crdbChart:        fmt.Sprintf("%s/cockroachdb", crdbRepoName),
 		crdbRelease:      "crdb",
-		crdbVersion:      "10.0.0",
+		crdbVersion:      "11.0.1",
 		beforeFunc:       before,
 		afterFunc:        after,
 	}

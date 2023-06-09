@@ -4,25 +4,29 @@ on: 'pull_request'
 
 jobs:
   test:
-
+    timeout-minutes: 60
     strategy:
+      fail-fast: false
       matrix:
-        kindest-image-tag:
-        - 'v1.18.20@sha256:738cdc23ed4be6cc0b7ea277a2ebcc454c8373d7d8fb991a7fcdbd126188e6d7'
-        - 'v1.19.16@sha256:a146f9819fece706b337d34125bbd5cb8ae4d25558427bf2fa3ee8ad231236f2'
-        - 'v1.20.15@sha256:45d0194a8069c46483a0e509088ab9249302af561ebee76a1281a1f08ecb4ed3'
-        - 'v1.21.14@sha256:ad5b7446dd8332439f22a1efdac73670f0da158c00f0a70b45716e7ef3fae20b'
-        - 'v1.22.15@sha256:bfd5eaae36849bfb3c1e3b9442f3da17d730718248939d9d547e86bbac5da586'
-        - 'v1.23.12@sha256:9402cf1330bbd3a0d097d2033fa489b2abe40d479cc5ef47d0b6a6960613148a'
-        - 'v1.24.6@sha256:97e8d00bc37a7598a0b32d1fabd155a96355c49fa0d4d4790aab0f161bf31be1'
-        - 'v1.25.2@sha256:9be91e9e9cdf116809841fc77ebdb8845443c4c72fe5218f3ae9eb57fdb4bace'
         test-function-name:
         - 'TestWithInlineSecrets'
         - 'TestWithReferencedSecrets'
         - 'TestWithMachineKey'
+        kindest-image-tag:
+        - 'v1.18.20'
+        - 'v1.19.16'
+        - 'v1.20.15'
+        - 'v1.21.14'
+        - 'v1.22.17'
+        - 'v1.23.17'
+        - 'v1.24.13'
+        - 'v1.25.9'
+        - 'v1.26.4'
+        - 'v1.27.2'
+        helm-version:
+        - v3.11.1
         include:
-        - helm-version: v3.11.1
-        - kindest-image-tag: 'v1.25.2@sha256:9be91e9e9cdf116809841fc77ebdb8845443c4c72fe5218f3ae9eb57fdb4bace'
+        - kindest-image-tag: 'v1.27.2'
           test-function-name: 'TestWithInlineSecrets'
           helm-version: v3.9.0
 
