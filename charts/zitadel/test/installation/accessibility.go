@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"strings"
 	"sync"
-	"testing"
 	"time"
 
 	"github.com/gruntwork-io/terratest/modules/k8s"
@@ -18,19 +17,6 @@ type checkOptions struct {
 	test   func(response *http.Response, body []byte) error
 }
 
-func (c *checkOptions) try(ctx context.Context, t *testing.T, wg *sync.WaitGroup, try int) {
-	err := c.execute(ctx)
-	if err == nil {
-		wg.Done()
-		return
-	}
-	if try == 0 {
-		t.Fatal(err)
-	}
-	time.Sleep(time.Second)
-	c.try(ctx, t, wg, try-1)
-}
-
 func (c *checkOptions) execute(ctx context.Context) (err error) {
 	checkCtx, checkCancel := context.WithTimeout(ctx, 5*time.Second)
 	defer checkCancel()
@@ -38,6 +24,7 @@ func (c *checkOptions) execute(ctx context.Context) (err error) {
 	if err != nil {
 		return fmt.Errorf("HttpGet failed with response %+v and body %+v: %w", resp, body, err)
 	}
+	defer resp.Body.Close()
 	if err = c.test(resp, body); err != nil {
 		return fmt.Errorf("checking response %+v with body %+v failed: %w", resp, body, err)
 	}
@@ -83,7 +70,7 @@ func (s *ConfigurationTest) checkAccessibility(pods []corev1.Pod) {
 	wg := sync.WaitGroup{}
 	for _, check := range checks {
 		wg.Add(1)
-		go check.try(ctx, s.T(), &wg, 60)
+		go Await(ctx, s.T(), &wg, 60, check.execute)
 	}
 	wait(ctx, s.T(), &wg, "accessibility")
 }

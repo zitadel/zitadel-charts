@@ -15,6 +15,7 @@ import (
 	"os"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/gruntwork-io/terratest/modules/k8s"
 	corev1 "k8s.io/api/core/v1"
@@ -115,16 +116,26 @@ func testJWTProfileKey(audience, secretName, secretKey string) func(test *instal
 		if err = json.Unmarshal(tokenBody, &token); err != nil {
 			t.Fatal(err)
 		}
-		langResp, _, err := installation.HttpGet(cfg.Ctx, fmt.Sprintf("%s/management/v1/languages", audience), func(req *http.Request) {
-			req.Header.Add("Authorization", fmt.Sprintf("Bearer %s", token.AccessToken))
+		installation.Await(cfg.Ctx, t, nil, 60, func(ctx context.Context) error {
+			return callAuthenticatedEndpoint(ctx, audience, token.AccessToken)
 		})
-		if err != nil {
-			t.Fatal(err)
-		}
-		if langResp.StatusCode != 200 {
-			t.Fatalf("Expected status 200 at an authenticated endpoint, but got %d", langResp.StatusCode)
-		}
 	}
+}
+
+func callAuthenticatedEndpoint(ctx context.Context, audience, token string) error {
+	checkCtx, checkCancel := context.WithTimeout(ctx, 5*time.Second)
+	defer checkCancel()
+	resp, _, err := installation.HttpGet(checkCtx, fmt.Sprintf("%s/management/v1/languages", audience), func(req *http.Request) {
+		req.Header.Add("Authorization", fmt.Sprintf("Bearer %s", token))
+	})
+	if err != nil {
+		return err
+	}
+	resp.Body.Close()
+	if resp.StatusCode != 200 {
+		return fmt.Errorf("Expected status 200 at an authenticated endpoint, but got %d", resp.StatusCode)
+	}
+	return nil
 }
 
 func randomNewNamespace() string {
