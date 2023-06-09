@@ -84,20 +84,23 @@ jobs:
       run: echo "namespaces=[$(kubectl get namespaces --output name | grep zitadel-helm | cut -d / -f 2 | tr '\n' ',' | rev | cut -c2- | rev)]" >> "$GITHUB_OUTPUT"
       if: always()
 
-    - name: 'report-namespaces'
-      uses: jupyterhub/action-k8s-namespace-report@v1
-      if: always()
-      with:
-        namespace: ${{ fromJSON(steps.zitadel-test-namespaces.outputs.namespace)[0] }}
+    - name: 'print-namespaces'
+      run: echo "${{ steps.zitadel-test-namespaces.outputs.namespaces }}"
 
     - name: 'report-namespaces'
       uses: jupyterhub/action-k8s-namespace-report@v1
       if: always()
       with:
-        namespace: ${{ fromJSON(steps.zitadel-test-namespaces.outputs.namespace)[1] }}
+        namespace: ${{ fromJSON(steps.zitadel-test-namespaces.outputs.namespaces)[0] }}
 
     - name: 'report-namespaces'
       uses: jupyterhub/action-k8s-namespace-report@v1
       if: always()
       with:
-        namespace: ${{ fromJSON(steps.zitadel-test-namespaces.outputs.namespace)[2] }}
+        namespace: ${{ fromJSON(steps.zitadel-test-namespaces.outputs.namespaces)[1] }}
+
+    - name: 'report-namespaces'
+      uses: jupyterhub/action-k8s-namespace-report@v1
+      if: always()
+      with:
+        namespace: ${{ fromJSON(steps.zitadel-test-namespaces.outputs.namespaces)[2] }}
