@@ -69,37 +69,37 @@ jobs:
       run: 'ct lint --target-branch ${{ github.event.repository.default_branch }}'
       if: steps.list-changed.outputs.changed == 'true'
 
-    - name: 'create-kind'
+    - id: 'create-kind'
       uses: 'helm/kind-action@v1.4.0'
       if: steps.list-changed.outputs.changed == 'true'
       with:
         node_image: 'kindest/node:${{ matrix.kindest-image-tag }}'
         version: 'v0.16.0'
 
-    - name: 'test'
+    - id: 'test'
       run: 'go test -tags integration ./...'
       if: steps.list-changed.outputs.changed == 'true'
 
-    - name: 'zitadel-test-namespaces'
+    - id: 'zitadel-test-namespaces'
       run: |
         echo "firstNamespace=$(kubectl get namespaces --output name | grep zitadel-helm | cut -d / -f 2 | awk 'NR==1{ print; }')" >> "$GITHUB_OUTPUT"
         echo "secondNamespace=$(kubectl get namespaces --output name | grep zitadel-helm | cut -d / -f 2 | awk 'NR==2{ print; }')" >> "$GITHUB_OUTPUT"
         echo "thirdNamespace=$(kubectl get namespaces --output name | grep zitadel-helm | cut -d / -f 2 | awk 'NR==3{ print; }')" >> "$GITHUB_OUTPUT"
       if: always()
 
-    - name: 'report-namespaces'
+    - id: 'report-namespaces'
       uses: jupyterhub/action-k8s-namespace-report@v1
       if: always()
       with:
         namespace: ${{ steps.zitadel-test-namespaces.outputs.firstNamespace }}
 
-    - name: 'report-namespaces'
+    - id: 'report-namespaces'
       uses: jupyterhub/action-k8s-namespace-report@v1
       if: always()
       with:
         namespace: ${{ steps.zitadel-test-namespaces.outputs.secondNamespace }}
 
-    - name: 'report-namespaces'
+    - id: 'report-namespaces'
       uses: jupyterhub/action-k8s-namespace-report@v1
       if: always()
       with:
