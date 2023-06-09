@@ -75,5 +75,5 @@ jobs:
         version: 'v0.16.0'
 
     - name: 'test'
-      run: go test -tags integration ./...'
+      run: 'go test -tags integration ./...'
       if: steps.list-changed.outputs.changed == 'true'
