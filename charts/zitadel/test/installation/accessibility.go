@@ -20,11 +20,11 @@ type checkOptions struct {
 func (c *checkOptions) execute(ctx context.Context) (err error) {
 	checkCtx, checkCancel := context.WithTimeout(ctx, 5*time.Second)
 	defer checkCancel()
+	//nolint:bodyclose
 	resp, body, err := HttpGet(checkCtx, c.getUrl, nil)
 	if err != nil {
 		return fmt.Errorf("HttpGet failed with response %+v and body %+v: %w", resp, body, err)
 	}
-	defer resp.Body.Close()
 	if err = c.test(resp, body); err != nil {
 		return fmt.Errorf("checking response %+v with body %+v failed: %w", resp, body, err)
 	}

@@ -82,24 +82,24 @@ jobs:
 
     - id: 'zitadel-test-namespaces'
       run: |
-        echo "firstNamespace=$(kubectl get namespaces --output name | grep zitadel-helm | cut -d / -f 2 | awk 'NR==1{ print; }')" >> "$GITHUB_OUTPUT"
-        echo "secondNamespace=$(kubectl get namespaces --output name | grep zitadel-helm | cut -d / -f 2 | awk 'NR==2{ print; }')" >> "$GITHUB_OUTPUT"
-        echo "thirdNamespace=$(kubectl get namespaces --output name | grep zitadel-helm | cut -d / -f 2 | awk 'NR==3{ print; }')" >> "$GITHUB_OUTPUT"
+        echo "firstNamespace=$(kubectl get namespaces --output name | grep zitadel-test | cut -d / -f 2 | awk 'NR==1{ print; }')" >> "$GITHUB_OUTPUT"
+        echo "secondNamespace=$(kubectl get namespaces --output name | grep zitadel-test | cut -d / -f 2 | awk 'NR==2{ print; }')" >> "$GITHUB_OUTPUT"
+        echo "thirdNamespace=$(kubectl get namespaces --output name | grep zitadel-test | cut -d / -f 2 | awk 'NR==3{ print; }')" >> "$GITHUB_OUTPUT"
       if: always()
 
-    - id: 'report-namespaces'
+    - id: 'report-first-namespace'
       uses: jupyterhub/action-k8s-namespace-report@v1
       if: always()
       with:
         namespace: ${{ steps.zitadel-test-namespaces.outputs.firstNamespace }}
 
-    - id: 'report-namespaces'
+    - id: 'report-second-namespace'
       uses: jupyterhub/action-k8s-namespace-report@v1
       if: always()
       with:
         namespace: ${{ steps.zitadel-test-namespaces.outputs.secondNamespace }}
 
-    - id: 'report-namespaces'
+    - id: 'report-third-namespace'
       uses: jupyterhub/action-k8s-namespace-report@v1
       if: always()
       with:

@@ -27,7 +27,7 @@ import (
 
 func TestWithInlineSecrets(t *testing.T) {
 	t.Parallel()
-	suite.Run(t, installation.Configure(t, randomNewNamespace(), map[string]string{
+	suite.Run(t, installation.Configure(t, newNamespaceIdentifier("inline-secrets"), map[string]string{
 		"zitadel.configmapConfig.ExternalSecure":                "false",
 		"zitadel.configmapConfig.TLS.Enabled":                   "false",
 		"zitadel.secretConfig.Database.cockroach.User.Password": "xy",
@@ -43,7 +43,7 @@ func TestWithReferencedSecrets(t *testing.T) {
 	masterKeySecretKey := "masterkey"
 	zitadelConfigSecretName := "existing-zitadel-secrets"
 	zitadelConfigSecretKey := "config-yaml"
-	suite.Run(t, installation.Configure(t, randomNewNamespace(), map[string]string{
+	suite.Run(t, installation.Configure(t, newNamespaceIdentifier("ref-secrets"), map[string]string{
 		"zitadel.configmapConfig.ExternalSecure":                "false",
 		"zitadel.configmapConfig.TLS.Enabled":                   "false",
 		"zitadel.secretConfig.Database.cockroach.User.Password": "xy",
@@ -64,7 +64,7 @@ func TestWithReferencedSecrets(t *testing.T) {
 func TestWithMachineKey(t *testing.T) {
 	t.Parallel()
 	saUserame := "zitadel-admin-sa"
-	suite.Run(t, installation.Configure(t, randomNewNamespace(), map[string]string{
+	suite.Run(t, installation.Configure(t, newNamespaceIdentifier("machinekey"), map[string]string{
 		"zitadel.configmapConfig.ExternalSecure":                "false",
 		"zitadel.configmapConfig.TLS.Enabled":                   "false",
 		"zitadel.secretConfig.Database.cockroach.User.Password": "xy",
@@ -107,15 +107,19 @@ func testJWTProfileKey(audience, secretName, secretKey string) func(test *instal
 		form.Add("grant_type", "urn:ietf:params:oauth:grant-type:jwt-bearer")
 		form.Add("scope", "openid profile email urn:zitadel:iam:org:project:id:zitadel:aud")
 		form.Add("assertion", jwt)
-		tokenResp, tokenBody, err := installation.HttpPost(cfg.Ctx, fmt.Sprintf("%s/oauth/v2/token", audience), func(req *http.Request) {
+		//nolint:bodyclose
+		resp, tokenBody, err := installation.HttpPost(cfg.Ctx, fmt.Sprintf("%s/oauth/v2/token", audience), func(req *http.Request) {
 			req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
 		}, strings.NewReader(form.Encode()))
+		if err != nil {
+			t.Fatal(err)
+		}
+		if resp.StatusCode != 200 {
+			t.Fatalf("expected token response 200, but got %d", resp.StatusCode)
+		}
 		token := struct {
 			AccessToken string `json:"access_token"`
 		}{}
-		if tokenResp.StatusCode != 200 {
-			t.Fatalf("expected token response 200, but got %d", tokenResp.StatusCode)
-		}
 		if err = json.Unmarshal(tokenBody, &token); err != nil {
 			t.Fatal(err)
 		}
@@ -128,24 +132,24 @@ func testJWTProfileKey(audience, secretName, secretKey string) func(test *instal
 func callAuthenticatedEndpoint(ctx context.Context, audience, token string) error {
 	checkCtx, checkCancel := context.WithTimeout(ctx, 5*time.Second)
 	defer checkCancel()
+	//nolint:bodyclose
 	resp, _, err := installation.HttpGet(checkCtx, fmt.Sprintf("%s/management/v1/languages", audience), func(req *http.Request) {
 		req.Header.Add("Authorization", fmt.Sprintf("Bearer %s", token))
 	})
 	if err != nil {
 		return err
 	}
-	resp.Body.Close()
 	if resp.StatusCode != 200 {
-		return fmt.Errorf("Expected status 200 at an authenticated endpoint, but got %d", resp.StatusCode)
+		return fmt.Errorf("expected status 200 at an authenticated endpoint, but got %d", resp.StatusCode)
 	}
 	return nil
 }
 
-func randomNewNamespace() string {
+func newNamespaceIdentifier(testcase string) string {
 	// if triggered by a github action the environment variable is set
 	// we use it to better identify the test
 	commitSHA, exist := os.LookupEnv("GITHUB_SHA")
-	namespace := "zitadel-helm-" + strings.ToLower(random.UniqueId())
+	namespace := fmt.Sprintf("zitadel-test-%s-%s", testcase, strings.ToLower(random.UniqueId()))
 	if exist {
 		namespace += "-" + commitSHA
 	}
