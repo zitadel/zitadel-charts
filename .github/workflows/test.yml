@@ -8,10 +8,6 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        test-function-name:
-        - 'TestWithInlineSecrets'
-        - 'TestWithReferencedSecrets'
-        - 'TestWithMachineKey'
         kindest-image-tag:
         - 'v1.18.20'
         - 'v1.19.16'
@@ -24,10 +20,9 @@ jobs:
         - 'v1.26.4'
         - 'v1.27.2'
         helm-version:
-        - v3.11.1
+        - v3.12.0
         include:
         - kindest-image-tag: 'v1.27.2'
-          test-function-name: 'TestWithInlineSecrets'
           helm-version: v3.9.0
 
     runs-on: 'ubuntu-20.04'
@@ -80,5 +75,5 @@ jobs:
         version: 'v0.16.0'
 
     - name: 'test'
-      run: go test -tags integration ./... -run '^\Q${{ matrix.test-function-name }}\E$'
+      run: go test -tags integration ./...'
       if: steps.list-changed.outputs.changed == 'true'

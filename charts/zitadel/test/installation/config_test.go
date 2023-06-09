@@ -26,6 +26,7 @@ import (
 )
 
 func TestWithInlineSecrets(t *testing.T) {
+	t.Parallel()
 	suite.Run(t, installation.Configure(t, randomNewNamespace(), map[string]string{
 		"zitadel.configmapConfig.ExternalSecure":                "false",
 		"zitadel.configmapConfig.TLS.Enabled":                   "false",
@@ -37,6 +38,7 @@ func TestWithInlineSecrets(t *testing.T) {
 }
 
 func TestWithReferencedSecrets(t *testing.T) {
+	t.Parallel()
 	masterKeySecretName := "existing-zitadel-masterkey"
 	masterKeySecretKey := "masterkey"
 	zitadelConfigSecretName := "existing-zitadel-secrets"
@@ -60,6 +62,7 @@ func TestWithReferencedSecrets(t *testing.T) {
 }
 
 func TestWithMachineKey(t *testing.T) {
+	t.Parallel()
 	saUserame := "zitadel-admin-sa"
 	suite.Run(t, installation.Configure(t, randomNewNamespace(), map[string]string{
 		"zitadel.configmapConfig.ExternalSecure":                "false",
