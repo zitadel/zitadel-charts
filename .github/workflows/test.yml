@@ -81,39 +81,26 @@ jobs:
       if: steps.list-changed.outputs.changed == 'true'
 
     - name: 'zitadel-test-namespaces'
-      run: echo "namespaces=[$(kubectl get namespaces --output name | grep zitadel-helm | cut -d / -f 2 | tr '\n' ',' | rev | cut -c2- | rev)]" >> "$GITHUB_OUTPUT"
-      if: always()
-
-    - name: 'list-namespaces'
-      run: echo "$(kubectl get namespaces --output name)"
-      if: always()
-
-    - name: 'list-namespaces-transformed'
-      run: echo "$(kubectl get namespaces --output name | grep zitadel-helm | cut -d / -f 2 | tr '\n' ',' | rev | cut -c2- | rev)"
-      if: always()
-
-    - name: 'get-namespaces-output'
-      run: echo "${{ steps.zitadel-test-namespaces.outputs.namespaces }}"
-      if: always()
-
-    - name: 'unmarshal-namespaces'
-      run: echo "${{ fromJSON(steps.zitadel-test-namespaces.outputs.namespaces) }}"
+      run: |
+        echo "firstNamespace=$(kubectl get namespaces --output name | grep zitadel-helm | cut -d / -f 2 | awk 'NR==1{ print; }')" >> "$GITHUB_OUTPUT"
+        echo "secondNamespace=$(kubectl get namespaces --output name | grep zitadel-helm | cut -d / -f 2 | awk 'NR==2{ print; }')" >> "$GITHUB_OUTPUT"
+        echo "thirdNamespace=$(kubectl get namespaces --output name | grep zitadel-helm | cut -d / -f 2 | awk 'NR==3{ print; }')" >> "$GITHUB_OUTPUT"
       if: always()
 
     - name: 'report-namespaces'
       uses: jupyterhub/action-k8s-namespace-report@v1
       if: always()
       with:
-        namespace: ${{ fromJSON(steps.zitadel-test-namespaces.outputs.namespaces)[0] }}
+        namespace: ${{ steps.zitadel-test-namespaces.outputs.firstNamespace }}
 
     - name: 'report-namespaces'
       uses: jupyterhub/action-k8s-namespace-report@v1
       if: always()
       with:
-        namespace: ${{ fromJSON(steps.zitadel-test-namespaces.outputs.namespaces)[1] }}
+        namespace: ${{ steps.zitadel-test-namespaces.outputs.secondNamespace }}
 
     - name: 'report-namespaces'
       uses: jupyterhub/action-k8s-namespace-report@v1
       if: always()
       with:
-        namespace: ${{ fromJSON(steps.zitadel-test-namespaces.outputs.namespaces)[2] }}
+        namespace: ${{ steps.zitadel-test-namespaces.outputs.thirdNamespace }}
