@@ -40,14 +40,14 @@ jobs:
         fetch-depth: 0
 
     - id: 'set-up-helm'
-      name: Install Helm (The Chart Testing CLI depends on it)
+      name: Install Helm (The Chart Testing CLI Depends On It)
       uses: 'azure/setup-helm@v3.5'
       with:
         version: '${{ matrix.helm-version }}'
         token: ${{ secrets.GITHUB_TOKEN }}
 
     - id: 'set-up-python'
-      name: Install Python (The Chart Testing CLI depends on it)
+      name: Install Python (The Chart Testing CLI Depends On It)
       uses: 'actions/setup-python@v3.1.4'
       with:
         python-version: 3.11.4
