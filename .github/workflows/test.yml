@@ -4,12 +4,19 @@ on: 'pull_request'
 
 jobs:
   test:
+
+    runs-on: 'ubuntu-20.04'
+
+    permissions:
+      contents: 'read'
+      id-token: 'write'
+
     timeout-minutes: 60
+
     strategy:
       fail-fast: false
       matrix:
         kindest-image-tag:
-        - 'v1.18.20'
         - 'v1.19.16'
         - 'v1.20.15'
         - 'v1.21.14'
@@ -24,14 +31,6 @@ jobs:
         include:
         - kindest-image-tag: 'v1.27.2'
           helm-version: v3.9.0
-    outputs:
-      namespaces: ${{ steps.zitadel-test-namespaces.outputs.namespaces }}
-
-    runs-on: 'ubuntu-20.04'
-
-    permissions:
-      contents: 'read'
-      id-token: 'write'
 
     steps:
     - id: 'checkout'
