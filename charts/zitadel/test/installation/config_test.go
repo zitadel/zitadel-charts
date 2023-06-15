@@ -117,7 +117,7 @@ func testJWTProfileKey(audience, secretName, secretKey string) func(test *instal
 
 func getToken(ctx context.Context, t *testing.T, audience, jwt string) (string, error) {
 	form := url.Values{}
-	form.Add("grant_type", oidc.ClientAssertionTypeJWTAssertion)
+	form.Add("grant_type", string(oidc.GrantTypeBearer))
 	form.Add("scope", fmt.Sprintf("%s %s %s urn:zitadel:iam:org:project:id:zitadel:aud", oidc.ScopeOpenID, oidc.ScopeProfile, oidc.ScopeEmail))
 	form.Add("assertion", jwt)
 	//nolint:bodyclose
