@@ -3,34 +3,40 @@ package installation
 import (
 	"github.com/gruntwork-io/terratest/modules/k8s"
 	"github.com/jinzhu/copier"
+	"k8s.io/apimachinery/pkg/api/errors"
 )
 
 func (s *ConfigurationTest) SetupTest() {
 	clusterKubectl := new(k8s.KubectlOptions)
+	t := s.T()
 	if err := copier.Copy(clusterKubectl, s.KubeOptions); err != nil {
-		s.T().Fatal(err)
+		t.Fatal(err)
 	}
 	clusterKubectl.Namespace = ""
-	// ignore error
-	_ = k8s.KubectlDeleteFromStringE(s.T(), clusterKubectl, `
+	if err := k8s.KubectlDeleteFromStringE(t, clusterKubectl, `
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
   name: crdb
-`)
-	// ignore error
-	_ = k8s.KubectlDeleteFromStringE(s.T(), clusterKubectl, `
+`); err != nil && !errors.IsNotFound(err) {
+		t.Fatal(err)
+	}
+	if err := k8s.KubectlDeleteFromStringE(t, clusterKubectl, `
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
   name: crdb
-`)
-	if _, err := k8s.GetNamespaceE(s.T(), s.KubeOptions, s.KubeOptions.Namespace); err != nil {
-		k8s.CreateNamespace(s.T(), s.KubeOptions, s.KubeOptions.Namespace)
-	} else {
-		s.log.Logf(s.T(), "Namespace: %s already exist!", s.KubeOptions.Namespace)
+`); err != nil && !errors.IsNotFound(err) {
+		t.Fatal(err)
 	}
-	if s.beforeFunc == nil {
+	_, err := k8s.GetNamespaceE(t, s.KubeOptions, s.KubeOptions.Namespace)
+	isNotFound := errors.IsNotFound(err)
+	if err != nil && !isNotFound {
+		t.Fatal(err)
+	}
+	if isNotFound {
+		k8s.CreateNamespace(t, s.KubeOptions, s.KubeOptions.Namespace)
 		return
 	}
+	s.log.Logf(s.T(), "Namespace: %s already exist!", s.KubeOptions.Namespace)
 }

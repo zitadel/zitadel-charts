@@ -7,9 +7,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/gruntwork-io/terratest/modules/random"
-	"github.com/stretchr/testify/suite"
-	"github.com/zitadel/oidc/pkg/oidc"
 	"net/http"
 	"net/url"
 	"os"
@@ -18,6 +15,9 @@ import (
 	"time"
 
 	"github.com/gruntwork-io/terratest/modules/k8s"
+	"github.com/gruntwork-io/terratest/modules/random"
+	"github.com/stretchr/testify/suite"
+	"github.com/zitadel/oidc/pkg/oidc"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
@@ -117,8 +117,8 @@ func testJWTProfileKey(audience, secretName, secretKey string) func(test *instal
 
 func getToken(ctx context.Context, t *testing.T, audience, jwt string) (string, error) {
 	form := url.Values{}
-	form.Add("grant_type", "urn:ietf:params:oauth:grant-type:jwt-bearer")
-	form.Add("scope", "openid profile email urn:zitadel:iam:org:project:id:zitadel:aud")
+	form.Add("grant_type", oidc.ClientAssertionTypeJWTAssertion)
+	form.Add("scope", fmt.Sprintf("%s %s %s urn:zitadel:iam:org:project:id:zitadel:aud", oidc.ScopeOpenID, oidc.ScopeProfile, oidc.ScopeEmail))
 	form.Add("assertion", jwt)
 	//nolint:bodyclose
 	resp, tokenBody, err := installation.HttpPost(ctx, fmt.Sprintf("%s/oauth/v2/token", audience), func(req *http.Request) {
