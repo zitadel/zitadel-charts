@@ -3,26 +3,25 @@ package installation
 import (
 	"context"
 	"fmt"
-	"os"
 	"path/filepath"
 	"strings"
 	"testing"
 
 	"github.com/gruntwork-io/terratest/modules/k8s"
 	"github.com/gruntwork-io/terratest/modules/logger"
-	"github.com/gruntwork-io/terratest/modules/random"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 	"k8s.io/client-go/kubernetes"
 )
 
-type beforeFunc func(ctx context.Context, namespace string, k8sClient *kubernetes.Clientset) error
+type hookFunc func(*ConfigurationTest)
 
-type configurationTest struct {
+type ConfigurationTest struct {
 	suite.Suite
-	context          context.Context
+	Ctx              context.Context
 	log              *logger.Logger
-	kubeOptions      *k8s.KubectlOptions
+	KubeOptions      *k8s.KubectlOptions
+	KubeClient       *kubernetes.Clientset
 	zitadelValues    map[string]string
 	crdbValues       map[string]string
 	zitadelChartPath string
@@ -32,22 +31,24 @@ type configurationTest struct {
 	crdbChart        string
 	crdbVersion      string
 	crdbRelease      string
-	beforeFunc       beforeFunc
+	beforeFunc       hookFunc
+	afterFunc        hookFunc
 }
 
-func TestConfiguration(t *testing.T, before beforeFunc, zitadelValues map[string]string) {
-
+func Configure(t *testing.T, namespace string, zitadelValues map[string]string, before, after hookFunc) *ConfigurationTest {
 	chartPath, err := filepath.Abs("../../")
 	require.NoError(t, err)
-
-	namespace := createNamespaceName()
 	crdbRepoName := fmt.Sprintf("crdb-%s", strings.TrimPrefix(namespace, "zitadel-helm-"))
 	kubeOptions := k8s.NewKubectlOptions("", "", namespace)
-
-	it := &configurationTest{
-		context:       context.Background(),
+	clientset, err := k8s.GetKubernetesClientFromOptionsE(t, kubeOptions)
+	if err != nil {
+		t.Fatal(err)
+	}
+	cfg := &ConfigurationTest{
+		Ctx:           context.Background(),
 		log:           logger.New(logger.Terratest),
-		kubeOptions:   kubeOptions,
+		KubeOptions:   kubeOptions,
+		KubeClient:    clientset,
 		zitadelValues: zitadelValues,
 		crdbValues: map[string]string{
 			"fullnameOverride": "crdb",
@@ -58,31 +59,10 @@ func TestConfiguration(t *testing.T, before beforeFunc, zitadelValues map[string
 		crdbRepoName:     crdbRepoName,
 		crdbChart:        fmt.Sprintf("%s/cockroachdb", crdbRepoName),
 		crdbRelease:      "crdb",
-		crdbVersion:      "10.0.0",
+		crdbVersion:      "11.0.1",
 		beforeFunc:       before,
+		afterFunc:        after,
 	}
-	suite.Run(t, it)
-}
-
-func truncateString(str string, num int) string {
-	shortenStr := str
-	if len(str) > num {
-		shortenStr = str[0:num]
-	}
-	return shortenStr
-}
-
-func createNamespaceName() string {
-	// if triggered by a github action the environment variable is set
-	// we use it to better identify the test
-	commitSHA, exist := os.LookupEnv("GITHUB_SHA")
-	namespace := "zitadel-helm-" + strings.ToLower(random.UniqueId())
-
-	if exist {
-		namespace += "-" + commitSHA
-	}
-
-	// max namespace length is 63 characters
-	// https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#dns-label-names
-	return truncateString(namespace, 63)
+	cfg.SetT(t)
+	return cfg
 }
