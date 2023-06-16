@@ -21,7 +21,11 @@ body:
   id: version
   attributes:
     label: Version
-    description: Which version of ZITADEL Charts are you using.
+    description: Which version of the Chart are you using.
+- id: appversion
+  attributes:
+    label: App version
+    description: Which version of ZITADEL are you using.
 - type: textarea
   id: impact
   attributes:
