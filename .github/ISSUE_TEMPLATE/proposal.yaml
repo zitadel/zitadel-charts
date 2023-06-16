@@ -41,16 +41,6 @@ body:
     attributes:
       label: App version
       description: Which version of ZITADEL are you using.
-  - type: dropdown
-    id: environment
-    attributes:
-      label: Environment
-      description: How do you use ZITADEL?
-      options:
-      - ZITADEL Cloud
-      - Self-hosted
-    validations:
-      required: true
   - type: textarea
     id: additional
     attributes:
