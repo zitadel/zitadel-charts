@@ -40,10 +40,10 @@ body:
   validations:
     required: true
 - type: textarea
-  id: screenshots
+  id: logs
   attributes:
-    label: Screenshots
-    description: If applicable, add screenshots to help explain your problem.
+    label: Logs
+    description: If applicable, add relevant logs that could help identifying the cause of your problem. Make sure to redact any sensitive information.
 - type: textarea
   id: expected
   attributes:
