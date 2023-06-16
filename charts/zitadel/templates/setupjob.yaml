@@ -1,3 +1,6 @@
+{{- if include "deepCheck" (dict "root" .Values "path" (splitList "." "zitadel.configmapConfig.FirstInstance.MachineKeyPath")) -}}
+{{- fail "Specifying .Values.zitadel.configmapConfig.FirstInstance.MachineKeyPath is not supported" -}}
+{{- end -}}
 apiVersion: batch/v1
 kind: Job
 metadata:
@@ -5,10 +8,10 @@ metadata:
   labels:
     {{- include "zitadel.labels" . | nindent 4 }}
     app.kubernetes.io/component: setup
+    {{- with .Values.setupJob.annotations }}
   annotations:
-    helm.sh/hook: pre-install,pre-upgrade
-    helm.sh/hook-delete-policy: before-hook-creation
-    helm.sh/hook-weight: "2"
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
 spec:
   backoffLimit: 5
   activeDeadlineSeconds: {{ .Values.setupJob.activeDeadlineSeconds }}
@@ -74,20 +77,25 @@ spec:
             {{- with .Values.env }}
               {{- toYaml . | nindent 12 }}
             {{- end }}
+            - name: ZITADEL_FIRSTINSTANCE_MACHINEKEYPATH
+              value: "/machinekey/sa.json"
           volumeMounts:
           - name: zitadel-config-yaml
             mountPath: /config
           - name: chowned-secrets
             mountPath: /.secrets
-          {{- if include "deepCheck" (dict "root" .Values "path" (splitList "." "zitadel.configmapConfig.FirstInstance.MachineKeyPath")) }}
+          {{- if include "deepCheck" (dict "root" .Values "path" (splitList "." "zitadel.configmapConfig.FirstInstance.Org.Machine")) }}
           - name: machinekey
-            key: {{ .Values.zitadel.configmapConfig.FirstInstance.MachineKeyPath }}
+            mountPath: "/machinekey"
           {{- end}}
           resources:
             {{- toYaml .Values.setupJob.resources | nindent 14 }}
         {{- if include "deepCheck" (dict "root" .Values "path" (splitList "." "zitadel.configmapConfig.FirstInstance.Org.Machine")) }}
         - name: "{{ .Chart.Name}}-machinekey"
-          image: "{{ .Values.setupJob.machinekeyWriterImage.repository }}:{{ .Values.setupJob.machinekeyWriterImage.tag | default ( trimPrefix "v" .Capabilities.KubeVersion.Version ) }}"
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 14 }}
+          image: "{{ .Values.setupJob.machinekeyWriterImage.repository }}:{{ .Values.setupJob.machinekeyWriterImage.tag | default ( printf "%s.%s" .Capabilities.KubeVersion.Major .Capabilities.KubeVersion.Minor ) }}"
+          command: [ "sh","-c","until [ ! -z $(kubectl -n {{ .Release.Namespace }} get po ${POD_NAME} -o jsonpath=\"{.status.containerStatuses[?(@.name=='{{ .Chart.Name }}-setup')].state.terminated}\") ]; do echo 'waiting for {{ .Chart.Name }}-setup container to terminate'; sleep 5; done && echo '{{ .Chart.Name }}-setup container terminated' && if [ -f /machinekey/sa.json ]; then kubectl -n {{ .Release.Namespace }} create secret generic {{ .Values.zitadel.configmapConfig.FirstInstance.Org.Machine.Machine.Username }} --from-file={{ .Values.zitadel.configmapConfig.FirstInstance.Org.Machine.Machine.Username }}.json=/machinekey/sa.json; fi;" ]
           env:
             - name: POD_NAME
               valueFrom:
@@ -95,6 +103,7 @@ spec:
                   fieldPath: metadata.name
           volumeMounts:
             - name: machinekey
+              mountPath: "/machinekey"
        {{- end }}
         {{- if .Values.setupJob.extraContainers }}
         {{- toYaml .Values.setupJob.extraContainers | nindent 8 }}

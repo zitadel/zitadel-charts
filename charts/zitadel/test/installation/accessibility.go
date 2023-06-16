@@ -2,14 +2,10 @@ package installation
 
 import (
 	"context"
-	"errors"
 	"fmt"
-	"io"
-	"io/ioutil"
 	"net/http"
 	"strings"
 	"sync"
-	"testing"
 	"time"
 
 	"github.com/gruntwork-io/terratest/modules/k8s"
@@ -18,72 +14,39 @@ import (
 
 type checkOptions struct {
 	getUrl string
-	test   func(response *http.Response) error
+	test   func(response *http.Response, body []byte) error
 }
 
-func (c *checkOptions) try(ctx context.Context, t *testing.T, wg *sync.WaitGroup, try int) {
-
-	err := c.execute(ctx, t)
-	if err == nil {
-		wg.Done()
-		return
-	}
-
-	if try == 0 {
-		t.Fatal(err)
-	}
-	time.Sleep(time.Second)
-	c.try(ctx, t, wg, try-1)
-}
-
-func (c *checkOptions) execute(ctx context.Context, t *testing.T) (err error) {
+func (c *checkOptions) execute(ctx context.Context) (err error) {
 	checkCtx, checkCancel := context.WithTimeout(ctx, 5*time.Second)
 	defer checkCancel()
-	req, err := http.NewRequestWithContext(checkCtx, http.MethodGet, c.getUrl, nil)
+	//nolint:bodyclose
+	resp, body, err := HttpGet(checkCtx, c.getUrl, nil)
 	if err != nil {
-		return fmt.Errorf("creating request for url %s failed: %s", c.getUrl, err.Error())
+		return fmt.Errorf("HttpGet failed with response %+v and body %+v: %w", resp, body, err)
 	}
-
-	resp, err := http.DefaultClient.Do(req)
-	if err != nil {
-		return fmt.Errorf("sending request %+v failed: %s", *req, err)
-	}
-	defer resp.Body.Close()
-
-	if err = c.test(resp); err != nil {
-		return fmt.Errorf("checking response to request %+v failed: %s", *req, err)
+	if err = c.test(resp, body); err != nil {
+		return fmt.Errorf("checking response %+v with body %+v failed: %w", resp, body, err)
 	}
 	return nil
 }
 
-func (s *configurationTest) checkAccessibility(pods []corev1.Pod) {
-	ctx, cancel := context.WithTimeout(s.context, time.Minute)
+func (s *ConfigurationTest) checkAccessibility(pods []corev1.Pod) {
+	ctx, cancel := context.WithTimeout(s.Ctx, time.Minute)
 	defer cancel()
-
-	serviceTunnel := k8s.NewTunnel(s.kubeOptions, k8s.ResourceTypeService, s.zitadelRelease, 8080, 8080)
-	serviceTunnel.ForwardPort(s.T())
-
-	tunnels := []*k8s.Tunnel{serviceTunnel}
+	tunnels := []interface{ Close() }{CloseFunc(ServiceTunnel(s))}
 	defer func() {
 		for _, t := range tunnels {
 			t.Close()
 		}
 	}()
-
 	checks := append(zitadelStatusChecks(8080), &checkOptions{
 		getUrl: "http://localhost:8080/ui/console/assets/environment.json",
-		test: func(resp *http.Response) error {
-			if err := checkHttpStatus200(resp); err != nil {
+		test: func(resp *http.Response, body []byte) error {
+			if err := checkHttpStatus200(resp, body); err != nil {
 				return err
 			}
-
-			body, err := ioutil.ReadAll(resp.Body)
-			if err != nil && !errors.Is(err, io.EOF) {
-				return err
-			}
-			err = nil
 			bodyStr := string(body)
-
 			for _, expect := range []string{
 				`"api":"http://localhost:8080"`,
 				`"issuer":"http://localhost:8080"`,
@@ -95,21 +58,19 @@ func (s *configurationTest) checkAccessibility(pods []corev1.Pod) {
 			return nil
 		},
 	})
-
 	for i := range pods {
 		pod := pods[i]
 		port := 8081 + i
 
-		podTunnel := k8s.NewTunnel(s.kubeOptions, k8s.ResourceTypePod, pod.Name, port, 8080)
+		podTunnel := k8s.NewTunnel(s.KubeOptions, k8s.ResourceTypePod, pod.Name, port, 8080)
 		podTunnel.ForwardPort(s.T())
 		tunnels = append(tunnels, podTunnel)
 		checks = append(checks, zitadelStatusChecks(port)...)
 	}
-
 	wg := sync.WaitGroup{}
 	for _, check := range checks {
 		wg.Add(1)
-		go check.try(ctx, s.T(), &wg, 60)
+		go Await(ctx, s.T(), &wg, 60, check.execute)
 	}
 	wait(ctx, s.T(), &wg, "accessibility")
 }
@@ -127,7 +88,7 @@ func zitadelStatusChecks(port int) []*checkOptions {
 	}}
 }
 
-func checkHttpStatus200(resp *http.Response) error {
+func checkHttpStatus200(resp *http.Response, _ []byte) error {
 	if resp.StatusCode != 200 {
 		return fmt.Errorf("expected status code 200 but got %d", resp.StatusCode)
 	}

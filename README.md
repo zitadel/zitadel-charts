@@ -50,7 +50,7 @@ following the example while zitadel is uninstalled.
 helm repo add cockroachdb https://charts.cockroachdb.com/
 helm repo update cockroachdb zitadel
 helm uninstall my-zitadel
-helm install crdb cockroachdb/cockroachdb --version 8.1.8 --set fullnameOverride=crdb
+helm install crdb cockroachdb/cockroachdb --version 11.0.1 --set fullnameOverride=crdb
 helm install my-zitadel zitadel/zitadel --values ./my-zitadel-values.yaml
 ```
 
@@ -80,7 +80,7 @@ Test the chart:
 
 ```bash
 # Create a local Kubernetes cluster
-kind create cluster --image kindest/node:v1.25.2
+kind create cluster --image kindest/node:v1.27.2
 
 # Test the chart
 go test -tags integration ./...
