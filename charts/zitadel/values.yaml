@@ -39,8 +39,8 @@ zitadel:
 
   # Generate a self-signed certificate using an init container
   # This will also mount the generated files to /etc/tls/ so that you can reference them in the pod.
-  # By default, the SAN DNS names include, localhost, the POD IP address and the POD name. You may include one more by using additionalDnsName.
   # E.G. KeyPath: /etc/tls/tls.key CertPath: /etc/tls/tls.crt
+  # By default, the SAN DNS names include, localhost, the POD IP address and the POD name. You may include one more by using additionalDnsName.
   selfSignedCert:
     enabled: false
     additionalDnsName: my.zitadel.fqdn
