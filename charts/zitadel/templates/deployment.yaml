@@ -122,6 +122,10 @@ spec:
             mountPath: /config
           - name: chowned-secrets
             mountPath: /.secrets
+          {{- if .Values.selfSignedCert.enabled }}
+          - name: tls
+            mountPath: /etc/tls
+          {{- end }}
           resources:
             {{- toYaml .Values.resources | nindent 14 }}
       initContainers:
@@ -164,6 +168,39 @@ spec:
           securityContext:
             runAsNonRoot: false
             runAsUser: 0
+        {{- if .Values.selfSignedCert.enabled }}
+        - name: generate-self-signed-cert
+          image: alpine/openssl
+          env:
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: POD_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
+            {{- if .Values.selfSignedCert.additionalDnsName }}
+            - name: ADDITIONAL_DNS_NAME
+              value: {{ .Values.selfSignedCert.additionalDnsName }}
+            {{- end }}
+          volumeMounts:
+            - name: tls
+              mountPath: "/etc/tls"
+          command:
+            - "/bin/ash"
+            - "-c"
+            {{- if .Values.selfSignedCert.additionalDnsName }}
+            - "openssl req -nodes -x509 -sha256 -newkey rsa:4096 -keyout /etc/tls/tls.key -out /etc/tls/tls.crt -days 3560 -subj \"/CN=zitadel\" -addext \"subjectAltName = DNS:localhost,DNS:${POD_IP},DNS:${POD_NAME},DNS:${ADDITIONAL_DNS_NAME}\""
+            {{- else }}
+            - "openssl req -nodes -x509 -sha256 -newkey rsa:4096 -keyout /etc/tls/tls.key -out /etc/tls/tls.crt -days 3560 -subj \"/CN=zitadel\" -addext \"subjectAltName = DNS:localhost,DNS:${POD_IP},DNS:${POD_NAME}\""
+            {{- end }}
+          securityContext:
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            privileged: false
+            runAsUser: 1000
+        {{- end }}
       volumes:
       - name: zitadel-config-yaml
         configMap:
@@ -198,6 +235,10 @@ spec:
           secretName: {{ default "zitadel-masterkey" .Values.zitadel.masterkeySecretName }}
       - name: chowned-secrets
         emptyDir: {}
+      {{- if .Values.selfSignedCert.enabled }}
+      - name: tls
+        emptyDir: {}
+      {{- end }}
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
