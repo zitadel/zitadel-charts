@@ -22,7 +22,7 @@ type ConfigurationTest struct {
 	log              *logger.Logger
 	KubeOptions      *k8s.KubectlOptions
 	KubeClient       *kubernetes.Clientset
-	zitadelValues    map[string]string
+	zitadelValues    []string
 	crdbValues       map[string]string
 	zitadelChartPath string
 	zitadelRelease   string
@@ -35,7 +35,7 @@ type ConfigurationTest struct {
 	afterFunc        hookFunc
 }
 
-func Configure(t *testing.T, namespace string, zitadelValues map[string]string, before, after hookFunc) *ConfigurationTest {
+func Configure(t *testing.T, namespace string, zitadelValues []string, before, after hookFunc) *ConfigurationTest {
 	chartPath, err := filepath.Abs("../../")
 	require.NoError(t, err)
 	crdbRepoName := fmt.Sprintf("crdb-%s", strings.TrimPrefix(namespace, "zitadel-helm-"))

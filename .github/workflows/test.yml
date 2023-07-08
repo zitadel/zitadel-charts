@@ -86,7 +86,7 @@ jobs:
 
     - id: 'test'
       name: Run Go Tests
-      run: 'go test -tags integration ./...'
+      run: 'go test ./...'
       if: steps.list-changed.outputs.changed == 'true'
 
     - id: 'zitadel-test-namespaces'

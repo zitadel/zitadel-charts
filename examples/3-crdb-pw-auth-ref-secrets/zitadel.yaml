@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: existing-zitadel-secrets
+type: Opaque
+stringData:
+  config-yaml: |
+    Database:
+      cockroach:
+        User:
+          Password: xy

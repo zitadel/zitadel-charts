@@ -83,7 +83,7 @@ Test the chart:
 kind create cluster --image kindest/node:v1.27.2
 
 # Test the chart
-go test -tags integration ./...
+go test ./...
 ```
 
 Watch the Kubernetes resources if you want to see progress.

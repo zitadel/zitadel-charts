@@ -1,15 +1,15 @@
-//go:build integration
-// +build integration
-
 package installation_test
 
 import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"gopkg.in/yaml.v3"
 	"net/http"
 	"net/url"
 	"os"
+	"path/filepath"
+	"runtime"
 	"strings"
 	"testing"
 	"time"
@@ -18,71 +18,91 @@ import (
 	"github.com/gruntwork-io/terratest/modules/random"
 	"github.com/stretchr/testify/suite"
 	"github.com/zitadel/oidc/pkg/oidc"
-	corev1 "k8s.io/api/core/v1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/client-go/kubernetes"
-
 	"github.com/zitadel/zitadel-charts/charts/zitadel/test/installation"
 )
 
-func TestWithInlineSecrets(t *testing.T) {
+func TestCrdbCertPwAuthInlineSecrets(t *testing.T) {
 	t.Parallel()
-	suite.Run(t, installation.Configure(t, newNamespaceIdentifier("1-inline-secrets"), map[string]string{
-		"zitadel.configmapConfig.ExternalSecure":                "false",
-		"zitadel.configmapConfig.TLS.Enabled":                   "false",
-		"zitadel.secretConfig.Database.cockroach.User.Password": "xy",
-		"pdb.enabled":       "true",
-		"ingress.enabled":   "true",
-		"zitadel.masterkey": "x123456789012345678901234567891y",
-	}, nil, nil))
+	example := "2-crdb-pw-auth-inline-secrets"
+	_, values := workingDirectory(example)
+	suite.Run(t, installation.Configure(
+		t,
+		newNamespaceIdentifier(example),
+		[]string{values},
+		nil,
+		nil,
+	))
 }
 
-func TestWithReferencedSecrets(t *testing.T) {
+func TestCrdbPwAuthReferencedSecrets(t *testing.T) {
 	t.Parallel()
-	masterKeySecretName := "existing-zitadel-masterkey"
-	masterKeySecretKey := "masterkey"
-	zitadelConfigSecretName := "existing-zitadel-secrets"
-	zitadelConfigSecretKey := "config-yaml"
-	suite.Run(t, installation.Configure(t, newNamespaceIdentifier("2-ref-secrets"), map[string]string{
-		"zitadel.configmapConfig.ExternalSecure":                "false",
-		"zitadel.configmapConfig.TLS.Enabled":                   "false",
-		"zitadel.secretConfig.Database.cockroach.User.Password": "xy",
-		"pdb.enabled":                 "true",
-		"ingress.enabled":             "true",
-		"zitadel.masterkeySecretName": masterKeySecretName,
-		"zitadel.configSecretName":    zitadelConfigSecretName,
-	}, func(cfg *installation.ConfigurationTest) {
-		if err := createSecret(cfg.Ctx, cfg.KubeOptions.Namespace, cfg.KubeClient, masterKeySecretName, masterKeySecretKey, "x123456789012345678901234567891y"); err != nil {
-			t.Fatal(err)
-		}
-		if err := createSecret(cfg.Ctx, cfg.KubeOptions.Namespace, cfg.KubeClient, zitadelConfigSecretName, zitadelConfigSecretKey, "ExternalSecure: false\n"); err != nil {
-			t.Fatal(err)
-		}
-	}, nil))
+	example := "3-crdb-pw-auth-ref-secrets"
+	workDir, values := workingDirectory(example)
+	suite.Run(t, installation.Configure(
+		t,
+		newNamespaceIdentifier(example),
+		[]string{values},
+		func(cfg *installation.ConfigurationTest) {
+			k8s.KubectlApply(t, cfg.KubeOptions, filepath.Join(workDir, "zitadel.yaml"))
+			k8s.KubectlApply(t, cfg.KubeOptions, filepath.Join(workDir, "masterkey.yaml"))
+		},
+		nil,
+	))
 }
 
-func TestWithMachineKey(t *testing.T) {
+func TestCrdbPwAuthMachineUser(t *testing.T) {
 	t.Parallel()
-	saUserame := "zitadel-admin-sa"
-	suite.Run(t, installation.Configure(t, newNamespaceIdentifier("3-machine-key"), map[string]string{
-		"zitadel.configmapConfig.ExternalSecure":                "false",
-		"zitadel.configmapConfig.TLS.Enabled":                   "false",
-		"zitadel.secretConfig.Database.cockroach.User.Password": "xy",
-		"pdb.enabled":       "true",
-		"ingress.enabled":   "true",
-		"zitadel.masterkey": "x123456789012345678901234567891y",
-		"zitadel.configmapConfig.FirstInstance.Org.Machine.Machine.Username": saUserame,
-		"zitadel.configmapConfig.FirstInstance.Org.Machine.Machine.Name":     "Admin",
-		"zitadel.configmapConfig.FirstInstance.Org.Machine.MachineKey.Type":  "1",
-	}, nil, testJWTProfileKey("http://localhost:8080", saUserame, fmt.Sprintf("%s.json", saUserame))))
+	example := "4-crdb-pw-auth-machine-user"
+	_, values := workingDirectory(example)
+	saUserame := readValues(t, values).Zitadel.ConfigmapConfig.FirstInstance.Org.Machine.Machine.Username
+	suite.Run(t, installation.Configure(
+		t,
+		newNamespaceIdentifier(example),
+		[]string{values},
+		nil,
+		testJWTProfileKey("http://localhost:8080", saUserame, fmt.Sprintf("%s.json", saUserame))),
+	)
 }
 
-func createSecret(ctx context.Context, namespace string, k8sClient *kubernetes.Clientset, name, key, value string) error {
-	_, err := k8sClient.CoreV1().Secrets(namespace).Create(ctx, &corev1.Secret{
-		ObjectMeta: metav1.ObjectMeta{Name: name},
-		StringData: map[string]string{key: value},
-	}, metav1.CreateOptions{})
-	return err
+func TestCrdbCertAuth(t *testing.T) {
+	t.Skip("cert auth not implemented")
+	t.Parallel()
+	example := "dev"
+	_, values := workingDirectory(example)
+	suite.Run(t, installation.Configure(
+		t,
+		newNamespaceIdentifier(example),
+		[]string{values},
+		nil,
+		nil,
+	))
+}
+
+func readValues(t *testing.T, valuesFilePath string) (values struct {
+	Zitadel struct {
+		MasterkeySecretName string `yaml:"masterkeySecretName"`
+		ConfigSecretName    string `yaml:"configSecretName"`
+		ConfigmapConfig     struct {
+			FirstInstance struct {
+				Org struct {
+					Machine struct {
+						Machine struct {
+							Username string `yaml:"Username"`
+						} `yaml:"Machine"`
+					} `yaml:"Machine"`
+				} `yaml:"Org"`
+			} `yaml:"FirstInstance"`
+		} `yaml:"configmapConfig"`
+	} `yaml:"zitadel"`
+}) {
+	valuesBytes, err := os.ReadFile(valuesFilePath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := yaml.Unmarshal(valuesBytes, &values); err != nil {
+		t.Fatal(err)
+	}
+	return values
 }
 
 func testJWTProfileKey(audience, secretName, secretKey string) func(test *installation.ConfigurationTest) {
@@ -174,4 +194,11 @@ func truncateString(str string, num int) string {
 		shortenStr = str[0:num]
 	}
 	return shortenStr
+}
+
+func workingDirectory(exampleDir string) (workingDir, valuesFile string) {
+	_, filename, _, _ := runtime.Caller(0)
+	workingDir = filepath.Join(filename, "..", "..", "..", "..", "..", "examples", exampleDir)
+	valuesFile = filepath.Join(workingDir, "values.yaml")
+	return workingDir, valuesFile
 }

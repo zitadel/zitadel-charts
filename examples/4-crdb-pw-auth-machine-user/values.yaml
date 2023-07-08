@@ -1,0 +1,19 @@
+zitadel:
+  masterkey: x123456789012345678901234567891y
+  configmapConfig:
+    ExternalSecure: false
+    TLS:
+      Enabled: false
+    FirstInstance:
+      Org:
+        Machine:
+          Machine:
+            Username: zitadel-admin-sa
+            Name: Admin
+          MachineKey:
+            Type: 1
+  secretConfig:
+    Database:
+      cockroach:
+        User:
+          Password: xy

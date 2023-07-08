@@ -1,0 +1,7 @@
+zitadel:
+  masterkeySecretName: existing-zitadel-masterkey
+  configmapConfig:
+    ExternalSecure: false
+    TLS:
+      Enabled: false
+  configSecretName: existing-zitadel-secrets

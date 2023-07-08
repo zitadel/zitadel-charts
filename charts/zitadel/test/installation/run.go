@@ -19,7 +19,11 @@ func (s *ConfigurationTest) TestZITADELInstallation() {
 	}, s.crdbChart, s.crdbRelease)
 	helm.Install(s.T(), &helm.Options{
 		KubectlOptions: s.KubeOptions,
-		SetValues:      s.zitadelValues,
+		ValuesFiles:    s.zitadelValues,
+		SetValues: map[string]string{
+			"pdb.enabled":     "true",
+			"ingress.enabled": "true",
+		},
 	}, s.zitadelChartPath, s.zitadelRelease)
 	k8s.WaitUntilJobSucceed(s.T(), s.KubeOptions, "zitadel-test-init", 900, time.Second)
 	k8s.WaitUntilJobSucceed(s.T(), s.KubeOptions, "zitadel-test-setup", 900, time.Second)
