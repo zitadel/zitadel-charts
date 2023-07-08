@@ -61,6 +61,31 @@ func TestWithReferencedSecrets(t *testing.T) {
 	}, nil))
 }
 
+func TestWithReferencedSecretsAndCustomKey(t *testing.T) {
+	t.Parallel()
+	masterKeySecretName := "existing-zitadel-masterkey"
+	masterKeySecretKey := "masterkey"
+	zitadelConfigSecretName := "existing-zitadel-secrets"
+	zitadelConfigSecretKey := "config.yaml"
+	suite.Run(t, installation.Configure(t, newNamespaceIdentifier("2-ref-secrets"), map[string]string{
+		"zitadel.configmapConfig.ExternalSecure":                "false",
+		"zitadel.configmapConfig.TLS.Enabled":                   "false",
+		"zitadel.secretConfig.Database.cockroach.User.Password": "xy",
+		"pdb.enabled":                 "true",
+		"ingress.enabled":             "true",
+		"zitadel.masterkeySecretName": masterKeySecretName,
+		"zitadel.configSecretName":    zitadelConfigSecretName,
+		"zitadel.configSecretKey": 	   zitadelConfigSecretKey,
+	}, func(cfg *installation.ConfigurationTest) {
+		if err := createSecret(cfg.Ctx, cfg.KubeOptions.Namespace, cfg.KubeClient, masterKeySecretName, masterKeySecretKey, "x123456789012345678901234567891y"); err != nil {
+			t.Fatal(err)
+		}
+		if err := createSecret(cfg.Ctx, cfg.KubeOptions.Namespace, cfg.KubeClient, zitadelConfigSecretName, zitadelConfigSecretKey, "ExternalSecure: false\n"); err != nil {
+			t.Fatal(err)
+		}
+	}, nil))
+}
+
 func TestWithMachineKey(t *testing.T) {
 	t.Parallel()
 	saUserame := "zitadel-admin-sa"
