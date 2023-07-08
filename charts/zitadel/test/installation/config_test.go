@@ -21,26 +21,59 @@ import (
 	"github.com/zitadel/zitadel-charts/charts/zitadel/test/installation"
 )
 
-func TestCrdbCertPwAuthInlineSecrets(t *testing.T) {
+func TestPostgresPwAuth(t *testing.T) {
 	t.Parallel()
-	example := "4-crdb-pw-auth"
+	example := "2-postgres-pw-auth"
 	_, values := workingDirectory(example)
 	suite.Run(t, installation.Configure(
 		t,
 		newNamespaceIdentifier(example),
+		installation.WithValues(installation.Postgres, map[string]string{
+			"auth.postgresPassword": "abc",
+		}),
 		[]string{values},
 		nil,
 		nil,
 	))
 }
 
-func TestCrdbPwAuthReferencedSecrets(t *testing.T) {
+func TestCockroachPwAuth(t *testing.T) {
+	t.Parallel()
+	example := "5-cockroach-pw-auth"
+	_, values := workingDirectory(example)
+	suite.Run(t, installation.Configure(
+		t,
+		newNamespaceIdentifier(example),
+		installation.Cockroach,
+		[]string{values},
+		nil,
+		nil,
+	))
+}
+
+func TestCockroachCertAuth(t *testing.T) {
+	t.Skip("cert auth not implemented")
+	t.Parallel()
+	example := "6-cockroach-cert-auth"
+	_, values := workingDirectory(example)
+	suite.Run(t, installation.Configure(
+		t,
+		newNamespaceIdentifier(example),
+		installation.Cockroach,
+		[]string{values},
+		nil,
+		nil,
+	))
+}
+
+func TestReferencedSecrets(t *testing.T) {
 	t.Parallel()
 	example := "7-referenced-secrets"
 	workDir, values := workingDirectory(example)
 	suite.Run(t, installation.Configure(
 		t,
 		newNamespaceIdentifier(example),
+		installation.Cockroach,
 		[]string{values},
 		func(cfg *installation.ConfigurationTest) {
 			k8s.KubectlApply(t, cfg.KubeOptions, filepath.Join(workDir, "zitadel.yaml"))
@@ -50,7 +83,7 @@ func TestCrdbPwAuthReferencedSecrets(t *testing.T) {
 	))
 }
 
-func TestCrdbPwAuthMachineUser(t *testing.T) {
+func TestMachineUser(t *testing.T) {
 	t.Parallel()
 	example := "8-machine-user"
 	_, values := workingDirectory(example)
@@ -58,24 +91,11 @@ func TestCrdbPwAuthMachineUser(t *testing.T) {
 	suite.Run(t, installation.Configure(
 		t,
 		newNamespaceIdentifier(example),
+		installation.Cockroach,
 		[]string{values},
 		nil,
 		testJWTProfileKey("http://localhost:8080", saUserame, fmt.Sprintf("%s.json", saUserame))),
 	)
-}
-
-func TestCrdbCertAuth(t *testing.T) {
-	t.Skip("cert auth not implemented")
-	t.Parallel()
-	example := "dev"
-	_, values := workingDirectory(example)
-	suite.Run(t, installation.Configure(
-		t,
-		newNamespaceIdentifier(example),
-		[]string{values},
-		nil,
-		nil,
-	))
 }
 
 func readValues(t *testing.T, valuesFilePath string) (values struct {

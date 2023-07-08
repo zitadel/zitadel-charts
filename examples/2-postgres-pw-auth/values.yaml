@@ -7,5 +7,22 @@ zitadel:
   secretConfig:
     Database:
       postgres:
+        Host: db-postgresql
+        Port: 5432
+        Database: zitadel
+        MaxOpenConns: 20
+        MaxIdleConns: 10
+        MaxConnLifetime: 30m
+        MaxConnIdleTime: 5m
         User:
-          Password: xy
+          Username: zitadel
+          Password: "xyz"
+          SSL:
+            Mode: disable
+        Admin:
+          Username: postgres
+          Password: "abc"
+          SSL:
+            Mode: disable
+  dbSslRootCrtSecret: ""
+  dbSslClientCrtSecret: ""

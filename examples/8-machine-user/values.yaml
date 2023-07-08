@@ -16,4 +16,4 @@ zitadel:
     Database:
       cockroach:
         User:
-          Password: xy
+          Password: xyz

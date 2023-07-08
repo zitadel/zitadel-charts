@@ -23,43 +23,66 @@ type ConfigurationTest struct {
 	KubeOptions      *k8s.KubectlOptions
 	KubeClient       *kubernetes.Clientset
 	zitadelValues    []string
-	crdbValues       map[string]string
 	zitadelChartPath string
 	zitadelRelease   string
-	crdbRepoName     string
-	crdbRepoURL      string
-	crdbChart        string
-	crdbVersion      string
-	crdbRelease      string
+	dbChart          databaseChart
+	dbRepoName       string
+	dbRelease        string
 	beforeFunc       hookFunc
 	afterFunc        hookFunc
 }
 
-func Configure(t *testing.T, namespace string, zitadelValues []string, before, after hookFunc) *ConfigurationTest {
+type databaseChart struct {
+	values  map[string]string
+	repoUrl string
+	name    string
+	version string
+}
+
+var (
+	Cockroach = databaseChart{
+		repoUrl: "https://charts.cockroachdb.com/",
+		name:    "cockroachdb",
+		version: "11.0.1",
+	}
+	Postgres = databaseChart{
+		repoUrl: "https://charts.bitnami.com/bitnami",
+		name:    "postgresql",
+		version: "12.6.4",
+	}
+)
+
+func WithValues(chart databaseChart, values map[string]string) databaseChart {
+	chart.values = values
+	return chart
+}
+
+func Configure(
+	t *testing.T,
+	namespace string,
+	dbChart databaseChart,
+	zitadelValues []string,
+	before, after hookFunc,
+) *ConfigurationTest {
 	chartPath, err := filepath.Abs("../../")
 	require.NoError(t, err)
-	crdbRepoName := fmt.Sprintf("crdb-%s", strings.TrimPrefix(namespace, "zitadel-helm-"))
+	dbRepoName := fmt.Sprintf("crdb-%s", strings.TrimPrefix(namespace, "zitadel-helm-"))
 	kubeOptions := k8s.NewKubectlOptions("", "", namespace)
 	clientset, err := k8s.GetKubernetesClientFromOptionsE(t, kubeOptions)
 	if err != nil {
 		t.Fatal(err)
 	}
 	cfg := &ConfigurationTest{
-		Ctx:           context.Background(),
-		log:           logger.New(logger.Terratest),
-		KubeOptions:   kubeOptions,
-		KubeClient:    clientset,
-		zitadelValues: zitadelValues,
-		crdbValues: map[string]string{
-			"fullnameOverride": "crdb",
-		},
+		Ctx:              context.Background(),
+		log:              logger.New(logger.Terratest),
+		KubeOptions:      kubeOptions,
+		KubeClient:       clientset,
+		zitadelValues:    zitadelValues,
 		zitadelChartPath: chartPath,
 		zitadelRelease:   "zitadel-test",
-		crdbRepoURL:      "https://charts.cockroachdb.com/",
-		crdbRepoName:     crdbRepoName,
-		crdbChart:        fmt.Sprintf("%s/cockroachdb", crdbRepoName),
-		crdbRelease:      "crdb",
-		crdbVersion:      "11.0.1",
+		dbChart:          dbChart,
+		dbRepoName:       dbRepoName,
+		dbRelease:        "db",
 		beforeFunc:       before,
 		afterFunc:        after,
 	}
