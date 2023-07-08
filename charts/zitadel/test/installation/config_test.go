@@ -23,7 +23,7 @@ import (
 
 func TestCrdbCertPwAuthInlineSecrets(t *testing.T) {
 	t.Parallel()
-	example := "2-crdb-pw-auth-inline-secrets"
+	example := "4-crdb-pw-auth"
 	_, values := workingDirectory(example)
 	suite.Run(t, installation.Configure(
 		t,
@@ -36,7 +36,7 @@ func TestCrdbCertPwAuthInlineSecrets(t *testing.T) {
 
 func TestCrdbPwAuthReferencedSecrets(t *testing.T) {
 	t.Parallel()
-	example := "3-crdb-pw-auth-ref-secrets"
+	example := "7-referenced-secrets"
 	workDir, values := workingDirectory(example)
 	suite.Run(t, installation.Configure(
 		t,
@@ -52,7 +52,7 @@ func TestCrdbPwAuthReferencedSecrets(t *testing.T) {
 
 func TestCrdbPwAuthMachineUser(t *testing.T) {
 	t.Parallel()
-	example := "4-crdb-pw-auth-machine-user"
+	example := "8-machine-user"
 	_, values := workingDirectory(example)
 	saUserame := readValues(t, values).Zitadel.ConfigmapConfig.FirstInstance.Org.Machine.Machine.Username
 	suite.Run(t, installation.Configure(
