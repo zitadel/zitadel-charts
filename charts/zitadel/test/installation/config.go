@@ -44,6 +44,10 @@ var (
 		repoUrl: "https://charts.cockroachdb.com/",
 		name:    "cockroachdb",
 		version: "11.0.1",
+		values: map[string]string{
+			"conf.single-node":     "true",
+			"statefulset.replicas": "1",
+		},
 	}
 	Postgres = databaseChart{
 		repoUrl: "https://charts.bitnami.com/bitnami",
@@ -53,7 +57,9 @@ var (
 )
 
 func WithValues(chart databaseChart, values map[string]string) databaseChart {
-	chart.values = values
+	for k, v := range values {
+		chart.values[k] = v
+	}
 	return chart
 }
 

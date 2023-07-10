@@ -66,7 +66,7 @@ Create copy command or empty string
 */}}
 {{- define "zitadel.makecpcommand" -}}
 {{- if .value -}}
-{{ printf "cp %s /chowned-secrets/" .path }}
+{{ printf "cp -r %s /chowned-secrets/" .path }}
 {{- end -}}
 {{- end -}}
 
@@ -96,6 +96,19 @@ Returns true if the full path is defined and the value at the end of the path is
     {{- $tail := slice .path 1 (len .path) -}}
     {{- if hasKey .root $head -}}
       {{- include "deepCheck" (dict "root" (index .root $head) "path" $tail) -}}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
+
+{{/*
+Returns a dict with the databases key in the yaml and the environment variable part, either COCKROACH or POSTGRES, in uppercase letters.
+*/}}
+{{- define "zitadel.dbkey.json" -}}
+  {{- range $i, $key := (keys .Values.zitadel.configmapConfig.Database) -}}
+    {{- if or (eq (lower $key) "postgres" ) (eq (lower $key) "pg" ) -}}
+        {"key": "{{ $key }}", "env": "POSTGRES" }
+    {{- else if or (eq (lower $key) "cockroach" ) (eq (lower $key) "crdb" ) -}}
+        {"key": "{{ $key }}", "env": "COCKROACH" }
     {{- end -}}
   {{- end -}}
 {{- end -}}

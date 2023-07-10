@@ -37,6 +37,22 @@ func TestPostgresPwAuth(t *testing.T) {
 	))
 }
 
+func TestPostgresCertAuth(t *testing.T) {
+	t.Parallel()
+	example := "3-postgres-cert-auth"
+	_, values := workingDirectory(example)
+	suite.Run(t, installation.Configure(
+		t,
+		newNamespaceIdentifier(example),
+		installation.WithValues(installation.Postgres, map[string]string{
+			"auth.postgresPassword": "abc",
+		}),
+		[]string{values},
+		nil,
+		nil,
+	))
+}
+
 func TestCockroachPwAuth(t *testing.T) {
 	t.Parallel()
 	example := "5-cockroach-pw-auth"
@@ -52,7 +68,6 @@ func TestCockroachPwAuth(t *testing.T) {
 }
 
 func TestCockroachCertAuth(t *testing.T) {
-	t.Skip("cert auth not implemented")
 	t.Parallel()
 	example := "6-cockroach-cert-auth"
 	_, values := workingDirectory(example)
@@ -61,7 +76,9 @@ func TestCockroachCertAuth(t *testing.T) {
 		newNamespaceIdentifier(example),
 		installation.Cockroach,
 		[]string{values},
-		nil,
+		func(cfg *installation.ConfigurationTest) {
+			k8s.RunKubectl()
+		},
 		nil,
 	))
 }

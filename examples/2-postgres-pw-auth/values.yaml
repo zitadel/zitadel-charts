@@ -24,5 +24,3 @@ zitadel:
           Password: "abc"
           SSL:
             Mode: disable
-  dbSslRootCrtSecret: ""
-  dbSslClientCrtSecret: ""

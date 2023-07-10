@@ -6,12 +6,13 @@ zitadel:
       Enabled: false
     Database:
       cockroach:
+        Host: db-cockroachdb-public
         User:
           SSL:
-            Mode: "verify-full"
-            RootCert: /.secrets/ca.crt
-            Cert: /.secrets/tls.crt
-            Key: /.secrets/tls.key
+            Mode: verify-full
         Admin:
           SSL:
-            Mode: "verify-full"
+            Mode: verify-full
+  dbSslCaCrtSecret: db-cockroachdb-ca-secret
+  dbSslAdminCrtSecret: db-cockroachdb-client-secret
+  dbSslUserCrtSecret: db-cockroachdb-client-secret
