@@ -15,6 +15,7 @@ func (s *ConfigurationTest) TestZITADELInstallation() {
 		KubectlOptions: s.KubeOptions,
 		ValuesFiles:    s.zitadelValues,
 		SetValues: map[string]string{
+			"replicaCount":    "1",
 			"pdb.enabled":     "true",
 			"ingress.enabled": "true",
 		},

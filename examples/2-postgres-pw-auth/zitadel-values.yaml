@@ -4,7 +4,6 @@ zitadel:
     ExternalSecure: false
     TLS:
       Enabled: false
-  secretConfig:
     Database:
       Postgres:
         Host: db-postgresql
@@ -15,12 +14,17 @@ zitadel:
         MaxConnLifetime: 30m
         MaxConnIdleTime: 5m
         User:
-          Username: zitadel
-          Password: "xyz"
           SSL:
             Mode: disable
         Admin:
-          Username: postgres
-          Password: "abc"
           SSL:
             Mode: disable
+  secretConfig:
+    Database:
+      Postgres:
+        User:
+          Username: zitadel
+          Password: "xyz"
+        Admin:
+          Username: postgres
+          Password: "abc"

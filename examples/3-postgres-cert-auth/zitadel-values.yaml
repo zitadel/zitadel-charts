@@ -15,5 +15,13 @@ zitadel:
         MaxConnIdleTime: 5m
         User:
           Username: zitadel
+          SSL:
+            Mode: verify-full
         Admin:
-          Username: zitadel
+          Username: postgres
+          SSL:
+            Mode: verify-full
+
+  dbSslCaCrtSecret: postgres-ca-secret
+  dbSslAdminCrtSecret: postgres-client-secret
+  dbSslUserCrtSecret: postgres-client-secret
