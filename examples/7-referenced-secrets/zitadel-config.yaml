@@ -6,6 +6,6 @@ type: Opaque
 stringData:
   config-yaml: |
     Database:
-      cockroach:
+      Cockroach:
         User:
           Password: xyz

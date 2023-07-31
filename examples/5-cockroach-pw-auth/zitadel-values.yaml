@@ -4,16 +4,8 @@ zitadel:
     ExternalSecure: false
     TLS:
       Enabled: false
-    FirstInstance:
-      Org:
-        Machine:
-          Machine:
-            Username: zitadel-admin-sa
-            Name: Admin
-          MachineKey:
-            Type: 1
   secretConfig:
     Database:
-      cockroach:
+      Cockroach:
         User:
           Password: xyz

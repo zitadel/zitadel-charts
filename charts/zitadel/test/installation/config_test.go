@@ -21,16 +21,28 @@ import (
 	"github.com/zitadel/zitadel-charts/charts/zitadel/test/installation"
 )
 
-func TestPostgresPwAuth(t *testing.T) {
+func TestPostgresInsecure(t *testing.T) {
 	t.Parallel()
-	example := "2-postgres-pw-auth"
-	_, values := workingDirectory(example)
+	example := "1-postgres-insecure"
+	workDir, values := workingDirectory(example)
 	suite.Run(t, installation.Configure(
 		t,
 		newNamespaceIdentifier(example),
-		installation.WithValues(installation.Postgres, map[string]string{
-			"auth.postgresPassword": "abc",
-		}),
+		installation.Postgres.WithValues(filepath.Join(workDir, "postgres-values.yaml")),
+		[]string{values},
+		nil,
+		nil,
+	))
+}
+
+func TestPostgresPwAuth(t *testing.T) {
+	t.Parallel()
+	example := "2-postgres-pw-auth"
+	workDir, values := workingDirectory(example)
+	suite.Run(t, installation.Configure(
+		t,
+		newNamespaceIdentifier(example),
+		installation.Postgres.WithValues(filepath.Join(workDir, "postgres-values.yaml")),
 		[]string{values},
 		nil,
 		nil,
@@ -40,13 +52,11 @@ func TestPostgresPwAuth(t *testing.T) {
 func TestPostgresCertAuth(t *testing.T) {
 	t.Parallel()
 	example := "3-postgres-cert-auth"
-	_, values := workingDirectory(example)
+	workDir, values := workingDirectory(example)
 	suite.Run(t, installation.Configure(
 		t,
 		newNamespaceIdentifier(example),
-		installation.WithValues(installation.Postgres, map[string]string{
-			"auth.postgresPassword": "abc",
-		}),
+		installation.Postgres.WithValues(filepath.Join(workDir, "postgres-values.yaml")),
 		[]string{values},
 		nil,
 		nil,
@@ -77,7 +87,7 @@ func TestCockroachCertAuth(t *testing.T) {
 		installation.Cockroach,
 		[]string{values},
 		func(cfg *installation.ConfigurationTest) {
-			k8s.RunKubectl()
+			//			k8s.RunKubectl()
 		},
 		nil,
 	))
@@ -93,8 +103,8 @@ func TestReferencedSecrets(t *testing.T) {
 		installation.Cockroach,
 		[]string{values},
 		func(cfg *installation.ConfigurationTest) {
-			k8s.KubectlApply(t, cfg.KubeOptions, filepath.Join(workDir, "zitadel.yaml"))
-			k8s.KubectlApply(t, cfg.KubeOptions, filepath.Join(workDir, "masterkey.yaml"))
+			k8s.KubectlApply(t, cfg.KubeOptions, filepath.Join(workDir, "zitadel-config.yaml"))
+			k8s.KubectlApply(t, cfg.KubeOptions, filepath.Join(workDir, "zitadel-masterkey.yaml"))
 		},
 		nil,
 	))
@@ -236,6 +246,6 @@ func truncateString(str string, num int) string {
 func workingDirectory(exampleDir string) (workingDir, valuesFile string) {
 	_, filename, _, _ := runtime.Caller(0)
 	workingDir = filepath.Join(filename, "..", "..", "..", "..", "..", "examples", exampleDir)
-	valuesFile = filepath.Join(workingDir, "values.yaml")
+	valuesFile = filepath.Join(workingDir, "zitadel-values.yaml")
 	return workingDir, valuesFile
 }

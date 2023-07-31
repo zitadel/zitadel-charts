@@ -5,7 +5,7 @@ zitadel:
     TLS:
       Enabled: false
     Database:
-      cockroach:
+      Cockroach:
         Host: db-cockroachdb-public
         User:
           SSL:

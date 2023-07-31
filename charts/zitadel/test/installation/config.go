@@ -33,10 +33,11 @@ type ConfigurationTest struct {
 }
 
 type databaseChart struct {
-	values  map[string]string
-	repoUrl string
-	name    string
-	version string
+	testValues map[string]string
+	valuesFile string
+	repoUrl    string
+	name       string
+	version    string
 }
 
 var (
@@ -44,9 +45,9 @@ var (
 		repoUrl: "https://charts.cockroachdb.com/",
 		name:    "cockroachdb",
 		version: "11.0.1",
-		values: map[string]string{
-			"conf.single-node":     "true",
+		testValues: map[string]string{
 			"statefulset.replicas": "1",
+			"conf.single-node":     "true",
 		},
 	}
 	Postgres = databaseChart{
@@ -56,11 +57,9 @@ var (
 	}
 )
 
-func WithValues(chart databaseChart, values map[string]string) databaseChart {
-	for k, v := range values {
-		chart.values[k] = v
-	}
-	return chart
+func (d *databaseChart) WithValues(valuesFile string) databaseChart {
+	d.valuesFile = valuesFile
+	return *d
 }
 
 func Configure(
