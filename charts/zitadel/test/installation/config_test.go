@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"runtime"
 	"strings"
@@ -58,7 +59,11 @@ func TestPostgresCertAuth(t *testing.T) {
 		newNamespaceIdentifier(example),
 		installation.Postgres.WithValues(filepath.Join(workDir, "postgres-values.yaml")),
 		[]string{values},
-		nil,
+		func(test *installation.ConfigurationTest) {
+			if err := exec.Command(filepath.Join(workDir, "new-certs.sh"), test.KubeOptions.Namespace).Run(); err != nil {
+				t.Fatal(err)
+			}
+		},
 		nil,
 	))
 }

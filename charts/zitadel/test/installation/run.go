@@ -41,7 +41,7 @@ func listPods(t *testing.T, try int, kubeOptions *k8s.KubectlOptions) []corev1.P
 		t.Fatal("no trials left")
 	}
 	pods := k8s.ListPods(t, kubeOptions, metav1.ListOptions{LabelSelector: `app.kubernetes.io/instance=zitadel-test, app.kubernetes.io/component=start`})
-	if len(pods) == 3 {
+	if len(pods) == 1 {
 		return pods
 	}
 	time.Sleep(time.Second)
