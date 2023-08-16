@@ -107,6 +107,8 @@ env:
 
 service:
   type: ClusterIP
+  # If service type is "ClusterIP", this can optionally be set to a fixed IP address.
+  clusterIP: ""
   port: 8080
   protocol: http2
   annotations: {}
