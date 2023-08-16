@@ -1,4 +1,6 @@
 tls:
   enabled: true
-  certCAFilename: postgres.crt
-  certKeyFilename: postgres.key
+  certificatesSecret: postgres-cert
+  certFilename: "tls.crt"
+  certCAFilename: "ca.crt"
+  certKeyFilename: "tls.key"

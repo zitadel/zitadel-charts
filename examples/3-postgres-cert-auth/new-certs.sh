@@ -12,7 +12,7 @@ function createKey() {
 
 function createSigningRequest() {
   DBUSER=$1
-  openssl req -new -key ${DBUSER}.key -subj "/CN=${DBUSER}" -out ${DBUSER}.csr
+  openssl req -new -key ${DBUSER}.key -subj "/CN=db-postgresql" -addext "subjectAltName = DNS.1:db-postgresql,DNS.2:${DBUSER}" -out ${DBUSER}.csr
   echo "created ${DBUSER}.csr"
 }
 
@@ -31,4 +31,5 @@ createSigningRequest zitadel
 openssl x509 -req -in zitadel.csr -CA postgres.crt -CAkey postgres.key -CAcreateserial -days 365 -out zitadel.crt
 createKubernetesTLSSecret zitadel
 
-kubectl --namespace ${NAMESPACE} create secret generic postgres-ca --from-file=ca.crt=postgres.crt
+# The bitnami postgres chart expects the ca.crt to exist in the postgres-cert secret
+kubectl --namespace ${NAMESPACE} patch secret postgres-cert --patch="{\"data\":{\"ca.crt\": \"$(cat postgres.crt | base64 --wrap 0)\"}}"

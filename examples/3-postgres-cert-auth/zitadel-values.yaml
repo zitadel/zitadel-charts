@@ -22,6 +22,6 @@ zitadel:
           SSL:
             Mode: verify-full
 
-  dbSslCaCrtSecret: postgres-ca
+  dbSslCaCrtSecret: postgres-cert
   dbSslAdminCrtSecret: postgres-cert
   dbSslUserCrtSecret: zitadel-cert
