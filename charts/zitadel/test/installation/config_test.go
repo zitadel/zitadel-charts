@@ -60,8 +60,8 @@ func TestPostgresCertAuth(t *testing.T) {
 		installation.Postgres.WithValues(filepath.Join(workDir, "postgres-values.yaml")),
 		[]string{values},
 		func(test *installation.ConfigurationTest) {
-			if err := exec.Command(filepath.Join(workDir, "new-certs.sh"), test.KubeOptions.Namespace).Run(); err != nil {
-				t.Fatal(err)
+			if out, err := exec.Command(filepath.Join(workDir, "new-certs.sh"), test.KubeOptions.Namespace).CombinedOutput(); err != nil {
+				t.Fatal(out, err)
 			}
 		},
 		nil,

@@ -15,10 +15,12 @@ zitadel:
         MaxConnIdleTime: 5m
         User:
           Username: zitadel
+          Password: "xyz"
           SSL:
             Mode: verify-full
         Admin:
           Username: postgres
+          Password: "abc"
           SSL:
             Mode: verify-full
 
