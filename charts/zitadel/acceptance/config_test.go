@@ -93,7 +93,7 @@ func TestReferencedSecrets(t *testing.T) {
 	suite.Run(t, acceptance.Configure(
 		t,
 		newNamespaceIdentifier(example),
-		acceptance.Cockroach.WithValues(filepath.Join(workDir, "cockroach-values.yaml")),
+		acceptance.Postgres.WithValues(filepath.Join(workDir, "postgres-values.yaml")),
 		[]string{values},
 		nil,
 		func(cfg *acceptance.ConfigurationTest) {
@@ -112,7 +112,7 @@ func TestMachineUser(t *testing.T) {
 	suite.Run(t, acceptance.Configure(
 		t,
 		newNamespaceIdentifier(example),
-		acceptance.Cockroach.WithValues(filepath.Join(workDir, "cockroach-values.yaml")),
+		acceptance.Postgres.WithValues(filepath.Join(workDir, "postgres-values.yaml")),
 		[]string{values},
 		nil,
 		nil,

@@ -4,4 +4,20 @@ zitadel:
     ExternalSecure: false
     TLS:
       Enabled: false
+    Database:
+      Postgres:
+        Port: 5432
+        Database: zitadel
+        MaxOpenConns: 20
+        MaxIdleConns: 10
+        MaxConnLifetime: 30m
+        MaxConnIdleTime: 5m
+        User:
+          Username: postgres
+          SSL:
+            Mode: disable
+        Admin:
+          Username: postgres
+          SSL:
+            Mode: disable
   configSecretName: existing-zitadel-secrets

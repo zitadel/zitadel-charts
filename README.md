@@ -15,44 +15,13 @@ By default, this chart installs a highly available ZITADEL deployment.
 
 ## Install the Chart
 
-Follow the [guide for deploying ZITADEL on Kubernetes](https://zitadel.com/docs/self-hosting/deploy/kubernetes).
-
-## Upgrading from v3
-
-:::Note
-Apart from breaking changes in this chart, v4 also update the
-default ZITADEL version to v2.14.2. For upgrading
-ZITADEL, please refer to the
-[ZITADEL release notes](https://github.com/zitadel/zitadel/releases/tag/v2.14.0).
-
-This section is only relevant for existing releases with the
-values property cockroachdb.enabled not set to false.
-
-In v4, the cockroachdb chart dependency is removed.
-We decided to go this way because:
-- Maintaining two separate releases is easier, especially in production.
-- We can use Helm hooks specific to ZITADEL.
-- ZITADEL doesn't only support CockroachDB.
-
-If you have cockroachdb.enabled=true in your values.yaml,
-you need to make sure, that the cockroachdb chart is not
-managed by the zitadel release anymore. The following
-example for doing so uninstalls your entire zitadel
-release, reinstalls cockroach using a dedicated release,
-and then installs the new zitadel chart version.
-The new cockroach release will take over the PersistentVolumeClaims
-from the uninstalled chart, so no data migration is needed.
-Nevertheless, we highly recommend making and testing a backup before upgrading.
-Also note, that you will have downtime when
-following the example while zitadel is uninstalled.
-
-```bash
-helm repo add cockroachdb https://charts.cockroachdb.com/
-helm repo update cockroachdb zitadel
-helm uninstall my-zitadel
-helm install crdb cockroachdb/cockroachdb --version 11.0.1 --set fullnameOverride=crdb
-helm install my-zitadel zitadel/zitadel --values ./my-zitadel-values.yaml
-```
+Either follow the [guide for deploying ZITADEL on Kubernetes](https://zitadel.com/docs/self-hosting/deploy/kubernetes) or follow one of the example guides:
+- [Insecure Postgres Example](examples/1-postgres-insecure/README.md)
+- [Secure Postgres Example](examples/2-postgres-secure/README.md)
+- [Insecure Cockroach Example](examples/3-cockroach-insecure/README.md)
+- [Secure Cockroach Example](examples/4-cockroach-secure/README.md)
+- [Referenced Secrets Example](examples/5-referenced-secrets/README.md)
+- [Machine User Setup Example](examples/6-machine-user/README.md)
 
 ## Uninstalling the Chart
 
@@ -86,7 +55,14 @@ kind create cluster --image kindest/node:v1.27.2
 go test ./...
 ```
 
-Watch the Kubernetes resources if you want to see progress.
+Watch the Kubernetes pods if you want to see progress.
+
+```bash
+kubectl get pods --all-namespaces --watch
+
+# Or if you have the watch binary installed
+watch -n .1 "kubectl get pods --all-namespaces"
+```
 
 ## Contributors
 

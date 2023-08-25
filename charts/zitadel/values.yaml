@@ -11,22 +11,6 @@ zitadel:
         Webhook:
           Enabled: false
 
-    ## If you want to setup ZITADEL with a service account
-    ## instead of a human admin user, comment the following
-    ## in by deleting each lines first hash and space
-    # FirstInstance:
-    #   # path used for volume mounts and to write the secret
-    #   MachineKeyPath: /machinekey/zitadel-admin-sa.json
-    #   Org:
-    #     Machine:
-    #       Machine:
-    #         # Creates a service account with the name zitadel-admin-sa,
-    #         # which results in a secret 'zitadel-admin-sa' with a key 'zitadel-admin-sa.json'
-    #         Username: zitadel-admin-sa
-    #         Name: Admin
-    #       MachineKey:
-    #         Type: 1
-
   # The ZITADEL config under secretConfig is written to a Kubernetes Secret
   # See all defaults here:
   # https://github.com/zitadel/zitadel/blob/main/cmd/defaults.yaml
