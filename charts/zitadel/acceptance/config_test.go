@@ -8,7 +8,6 @@ import (
 	"net/http"
 	"net/url"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"runtime"
 	"strings"
@@ -47,9 +46,7 @@ func TestPostgresSecure(t *testing.T) {
 		acceptance.Postgres.WithValues(filepath.Join(workDir, "postgres-values.yaml")),
 		[]string{values},
 		func(test *acceptance.ConfigurationTest) {
-			if out, err := exec.Command(filepath.Join(workDir, "new-certs.sh"), test.KubeOptions.Namespace).CombinedOutput(); err != nil {
-				t.Fatal(out, err)
-			}
+			k8s.KubectlApply(t, test.KubeOptions, filepath.Join(workDir, "certs-job.yaml"))
 		},
 		nil,
 		nil,

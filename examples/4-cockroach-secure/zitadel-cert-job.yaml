@@ -37,34 +37,36 @@ spec:
       - command:
           - /bin/bash
           - -ecx
-          - >
-            ls -la /cockroach/cockroach-certs;
-            cockroach cert create-client
-            --certs-dir /cockroach/cockroach-certs
-            --ca-key /cockroach/cockroach-certs/ca.key
-            --lifetime 8760h
-            zitadel;
-            export SECRET="{
-              \"apiVersion\": \"v1\",
-              \"kind\": \"Secret\",
-              \"data\": {
-                \"ca.crt\": \"$(base64 /cockroach/cockroach-certs/ca.crt --wrap 0)\",
-                \"tls.crt\": \"$(base64 /cockroach/cockroach-certs/client.zitadel.crt --wrap 0)\",
-                \"tls.key\": \"$(base64 /cockroach/cockroach-certs/client.zitadel.key --wrap 0)\"
+          - |
+            cockroach cert create-client \
+            --certs-dir /cockroach/cockroach-certs \
+            --ca-key /cockroach/cockroach-certs/ca.key \
+            --lifetime 8760h \
+            zitadel
+            export SECRET=$(cat <<EOF
+            {
+              "apiVersion": "v1",
+              "kind": "Secret",
+              "data": {
+                "ca.crt": "$(base64 /cockroach/cockroach-certs/ca.crt --wrap 0)",
+                "tls.crt": "$(base64 /cockroach/cockroach-certs/client.zitadel.crt --wrap 0)",
+                "tls.key": "$(base64 /cockroach/cockroach-certs/client.zitadel.key --wrap 0)"
               },
-              \"metadata\": {
-                \"name\": \"db-cockroachdb-zitadel-secret\"
+              "metadata": {
+                "name": "db-cockroachdb-zitadel-secret"
               },
-              \"type\": \"kubernetes.io/tls\"
-            }"
-            export APISERVER=https://kubernetes.default.svc SERVICEACCOUNT=/var/run/secrets/kubernetes.io/serviceaccount;
-            export NAMESPACE=$(cat ${SERVICEACCOUNT}/namespace) TOKEN=$(cat ${SERVICEACCOUNT}/token) CACERT=${SERVICEACCOUNT}/ca.crt;
-            curl
-            --cacert ${CACERT}
-            --header "Authorization: Bearer ${TOKEN}"
-            --header "Content-Type: application/json"
-            -X POST ${APISERVER}/api/v1/namespaces/${NAMESPACE}/secrets
-            --data "$(echo -n $SECRET | tr -d '\n')";
+              "type": "kubernetes.io/tls"
+            }
+            EOF
+            )
+            export APISERVER=https://kubernetes.default.svc SERVICEACCOUNT=/var/run/secrets/kubernetes.io/serviceaccount
+            export NAMESPACE=$(cat ${SERVICEACCOUNT}/namespace) TOKEN=$(cat ${SERVICEACCOUNT}/token) CACERT=${SERVICEACCOUNT}/ca.crt
+            curl \
+            --cacert ${CACERT} \
+            --header "Authorization: Bearer ${TOKEN}" \
+            --header "Content-Type: application/json" \
+            -X POST ${APISERVER}/api/v1/namespaces/${NAMESPACE}/secrets \
+            --data "$(echo -n $SECRET | tr -d '\n')"
         image: cockroachdb/cockroach:v23.1.8
         imagePullPolicy: IfNotPresent
         name: create-zitadel-cert
