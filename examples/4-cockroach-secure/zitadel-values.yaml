@@ -13,6 +13,14 @@ zitadel:
         Admin:
           SSL:
             Mode: verify-full
+  secretConfig:
+    Database:
+      Cockroach:
+        User:
+          Password: xyz
+        Admin:
+          Password: abc
+
   dbSslCaCrtSecret: db-cockroachdb-ca-secret
   dbSslAdminCrtSecret: db-cockroachdb-client-secret
-  dbSslUserCrtSecret: db-cockroachdb-client-secret
+  dbSslUserCrtSecret: db-cockroachdb-zitadel-secret

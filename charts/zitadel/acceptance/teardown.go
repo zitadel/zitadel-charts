@@ -1,4 +1,4 @@
-package installation
+package acceptance
 
 import (
 	"os"

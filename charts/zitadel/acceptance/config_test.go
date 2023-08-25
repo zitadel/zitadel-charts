@@ -1,4 +1,4 @@
-package installation_test
+package acceptance_test
 
 import (
 	"context"
@@ -19,80 +19,71 @@ import (
 	"github.com/gruntwork-io/terratest/modules/random"
 	"github.com/stretchr/testify/suite"
 	"github.com/zitadel/oidc/pkg/oidc"
-	"github.com/zitadel/zitadel-charts/charts/zitadel/test/installation"
+	"github.com/zitadel/zitadel-charts/charts/zitadel/acceptance"
 )
 
 func TestPostgresInsecure(t *testing.T) {
 	t.Parallel()
 	example := "1-postgres-insecure"
 	workDir, values := workingDirectory(example)
-	suite.Run(t, installation.Configure(
+	suite.Run(t, acceptance.Configure(
 		t,
 		newNamespaceIdentifier(example),
-		installation.Postgres.WithValues(filepath.Join(workDir, "postgres-values.yaml")),
+		acceptance.Postgres.WithValues(filepath.Join(workDir, "postgres-values.yaml")),
 		[]string{values},
+		nil,
 		nil,
 		nil,
 	))
 }
 
-func TestPostgresPwAuth(t *testing.T) {
+func TestPostgresSecure(t *testing.T) {
 	t.Parallel()
-	example := "2-postgres-pw-auth"
+	example := "2-postgres-secure"
 	workDir, values := workingDirectory(example)
-	suite.Run(t, installation.Configure(
+	suite.Run(t, acceptance.Configure(
 		t,
 		newNamespaceIdentifier(example),
-		installation.Postgres.WithValues(filepath.Join(workDir, "postgres-values.yaml")),
+		acceptance.Postgres.WithValues(filepath.Join(workDir, "postgres-values.yaml")),
 		[]string{values},
-		nil,
-		nil,
-	))
-}
-
-func TestPostgresCertAuth(t *testing.T) {
-	t.Parallel()
-	example := "3-postgres-cert-auth"
-	workDir, values := workingDirectory(example)
-	suite.Run(t, installation.Configure(
-		t,
-		newNamespaceIdentifier(example),
-		installation.Postgres.WithValues(filepath.Join(workDir, "postgres-values.yaml")),
-		[]string{values},
-		func(test *installation.ConfigurationTest) {
+		func(test *acceptance.ConfigurationTest) {
 			if out, err := exec.Command(filepath.Join(workDir, "new-certs.sh"), test.KubeOptions.Namespace).CombinedOutput(); err != nil {
 				t.Fatal(out, err)
 			}
 		},
 		nil,
-	))
-}
-
-func TestCockroachPwAuth(t *testing.T) {
-	t.Parallel()
-	example := "5-cockroach-pw-auth"
-	_, values := workingDirectory(example)
-	suite.Run(t, installation.Configure(
-		t,
-		newNamespaceIdentifier(example),
-		installation.Cockroach,
-		[]string{values},
-		nil,
 		nil,
 	))
 }
 
-func TestCockroachCertAuth(t *testing.T) {
+func TestCockroachInsecure(t *testing.T) {
 	t.Parallel()
-	example := "6-cockroach-cert-auth"
-	_, values := workingDirectory(example)
-	suite.Run(t, installation.Configure(
+	example := "3-cockroach-insecure"
+	workDir, values := workingDirectory(example)
+	suite.Run(t, acceptance.Configure(
 		t,
 		newNamespaceIdentifier(example),
-		installation.Cockroach,
+		acceptance.Cockroach.WithValues(filepath.Join(workDir, "cockroach-values.yaml")),
 		[]string{values},
-		func(cfg *installation.ConfigurationTest) {
-			//			k8s.RunKubectl()
+		nil,
+		nil,
+		nil,
+	))
+}
+
+func TestCockroachSecure(t *testing.T) {
+	t.Parallel()
+	example := "4-cockroach-secure"
+	workDir, values := workingDirectory(example)
+	suite.Run(t, acceptance.Configure(
+		t,
+		newNamespaceIdentifier(example),
+		acceptance.Cockroach,
+		[]string{values},
+		nil,
+		func(cfg *acceptance.ConfigurationTest) {
+			k8s.WaitUntilSecretAvailable(t, cfg.KubeOptions, "db-cockroachdb-ca-secret", 5, time.Minute)
+			k8s.KubectlApply(t, cfg.KubeOptions, filepath.Join(workDir, "zitadel-cert-job.yaml"))
 		},
 		nil,
 	))
@@ -100,15 +91,16 @@ func TestCockroachCertAuth(t *testing.T) {
 
 func TestReferencedSecrets(t *testing.T) {
 	t.Parallel()
-	example := "7-referenced-secrets"
+	example := "5-referenced-secrets"
 	workDir, values := workingDirectory(example)
-	suite.Run(t, installation.Configure(
+	suite.Run(t, acceptance.Configure(
 		t,
 		newNamespaceIdentifier(example),
-		installation.Cockroach,
+		acceptance.Cockroach.WithValues(filepath.Join(workDir, "cockroach-values.yaml")),
 		[]string{values},
-		func(cfg *installation.ConfigurationTest) {
-			k8s.KubectlApply(t, cfg.KubeOptions, filepath.Join(workDir, "zitadel-config.yaml"))
+		nil,
+		func(cfg *acceptance.ConfigurationTest) {
+			k8s.KubectlApply(t, cfg.KubeOptions, filepath.Join(workDir, "zitadel-secrets.yaml"))
 			k8s.KubectlApply(t, cfg.KubeOptions, filepath.Join(workDir, "zitadel-masterkey.yaml"))
 		},
 		nil,
@@ -117,14 +109,15 @@ func TestReferencedSecrets(t *testing.T) {
 
 func TestMachineUser(t *testing.T) {
 	t.Parallel()
-	example := "8-machine-user"
-	_, values := workingDirectory(example)
+	example := "6-machine-user"
+	workDir, values := workingDirectory(example)
 	saUserame := readValues(t, values).Zitadel.ConfigmapConfig.FirstInstance.Org.Machine.Machine.Username
-	suite.Run(t, installation.Configure(
+	suite.Run(t, acceptance.Configure(
 		t,
 		newNamespaceIdentifier(example),
-		installation.Cockroach,
+		acceptance.Cockroach.WithValues(filepath.Join(workDir, "cockroach-values.yaml")),
 		[]string{values},
+		nil,
 		nil,
 		testJWTProfileKey("http://localhost:8080", saUserame, fmt.Sprintf("%s.json", saUserame))),
 	)
@@ -157,8 +150,8 @@ func readValues(t *testing.T, valuesFilePath string) (values struct {
 	return values
 }
 
-func testJWTProfileKey(audience, secretName, secretKey string) func(test *installation.ConfigurationTest) {
-	return func(cfg *installation.ConfigurationTest) {
+func testJWTProfileKey(audience, secretName, secretKey string) func(test *acceptance.ConfigurationTest) {
+	return func(cfg *acceptance.ConfigurationTest) {
 		t := cfg.T()
 		secret := k8s.GetSecret(t, cfg.KubeOptions, secretName)
 		key := secret.Data[secretKey]
@@ -173,15 +166,15 @@ func testJWTProfileKey(audience, secretName, secretKey string) func(test *instal
 		if err != nil {
 			t.Fatal(err)
 		}
-		closeTunnel := installation.ServiceTunnel(cfg)
+		closeTunnel := acceptance.ServiceTunnel(cfg)
 		defer closeTunnel()
 		var token string
-		installation.Await(cfg.Ctx, t, nil, 60, func(ctx context.Context) error {
+		acceptance.Await(cfg.Ctx, t, nil, 60, func(ctx context.Context) error {
 			var tokenErr error
 			token, tokenErr = getToken(ctx, t, audience, jwt)
 			return tokenErr
 		})
-		installation.Await(cfg.Ctx, t, nil, 60, func(ctx context.Context) error {
+		acceptance.Await(cfg.Ctx, t, nil, 60, func(ctx context.Context) error {
 			return callAuthenticatedEndpoint(ctx, audience, token)
 		})
 	}
@@ -193,7 +186,7 @@ func getToken(ctx context.Context, t *testing.T, audience, jwt string) (string, 
 	form.Add("scope", fmt.Sprintf("%s %s %s urn:zitadel:iam:org:project:id:zitadel:aud", oidc.ScopeOpenID, oidc.ScopeProfile, oidc.ScopeEmail))
 	form.Add("assertion", jwt)
 	//nolint:bodyclose
-	resp, tokenBody, err := installation.HttpPost(ctx, fmt.Sprintf("%s/oauth/v2/token", audience), func(req *http.Request) {
+	resp, tokenBody, err := acceptance.HttpPost(ctx, fmt.Sprintf("%s/oauth/v2/token", audience), func(req *http.Request) {
 		req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
 	}, strings.NewReader(form.Encode()))
 	if err != nil {
@@ -215,7 +208,7 @@ func callAuthenticatedEndpoint(ctx context.Context, audience, token string) erro
 	checkCtx, checkCancel := context.WithTimeout(ctx, 5*time.Second)
 	defer checkCancel()
 	//nolint:bodyclose
-	resp, _, err := installation.HttpGet(checkCtx, fmt.Sprintf("%s/management/v1/languages", audience), func(req *http.Request) {
+	resp, _, err := acceptance.HttpGet(checkCtx, fmt.Sprintf("%s/management/v1/languages", audience), func(req *http.Request) {
 		req.Header.Add("Authorization", fmt.Sprintf("Bearer %s", token))
 	})
 	if err != nil {
@@ -250,7 +243,7 @@ func truncateString(str string, num int) string {
 
 func workingDirectory(exampleDir string) (workingDir, valuesFile string) {
 	_, filename, _, _ := runtime.Caller(0)
-	workingDir = filepath.Join(filename, "..", "..", "..", "..", "..", "examples", exampleDir)
+	workingDir = filepath.Join(filename, "..", "..", "..", "..", "examples", exampleDir)
 	valuesFile = filepath.Join(workingDir, "zitadel-values.yaml")
 	return workingDir, valuesFile
 }

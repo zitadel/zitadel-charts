@@ -12,8 +12,6 @@ zitadel:
             Name: Admin
           MachineKey:
             Type: 1
-  secretConfig:
     Database:
       Cockroach:
-        User:
-          Password: xyz
+        Host: db-cockroachdb-public

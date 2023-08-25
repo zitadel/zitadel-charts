@@ -4,3 +4,6 @@ zitadel:
     ExternalSecure: false
     TLS:
       Enabled: false
+    Database:
+      Cockroach:
+        Host: db-cockroachdb-public

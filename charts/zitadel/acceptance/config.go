@@ -1,4 +1,4 @@
-package installation
+package acceptance
 
 import (
 	"context"
@@ -18,42 +18,37 @@ type hookFunc func(*ConfigurationTest)
 
 type ConfigurationTest struct {
 	suite.Suite
-	Ctx              context.Context
-	log              *logger.Logger
-	KubeOptions      *k8s.KubectlOptions
-	KubeClient       *kubernetes.Clientset
-	zitadelValues    []string
-	zitadelChartPath string
-	zitadelRelease   string
-	dbChart          databaseChart
-	dbRepoName       string
-	dbRelease        string
-	beforeFunc       hookFunc
-	afterFunc        hookFunc
+	Ctx                                                     context.Context
+	log                                                     *logger.Logger
+	KubeOptions                                             *k8s.KubectlOptions
+	KubeClient                                              *kubernetes.Clientset
+	zitadelValues                                           []string
+	dbChart                                                 databaseChart
+	zitadelChartPath, zitadelRelease, dbRepoName, dbRelease string
+	beforeFunc, afterDBFunc, afterZITADELFunc               hookFunc
 }
 
 type databaseChart struct {
-	testValues map[string]string
-	valuesFile string
-	repoUrl    string
-	name       string
-	version    string
+	valuesFile, repoUrl, name, version string
+	testValues                         map[string]string
+	extraArgs                          map[string][]string
 }
 
 var (
 	Cockroach = databaseChart{
 		repoUrl: "https://charts.cockroachdb.com/",
 		name:    "cockroachdb",
-		version: "11.0.1",
+		version: "11.1.5",
 		testValues: map[string]string{
 			"statefulset.replicas": "1",
 			"conf.single-node":     "true",
 		},
 	}
 	Postgres = databaseChart{
-		repoUrl: "https://charts.bitnami.com/bitnami",
-		name:    "postgresql",
-		version: "12.6.4",
+		repoUrl:   "https://charts.bitnami.com/bitnami",
+		name:      "postgresql",
+		version:   "12.6.4",
+		extraArgs: map[string][]string{"install": {"--wait"}},
 	}
 )
 
@@ -67,9 +62,9 @@ func Configure(
 	namespace string,
 	dbChart databaseChart,
 	zitadelValues []string,
-	before, after hookFunc,
+	before, afterDB, afterZITADEL hookFunc,
 ) *ConfigurationTest {
-	chartPath, err := filepath.Abs("../../")
+	chartPath, err := filepath.Abs("..")
 	require.NoError(t, err)
 	dbRepoName := fmt.Sprintf("crdb-%s", strings.TrimPrefix(namespace, "zitadel-helm-"))
 	kubeOptions := k8s.NewKubectlOptions("", "", namespace)
@@ -89,7 +84,8 @@ func Configure(
 		dbRepoName:       dbRepoName,
 		dbRelease:        "db",
 		beforeFunc:       before,
-		afterFunc:        after,
+		afterDBFunc:      afterDB,
+		afterZITADELFunc: afterZITADEL,
 	}
 	cfg.SetT(t)
 	return cfg
