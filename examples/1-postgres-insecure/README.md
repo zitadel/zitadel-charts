@@ -3,10 +3,10 @@
 By running the commands below, you deploy a simple insecure Postgres database to your Kubernetes cluster [by using the Bitnami chart](https://artifacthub.io/packages/helm/bitnami/postgresql).
 Also, you deploy [a correctly configured ZITADEL](https://artifacthub.io/packages/helm/zitadel/zitadel).
 
-[!WARNING]  
-Anybody with network access to the Postgres database can connect to it and read and write data.
-Use this example only for testing purposes.
-For deploying a secure Postgres database, see [the secure Postgres example](../2-postgres-secure/README.md).
+> [!WARNING]  
+> Anybody with network access to the Postgres database can connect to it and read and write data.
+> Use this example only for testing purposes.
+> For deploying a secure Postgres database, see [the secure Postgres example](../2-postgres-secure/README.md).
 
 ```bash
 # Install Postgres
