@@ -47,7 +47,7 @@ var (
 	Postgres = databaseChart{
 		repoUrl:   "https://charts.bitnami.com/bitnami",
 		name:      "postgresql",
-		version:   "12.6.4",
+		version:   "12.10.0",
 		extraArgs: map[string][]string{"install": {"--wait"}},
 	}
 )
