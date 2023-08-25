@@ -47,7 +47,7 @@ func TestPostgresSecure(t *testing.T) {
 		[]string{values},
 		func(cfg *acceptance.ConfigurationTest) {
 			k8s.KubectlApply(t, cfg.KubeOptions, filepath.Join(workDir, "certs-job.yaml"))
-			k8s.WaitUntilJobSucceed(t, cfg.KubeOptions, "certs-job", 120, 3*time.Second)
+			k8s.WaitUntilJobSucceed(t, cfg.KubeOptions, "create-certs", 120, 3*time.Second)
 		},
 		nil,
 		nil,
@@ -76,7 +76,7 @@ func TestCockroachSecure(t *testing.T) {
 	suite.Run(t, acceptance.Configure(
 		t,
 		newNamespaceIdentifier(example),
-		acceptance.Cockroach,
+		acceptance.Cockroach.WithValues(filepath.Join(workDir, "cockroach-values.yaml")),
 		[]string{values},
 		nil,
 		func(cfg *acceptance.ConfigurationTest) {
