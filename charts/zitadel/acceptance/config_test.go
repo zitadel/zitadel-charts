@@ -47,7 +47,7 @@ func TestPostgresSecure(t *testing.T) {
 		[]string{values},
 		func(cfg *acceptance.ConfigurationTest) {
 			k8s.KubectlApply(t, cfg.KubeOptions, filepath.Join(workDir, "certs-job.yaml"))
-			k8s.WaitUntilJobSucceed(t, cfg.KubeOptions, "certs-job", 60, 1*time.Second)
+			k8s.WaitUntilJobSucceed(t, cfg.KubeOptions, "certs-job", 120, 3*time.Second)
 		},
 		nil,
 		nil,
@@ -81,7 +81,7 @@ func TestCockroachSecure(t *testing.T) {
 		nil,
 		func(cfg *acceptance.ConfigurationTest) {
 			k8s.KubectlApply(t, cfg.KubeOptions, filepath.Join(workDir, "zitadel-cert-job.yaml"))
-			k8s.WaitUntilJobSucceed(t, cfg.KubeOptions, "create-zitadel-cert", 60, 1*time.Second)
+			k8s.WaitUntilJobSucceed(t, cfg.KubeOptions, "create-zitadel-cert", 120, 3*time.Second)
 		},
 		nil,
 	))
