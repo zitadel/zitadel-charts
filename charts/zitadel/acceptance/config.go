@@ -31,7 +31,6 @@ type ConfigurationTest struct {
 type databaseChart struct {
 	valuesFile, repoUrl, name, version string
 	testValues                         map[string]string
-	extraArgs                          map[string][]string
 }
 
 var (
@@ -45,10 +44,9 @@ var (
 		},
 	}
 	Postgres = databaseChart{
-		repoUrl:   "https://charts.bitnami.com/bitnami",
-		name:      "postgresql",
-		version:   "12.10.0",
-		extraArgs: map[string][]string{"install": {"--wait"}},
+		repoUrl: "https://charts.bitnami.com/bitnami",
+		name:    "postgresql",
+		version: "12.10.0",
 	}
 )
 

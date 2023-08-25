@@ -9,13 +9,11 @@ Therefore, you create a Kubernetes job that creates a client certificate and key
 ```bash
 # Install Cockroach
 helm repo add cockroachdb https://charts.cockroachdb.com/
-helm install cockroach cockroachdb/cockroachdb --version 11.1.5
-
-# Wait for the cockroach CA certificate to be created
-until kubectl -n zitadel-test-4-cockroach-secure-dq8tfz get secret db-cockroachdb-ca-secret; do echo "awaiting cockroach ca"; sleep 1; done
+helm install --wait cockroach cockroachdb/cockroachdb --version 11.1.5
 
 # Generate a TLS certificate for the zitadel DB user
 kubectl apply -f https://raw.githubusercontent.com/zitadel/zitadel-charts/main/examples/4-cockroach-secure/zitadel-cert-job.yaml
+kubectl wait --for=condition=complete job/create-zitadel-cert
 
 # Install ZITADEL
 helm repo add zitadel https://charts.zitadel.com

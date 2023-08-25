@@ -11,7 +11,7 @@ func (s *ConfigurationTest) BeforeTest(_, _ string) {
 		KubectlOptions: s.KubeOptions,
 		Version:        s.dbChart.version,
 		SetValues:      s.dbChart.testValues,
-		ExtraArgs:      s.dbChart.extraArgs,
+		ExtraArgs:      map[string][]string{"install": {"--wait"}},
 	}
 	if s.dbChart.valuesFile != "" {
 		options.ValuesFiles = []string{s.dbChart.valuesFile}

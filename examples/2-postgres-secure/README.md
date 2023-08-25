@@ -7,6 +7,7 @@ For creating the TLS certificates, we run a Kubernetes job that creates a self-s
 ```bash
 # Generate TLS certificates
 kubectl apply -f https://raw.githubusercontent.com/zitadel/zitadel-charts/main/examples/2-postgres-secure/certs-job.yaml
+kubectl wait --for=condition=complete job/create-certs
 
 # Install Postgres
 helm repo add bitnami https://charts.bitnami.com/bitnami
