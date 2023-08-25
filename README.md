@@ -23,6 +23,21 @@ Either follow the [guide for deploying ZITADEL on Kubernetes](https://zitadel.co
 - [Referenced Secrets Example](examples/5-referenced-secrets/README.md)
 - [Machine User Setup Example](examples/6-machine-user/README.md)
 
+## Upgrade from v5
+
+- CockroachDB is not in the default configuration anymore.
+  If you use CockroachDB, please check the host and ssl mode in your ZITADEL Database configuration section.
+
+- The properties for database certificates are renamed and the defaults are removed.
+  If you use one of the following properties, please check the new names and set the values accordingly:
+ 
+  | Old Value                      | New Value                     |
+  |--------------------------------|-------------------------------|
+  | `zitadel.dbSslRootCrt`         | `zitadel.dbSslCaCrt`          | 
+  | `zitadel.dbSslRootCrtSecret`   | `zitadel.dbSslCaCrtSecret`    |
+  | `zitadel.dbSslClientCrtSecret` | `zitadel.dbSslAdminCrtSecret` |
+  | `-`                            | `zitadel.dbSslUserCrtSecret`  |
+
 ## Uninstalling the Chart
 
 The ZITADEL chart uses Helm hooks,
