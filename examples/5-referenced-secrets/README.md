@@ -20,6 +20,6 @@ helm install --wait postgres bitnami/postgresql --version 12.10.0 --values https
 kubectl apply --filename https://raw.githubusercontent.com/zitadel/zitadel-charts/main/examples/5-referenced-secrets/zitadel-masterkey.yaml,https://raw.githubusercontent.com/zitadel/zitadel-charts/main/examples/5-referenced-secrets/zitadel-secrets.yaml
 
 # Install ZITADEL
-helm repo add zitadel https://zitadel.github.io/zitadel/charts
+helm repo add zitadel https://charts.zitadel.com
 helm install my-zitadel zitadel/zitadel --values https://raw.githubusercontent.com/zitadel/zitadel-charts/main/examples/5-referenced-secrets/zitadel-values.yaml
 ```

@@ -20,6 +20,6 @@ helm repo add bitnami https://charts.bitnami.com/bitnami
 helm install --wait postgres bitnami/postgresql --version 12.10.0 --values https://raw.githubusercontent.com/zitadel/zitadel-charts/main/examples/6-machine-user/postgres-values.yaml
 
 # Install ZITADEL
-helm repo add zitadel https://zitadel.github.io/zitadel/charts
+helm repo add zitadel https://charts.zitadel.com
 helm install my-zitadel zitadel/zitadel --values https://raw.githubusercontent.com/zitadel/zitadel-charts/main/examples/6-machine-user/zitadel-values.yaml
 ```

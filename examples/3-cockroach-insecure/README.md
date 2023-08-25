@@ -14,6 +14,6 @@ helm repo add cockroachdb https://charts.cockroachdb.com/
 helm install cockroach cockroachdb/cockroachdb --version 11.1.5 --values https://raw.githubusercontent.com/zitadel/zitadel-charts/main/examples/3-cocroach-insecure/cockroach-values.yaml
 
 # Install ZITADEL
-helm repo add zitadel https://zitadel.github.io/zitadel/charts
+helm repo add zitadel https://charts.zitadel.com
 helm install my-zitadel zitadel/zitadel --values https://raw.githubusercontent.com/zitadel/zitadel-charts/main/examples/3-cockroach-insecure/zitadel-values.yaml
 ```

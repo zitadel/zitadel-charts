@@ -18,6 +18,6 @@ until kubectl -n zitadel-test-4-cockroach-secure-dq8tfz get secret db-cockroachd
 kubectl apply -f https://raw.githubusercontent.com/zitadel/zitadel-charts/main/examples/4-cockroach-secure/zitadel-cert-job.yaml
 
 # Install ZITADEL
-helm repo add zitadel https://zitadel.github.io/zitadel/charts
+helm repo add zitadel https://charts.zitadel.com
 helm install my-zitadel zitadel/zitadel --values https://raw.githubusercontent.com/zitadel/zitadel-charts/main/examples/4-cockroach-secure/zitadel-values.yaml
 ```
