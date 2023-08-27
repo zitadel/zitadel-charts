@@ -26,7 +26,7 @@ When ZITADEL is ready, you can access the GUI via port-forwarding:
 kubectl port-forward svc/my-zitadel 8080
 ```
 
-Now, open http://zitadel.default.127.0.0.1.sslip.io:8080 in your browser and log in with the following credentials:
+Now, open http://localhost:8080 in your browser and log in with the following credentials:
 
-**Username**: zitadel-admin@zitadel.zitadel.default.127.0.0.1.sslip.io  
+**Username**: zitadel-admin@zitadel.localhost  
 **Password**: Password1!

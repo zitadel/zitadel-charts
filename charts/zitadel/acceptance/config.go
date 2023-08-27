@@ -66,6 +66,7 @@ func Configure(
 	namespace string,
 	dbChart databaseChart,
 	zitadelValues []string,
+	externalDomain string,
 	before, afterDB, afterZITADEL hookFunc,
 ) *ConfigurationTest {
 	chartPath, err := filepath.Abs("..")
@@ -75,6 +76,10 @@ func Configure(
 	clientset, err := k8s.GetKubernetesClientFromOptionsE(t, kubeOptions)
 	if err != nil {
 		t.Fatal(err)
+	}
+	domain := "localhost"
+	if externalDomain != "" {
+		domain = externalDomain
 	}
 	cfg := &ConfigurationTest{
 		Ctx:              context.Background(),
@@ -90,6 +95,9 @@ func Configure(
 		beforeFunc:       before,
 		afterDBFunc:      afterDB,
 		afterZITADELFunc: afterZITADEL,
+		Domain:           domain,
+		Port:             8080,
+		Scheme:           "http",
 	}
 	cfg.SetT(t)
 	return cfg

@@ -7,8 +7,7 @@ import (
 	"github.com/zitadel/zitadel-go/v2/pkg/client/zitadel"
 )
 
-func OpenGRPCConnection(cfg *ConfigurationTest, key []byte) *management.Client {
-	t := cfg.T()
+func OpenGRPCConnection(cfg *ConfigurationTest, key []byte) (*management.Client, error) {
 	conn, err := management.NewClient(
 		cfg.APIBaseURL(),
 		fmt.Sprintf("%s:%d", cfg.Domain, cfg.Port),
@@ -16,8 +15,5 @@ func OpenGRPCConnection(cfg *ConfigurationTest, key []byte) *management.Client {
 		zitadel.WithJWTProfileTokenSource(middleware.JWTProfileFromFileData(key)),
 		zitadel.WithInsecure(),
 	)
-	if err != nil {
-		t.Fatalf("couldn't create gRPC management client: %v", err)
-	}
-	return conn
+	return conn, err
 }
