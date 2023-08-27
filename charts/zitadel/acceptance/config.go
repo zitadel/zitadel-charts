@@ -22,10 +22,16 @@ type ConfigurationTest struct {
 	log                                                     *logger.Logger
 	KubeOptions                                             *k8s.KubectlOptions
 	KubeClient                                              *kubernetes.Clientset
+	Scheme, Domain                                          string
+	Port                                                    uint16
 	zitadelValues                                           []string
 	dbChart                                                 databaseChart
 	zitadelChartPath, zitadelRelease, dbRepoName, dbRelease string
 	beforeFunc, afterDBFunc, afterZITADELFunc               hookFunc
+}
+
+func (c *ConfigurationTest) APIBaseURL() string {
+	return fmt.Sprintf(`%s://%s:%d`, c.Scheme, c.Domain, c.Port)
 }
 
 type databaseChart struct {

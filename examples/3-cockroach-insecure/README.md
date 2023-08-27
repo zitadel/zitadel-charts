@@ -17,3 +17,14 @@ helm install  --wait cockroach cockroachdb/cockroachdb --version 11.1.5 --values
 helm repo add zitadel https://charts.zitadel.com
 helm install my-zitadel zitadel/zitadel --values https://raw.githubusercontent.com/zitadel/zitadel-charts/main/examples/3-cockroach-insecure/zitadel-values.yaml
 ```
+
+When ZITADEL is ready, you can access the GUI via port-forwarding:
+
+```bash
+kubectl port-forward svc/my-zitadel 8080
+```
+
+Now, open http://zitadel.default.127.0.0.1.sslip.io:8080 in your browser and log in with the following credentials:
+
+**Username**: zitadel-admin@zitadel.zitadel.default.127.0.0.1.sslip.io  
+**Password**: Password1!
