@@ -1,6 +1,6 @@
 module github.com/zitadel/zitadel-charts
 
-go 1.20
+go 1.19
 
 require (
 	github.com/gruntwork-io/terratest v0.43.13
