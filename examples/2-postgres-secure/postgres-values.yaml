@@ -1,0 +1,9 @@
+volumePermissions:
+  enabled: true
+tls:
+  enabled: true
+  certificatesSecret: postgres-cert
+  certFilename: "tls.crt"
+  certKeyFilename: "tls.key"
+auth:
+  postgresPassword: "abc"

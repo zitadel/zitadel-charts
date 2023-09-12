@@ -4,38 +4,12 @@ zitadel:
   # See all defaults here:
   # https://github.com/zitadel/zitadel/blob/main/cmd/defaults.yaml
   configmapConfig:
-    Database:
-      cockroach:
-        Host: "crdb-public"
-        User:
-          SSL:
-            Mode: "verify-full"
-        Admin:
-          SSL:
-            Mode: "verify-full"
-
     Machine:
       Identification:
         Hostname:
           Enabled: true
         Webhook:
           Enabled: false
-
-    ## If you want to setup ZITADEL with a service account
-    ## instead of a human admin user, comment the following
-    ## in by deleting each lines first hash and space
-    # FirstInstance:
-    #   # path used for volume mounts and to write the secret
-    #   MachineKeyPath: /machinekey/zitadel-admin-sa.json
-    #   Org:
-    #     Machine:
-    #       Machine:
-    #         # Creates a service account with the name zitadel-admin-sa,
-    #         # which results in a secret 'zitadel-admin-sa' with a key 'zitadel-admin-sa.json'
-    #         Username: zitadel-admin-sa
-    #         Name: Admin
-    #       MachineKey:
-    #         Type: 1
 
   # The ZITADEL config under secretConfig is written to a Kubernetes Secret
   # See all defaults here:
@@ -54,14 +28,17 @@ zitadel:
   # Note: Either zitadel.masterkey or zitadel.masterkeySecretName must be set
   masterkeySecretName: ""
 
-  # The root CA Certificate needed for establishing secure database connections
-  dbSslRootCrt: ""
+  # The CA Certificate needed for establishing secure database connections
+  dbSslCaCrt: ""
 
-  # The Secret containing the root CA Certificate at key ca.crt needed for establishing secure database connections
-  dbSslRootCrtSecret: "crdb-ca-secret"
+  # The Secret containing the CA certificate at key ca.crt needed for establishing secure database connections
+  dbSslCaCrtSecret: ""
 
-  # The Secret containing the client CA Certificate and key at tls.crt and tls.key needed for establishing secure database connections
-  dbSslClientCrtSecret: "crdb-client-secret"
+  # The db admins secret containing the client certificate and key at tls.crt and tls.key needed for establishing secure database connections
+  dbSslAdminCrtSecret: ""
+
+  # The db users secret containing the client certificate and key at tls.crt and tls.key needed for establishing secure database connections
+  dbSslUserCrtSecret: ""
 
 replicaCount: 3
 
@@ -108,6 +85,8 @@ env:
 
 service:
   type: ClusterIP
+  # If service type is "ClusterIP", this can optionally be set to a fixed IP address.
+  clusterIP: ""
   port: 8080
   protocol: http2
   annotations: {}
