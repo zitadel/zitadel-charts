@@ -1,0 +1,10 @@
+zitadel:
+  masterkey: x123456789012345678901234567891y
+  configmapConfig:
+    ExternalSecure: false
+    ExternalDomain: localhost
+    TLS:
+      Enabled: false
+    Database:
+      Cockroach:
+        Host: db-cockroachdb-public

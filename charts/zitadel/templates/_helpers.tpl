@@ -66,7 +66,7 @@ Create copy command or empty string
 */}}
 {{- define "zitadel.makecpcommand" -}}
 {{- if .value -}}
-{{ printf "cp %s /chowned-secrets/" .path }}
+{{ printf "cp -r %s /chowned-secrets/" .path }}
 {{- end -}}
 {{- end -}}
 
@@ -87,15 +87,41 @@ Join copy commands
 Returns true if the full path is defined and the value at the end of the path is not empty
 */}}
 {{- define "deepCheck" -}}
-  {{- if eq (len .path) 0 -}}
-    {{- if and .root (not (empty .root)) -}}
-      {{- true -}}
-    {{- end -}}
+  {{- if empty .root -}}
+    {{/* Break early */}}
+  {{- else if eq (len .path) 0 -}}
+    {{- not (empty .root) -}}
   {{- else -}}
     {{- $head := index .path 0 -}}
     {{- $tail := slice .path 1 (len .path) -}}
     {{- if hasKey .root $head -}}
-      {{- include "deepCheck" (dict "root" (index .root $head) "path" $tail) -}}
+        {{- include "deepCheck" (dict "root" (index .root $head) "path" $tail) -}}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
+
+{{/*
+Returns the database config from the secreConfig or else from the configmapConfig
+*/}}
+{{- define "zitadel.dbconfig.json" -}}
+    {{- if include "deepCheck" (dict "root" . "path" (splitList "." "Values.zitadel.secretConfig.Database")) -}}
+    {{- .Values.zitadel.secretConfig.Database | toJson -}}
+    {{- else if include "deepCheck" (dict "root" . "path" (splitList "." "Values.zitadel.configmapConfig.Database")) -}}
+    {{- .Values.zitadel.configmapConfig.Database | toJson -}}
+    {{- else -}}
+    {{- dict | toJson -}}
+    {{- end -}}
+{{- end -}}
+
+{{/*
+Returns a dict with the databases key in the yaml and the environment variable part, either COCKROACH or POSTGRES, in uppercase letters.
+*/}}
+{{- define "zitadel.dbkey.json" -}}
+  {{- range $i, $key := (include "zitadel.dbconfig.json" . | fromJson | keys ) -}}
+    {{- if or (eq (lower $key) "postgres" ) (eq (lower $key) "pg" ) -}}
+        {"key": "{{ $key }}", "env": "POSTGRES" }
+    {{- else if or (eq (lower $key) "cockroach" ) (eq (lower $key) "crdb" ) -}}
+        {"key": "{{ $key }}", "env": "COCKROACH" }
     {{- end -}}
   {{- end -}}
 {{- end -}}
