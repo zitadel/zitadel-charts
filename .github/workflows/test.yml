@@ -5,48 +5,70 @@ on: 'pull_request'
 jobs:
   test:
 
-    strategy:
-      matrix:
-        # digests should be appended in image versions according to the KIND release notes
-        # https://github.com/kubernetes-sigs/kind/releases/tag/v0.14.0
-        kindest-image-tag:
-          - 'v1.18.20@sha256:738cdc23ed4be6cc0b7ea277a2ebcc454c8373d7d8fb991a7fcdbd126188e6d7'
-          - 'v1.19.16@sha256:a146f9819fece706b337d34125bbd5cb8ae4d25558427bf2fa3ee8ad231236f2'
-          - 'v1.20.15@sha256:45d0194a8069c46483a0e509088ab9249302af561ebee76a1281a1f08ecb4ed3'
-          - 'v1.21.14@sha256:ad5b7446dd8332439f22a1efdac73670f0da158c00f0a70b45716e7ef3fae20b'
-          - 'v1.22.15@sha256:bfd5eaae36849bfb3c1e3b9442f3da17d730718248939d9d547e86bbac5da586'
-          - 'v1.23.12@sha256:9402cf1330bbd3a0d097d2033fa489b2abe40d479cc5ef47d0b6a6960613148a'
-          - 'v1.24.6@sha256:97e8d00bc37a7598a0b32d1fabd155a96355c49fa0d4d4790aab0f161bf31be1'
-          - 'v1.25.2@sha256:9be91e9e9cdf116809841fc77ebdb8845443c4c72fe5218f3ae9eb57fdb4bace'
-
     runs-on: 'ubuntu-20.04'
 
     permissions:
       contents: 'read'
       id-token: 'write'
 
+    timeout-minutes: 60
+
+    strategy:
+      fail-fast: false
+      matrix:
+        k8s:
+        - version: v1.21
+          kindest-image-tag: 'v1.21.14@sha256:8a4e9bb3f415d2bb81629ce33ef9c76ba514c14d707f9797a01e3216376ba093'
+        - version: v1.22
+          kindest-image-tag: 'v1.22.17@sha256:f5b2e5698c6c9d6d0adc419c0deae21a425c07d81bbf3b6a6834042f25d4fba2'
+        - version: v1.23
+          kindest-image-tag: 'v1.23.17@sha256:59c989ff8a517a93127d4a536e7014d28e235fb3529d9fba91b3951d461edfdb'
+        - version: v1.24
+          kindest-image-tag: 'v1.24.15@sha256:7db4f8bea3e14b82d12e044e25e34bd53754b7f2b0e9d56df21774e6f66a70ab'
+        - version: v1.25
+          kindest-image-tag: 'v1.25.11@sha256:227fa11ce74ea76a0474eeefb84cb75d8dad1b08638371ecf0e86259b35be0c8'
+        - version: v1.26
+          kindest-image-tag: 'v1.26.6@sha256:6e2d8b28a5b601defe327b98bd1c2d1930b49e5d8c512e1895099e4504007adb'
+        - version: v1.27
+          kindest-image-tag: 'v1.27.3@sha256:3966ac761ae0136263ffdb6cfd4db23ef8a83cba8a463690e98317add2c9ba72'
+        helm-version:
+        - latest
+        include:
+        - k8s:
+            version: v1.27
+            kindest-image-tag: 'v1.27.3@sha256:3966ac761ae0136263ffdb6cfd4db23ef8a83cba8a463690e98317add2c9ba72'
+          helm-version: v3.9.0
+
+    name: 'K8s version ${{ matrix.k8s.version }} - Helm version ${{ matrix.helm-version }}'
+
     steps:
     - id: 'checkout'
+      name: Check The Repo Out
       uses: 'actions/checkout@v3'
       with:
         fetch-depth: 0
 
     - id: 'set-up-helm'
-      uses: 'azure/setup-helm@v3.3'
+      name: Install Helm (The Chart Testing CLI Depends On It)
+      uses: 'azure/setup-helm@v3.5'
       with:
-        version: 'v3.10.0'
+        version: '${{ matrix.helm-version }}'
+        token: ${{ secrets.GITHUB_TOKEN }}
 
     - id: 'set-up-python'
-      uses: 'actions/setup-python@v2'
+      name: Install Python (The Chart Testing CLI Depends On It)
+      uses: 'actions/setup-python@v3.1.4'
       with:
-        python-version: 3.7
+        python-version: 3.11.4
 
     - id: 'set-up-chart-testing'
-      uses: 'helm/chart-testing-action@v2.3.1'
+      name: Install Chart Testing CLI
+      uses: 'helm/chart-testing-action@v2.4.0'
       with:
-        version: 'v3.7.1'
+        version: 'v3.8.0'
 
     - id: 'list-changed'
+      name: Check If The Chart Has Changes
       run: |
         changed=$(ct list-changed --target-branch ${{ github.event.repository.default_branch }})
         if [[ -n "$changed" ]]; then
@@ -54,20 +76,53 @@ jobs:
         fi
 
     - id: 'add-cockroachdb-repo'
+      name: Add The CockroachDB Helm Repo
       run: 'helm repo add cockroachdb https://charts.cockroachdb.com/'
       if: steps.list-changed.outputs.changed == 'true'
 
     - id: 'lint'
+      name: Lint The Chart
       run: 'ct lint --target-branch ${{ github.event.repository.default_branch }}'
       if: steps.list-changed.outputs.changed == 'true'
 
-    - name: 'create-kind'
-      uses: 'helm/kind-action@v1.4.0'
+    - id: 'create-kind'
+      name: Create Kubernetes Cluster with KinD
+      uses: 'helm/kind-action@v1.8.0'
       if: steps.list-changed.outputs.changed == 'true'
       with:
-        node_image: 'kindest/node:${{ matrix.kindest-image-tag }}'
-        version: 'v0.16.0'
+        node_image: 'kindest/node:${{ matrix.k8s.kindest-image-tag }}'
+        version: 'v0.20.0'
 
-    - name: 'test'
-      run: 'go test -tags integration ./...'
+    - id: 'test'
+      name: Run Go Tests
+      run: 'go test ./...'
       if: steps.list-changed.outputs.changed == 'true'
+
+    - id: 'zitadel-test-namespaces'
+      name: Grep Created Namespaces
+      run: |
+        echo "inlineSecretsNamespace=$(kubectl get namespaces --output name | grep 1-inline-secrets | cut -d / -f 2)" >> "$GITHUB_OUTPUT"
+        echo "refSecretsNamespace=$(kubectl get namespaces --output name | grep 2-ref-secrets | cut -d / -f 2)" >> "$GITHUB_OUTPUT"
+        echo "machineKeyNamespace=$(kubectl get namespaces --output name | grep 3-machine-key | cut -d / -f 2)" >> "$GITHUB_OUTPUT"
+      if: always()
+
+    - id: 'namespace-report-inline-secrets'
+      name: Show Inline Secrets Namespace
+      uses: jupyterhub/action-k8s-namespace-report@v1
+      if: always()
+      with:
+        namespace: ${{ steps.zitadel-test-namespaces.outputs.inlineSecretsNamespace }}
+
+    - id: 'namespace-report-ref-secrets'
+      name: Show Referenced Secrets Namespace
+      uses: jupyterhub/action-k8s-namespace-report@v1
+      if: always()
+      with:
+        namespace: ${{ steps.zitadel-test-namespaces.outputs.refSecretsNamespace }}
+
+    - id: 'namespace-report-machine-key'
+      name: Show Machine Key Namespace
+      uses: jupyterhub/action-k8s-namespace-report@v1
+      if: always()
+      with:
+        namespace: ${{ steps.zitadel-test-namespaces.outputs.machineKeyNamespace }}

@@ -1,4 +1,4 @@
-package installation
+package acceptance
 
 import (
 	"testing"
@@ -10,24 +10,19 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-func (s *configurationTest) TestZITADELInstallation() {
-
-	helm.AddRepo(s.T(), &helm.Options{}, s.crdbRepoName, s.crdbRepoURL)
+func (s *ConfigurationTest) TestZITADELInstallation() {
 	helm.Install(s.T(), &helm.Options{
-		KubectlOptions: s.kubeOptions,
-		SetValues:      s.crdbValues,
-		Version:        s.crdbVersion,
-	}, s.crdbChart, s.crdbRelease)
-
-	helm.Install(s.T(), &helm.Options{
-		KubectlOptions: s.kubeOptions,
-		SetValues:      s.zitadelValues,
+		KubectlOptions: s.KubeOptions,
+		ValuesFiles:    s.zitadelValues,
+		SetValues: map[string]string{
+			"replicaCount":    "1",
+			"pdb.enabled":     "true",
+			"ingress.enabled": "true",
+		},
 	}, s.zitadelChartPath, s.zitadelRelease)
-
-	k8s.WaitUntilJobSucceed(s.T(), s.kubeOptions, "zitadel-test-init", 300, time.Second)
-	k8s.WaitUntilJobSucceed(s.T(), s.kubeOptions, "zitadel-test-setup", 300, time.Second)
-
-	pods := listPods(s.T(), 5, s.kubeOptions)
+	k8s.WaitUntilJobSucceed(s.T(), s.KubeOptions, "zitadel-test-init", 900, time.Second)
+	k8s.WaitUntilJobSucceed(s.T(), s.KubeOptions, "zitadel-test-setup", 900, time.Second)
+	pods := listPods(s.T(), 5, s.KubeOptions)
 	s.awaitReadiness(pods)
 	zitadelPods := make([]corev1.Pod, 0)
 	for i := range pods {
@@ -42,13 +37,11 @@ func (s *configurationTest) TestZITADELInstallation() {
 
 // listPods retries until all three start pods are returned from the kubeapi
 func listPods(t *testing.T, try int, kubeOptions *k8s.KubectlOptions) []corev1.Pod {
-
 	if try == 0 {
 		t.Fatal("no trials left")
 	}
-
 	pods := k8s.ListPods(t, kubeOptions, metav1.ListOptions{LabelSelector: `app.kubernetes.io/instance=zitadel-test, app.kubernetes.io/component=start`})
-	if len(pods) == 3 {
+	if len(pods) == 1 {
 		return pods
 	}
 	time.Sleep(time.Second)

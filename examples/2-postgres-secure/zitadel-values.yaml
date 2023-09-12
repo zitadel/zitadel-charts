@@ -1,0 +1,35 @@
+zitadel:
+  masterkey: x123456789012345678901234567891y
+  configmapConfig:
+    ExternalSecure: false
+    ExternalDomain: localhost
+    TLS:
+      Enabled: false
+    Database:
+      Postgres:
+        Host: db-postgresql
+        Port: 5432
+        Database: zitadel
+        MaxOpenConns: 20
+        MaxIdleConns: 10
+        MaxConnLifetime: 30m
+        MaxConnIdleTime: 5m
+        User:
+          Username: zitadel
+          SSL:
+            Mode: verify-full
+        Admin:
+          Username: postgres
+          SSL:
+            Mode: verify-full
+  secretConfig:
+    Database:
+      Postgres:
+        User:
+          Password: xyz
+        Admin:
+          Password: abc
+
+  dbSslCaCrtSecret: postgres-cert
+  dbSslAdminCrtSecret: postgres-cert
+  dbSslUserCrtSecret: zitadel-cert
