@@ -22,3 +22,4 @@ zitadel:
           SSL:
             Mode: disable
   configSecretName: existing-zitadel-secrets
+  configSecretKey: config.yaml

@@ -17,8 +17,9 @@ zitadel:
   secretConfig:
 
   # Reference the name of a secret that contains ZITADEL configuration.
-  # The key should be named "config-yaml".
   configSecretName:
+  # The key under which the ZITADEL configuration is located in the secret.
+  configSecretKey: config-yaml
 
   # ZITADEL uses the masterkey for symmetric encryption.
   # You can generate it for example with tr -dc A-Za-z0-9 </dev/urandom | head -c 32
@@ -133,7 +134,6 @@ setupJob:
   machinekeyWriterImage:
     repository: bitnami/kubectl
     tag: ""
-
 
 readinessProbe:
   enabled: true

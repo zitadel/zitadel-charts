@@ -48,9 +48,9 @@ spec:
             - --config
             - /.secrets/zitadel-secrets-yaml/zitadel-secrets-yaml
             {{- end }}
-            {{- if .Values.zitadel.configSecretName }}
+            {{- if and .Values.zitadel.configSecretName .Values.zitadel.configSecretKey }}
             - --config
-            - /.secrets/zitadel-secret-config-yaml/config-yaml
+            - /.secrets/zitadel-secret-config-yaml/{{ .Values.zitadel.configSecretKey }}
             {{- end }}
             - --steps
             - /config/zitadel-config-yaml
