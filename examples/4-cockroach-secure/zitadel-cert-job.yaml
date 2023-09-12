@@ -1,0 +1,104 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: zitadel-cert-creator
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: secret-creator
+rules:
+  - apiGroups: [ "" ]
+    resources: [ "secrets" ]
+    verbs: [ "create" ]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: zitadel-cert-creator
+subjects:
+  - kind: ServiceAccount
+    name:  zitadel-cert-creator
+roleRef:
+  kind: Role
+  name: secret-creator
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: create-zitadel-cert
+spec:
+  template:
+    spec:
+      restartPolicy: OnFailure
+      serviceAccountName: zitadel-cert-creator
+      containers:
+      - command:
+          - /bin/bash
+          - -ecx
+          - |
+            cockroach cert create-client \
+            --certs-dir /cockroach/cockroach-certs \
+            --ca-key /cockroach/cockroach-certs/ca.key \
+            --lifetime 8760h \
+            zitadel
+            export SECRET=$(cat <<EOF
+            {
+              "apiVersion": "v1",
+              "kind": "Secret",
+              "data": {
+                "ca.crt": "$(base64 /cockroach/cockroach-certs/ca.crt --wrap 0)",
+                "tls.crt": "$(base64 /cockroach/cockroach-certs/client.zitadel.crt --wrap 0)",
+                "tls.key": "$(base64 /cockroach/cockroach-certs/client.zitadel.key --wrap 0)"
+              },
+              "metadata": {
+                "name": "db-cockroachdb-zitadel-secret"
+              },
+              "type": "kubernetes.io/tls"
+            }
+            EOF
+            )
+            export APISERVER=https://kubernetes.default.svc SERVICEACCOUNT=/var/run/secrets/kubernetes.io/serviceaccount
+            export NAMESPACE=$(cat ${SERVICEACCOUNT}/namespace) TOKEN=$(cat ${SERVICEACCOUNT}/token) CACERT=${SERVICEACCOUNT}/ca.crt
+            curl \
+            --cacert ${CACERT} \
+            --header "Authorization: Bearer ${TOKEN}" \
+            --header "Content-Type: application/json" \
+            -X POST ${APISERVER}/api/v1/namespaces/${NAMESPACE}/secrets \
+            --data "$(echo -n $SECRET | tr -d '\n')"
+        image: cockroachdb/cockroach:v23.1.8
+        imagePullPolicy: IfNotPresent
+        name: create-zitadel-cert
+        volumeMounts:
+        - mountPath: /cockroach/cockroach-certs/
+          name: certs
+      initContainers:
+      - command:
+        - /bin/sh
+        - -c
+        - cp -f /certs/* /cockroach-certs/; chmod 0400 /cockroach-certs/*.key
+        image: busybox
+        imagePullPolicy: IfNotPresent
+        name: copy-certs
+        volumeMounts:
+        - mountPath: /cockroach-certs/
+          name: certs
+        - mountPath: /certs/
+          name: certs-secret
+      volumes:
+      - emptyDir: {}
+        name: certs
+      - name: certs-secret
+        projected:
+          defaultMode: 420
+          sources:
+          - secret:
+              items:
+              - key: ca.crt
+                mode: 256
+                path: ca.crt
+              - key: ca.key
+                mode: 256
+                path: ca.key
+              name: db-cockroachdb-ca-secret

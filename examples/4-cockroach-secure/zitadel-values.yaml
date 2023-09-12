@@ -1,0 +1,27 @@
+zitadel:
+  masterkey: x123456789012345678901234567891y
+  configmapConfig:
+    ExternalSecure: false
+    ExternalDomain: localhost
+    TLS:
+      Enabled: false
+    Database:
+      Cockroach:
+        Host: db-cockroachdb-public
+        User:
+          SSL:
+            Mode: verify-full
+        Admin:
+          SSL:
+            Mode: verify-full
+  secretConfig:
+    Database:
+      Cockroach:
+        User:
+          Password: xyz
+        Admin:
+          Password: abc
+
+  dbSslCaCrtSecret: db-cockroachdb-ca-secret
+  dbSslAdminCrtSecret: db-cockroachdb-client-secret
+  dbSslUserCrtSecret: db-cockroachdb-zitadel-secret

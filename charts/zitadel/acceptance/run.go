@@ -1,4 +1,4 @@
-package installation
+package acceptance
 
 import (
 	"testing"
@@ -11,15 +11,14 @@ import (
 )
 
 func (s *ConfigurationTest) TestZITADELInstallation() {
-	helm.AddRepo(s.T(), &helm.Options{}, s.crdbRepoName, s.crdbRepoURL)
 	helm.Install(s.T(), &helm.Options{
 		KubectlOptions: s.KubeOptions,
-		SetValues:      s.crdbValues,
-		Version:        s.crdbVersion,
-	}, s.crdbChart, s.crdbRelease)
-	helm.Install(s.T(), &helm.Options{
-		KubectlOptions: s.KubeOptions,
-		SetValues:      s.zitadelValues,
+		ValuesFiles:    s.zitadelValues,
+		SetValues: map[string]string{
+			"replicaCount":    "1",
+			"pdb.enabled":     "true",
+			"ingress.enabled": "true",
+		},
 	}, s.zitadelChartPath, s.zitadelRelease)
 	k8s.WaitUntilJobSucceed(s.T(), s.KubeOptions, "zitadel-test-init", 900, time.Second)
 	k8s.WaitUntilJobSucceed(s.T(), s.KubeOptions, "zitadel-test-setup", 900, time.Second)
@@ -42,7 +41,7 @@ func listPods(t *testing.T, try int, kubeOptions *k8s.KubectlOptions) []corev1.P
 		t.Fatal("no trials left")
 	}
 	pods := k8s.ListPods(t, kubeOptions, metav1.ListOptions{LabelSelector: `app.kubernetes.io/instance=zitadel-test, app.kubernetes.io/component=start`})
-	if len(pods) == 3 {
+	if len(pods) == 1 {
 		return pods
 	}
 	time.Sleep(time.Second)
