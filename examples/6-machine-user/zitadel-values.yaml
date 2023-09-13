@@ -1,0 +1,36 @@
+zitadel:
+  masterkey: x123456789012345678901234567891y
+  configmapConfig:
+    ExternalSecure: false
+    ExternalDomain: localhost
+    TLS:
+      Enabled: false
+    FirstInstance:
+      Org:
+        Machine:
+          Machine:
+            Username: zitadel-admin-sa
+            Name: Admin
+          MachineKey:
+            ExpirationDate: "2026-01-01T00:00:00Z"
+            # Type: 1 means JSON. This is currently the only supported machine key type.
+            Type: 1
+        # PAT:
+        #   ExpirationDate: "2026-01-01T00:00:00Z"
+    Database:
+      Postgres:
+        Host: db-postgresql
+        Port: 5432
+        Database: zitadel
+        MaxOpenConns: 20
+        MaxIdleConns: 10
+        MaxConnLifetime: 30m
+        MaxConnIdleTime: 5m
+        User:
+          Username: postgres
+          SSL:
+            Mode: disable
+        Admin:
+          Username: postgres
+          SSL:
+            Mode: disable

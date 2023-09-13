@@ -43,31 +43,34 @@ spec:
             - /config/zitadel-config-yaml
             {{- if .Values.zitadel.secretConfig }}
             - --config
-            - /.secrets/zitadel-secrets-yaml
+            - /.secrets/zitadel-secrets-yaml/zitadel-secrets-yaml
             {{- end }}
-            {{- if .Values.zitadel.configSecretName }}
+            {{- if and .Values.zitadel.configSecretName .Values.zitadel.configSecretKey }}
             - --config
-            - /.secrets/config-yaml
+            - /.secrets/zitadel-secret-config-yaml/{{ .Values.zitadel.configSecretKey }}
             {{- end }}
-            - --masterkeyFile
-            - /.secrets/masterkey
+            - --masterkeyFromEnv
           env:
             - name: POD_IP
               valueFrom:
                 fieldRef:
                   apiVersion: v1
                   fieldPath: status.podIP
-            {{- if (or .Values.zitadel.dbSslRootCrt .Values.zitadel.dbSslRootCrtSecret) }}
-            - name: ZITADEL_DATABASE_COCKROACH_USER_SSL_ROOTCERT
-              value: /.secrets/ca.crt
-            - name: ZITADEL_DATABASE_COCKROACH_ADMIN_SSL_ROOTCERT
-              value: /.secrets/ca.crt
+            - name: ZITADEL_MASTERKEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ default "zitadel-masterkey" .Values.zitadel.masterkeySecretName }}
+                  key: masterkey
+            {{- $dbEnv := get (include "zitadel.dbkey.json" . | fromJson) "env" }}
+            {{- if (or .Values.zitadel.dbSslCaCrt .Values.zitadel.dbSslCaCrtSecret) }}
+            - name: ZITADEL_DATABASE_{{ $dbEnv }}_USER_SSL_ROOTCERT
+              value: /.secrets/db-ssl-ca-crt/ca.crt
             {{- end}}
-            {{- if .Values.zitadel.dbSslClientCrtSecret }}
-            - name: ZITADEL_DATABASE_COCKROACH_ADMIN_SSL_CERT
-              value: /.secrets/tls.crt
-            - name: ZITADEL_DATABASE_COCKROACH_ADMIN_SSL_KEY
-              value: /.secrets/tls.key
+            {{- if .Values.zitadel.dbSslUserCrtSecret }}
+            - name: ZITADEL_DATABASE_{{ $dbEnv }}_USER_SSL_CERT
+              value: /.secrets/db-ssl-user-crt/tls.crt
+            - name: ZITADEL_DATABASE_{{ $dbEnv }}_USER_SSL_KEY
+              value: /.secrets/db-ssl-user-crt/tls.key
             {{- end}}
             {{- with .Values.env }}
               {{- toYaml . | nindent 12 }}
@@ -131,13 +134,11 @@ spec:
       initContainers:
         - args:
           - "{{ include "zitadel.joincpcommands" (dict "commands" (list
-            (include "zitadel.makecpcommand" (dict "value" .Values.zitadel.secretConfig "path" "/zitadel-secrets-yaml/*" ))
-            (include "zitadel.makecpcommand" (dict "value" .Values.zitadel.masterkey "path" "/masterkey/*" ))
-            (include "zitadel.makecpcommand" (dict "value" .Values.zitadel.masterkeySecretName "path" "/masterkey/*" ))
-            (include "zitadel.makecpcommand" (dict "value" (or .Values.zitadel.dbSslRootCrt .Values.zitadel.dbSslRootCrtSecret) "path" "/db-ssl-root-crt/*" ))
-            (include "zitadel.makecpcommand" (dict "value" .Values.zitadel.dbSslClientCrtSecret "path" "/db-ssl-client-crt/*" ))
-            (include "zitadel.makecpcommand" (dict "value" .Values.zitadel.configSecretName "path" "/zitadel-config-yaml/*" ))
-          )) }} chown -R 1000:1000 /chowned-secrets/* && chmod 400 /chowned-secrets/*"
+              (include "zitadel.makecpcommand" (dict "value" .Values.zitadel.secretConfig "path" "/zitadel-secrets-yaml/" ))
+              (include "zitadel.makecpcommand" (dict "value" .Values.zitadel.configSecretName "path" "/zitadel-secret-config-yaml/" ))
+              (include "zitadel.makecpcommand" (dict "value" (or .Values.zitadel.dbSslCaCrt .Values.zitadel.dbSslCaCrtSecret) "path" "/db-ssl-ca-crt/" ))
+              (include "zitadel.makecpcommand" (dict "value" .Values.zitadel.dbSslUserCrtSecret "path" "/db-ssl-user-crt/" ))
+              )) }} chown -R 1000:1000 /chowned-secrets/ && find /chowned-secrets/ -type f -exec chmod 400 -- {} + "
           command:
           - sh
           - -c
@@ -147,23 +148,21 @@ spec:
           volumeMounts:
           - name: chowned-secrets
             mountPath: /chowned-secrets
-          - name: masterkey
-            mountPath: /masterkey
           {{- if .Values.zitadel.secretConfig }}
           - name: zitadel-secrets-yaml
             mountPath: /zitadel-secrets-yaml
           {{- end }}
           {{- if .Values.zitadel.configSecretName }}
           - name: zitadel-secret-config-yaml
-            mountPath: /zitadel-config-yaml
+            mountPath: /zitadel-secret-config-yaml
           {{- end }}
-          {{- if (or .Values.zitadel.dbSslRootCrt .Values.zitadel.dbSslRootCrtSecret) }}
-          - name: db-ssl-root-crt
-            mountPath: /db-ssl-root-crt
+          {{- if (or .Values.zitadel.dbSslCaCrt .Values.zitadel.dbSslCaCrtSecret) }}
+          - name: db-ssl-ca-crt
+            mountPath: /db-ssl-ca-crt
           {{- end }}
-          {{- if .Values.zitadel.dbSslClientCrtSecret }}
-          - name: db-ssl-client-crt
-            mountPath: /db-ssl-client-crt
+          {{- if .Values.zitadel.dbSslUserCrtSecret }}
+          - name: db-ssl-user-crt
+            mountPath: /db-ssl-user-crt
           {{- end }}
           securityContext:
             runAsNonRoot: false
@@ -215,24 +214,21 @@ spec:
         secret:
           secretName: {{ .Values.zitadel.configSecretName }}
       {{- end }}
-      {{- if .Values.zitadel.dbSslRootCrt }}
-      - name: db-ssl-root-crt
+      {{- if .Values.zitadel.dbSslCaCrt }}
+      - name: db-ssl-ca-crt
         secret:
-          secretName: db-ssl-root-crt
+          secretName: db-ssl-ca-crt
       {{- end }}
-      {{- if .Values.zitadel.dbSslRootCrtSecret }}
-      - name: db-ssl-root-crt
+      {{- if .Values.zitadel.dbSslCaCrtSecret }}
+      - name: db-ssl-ca-crt
         secret:
-          secretName: {{ .Values.zitadel.dbSslRootCrtSecret }}
+          secretName: {{ .Values.zitadel.dbSslCaCrtSecret }}
       {{- end }}
-      {{- if .Values.zitadel.dbSslClientCrtSecret }}
-      - name: db-ssl-client-crt
+      {{- if .Values.zitadel.dbSslUserCrtSecret }}
+      - name: db-ssl-user-crt
         secret:
-          secretName: {{ .Values.zitadel.dbSslClientCrtSecret }}
+          secretName: {{ .Values.zitadel.dbSslUserCrtSecret }}
       {{- end }}
-      - name: masterkey
-        secret:
-          secretName: {{ default "zitadel-masterkey" .Values.zitadel.masterkeySecretName }}
       - name: chowned-secrets
         emptyDir: {}
       {{- if .Values.selfSignedCert.enabled }}
