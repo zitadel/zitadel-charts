@@ -4,7 +4,9 @@ By running the commands below, you deploy a TLS and password authentication secu
 Also, you deploy [a correctly configured ZITADEL](https://artifacthub.io/packages/helm/zitadel/zitadel).
 The cockroach chart is configured to create a CA certificate and a client certificate and key for the root DB user.
 However, you also want to secure the runtime connections between ZITADEL and Cockroach for the zitadel user.
-Therefore, you create a Kubernetes job that creates a client certificate and key for the zitadel DB user by executing the `cockroach cert` command.
+Therefore, you create a Kubernetes job that creates a client certificate and key for the zitadel DB user by executing the `cockroach cert` command. 
+
+Note: The ```fullnameOverride: db-cockroachdb``` value should match with the prefix used in the value files used for this example. Using a different name would cause the certificate job to fail, thus failing the installation.
 
 ```bash
 # Install Cockroach

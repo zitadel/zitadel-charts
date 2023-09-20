@@ -1,2 +1,10 @@
 tls:
   enabled: true
+
+fullnameOverride: db-cockroachdb
+
+conf:
+  single-node: true
+
+statefulset:
+  replicas: 1

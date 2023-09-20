@@ -25,3 +25,5 @@ zitadel:
   dbSslCaCrtSecret: db-cockroachdb-ca-secret
   dbSslAdminCrtSecret: db-cockroachdb-client-secret
   dbSslUserCrtSecret: db-cockroachdb-zitadel-secret
+
+replicaCount: 1
