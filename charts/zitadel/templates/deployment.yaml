@@ -84,6 +84,7 @@ spec:
             httpGet:
               path: /debug/healthz
               port: {{ .Values.service.protocol }}-server
+              scheme: {{ .Values.service.scheme | default "HTTP" }}
               {{- if .Values.zitadel.configmapConfig.ExternalDomain }}
               httpHeaders:
                 - name: Host
@@ -98,6 +99,7 @@ spec:
             httpGet:
               path: /debug/ready
               port: {{ .Values.service.protocol }}-server
+              scheme: {{ .Values.service.scheme | default "HTTP" }}
               {{- if .Values.zitadel.configmapConfig.ExternalDomain }}
               httpHeaders:
                 - name: Host
@@ -112,6 +114,7 @@ spec:
             httpGet:
               path: /debug/ready
               port: {{ .Values.service.protocol }}-server
+              scheme: {{ .Values.service.scheme | default "HTTP" }}
               {{- if .Values.zitadel.configmapConfig.ExternalDomain }}
               httpHeaders:
                 - name: Host
