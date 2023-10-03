@@ -92,7 +92,7 @@ spec:
             mountPath: "/machinekey"
           {{- end}}
           resources:
-            {{- toYaml .Values.setupJob.resources | nindent 14 }}
+            {{- toYaml .Values.setupJob.resources | nindent 12 }}
         {{- if include "deepCheck" (dict "root" .Values "path" (splitList "." "zitadel.configmapConfig.FirstInstance.Org.Machine")) }}
         - name: "{{ .Chart.Name}}-machinekey"
           securityContext:
@@ -108,11 +108,11 @@ spec:
             - name: machinekey
               mountPath: "/machinekey"
           resources:
-            {{ if .Values.setupJob.machinekeyWriter.resources }}
-              {{- toYaml .Values.setupJob.machinekeyWriter.resources | nindent 14 }}
-            {{- else }}
-              {{- toYaml .Values.setupJob.resources | nindent 14 }}
-            {{- end }}
+          {{- if .Values.setupJob.machinekeyWriter.resources }}
+            {{- toYaml .Values.setupJob.machinekeyWriter.resources | nindent 12 }}
+          {{- else }}
+            {{- toYaml .Values.setupJob.resources | nindent 12 }}
+          {{- end }}
       {{- end }}
       {{- if .Values.setupJob.extraContainers }}
         {{- toYaml .Values.setupJob.extraContainers | nindent 8 }}
