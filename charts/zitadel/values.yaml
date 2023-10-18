@@ -131,9 +131,11 @@ setupJob:
   activeDeadlineSeconds: 300
   extraContainers: []
   podAnnotations: {}
-  machinekeyWriterImage:
-    repository: bitnami/kubectl
-    tag: ""
+  machinekeyWriter:
+    image:
+      repository: bitnami/kubectl
+      tag: ""
+    resources: {}
 
 readinessProbe:
   enabled: true
