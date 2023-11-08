@@ -11,7 +11,7 @@ Also, you deploy [a correctly configured ZITADEL](https://artifacthub.io/package
 ```bash
 # Install Postgres
 helm repo add bitnami https://charts.bitnami.com/bitnami
-helm install --wait postgres bitnami/postgresql --version 12.10.0 --values https://raw.githubusercontent.com/zitadel/zitadel-charts/main/examples/1-postgres-insecure/postgres-values.yaml
+helm install --wait db bitnami/postgresql --version 12.10.0 --values https://raw.githubusercontent.com/zitadel/zitadel-charts/main/examples/1-postgres-insecure/postgres-values.yaml
 
 # Install ZITADEL
 helm repo add zitadel https://charts.zitadel.com
