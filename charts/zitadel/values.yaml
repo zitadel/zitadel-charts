@@ -118,6 +118,8 @@ tolerations: []
 
 affinity: {}
 
+topologySpreadConstraints: []
+
 initJob:
   # Once ZITADEL is installed, the initJob can be disabled.
   enabled: true
