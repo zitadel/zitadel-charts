@@ -72,6 +72,14 @@ spec:
             - name: ZITADEL_DATABASE_{{ $dbEnv }}_USER_SSL_KEY
               value: /.secrets/db-ssl-user-crt/tls.key
             {{- end}}
+            {{ - if .Values.selfSignedCert.enabled }}
+            - name: ZITADEL TLS_ENABLED
+              value: "true"
+            - name: ZITADEL_TLS_CERTPATH
+              value: /etc/tls/tls.crt
+            - name: ZITADEL_TLS_KEYPATH
+              value: /etc/tls/tls.key
+            {{- end }}
             {{- with .Values.env }}
               {{- toYaml . | nindent 12 }}
             {{- end }}
@@ -179,21 +187,13 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: status.podIP
-            {{- if .Values.selfSignedCert.additionalDnsName }}
-            - name: ADDITIONAL_DNS_NAME
-              value: {{ .Values.selfSignedCert.additionalDnsName }}
-            {{- end }}
           volumeMounts:
             - name: tls
               mountPath: "/etc/tls"
           command:
             - "/bin/ash"
             - "-c"
-            {{- if .Values.selfSignedCert.additionalDnsName }}
-            - "openssl req -nodes -x509 -sha256 -newkey rsa:4096 -keyout /etc/tls/tls.key -out /etc/tls/tls.crt -days 3560 -subj \"/CN=zitadel\" -addext \"subjectAltName = DNS:localhost,DNS:${POD_IP},DNS:${POD_NAME},DNS:${ADDITIONAL_DNS_NAME}\""
-            {{- else }}
-            - "openssl req -nodes -x509 -sha256 -newkey rsa:4096 -keyout /etc/tls/tls.key -out /etc/tls/tls.crt -days 3560 -subj \"/CN=zitadel\" -addext \"subjectAltName = DNS:localhost,DNS:${POD_IP},DNS:${POD_NAME}\""
-            {{- end }}
+            - "openssl req -nodes -x509 -sha256 -newkey rsa:4096 -keyout /etc/tls/tls.key -out /etc/tls/tls.crt -days 3560 -subj \"/CN=zitadel\" -addext \"subjectAltName = DNS:localhost,DNS:${POD_IP},DNS:${POD_NAME}"{{- if .Values.selfSignedCert.additionalDnsName -}}",DNS:"{{- .Values.selfSignedCert.additionalDnsName -}}{{- end -}}"\""
           securityContext:
             readOnlyRootFilesystem: true
             runAsNonRoot: true
