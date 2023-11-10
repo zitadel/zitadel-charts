@@ -11,7 +11,7 @@ Also, you deploy [a correctly configured ZITADEL](https://artifacthub.io/package
 ```bash
 # Install Cockroach
 helm repo add cockroachdb https://charts.cockroachdb.com/
-helm install  --wait db cockroachdb/cockroachdb --version 11.1.5 --values https://raw.githubusercontent.com/zitadel/zitadel-charts/main/examples/3-cocroach-insecure/cockroach-values.yaml
+helm install  --wait db cockroachdb/cockroachdb --version 11.2.1 --values https://raw.githubusercontent.com/zitadel/zitadel-charts/main/examples/3-cocroach-insecure/cockroach-values.yaml
 
 # Install ZITADEL
 helm repo add zitadel https://charts.zitadel.com

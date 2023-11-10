@@ -16,7 +16,8 @@ func readValues(t *testing.T, valuesFilePath string) (values struct {
 		MasterkeySecretName string `yaml:"masterkeySecretName"`
 		ConfigSecretName    string `yaml:"configSecretName"`
 		ConfigmapConfig     struct {
-			FirstInstance struct {
+			ExternalDomain string `yaml:"ExternalDomain"`
+			FirstInstance  struct {
 				Org struct {
 					Machine struct {
 						Machine struct {

@@ -65,14 +65,14 @@ spec:
             {{- if (or .Values.zitadel.dbSslCaCrt .Values.zitadel.dbSslCaCrtSecret) }}
             - name: ZITADEL_DATABASE_{{ $dbEnv }}_USER_SSL_ROOTCERT
               value: /.secrets/db-ssl-ca-crt/ca.crt
-            {{- end}}
+            {{- end }}
             {{- if .Values.zitadel.dbSslUserCrtSecret }}
             - name: ZITADEL_DATABASE_{{ $dbEnv }}_USER_SSL_CERT
               value: /.secrets/db-ssl-user-crt/tls.crt
             - name: ZITADEL_DATABASE_{{ $dbEnv }}_USER_SSL_KEY
               value: /.secrets/db-ssl-user-crt/tls.key
-            {{- end}}
-            {{ - if .Values.selfSignedCert.enabled }}
+            {{- end }}
+            {{- if .Values.zitadel.selfSignedCert.enabled }}
             - name: ZITADEL TLS_ENABLED
               value: "true"
             - name: ZITADEL_TLS_CERTPATH
@@ -133,7 +133,7 @@ spec:
             mountPath: /config
           - name: chowned-secrets
             mountPath: /.secrets
-          {{- if .Values.selfSignedCert.enabled }}
+          {{- if .Values.zitadel.selfSignedCert.enabled }}
           - name: tls
             mountPath: /etc/tls
           {{- end }}
@@ -175,7 +175,7 @@ spec:
           securityContext:
             runAsNonRoot: false
             runAsUser: 0
-        {{- if .Values.selfSignedCert.enabled }}
+        {{- if .Values.zitadel.selfSignedCert.enabled }}
         - name: generate-self-signed-cert
           image: alpine/openssl
           env:
@@ -193,7 +193,7 @@ spec:
           command:
             - "/bin/ash"
             - "-c"
-            - "openssl req -nodes -x509 -sha256 -newkey rsa:4096 -keyout /etc/tls/tls.key -out /etc/tls/tls.crt -days 3560 -subj \"/CN=zitadel\" -addext \"subjectAltName = DNS:localhost,DNS:${POD_IP},DNS:${POD_NAME}"{{- if .Values.selfSignedCert.additionalDnsName -}}",DNS:"{{- .Values.selfSignedCert.additionalDnsName -}}{{- end -}}"\""
+            - "openssl req -nodes -x509 -sha256 -newkey rsa:4096 -keyout /etc/tls/tls.key -out /etc/tls/tls.crt -days 3560 -subj \"/CN=zitadel\" -addext \"subjectAltName = DNS:localhost,DNS:${POD_IP},DNS:${POD_NAME}"{{- if .Values.zitadel.selfSignedCert.additionalDnsName -}}",DNS:"{{- .Values.zitadel.selfSignedCert.additionalDnsName -}}{{- end -}}"\""
           securityContext:
             readOnlyRootFilesystem: true
             runAsNonRoot: true
@@ -231,7 +231,7 @@ spec:
       {{- end }}
       - name: chowned-secrets
         emptyDir: {}
-      {{- if .Values.selfSignedCert.enabled }}
+      {{- if .Values.zitadel.selfSignedCert.enabled }}
       - name: tls
         emptyDir: {}
       {{- end }}

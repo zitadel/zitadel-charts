@@ -77,10 +77,6 @@ func Configure(
 	if err != nil {
 		t.Fatal(err)
 	}
-	domain := "localhost"
-	if externalDomain != "" {
-		domain = externalDomain
-	}
 	cfg := &ConfigurationTest{
 		Ctx:              context.Background(),
 		log:              logger.New(logger.Terratest),
@@ -95,7 +91,7 @@ func Configure(
 		beforeFunc:       before,
 		afterDBFunc:      afterDB,
 		afterZITADELFunc: afterZITADEL,
-		Domain:           domain,
+		Domain:           externalDomain,
 		Port:             8080,
 		Scheme:           "http",
 	}

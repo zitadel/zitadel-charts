@@ -5,6 +5,7 @@ import (
 	"fmt"
 	mgmt_api "github.com/zitadel/zitadel-go/v2/pkg/client/zitadel/management"
 	"net/http"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -87,12 +88,14 @@ func (s *ConfigurationTest) checkAccessibility(pods []corev1.Pod) {
 		}))
 	for i := range pods {
 		pod := pods[i]
-		port := 8081 + i
-
-		podTunnel := k8s.NewTunnel(s.KubeOptions, k8s.ResourceTypePod, pod.Name, port, 8080)
+		podTunnel := k8s.NewTunnel(s.KubeOptions, k8s.ResourceTypePod, pod.Name, 0, 8080)
 		podTunnel.ForwardPort(s.T())
 		tunnels = append(tunnels, podTunnel)
-		checks = append(checks, zitadelStatusChecks(s.Scheme, s.Domain, uint16(port))...)
+		localPort, err := strconv.ParseUint(strings.Split(podTunnel.Endpoint(), ":")[1], 10, 16)
+		if err != nil {
+			s.T().Fatal(err)
+		}
+		checks = append(checks, zitadelStatusChecks(s.Scheme, s.Domain, uint16(localPort))...)
 	}
 	wg := sync.WaitGroup{}
 	for _, check := range checks {

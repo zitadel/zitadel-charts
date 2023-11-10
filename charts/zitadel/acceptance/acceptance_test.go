@@ -20,7 +20,7 @@ func TestPostgresInsecure(t *testing.T) {
 		newNamespaceIdentifier(example),
 		acceptance.Postgres.WithValues(filepath.Join(workDir, "postgres-values.yaml")),
 		[]string{values},
-		"",
+		readValues(t, values).Zitadel.ConfigmapConfig.ExternalDomain,
 		nil,
 		nil,
 		nil,
@@ -36,7 +36,7 @@ func TestPostgresSecure(t *testing.T) {
 		newNamespaceIdentifier(example),
 		acceptance.Postgres.WithValues(filepath.Join(workDir, "postgres-values.yaml")),
 		[]string{values},
-		"",
+		readValues(t, values).Zitadel.ConfigmapConfig.ExternalDomain,
 		func(cfg *acceptance.ConfigurationTest) {
 			k8s.KubectlApply(t, cfg.KubeOptions, filepath.Join(workDir, "certs-job.yaml"))
 			k8s.WaitUntilJobSucceed(t, cfg.KubeOptions, "create-certs", 120, 3*time.Second)
@@ -55,7 +55,7 @@ func TestCockroachInsecure(t *testing.T) {
 		newNamespaceIdentifier(example),
 		acceptance.Cockroach.WithValues(filepath.Join(workDir, "cockroach-values.yaml")),
 		[]string{values},
-		"",
+		readValues(t, values).Zitadel.ConfigmapConfig.ExternalDomain,
 		nil,
 		nil,
 		nil,
@@ -71,7 +71,7 @@ func TestCockroachSecure(t *testing.T) {
 		newNamespaceIdentifier(example),
 		acceptance.Cockroach.WithValues(filepath.Join(workDir, "cockroach-values.yaml")),
 		[]string{values},
-		"",
+		readValues(t, values).Zitadel.ConfigmapConfig.ExternalDomain,
 		nil,
 		func(cfg *acceptance.ConfigurationTest) {
 			k8s.KubectlApply(t, cfg.KubeOptions, filepath.Join(workDir, "zitadel-cert-job.yaml"))
@@ -90,7 +90,7 @@ func TestReferencedSecrets(t *testing.T) {
 		newNamespaceIdentifier(example),
 		acceptance.Postgres.WithValues(filepath.Join(workDir, "postgres-values.yaml")),
 		[]string{values},
-		"",
+		readValues(t, values).Zitadel.ConfigmapConfig.ExternalDomain,
 		nil,
 		func(cfg *acceptance.ConfigurationTest) {
 			k8s.KubectlApply(t, cfg.KubeOptions, filepath.Join(workDir, "zitadel-secrets.yaml"))
@@ -110,7 +110,7 @@ func TestMachineUser(t *testing.T) {
 		newNamespaceIdentifier(example),
 		acceptance.Postgres.WithValues(filepath.Join(workDir, "postgres-values.yaml")),
 		[]string{values},
-		"",
+		readValues(t, values).Zitadel.ConfigmapConfig.ExternalDomain,
 		nil,
 		nil,
 		testAuthenticatedAPI(saUserame, fmt.Sprintf("%s.json", saUserame))),
