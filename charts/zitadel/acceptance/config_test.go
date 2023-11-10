@@ -11,12 +11,14 @@ import (
 	"testing"
 )
 
-func readValues(t *testing.T, valuesFilePath string) (values struct {
+type Values struct {
 	Zitadel struct {
 		MasterkeySecretName string `yaml:"masterkeySecretName"`
 		ConfigSecretName    string `yaml:"configSecretName"`
 		ConfigmapConfig     struct {
 			ExternalDomain string `yaml:"ExternalDomain"`
+			ExternalPort   uint16 `yaml:"ExternalPort"`
+			ExternalSecure bool   `yaml:"ExternalSecure"`
 			FirstInstance  struct {
 				Org struct {
 					Machine struct {
@@ -28,7 +30,13 @@ func readValues(t *testing.T, valuesFilePath string) (values struct {
 			} `yaml:"FirstInstance"`
 		} `yaml:"configmapConfig"`
 	} `yaml:"zitadel"`
-}) {
+}
+
+func readValues(t *testing.T, valuesFilePath string) (values Values) {
+	// set default values like in the defaults.yaml
+	values.Zitadel.ConfigmapConfig.ExternalDomain = "localhost"
+	values.Zitadel.ConfigmapConfig.ExternalPort = 8080
+	values.Zitadel.ConfigmapConfig.ExternalSecure = true
 	valuesBytes, err := os.ReadFile(valuesFilePath)
 	if err != nil {
 		t.Fatal(err)
@@ -65,4 +73,9 @@ func workingDirectory(exampleDir string) (workingDir, valuesFile string) {
 	workingDir = filepath.Join(filename, "..", "..", "..", "..", "examples", exampleDir)
 	valuesFile = filepath.Join(workingDir, "zitadel-values.yaml")
 	return workingDir, valuesFile
+}
+
+func readConfig(t *testing.T, exampleDir string) (string, string, Values) {
+	workingDir, valuesFile := workingDirectory(exampleDir)
+	return workingDir, valuesFile, readValues(t, valuesFile)
 }

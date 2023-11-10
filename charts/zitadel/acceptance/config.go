@@ -67,6 +67,8 @@ func Configure(
 	dbChart databaseChart,
 	zitadelValues []string,
 	externalDomain string,
+	externalPort uint16,
+	externalSecure bool,
 	before, afterDB, afterZITADEL hookFunc,
 ) *ConfigurationTest {
 	chartPath, err := filepath.Abs("..")
@@ -76,6 +78,10 @@ func Configure(
 	clientset, err := k8s.GetKubernetesClientFromOptionsE(t, kubeOptions)
 	if err != nil {
 		t.Fatal(err)
+	}
+	externalScheme := "http"
+	if externalSecure {
+		externalScheme = "https"
 	}
 	cfg := &ConfigurationTest{
 		Ctx:              context.Background(),
@@ -92,8 +98,8 @@ func Configure(
 		afterDBFunc:      afterDB,
 		afterZITADELFunc: afterZITADEL,
 		Domain:           externalDomain,
-		Port:             8080,
-		Scheme:           "http",
+		Port:             externalPort,
+		Scheme:           externalScheme,
 	}
 	cfg.SetT(t)
 	return cfg
