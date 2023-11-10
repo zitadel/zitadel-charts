@@ -4,6 +4,7 @@ zitadel:
   # See all defaults here:
   # https://github.com/zitadel/zitadel/blob/main/cmd/defaults.yaml
   configmapConfig:
+    ExternalSecure: true
     Machine:
       Identification:
         Hostname:

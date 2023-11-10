@@ -73,8 +73,6 @@ spec:
               value: /.secrets/db-ssl-user-crt/tls.key
             {{- end }}
             {{- if .Values.zitadel.selfSignedCert.enabled }}
-            - name: ZITADEL TLS_ENABLED
-              value: "true"
             - name: ZITADEL_TLS_CERTPATH
               value: /etc/tls/tls.crt
             - name: ZITADEL_TLS_KEYPATH
@@ -92,6 +90,7 @@ spec:
             httpGet:
               path: /debug/healthz
               port: {{ .Values.service.protocol }}-server
+              scheme: {{ if .Values.zitadel.configmapConfig.TLS.Enabled -}}HTTPS{{- else -}}HTTP{{- end -}}
               {{- if .Values.zitadel.configmapConfig.ExternalDomain }}
               httpHeaders:
                 - name: Host
@@ -106,6 +105,7 @@ spec:
             httpGet:
               path: /debug/ready
               port: {{ .Values.service.protocol }}-server
+              scheme: {{ if .Values.zitadel.configmapConfig.TLS.Enabled -}}HTTPS{{- else -}}HTTP{{- end -}}
               {{- if .Values.zitadel.configmapConfig.ExternalDomain }}
               httpHeaders:
                 - name: Host
@@ -120,6 +120,7 @@ spec:
             httpGet:
               path: /debug/ready
               port: {{ .Values.service.protocol }}-server
+              scheme: {{ if .Values.zitadel.configmapConfig.TLS.Enabled -}}HTTPS{{- else -}}HTTP{{- end -}}
               {{- if .Values.zitadel.configmapConfig.ExternalDomain }}
               httpHeaders:
                 - name: Host
@@ -193,7 +194,7 @@ spec:
           command:
             - "/bin/ash"
             - "-c"
-            - "openssl req -nodes -x509 -sha256 -newkey rsa:4096 -keyout /etc/tls/tls.key -out /etc/tls/tls.crt -days 3560 -subj \"/CN=zitadel\" -addext \"subjectAltName = DNS:localhost,DNS:${POD_IP},DNS:${POD_NAME}"{{- if .Values.zitadel.selfSignedCert.additionalDnsName -}}",DNS:"{{- .Values.zitadel.selfSignedCert.additionalDnsName -}}{{- end -}}"\""
+            - "openssl req -nodes -x509 -sha256 -newkey rsa:4096 -keyout /etc/tls/tls.key -out /etc/tls/tls.crt -days 3560 -subj \"/CN=ZITADEL Chart Demo\" -addext \"subjectAltName = DNS:localhost,DNS:${POD_IP},DNS:${POD_NAME}{{- if .Values.zitadel.configmapConfig.ExternalDomain -}},DNS:{{- .Values.zitadel.configmapConfig.ExternalDomain -}}{{- end -}}{{- if .Values.zitadel.selfSignedCert.additionalDnsName -}},DNS:{{- .Values.zitadel.selfSignedCert.additionalDnsName -}}{{- end -}}\""
           securityContext:
             readOnlyRootFilesystem: true
             runAsNonRoot: true
