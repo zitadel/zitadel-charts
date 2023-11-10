@@ -63,7 +63,7 @@ jobs:
 
     - id: 'set-up-chart-testing'
       name: Install Chart Testing CLI
-      uses: 'helm/chart-testing-action@v2.4.0'
+      uses: 'helm/chart-testing-action@v2.6.1'
       with:
         version: 'v3.8.0'
 
