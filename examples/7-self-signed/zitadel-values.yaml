@@ -1,0 +1,29 @@
+zitadel:
+  masterkey: x123456789012345678901234567891y
+  selfSignedCert:
+    enabled: true
+    additionalDnsName: my-iam.127.0.0.1.sslip.io
+  configmapConfig:
+    ExternalSecure: true
+    ExternalDomain: my-iam.127.0.0.1.sslip.io
+    TLS:
+      Enabled: true
+      # No need to configure the cert and key path
+      # The chart automatically configures them  via environment variables
+    Database:
+      Postgres:
+        Host: db-postgresql
+        Port: 5432
+        Database: zitadel
+        MaxOpenConns: 20
+        MaxIdleConns: 10
+        MaxConnLifetime: 30m
+        MaxConnIdleTime: 5m
+        User:
+          Username: postgres
+          SSL:
+            Mode: disable
+        Admin:
+          Username: postgres
+          SSL:
+            Mode: disable
