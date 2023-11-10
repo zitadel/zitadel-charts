@@ -27,3 +27,13 @@ zitadel:
           Username: postgres
           SSL:
             Mode: disable
+
+# The probes fail if zitadel.selfSignedCert.enabled is true
+readinessProbe:
+  enabled: false
+
+livenessProbe:
+  enabled: false
+
+startupProbe:
+  enabled: false
