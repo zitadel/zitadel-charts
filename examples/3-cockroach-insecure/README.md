@@ -11,7 +11,7 @@ Also, you deploy [a correctly configured ZITADEL](https://artifacthub.io/package
 ```bash
 # Install Cockroach
 helm repo add cockroachdb https://charts.cockroachdb.com/
-helm install  --wait db cockroachdb/cockroachdb --version 11.1.5 --values https://raw.githubusercontent.com/zitadel/zitadel-charts/main/examples/3-cocroach-insecure/cockroach-values.yaml
+helm install  --wait db cockroachdb/cockroachdb --version 11.2.1 --values https://raw.githubusercontent.com/zitadel/zitadel-charts/main/examples/3-cocroach-insecure/cockroach-values.yaml
 
 # Install ZITADEL
 helm repo add zitadel https://charts.zitadel.com
@@ -24,7 +24,7 @@ When ZITADEL is ready, you can access the GUI via port-forwarding:
 kubectl port-forward svc/my-zitadel 8080
 ```
 
-Now, open http://localhost:8080 in your browser and log in with the following credentials:
+Now, open http://127.0.0.1.sslip.io:8080 in your browser and log in with the following credentials:
 
-**Username**: zitadel-admin@zitadel.localhost
+**Username**: zitadel-admin@zitadel.127.0.0.1.sslip.io
 **Password**: Password1!

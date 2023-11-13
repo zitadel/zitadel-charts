@@ -4,6 +4,7 @@ zitadel:
   # See all defaults here:
   # https://github.com/zitadel/zitadel/blob/main/cmd/defaults.yaml
   configmapConfig:
+    ExternalSecure: true
     Machine:
       Identification:
         Hostname:
@@ -39,6 +40,14 @@ zitadel:
 
   # The db users secret containing the client certificate and key at tls.crt and tls.key needed for establishing secure database connections
   dbSslUserCrtSecret: ""
+
+  # Generate a self-signed certificate using an init container
+  # This will also mount the generated files to /etc/tls/ so that you can reference them in the pod.
+  # E.G. KeyPath: /etc/tls/tls.key CertPath: /etc/tls/tls.crt
+  # By default, the SAN DNS names include, localhost, the POD IP address and the POD name. You may include one more by using additionalDnsName like "my.zitadel.fqdn".
+  selfSignedCert:
+    enabled: false
+    additionalDnsName:
 
 replicaCount: 3
 

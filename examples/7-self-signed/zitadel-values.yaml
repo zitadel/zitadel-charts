@@ -1,10 +1,15 @@
 zitadel:
   masterkey: x123456789012345678901234567891y
+  selfSignedCert:
+    enabled: true
+    additionalDnsName: my-iam.127.0.0.1.sslip.io
   configmapConfig:
-    ExternalSecure: false
-    ExternalDomain: 127.0.0.1.sslip.io
+    ExternalSecure: true
+    ExternalDomain: my-iam.127.0.0.1.sslip.io
     TLS:
-      Enabled: false
+      Enabled: true
+      # No need to configure the cert and key path
+      # The chart automatically configures them  via environment variables
     Database:
       Postgres:
         Host: db-postgresql
@@ -22,3 +27,13 @@ zitadel:
           Username: postgres
           SSL:
             Mode: disable
+
+# The probes fail if zitadel.selfSignedCert.enabled is true
+readinessProbe:
+  enabled: false
+
+livenessProbe:
+  enabled: false
+
+startupProbe:
+  enabled: false

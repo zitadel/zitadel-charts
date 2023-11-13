@@ -63,7 +63,7 @@ jobs:
 
     - id: 'set-up-chart-testing'
       name: Install Chart Testing CLI
-      uses: 'helm/chart-testing-action@v2.4.0'
+      uses: 'helm/chart-testing-action@v2.6.1'
       with:
         version: 'v3.8.0'
 
@@ -95,34 +95,66 @@ jobs:
 
     - id: 'test'
       name: Run Go Tests
-      run: 'go test ./...'
+      run: 'go test -p 1 ./...'
       if: steps.list-changed.outputs.changed == 'true'
 
     - id: 'zitadel-test-namespaces'
       name: Grep Created Namespaces
       run: |
-        echo "inlineSecretsNamespace=$(kubectl get namespaces --output name | grep 1-inline-secrets | cut -d / -f 2)" >> "$GITHUB_OUTPUT"
-        echo "refSecretsNamespace=$(kubectl get namespaces --output name | grep 2-ref-secrets | cut -d / -f 2)" >> "$GITHUB_OUTPUT"
-        echo "machineKeyNamespace=$(kubectl get namespaces --output name | grep 3-machine-key | cut -d / -f 2)" >> "$GITHUB_OUTPUT"
+        echo "pgInsecure=$(kubectl get namespaces --output name | grep 1-postgres-insecure | cut -d / -f 2)" >> "$GITHUB_OUTPUT"
+        echo "pgSecure=$(kubectl get namespaces --output name | grep 2-postgres-secure | cut -d / -f 2)" >> "$GITHUB_OUTPUT"
+        echo "crInsecure=$(kubectl get namespaces --output name | grep 3-cockroach-insecure | cut -d / -f 2)" >> "$GITHUB_OUTPUT"
+        echo "crSecure=$(kubectl get namespaces --output name | grep 4-cockroach-secure | cut -d / -f 2)" >> "$GITHUB_OUTPUT"
+        echo "refSecrets=$(kubectl get namespaces --output name | grep 5-referenced-secrets | cut -d / -f 2)" >> "$GITHUB_OUTPUT"
+        echo "machineUser=$(kubectl get namespaces --output name | grep 6-machine-user | cut -d / -f 2)" >> "$GITHUB_OUTPUT"
+        echo "selfSigned=$(kubectl get namespaces --output name | grep 7-self-signed | cut -d / -f 2)" >> "$GITHUB_OUTPUT"
       if: always()
 
-    - id: 'namespace-report-inline-secrets'
-      name: Show Inline Secrets Namespace
+    - id: 'namespace-report-pg-insecure'
+      name: Show ${{ steps.zitadel-test-namespaces.outputs.pgInsecure }} Namespace
       uses: jupyterhub/action-k8s-namespace-report@v1
       if: always()
       with:
-        namespace: ${{ steps.zitadel-test-namespaces.outputs.inlineSecretsNamespace }}
+        namespace: ${{ steps.zitadel-test-namespaces.outputs.pgInsecure }}
+
+    - id: 'namespace-report-pg-secure'
+      name: Show ${{ steps.zitadel-test-namespaces.outputs.pgSecure }} Namespace
+      uses: jupyterhub/action-k8s-namespace-report@v1
+      if: always()
+      with:
+        namespace: ${{ steps.zitadel-test-namespaces.outputs.pgSecure }}
+
+    - id: 'namespace-report-cr-insecure'
+      name: Show ${{ steps.zitadel-test-namespaces.outputs.crInsecure }} Namespace
+      uses: jupyterhub/action-k8s-namespace-report@v1
+      if: always()
+      with:
+        namespace: ${{ steps.zitadel-test-namespaces.outputs.crInsecure }}
+
+    - id: 'namespace-report-cr-secure'
+      name: Show ${{ steps.zitadel-test-namespaces.outputs.crSecure }} Namespace
+      uses: jupyterhub/action-k8s-namespace-report@v1
+      if: always()
+      with:
+        namespace: ${{ steps.zitadel-test-namespaces.outputs.crSecure }}
 
     - id: 'namespace-report-ref-secrets'
-      name: Show Referenced Secrets Namespace
+      name: Show ${{ steps.zitadel-test-namespaces.outputs.refSecrets }} Namespace
       uses: jupyterhub/action-k8s-namespace-report@v1
       if: always()
       with:
-        namespace: ${{ steps.zitadel-test-namespaces.outputs.refSecretsNamespace }}
+        namespace: ${{ steps.zitadel-test-namespaces.outputs.refSecrets }}
 
-    - id: 'namespace-report-machine-key'
-      name: Show Machine Key Namespace
+    - id: 'namespace-report-machine-user'
+      name: Show ${{ steps.zitadel-test-namespaces.outputs.machineUser }} Namespace
       uses: jupyterhub/action-k8s-namespace-report@v1
       if: always()
       with:
-        namespace: ${{ steps.zitadel-test-namespaces.outputs.machineKeyNamespace }}
+        namespace: ${{ steps.zitadel-test-namespaces.outputs.machineUser }}
+
+    - id: 'namespace-report-self-signed'
+      name: Show ${{ steps.zitadel-test-namespaces.outputs.selfSigned }} Namespace
+      uses: jupyterhub/action-k8s-namespace-report@v1
+      if: always()
+      with:
+        namespace: ${{ steps.zitadel-test-namespaces.outputs.selfSigned }}
