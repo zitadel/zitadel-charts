@@ -110,49 +110,49 @@ jobs:
         echo "selfSigned=$(kubectl get namespaces --output name | grep 7-self-signed | cut -d / -f 2)" >> "$GITHUB_OUTPUT"
       if: always()
 
-    - id: 'namespace-report-inline-secrets'
+    - id: 'namespace-report-pg-insecure'
       name: Show ${{ steps.zitadel-test-namespaces.outputs.pgInsecure }} Namespace
       uses: jupyterhub/action-k8s-namespace-report@v1
       if: always()
       with:
         namespace: ${{ steps.zitadel-test-namespaces.outputs.pgInsecure }}
 
-    - id: 'namespace-report-ref-secrets'
+    - id: 'namespace-report-pg-secure'
       name: Show ${{ steps.zitadel-test-namespaces.outputs.pgSecure }} Namespace
       uses: jupyterhub/action-k8s-namespace-report@v1
       if: always()
       with:
         namespace: ${{ steps.zitadel-test-namespaces.outputs.pgSecure }}
 
-    - id: 'namespace-report-machine-key'
+    - id: 'namespace-report-cr-insecure'
       name: Show ${{ steps.zitadel-test-namespaces.outputs.crInsecure }} Namespace
       uses: jupyterhub/action-k8s-namespace-report@v1
       if: always()
       with:
         namespace: ${{ steps.zitadel-test-namespaces.outputs.crInsecure }}
 
-    - id: 'namespace-report-machine-key'
+    - id: 'namespace-report-cr-secure'
       name: Show ${{ steps.zitadel-test-namespaces.outputs.crSecure }} Namespace
       uses: jupyterhub/action-k8s-namespace-report@v1
       if: always()
       with:
         namespace: ${{ steps.zitadel-test-namespaces.outputs.crSecure }}
 
-    - id: 'namespace-report-machine-key'
+    - id: 'namespace-report-ref-secrets'
       name: Show ${{ steps.zitadel-test-namespaces.outputs.refSecrets }} Namespace
       uses: jupyterhub/action-k8s-namespace-report@v1
       if: always()
       with:
         namespace: ${{ steps.zitadel-test-namespaces.outputs.refSecrets }}
 
-    - id: 'namespace-report-machine-key'
+    - id: 'namespace-report-machine-user'
       name: Show ${{ steps.zitadel-test-namespaces.outputs.machineUser }} Namespace
       uses: jupyterhub/action-k8s-namespace-report@v1
       if: always()
       with:
         namespace: ${{ steps.zitadel-test-namespaces.outputs.machineUser }}
 
-    - id: 'namespace-report-machine-key'
+    - id: 'namespace-report-self-signed'
       name: Show ${{ steps.zitadel-test-namespaces.outputs.selfSigned }} Namespace
       uses: jupyterhub/action-k8s-namespace-report@v1
       if: always()
