@@ -95,6 +95,9 @@ spec:
                 - name: Host
                   value: {{ .Values.zitadel.configmapConfig.ExternalDomain }}
               {{- end }}
+              {{- if .Values.zitadel.configmapConfig.TLS.Enabled }}
+              scheme: HTTPS
+              {{- end }}
             initialDelaySeconds: {{ .Values.livenessProbe.initialDelaySeconds }}
             periodSeconds: {{ .Values.livenessProbe.periodSeconds }}
             failureThreshold: {{ .Values.livenessProbe.failureThreshold }}
@@ -109,6 +112,9 @@ spec:
                 - name: Host
                   value: {{ .Values.zitadel.configmapConfig.ExternalDomain }}
               {{- end }}
+              {{- if .Values.zitadel.configmapConfig.TLS.Enabled }}
+              scheme: HTTPS
+              {{- end }}
             initialDelaySeconds: {{ .Values.readinessProbe.initialDelaySeconds }}
             periodSeconds: {{ .Values.readinessProbe.periodSeconds }}
             failureThreshold: {{ .Values.readinessProbe.failureThreshold }}
@@ -122,6 +128,9 @@ spec:
               httpHeaders:
                 - name: Host
                   value: {{ .Values.zitadel.configmapConfig.ExternalDomain }}
+              {{- end }}
+              {{- if .Values.zitadel.configmapConfig.TLS.Enabled }}
+              scheme: HTTPS
               {{- end }}
             periodSeconds: {{ .Values.startupProbe.periodSeconds }}
             failureThreshold: {{ .Values.startupProbe.failureThreshold }}
