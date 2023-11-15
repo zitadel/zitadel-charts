@@ -95,7 +95,7 @@ spec:
                 - name: Host
                   value: {{ .Values.zitadel.configmapConfig.ExternalDomain }}
               {{- end }}
-              {{- if and .Values.zitadel.configmapConfig.TLS .Values.zitadel.configmapConfig.TLS.Enabled }}
+              {{- if include "deepCheck" (dict "root" .Values "path" (splitList "." "zitadel.configmapConfig.TLS.Enabled")) }}
               scheme: HTTPS
               {{- end }}
             initialDelaySeconds: {{ .Values.livenessProbe.initialDelaySeconds }}
@@ -112,7 +112,7 @@ spec:
                 - name: Host
                   value: {{ .Values.zitadel.configmapConfig.ExternalDomain }}
               {{- end }}
-              {{- if and .Values.zitadel.configmapConfig.TLS .Values.zitadel.configmapConfig.TLS.Enabled }}
+              {{- if include "deepCheck" (dict "root" .Values "path" (splitList "." "zitadel.configmapConfig.TLS.Enabled")) }}
               scheme: HTTPS
               {{- end }}
             initialDelaySeconds: {{ .Values.readinessProbe.initialDelaySeconds }}
@@ -129,7 +129,7 @@ spec:
                 - name: Host
                   value: {{ .Values.zitadel.configmapConfig.ExternalDomain }}
               {{- end }}
-              {{- if and .Values.zitadel.configmapConfig.TLS .Values.zitadel.configmapConfig.TLS.Enabled }}
+              {{- if include "deepCheck" (dict "root" .Values "path" (splitList "." "zitadel.configmapConfig.TLS.Enabled")) }}
               scheme: HTTPS
               {{- end }}
             periodSeconds: {{ .Values.startupProbe.periodSeconds }}
