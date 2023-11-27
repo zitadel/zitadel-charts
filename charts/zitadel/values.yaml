@@ -129,6 +129,7 @@ initJob:
     helm.sh/hook-delete-policy: before-hook-creation
     helm.sh/hook-weight: "1"
   resources: {}
+  backoffLimit: 5
   activeDeadlineSeconds: 300
   extraContainers: []
   podAnnotations: {}
