@@ -31,12 +31,14 @@ jobs:
           kindest-image-tag: 'v1.26.6@sha256:6e2d8b28a5b601defe327b98bd1c2d1930b49e5d8c512e1895099e4504007adb'
         - version: v1.27
           kindest-image-tag: 'v1.27.3@sha256:3966ac761ae0136263ffdb6cfd4db23ef8a83cba8a463690e98317add2c9ba72'
+        - version: v1.28
+          kindest-image-tag: 'v1.28.0@sha256:9f3ff58f19dcf1a0611d11e8ac989fdb30a28f40f236f59f0bea31fb956ccf5c'
         helm-version:
         - latest
         include:
         - k8s:
-            version: v1.27
-            kindest-image-tag: 'v1.27.3@sha256:3966ac761ae0136263ffdb6cfd4db23ef8a83cba8a463690e98317add2c9ba72'
+            version: v1.28
+            kindest-image-tag: 'v1.28.0@sha256:9f3ff58f19dcf1a0611d11e8ac989fdb30a28f40f236f59f0bea31fb956ccf5c'
           helm-version: v3.9.0
 
     name: 'K8s version ${{ matrix.k8s.version }} - Helm version ${{ matrix.helm-version }}'
