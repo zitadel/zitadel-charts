@@ -5,6 +5,7 @@ apiVersion: batch/v1
 kind: Job
 metadata:
   name: "{{ include "zitadel.fullname" . }}-setup"
+  namespace: {{ include "zitadel.namespace" . }}
   labels:
     {{- include "zitadel.labels" . | nindent 4 }}
     app.kubernetes.io/component: setup

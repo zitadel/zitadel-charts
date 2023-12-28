@@ -2,6 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: {{ include "zitadel.fullname" . }}
+  namespace: {{ include "zitadel.namespace" . }}
   labels:
     {{- include "zitadel.labels" . | nindent 4 }}
     app.kubernetes.io/component: start

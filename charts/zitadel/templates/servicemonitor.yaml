@@ -5,6 +5,8 @@ metadata:
   name: {{ include "zitadel.fullname" . }}
   {{- if .Values.metrics.serviceMonitor.namespace }}
   namespace: {{ .Values.metrics.serviceMonitor.namespace }}
+  {{- else }}
+  namespace: {{ include "zitadel.namespace" . }}
   {{- end }}
   labels:
     {{- include "zitadel.labels" . | nindent 4 }}

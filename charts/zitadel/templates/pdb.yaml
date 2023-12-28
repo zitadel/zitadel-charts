@@ -7,6 +7,7 @@ apiVersion: policy/v1
 kind: PodDisruptionBudget
 metadata:
   name: {{ include "zitadel.fullname" . }}
+  namespace: {{ include "zitadel.namespace" . }}
   labels:
     {{- include "zitadel.labels" . | nindent 4 }}
   {{- with .Values.pdb.annotations }}
