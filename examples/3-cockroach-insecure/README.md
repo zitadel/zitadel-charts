@@ -9,9 +9,9 @@ Also, you deploy [a correctly configured ZITADEL](https://artifacthub.io/package
 > For deploying a secure Cockroach database, see [the secure Cockroach example](../4-cockroach-secure/README.md).
 
 ```bash
-# Install Cockroach
+# Install Cockroach , do not use the "--wait" option because the init is done by a post-install hook and without the init done the PODs will not start, so you would find yourself locked inside an infinite loop (db pods not working because of missing init and init job not starting because of db pods not working)
 helm repo add cockroachdb https://charts.cockroachdb.com/
-helm install  --wait db cockroachdb/cockroachdb --version 11.2.1 --values https://raw.githubusercontent.com/zitadel/zitadel-charts/main/examples/3-cockroach-insecure/cockroach-values.yaml
+helm install  db cockroachdb/cockroachdb --version 11.2.1 --values https://raw.githubusercontent.com/zitadel/zitadel-charts/main/examples/3-cockroach-insecure/cockroach-values.yaml
 
 # Install ZITADEL
 helm repo add zitadel https://charts.zitadel.com
