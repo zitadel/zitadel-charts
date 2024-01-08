@@ -37,7 +37,8 @@ body:
     attributes:
       label: Version
       description: Which version of the Chart are you using.
-  - id: appversion
+  - type: input
+    id: appversion
     attributes:
       label: App version
       description: Which version of ZITADEL are you using.
