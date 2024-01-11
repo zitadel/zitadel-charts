@@ -9,14 +9,21 @@ Also, you deploy [a correctly configured ZITADEL](https://artifacthub.io/package
 > For deploying a secure Cockroach database, see [the secure Cockroach example](../4-cockroach-secure/README.md).
 
 ```bash
-# Install Cockroach , do not use the "--wait" option because the init is done by a post-install hook and without the init done the PODs will not start, so you would find yourself locked inside an infinite loop (db pods not working because of missing init and init job not starting because of db pods not working)
+# Install Cockroach
 helm repo add cockroachdb https://charts.cockroachdb.com/
-helm install  db cockroachdb/cockroachdb --version 11.2.1 --values https://raw.githubusercontent.com/zitadel/zitadel-charts/main/examples/3-cockroach-insecure/cockroach-values.yaml
+# Beware that the "--wait" option doesn't work with the CockroachDB chart (read more in note below).
+helm install db cockroachdb/cockroachdb --version 11.2.1 --values https://raw.githubusercontent.com/zitadel/zitadel-charts/main/examples/3-cockroach-insecure/cockroach-values.yaml
 
 # Install ZITADEL
 helm repo add zitadel https://charts.zitadel.com
 helm install my-zitadel zitadel/zitadel --values https://raw.githubusercontent.com/zitadel/zitadel-charts/main/examples/3-cockroach-insecure/zitadel-values.yaml
 ```
+
+> [!NOTE]
+> The --wait option doesn't work with the CockroachDB
+> The CockroachDB init job is done by a post-install hook.
+> With --wait, the installation is only done when the Cockroach pods are ready and the init job only starts when the installation is done.
+> This is a deadlock, because the cockroach pods don't become ready without the init job having completed.
 
 When ZITADEL is ready, you can access the GUI via port-forwarding:
 
