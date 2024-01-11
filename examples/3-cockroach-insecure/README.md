@@ -20,10 +20,9 @@ helm install my-zitadel zitadel/zitadel --values https://raw.githubusercontent.c
 ```
 
 > [!NOTE]
-> The --wait option doesn't work with the CockroachDB
-> The CockroachDB init job is done by a post-install hook.
+> The --wait option doesn't work with the CockroachDB chart, because its init job is done by a post-install hook.
 > With --wait, the installation is only done when the Cockroach pods are ready and the init job only starts when the installation is done.
-> This is a deadlock, because the cockroach pods don't become ready without the init job having completed.
+> This is a deadlock, because the CockroachDB pods don't become ready without the CockroachDB init job having completed.
 
 When ZITADEL is ready, you can access the GUI via port-forwarding:
 
