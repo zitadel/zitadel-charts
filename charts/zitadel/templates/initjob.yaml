@@ -38,8 +38,16 @@ spec:
             {{- toYaml .Values.securityContext | nindent 14 }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
+
           args:
             - init
+            {{- with .Values.initJob.command }}
+            {{/* test if command is valid */}}
+            {{- if not (has . (list "database" "grant" "user" "zitadel")) }}
+            {{- fail "You can only set one of the following command: database, grant, user, zitadel" }}
+            {{- end -}}
+            - {{ . }}
+            {{- end }}
             - --config
             - /config/zitadel-config-yaml
             {{- if .Values.zitadel.secretConfig }}
