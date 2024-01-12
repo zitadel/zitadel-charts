@@ -66,6 +66,13 @@ imagePullSecrets: []
 nameOverride: ""
 fullnameOverride: ""
 
+# Annotations to add to the deployment
+annotations: {}
+
+# Annotations to add to the configMap
+configMap:
+  annotations: {}
+
 serviceAccount:
   # Specifies whether a service account should be created
   create: true
