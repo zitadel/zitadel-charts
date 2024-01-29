@@ -72,7 +72,7 @@ image:
 chownImage:
   repository: alpine
   pullPolicy: IfNotPresent
-  tag: "3.11"
+  tag: "3.19"
 
 imagePullSecrets: []
 nameOverride: ""
