@@ -4,7 +4,7 @@
 
 ## A Better Identity and Access Management Solution
 
-ZITADEL combines the best of Auth0 and Keycloak.
+Identity infrastructure, simplified for you.
 It is built for the serverless era.
 
 Learn more about ZITADEL by checking out the [source repository on GitHub](https://github.com/zitadel/zitadel)
