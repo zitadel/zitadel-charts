@@ -17,6 +17,12 @@ zitadel:
   # https://github.com/zitadel/zitadel/blob/main/cmd/defaults.yaml
   secretConfig:
 
+  # Annotations set on secretConfig secret
+  secretConfigAnnotations:
+    helm.sh/hook: pre-install,pre-upgrade
+    helm.sh/hook-delete-policy: before-hook-creation
+    helm.sh/hook-weight: "0"
+
   # Reference the name of a secret that contains ZITADEL configuration.
   configSecretName:
   # The key under which the ZITADEL configuration is located in the secret.
@@ -28,6 +34,12 @@ zitadel:
   # Reference the name of the secret that contains the masterkey. The key should be named "masterkey".
   # Note: Either zitadel.masterkey or zitadel.masterkeySecretName must be set
   masterkeySecretName: ""
+
+  # Annotations set on masterkey secret
+  masterkeyAnnotations:
+    helm.sh/hook: pre-install,pre-upgrade
+    helm.sh/hook-delete-policy: before-hook-creation
+    helm.sh/hook-weight: "0"
 
   # The CA Certificate needed for establishing secure database connections
   dbSslCaCrt: ""
@@ -60,7 +72,7 @@ image:
 chownImage:
   repository: alpine
   pullPolicy: IfNotPresent
-  tag: "3.11"
+  tag: "3.19"
 
 imagePullSecrets: []
 nameOverride: ""
@@ -71,13 +83,19 @@ annotations: {}
 
 # Annotations to add to the configMap
 configMap:
-  annotations: {}
+  annotations:
+    helm.sh/hook: pre-install,pre-upgrade
+    helm.sh/hook-delete-policy: before-hook-creation
+    helm.sh/hook-weight: "0"
 
 serviceAccount:
   # Specifies whether a service account should be created
   create: true
   # Annotations to add to the service account
-  annotations: {}
+  annotations:
+    helm.sh/hook: pre-install,pre-upgrade
+    helm.sh/hook-delete-policy: before-hook-creation
+    helm.sh/hook-weight: "0"
   # The name of the service account to use.
   # If not set and create is true, a name is generated using the fullname template
   name: ""
