@@ -55,6 +55,9 @@ spec:
             - --steps
             - /config/zitadel-config-yaml
             - --masterkeyFromEnv
+            {{- if .Values.setupJob.additionalArgs }}
+            {{- toYaml .Values.setupJob.additionalArgs | nindent 12 }}
+            {{- end }}
           env:
             - name: POD_IP
               valueFrom:
