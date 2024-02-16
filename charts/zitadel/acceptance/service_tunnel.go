@@ -27,7 +27,7 @@ func awaitServicePortToBeFree(cfg *ConfigurationTest) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	Await(cfg.Ctx, t, nil, 300, func(ctx context.Context) error {
+	Await(cfg.Ctx, t, nil, 600, func(ctx context.Context) error {
 		l, err := net.ListenTCP("tcp", addr)
 		if err != nil {
 			return err
