@@ -26,6 +26,9 @@ spec:
       labels:
         app.kubernetes.io/component: start
         {{- include "zitadel.selectorLabels" . | nindent 8 }}
+        {{- with .Values.podAdditionalLabels }}
+          {{- toYaml . | nindent 8 }}
+        {{- end }}
     spec:
       {{- with .Values.imagePullSecrets }}
       imagePullSecrets:
