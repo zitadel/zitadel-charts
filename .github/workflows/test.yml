@@ -104,6 +104,11 @@ jobs:
         node_image: 'kindest/node:${{ matrix.k8s.kindest-image-tag }}'
         version: 'v0.20.0'
 
+    - id: 'setup-go'
+      uses: actions/setup-go@v5
+      with:
+        go-version: '1.21.4'
+
     - id: 'test'
       name: Run Go Tests
       run: 'go test -p 1 ./...'

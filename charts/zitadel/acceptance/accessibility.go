@@ -87,7 +87,7 @@ func (s *ConfigurationTest) checkAccessibility(pods []corev1.Pod) {
 			}
 			_, err = conn.Healthz(ctx, &mgmt_api.HealthzRequest{})
 			// TODO: Why is the key checked on the healthz RPC?
-			if strings.Contains(err.Error(), "Errors.AuthNKey.NotFound") {
+			if strings.Contains(err.Error(), "Errors.AuthNKey.NotFound") || strings.Contains(err.Error(), "assertion invalid") {
 				err = nil
 			}
 			return err

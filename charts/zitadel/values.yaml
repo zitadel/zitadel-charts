@@ -177,6 +177,8 @@ setupJob:
   activeDeadlineSeconds: 300
   extraContainers: []
   podAnnotations: {}
+  additionalArgs:
+    - "--init-projections=true"
   machinekeyWriter:
     image:
       repository: bitnami/kubectl
