@@ -3,11 +3,11 @@ updates:
   - package-ecosystem: "gomod"
     directory: "/"
     commit-message:
-      prefix: "chore"
+      prefix: "test"
     schedule:
       interval: "weekly"
     groups:
-      example:
+      testsuite:
         patterns:
         - "*"
     reviewers:
