@@ -79,11 +79,11 @@ jobs:
 
     - name: Get Changed Test Relevant Files
       id: 'list-changed-test'
-        uses: tj-actions/changed-files@v42
-        with:
-          files: |
-            go.{sum,mod}
-            charts/zitadel/acceptance/**
+      uses: tj-actions/changed-files@v42
+      with:
+        files: |
+          go.{sum,mod}
+          charts/zitadel/acceptance/**
 
     - id: 'add-cockroachdb-repo'
       name: Add The CockroachDB Helm Repo
