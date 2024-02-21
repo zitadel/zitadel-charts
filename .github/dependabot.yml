@@ -1,0 +1,15 @@
+version: 2
+updates:
+  - package-ecosystem: "gomod"
+    directory: "/"
+    commit-message:
+      prefix: "chore"
+    schedule:
+      interval: "weekly"
+    groups:
+      example:
+        patterns:
+        - "*"
+    reviewers:
+      - stebenz
+      - eliobischof
