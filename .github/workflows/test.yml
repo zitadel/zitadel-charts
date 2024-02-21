@@ -82,7 +82,8 @@ jobs:
       uses: tj-actions/changed-files@v42
       with:
         files: |
-          go.{sum,mod}
+          go.mod
+          go.sum
           charts/zitadel/acceptance/**
 
     - id: 'add-cockroachdb-repo'
