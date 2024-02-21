@@ -77,20 +77,29 @@ jobs:
           echo "changed=true" >> $GITHUB_OUTPUT
         fi
 
+    - name: Get Changed Test Relevant Files
+      id: 'list-changed-test'
+      uses: tj-actions/changed-files@v42
+      with:
+        files: |
+          go.mod
+          go.sum
+          charts/zitadel/acceptance/**
+
     - id: 'add-cockroachdb-repo'
       name: Add The CockroachDB Helm Repo
       run: 'helm repo add cockroachdb https://charts.cockroachdb.com/'
-      if: steps.list-changed.outputs.changed == 'true'
+      if: steps.list-changed.outputs.changed == 'true' || steps.list-changed-test.outputs.any_changed == 'true'
 
     - id: 'lint'
       name: Lint The Chart
       run: 'ct lint --target-branch ${{ github.event.repository.default_branch }}'
-      if: steps.list-changed.outputs.changed == 'true'
+      if: steps.list-changed.outputs.changed == 'true' || steps.list-changed-test.outputs.any_changed == 'true'
 
     - id: 'create-kind'
       name: Create Kubernetes Cluster with KinD
       uses: 'helm/kind-action@v1.8.0'
-      if: steps.list-changed.outputs.changed == 'true'
+      if: steps.list-changed.outputs.changed == 'true' || steps.list-changed-test.outputs.any_changed == 'true'
       with:
         node_image: 'kindest/node:${{ matrix.k8s.kindest-image-tag }}'
         version: 'v0.20.0'
@@ -103,7 +112,7 @@ jobs:
     - id: 'test'
       name: Run Go Tests
       run: 'go test -p 1 ./...'
-      if: steps.list-changed.outputs.changed == 'true'
+      if: steps.list-changed.outputs.changed == 'true' || steps.list-changed-test.outputs.any_changed == 'true'
 
     - id: 'zitadel-test-namespaces'
       name: Grep Created Namespaces
