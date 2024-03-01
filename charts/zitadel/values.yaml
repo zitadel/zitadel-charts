@@ -126,6 +126,7 @@ service:
   port: 8080
   protocol: http2
   annotations: {}
+  scheme: HTTP
 
 ingress:
   enabled: false
