@@ -1,0 +1,15 @@
+version: 2
+updates:
+  - package-ecosystem: "gomod"
+    directory: "/"
+    commit-message:
+      prefix: "test"
+    schedule:
+      interval: "weekly"
+    groups:
+      testsuite:
+        patterns:
+        - "*"
+    reviewers:
+      - stebenz
+      - eliobischof

@@ -9,7 +9,7 @@ Therefore, you create a Kubernetes job that creates a client certificate and key
 ```bash
 # Install Cockroach
 helm repo add cockroachdb https://charts.cockroachdb.com/
-helm install --wait db cockroachdb/cockroachdb --version 11.1.5 --values https://raw.githubusercontent.com/zitadel/zitadel-charts/main/examples/4-cockroach-secure/cockroach-values.yaml
+helm install db cockroachdb/cockroachdb --version 11.2.1 --values https://raw.githubusercontent.com/zitadel/zitadel-charts/main/examples/4-cockroach-secure/cockroach-values.yaml
 
 # Generate a TLS certificate for the zitadel DB user
 kubectl apply -f https://raw.githubusercontent.com/zitadel/zitadel-charts/main/examples/4-cockroach-secure/zitadel-cert-job.yaml
@@ -26,7 +26,7 @@ When ZITADEL is ready, you can access the GUI via port-forwarding:
 kubectl port-forward svc/my-zitadel 8080
 ```
 
-Now, open http://localhost:8080 in your browser and log in with the following credentials:
+Now, open http://127.0.0.1.sslip.io:8080 in your browser and log in with the following credentials:
 
-**Username**: zitadel-admin@zitadel.localhost
+**Username**: zitadel-admin@zitadel.127.0.0.1.sslip.io
 **Password**: Password1!

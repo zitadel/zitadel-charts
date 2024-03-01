@@ -1,5 +1,5 @@
 name: Bug Report
-description: "Create a bug report to help us improve ZITADEL Charts."
+description: "Create a bug report to help us improve ZITADEL."
 title: "[Bug]: "
 labels: ["bug"]
 body:
@@ -22,7 +22,8 @@ body:
   attributes:
     label: Version
     description: Which version of the Chart are you using.
-- id: appversion
+- type: input
+  id: appversion
   attributes:
     label: App version
     description: Which version of ZITADEL are you using.
