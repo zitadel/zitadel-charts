@@ -11,7 +11,7 @@ kubectl wait --for=condition=complete job/create-certs
 
 # Install Postgres
 helm repo add bitnami https://charts.bitnami.com/bitnami
-helm install --wait postgres bitnami/postgresql --version 12.10.0 --values https://raw.githubusercontent.com/zitadel/zitadel-charts/main/examples/2-postgres-secure/postgres-values.yaml
+helm install --wait db bitnami/postgresql --version 12.10.0 --values https://raw.githubusercontent.com/zitadel/zitadel-charts/main/examples/2-postgres-secure/postgres-values.yaml
 
 # Install ZITADEL
 helm repo add zitadel https://charts.zitadel.com
@@ -24,7 +24,7 @@ When ZITADEL is ready, you can access the GUI via port-forwarding:
 kubectl port-forward svc/my-zitadel 8080
 ```
 
-Now, open http://localhost:8080 in your browser and log in with the following credentials:
+Now, open http://127.0.0.1.sslip.io:8080 in your browser and log in with the following credentials:
 
-**Username**: zitadel-admin@zitadel.localhost  
+**Username**: zitadel-admin@zitadel.127.0.0.1.sslip.io
 **Password**: Password1!

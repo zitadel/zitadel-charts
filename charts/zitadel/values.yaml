@@ -4,6 +4,7 @@ zitadel:
   # See all defaults here:
   # https://github.com/zitadel/zitadel/blob/main/cmd/defaults.yaml
   configmapConfig:
+    ExternalSecure: true
     Machine:
       Identification:
         Hostname:
@@ -15,6 +16,12 @@ zitadel:
   # See all defaults here:
   # https://github.com/zitadel/zitadel/blob/main/cmd/defaults.yaml
   secretConfig:
+
+  # Annotations set on secretConfig secret
+  secretConfigAnnotations:
+    helm.sh/hook: pre-install,pre-upgrade
+    helm.sh/hook-delete-policy: before-hook-creation
+    helm.sh/hook-weight: "0"
 
   # Reference the name of a secret that contains ZITADEL configuration.
   configSecretName:
@@ -28,6 +35,12 @@ zitadel:
   # Note: Either zitadel.masterkey or zitadel.masterkeySecretName must be set
   masterkeySecretName: ""
 
+  # Annotations set on masterkey secret
+  masterkeyAnnotations:
+    helm.sh/hook: pre-install,pre-upgrade
+    helm.sh/hook-delete-policy: before-hook-creation
+    helm.sh/hook-weight: "0"
+
   # The CA Certificate needed for establishing secure database connections
   dbSslCaCrt: ""
 
@@ -40,6 +53,14 @@ zitadel:
   # The db users secret containing the client certificate and key at tls.crt and tls.key needed for establishing secure database connections
   dbSslUserCrtSecret: ""
 
+  # Generate a self-signed certificate using an init container
+  # This will also mount the generated files to /etc/tls/ so that you can reference them in the pod.
+  # E.G. KeyPath: /etc/tls/tls.key CertPath: /etc/tls/tls.crt
+  # By default, the SAN DNS names include, localhost, the POD IP address and the POD name. You may include one more by using additionalDnsName like "my.zitadel.fqdn".
+  selfSignedCert:
+    enabled: false
+    additionalDnsName:
+
 replicaCount: 3
 
 image:
@@ -51,22 +72,37 @@ image:
 chownImage:
   repository: alpine
   pullPolicy: IfNotPresent
-  tag: "3.11"
+  tag: "3.19"
 
 imagePullSecrets: []
 nameOverride: ""
 fullnameOverride: ""
 
+# Annotations to add to the deployment
+annotations: {}
+
+# Annotations to add to the configMap
+configMap:
+  annotations:
+    helm.sh/hook: pre-install,pre-upgrade
+    helm.sh/hook-delete-policy: before-hook-creation
+    helm.sh/hook-weight: "0"
+
 serviceAccount:
   # Specifies whether a service account should be created
   create: true
   # Annotations to add to the service account
-  annotations: {}
+  annotations:
+    helm.sh/hook: pre-install,pre-upgrade
+    helm.sh/hook-delete-policy: before-hook-creation
+    helm.sh/hook-weight: "0"
   # The name of the service account to use.
   # If not set and create is true, a name is generated using the fullname template
   name: ""
 
 podAnnotations: {}
+
+podAdditionalLabels: {}
 
 podSecurityContext:
   runAsNonRoot: true
@@ -110,6 +146,8 @@ tolerations: []
 
 affinity: {}
 
+topologySpreadConstraints: []
+
 initJob:
   # Once ZITADEL is installed, the initJob can be disabled.
   enabled: true
@@ -118,9 +156,17 @@ initJob:
     helm.sh/hook-delete-policy: before-hook-creation
     helm.sh/hook-weight: "1"
   resources: {}
+  backoffLimit: 5
   activeDeadlineSeconds: 300
   extraContainers: []
   podAnnotations: {}
+  # Available init commands :
+  # "": initialize ZITADEL instance (without skip anything)
+  # database: initialize only the database
+  # grant: set ALL grant to user
+  # user: initialize only the database user
+  # zitadel: initialize ZITADEL internals (skip "create user" and "create database")
+  command: ""
 
 setupJob:
   annotations:
@@ -131,9 +177,13 @@ setupJob:
   activeDeadlineSeconds: 300
   extraContainers: []
   podAnnotations: {}
-  machinekeyWriterImage:
-    repository: bitnami/kubectl
-    tag: ""
+  additionalArgs:
+    - "--init-projections=true"
+  machinekeyWriter:
+    image:
+      repository: bitnami/kubectl
+      tag: ""
+    resources: {}
 
 readinessProbe:
   enabled: true

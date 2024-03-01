@@ -15,9 +15,8 @@ func (s *ConfigurationTest) TestZITADELInstallation() {
 		KubectlOptions: s.KubeOptions,
 		ValuesFiles:    s.zitadelValues,
 		SetValues: map[string]string{
-			"replicaCount":    "1",
-			"pdb.enabled":     "true",
-			"ingress.enabled": "true",
+			"replicaCount": "1",
+			"pdb.enabled":  "true",
 		},
 	}, s.zitadelChartPath, s.zitadelRelease)
 	k8s.WaitUntilJobSucceed(s.T(), s.KubeOptions, "zitadel-test-init", 900, time.Second)

@@ -2,6 +2,7 @@ package acceptance
 
 import (
 	"context"
+	"crypto/tls"
 	"fmt"
 	"io"
 	"net/http"
@@ -23,7 +24,8 @@ func httpCall(ctx context.Context, method string, url string, beforeSend func(re
 	if beforeSend != nil {
 		beforeSend(req)
 	}
-	resp, err := http.DefaultClient.Do(req)
+	httpClient := http.Client{Transport: &http.Transport{TLSClientConfig: &tls.Config{InsecureSkipVerify: true}}}
+	resp, err := httpClient.Do(req)
 	if err != nil {
 		return nil, nil, fmt.Errorf("sending request %+v failed: %s", *req, err)
 	}

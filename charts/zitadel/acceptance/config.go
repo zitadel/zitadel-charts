@@ -67,6 +67,8 @@ func Configure(
 	dbChart databaseChart,
 	zitadelValues []string,
 	externalDomain string,
+	externalPort uint16,
+	externalSecure bool,
 	before, afterDB, afterZITADEL hookFunc,
 ) *ConfigurationTest {
 	chartPath, err := filepath.Abs("..")
@@ -77,9 +79,9 @@ func Configure(
 	if err != nil {
 		t.Fatal(err)
 	}
-	domain := "localhost"
-	if externalDomain != "" {
-		domain = externalDomain
+	externalScheme := "http"
+	if externalSecure {
+		externalScheme = "https"
 	}
 	cfg := &ConfigurationTest{
 		Ctx:              context.Background(),
@@ -95,9 +97,9 @@ func Configure(
 		beforeFunc:       before,
 		afterDBFunc:      afterDB,
 		afterZITADELFunc: afterZITADEL,
-		Domain:           domain,
-		Port:             8080,
-		Scheme:           "http",
+		Domain:           externalDomain,
+		Port:             externalPort,
+		Scheme:           externalScheme,
 	}
 	cfg.SetT(t)
 	return cfg

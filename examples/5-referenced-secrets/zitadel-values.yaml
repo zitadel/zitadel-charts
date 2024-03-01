@@ -2,7 +2,7 @@ zitadel:
   masterkeySecretName: existing-zitadel-masterkey
   configmapConfig:
     ExternalSecure: false
-    ExternalDomain: localhost
+    ExternalDomain: 127.0.0.1.sslip.io
     TLS:
       Enabled: false
     Database:

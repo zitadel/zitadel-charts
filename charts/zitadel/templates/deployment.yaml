@@ -5,6 +5,10 @@ metadata:
   labels:
     {{- include "zitadel.labels" . | nindent 4 }}
     app.kubernetes.io/component: start
+  {{- with .Values.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
 spec:
   replicas: {{ .Values.replicaCount }}
   selector:
@@ -22,6 +26,9 @@ spec:
       labels:
         app.kubernetes.io/component: start
         {{- include "zitadel.selectorLabels" . | nindent 8 }}
+        {{- with .Values.podAdditionalLabels }}
+          {{- toYaml . | nindent 8 }}
+        {{- end }}
     spec:
       {{- with .Values.imagePullSecrets }}
       imagePullSecrets:
@@ -65,13 +72,19 @@ spec:
             {{- if (or .Values.zitadel.dbSslCaCrt .Values.zitadel.dbSslCaCrtSecret) }}
             - name: ZITADEL_DATABASE_{{ $dbEnv }}_USER_SSL_ROOTCERT
               value: /.secrets/db-ssl-ca-crt/ca.crt
-            {{- end}}
+            {{- end }}
             {{- if .Values.zitadel.dbSslUserCrtSecret }}
             - name: ZITADEL_DATABASE_{{ $dbEnv }}_USER_SSL_CERT
               value: /.secrets/db-ssl-user-crt/tls.crt
             - name: ZITADEL_DATABASE_{{ $dbEnv }}_USER_SSL_KEY
               value: /.secrets/db-ssl-user-crt/tls.key
-            {{- end}}
+            {{- end }}
+            {{- if .Values.zitadel.selfSignedCert.enabled }}
+            - name: ZITADEL_TLS_CERTPATH
+              value: /etc/tls/tls.crt
+            - name: ZITADEL_TLS_KEYPATH
+              value: /etc/tls/tls.key
+            {{- end }}
             {{- with .Values.env }}
               {{- toYaml . | nindent 12 }}
             {{- end }}
@@ -89,6 +102,9 @@ spec:
                 - name: Host
                   value: {{ .Values.zitadel.configmapConfig.ExternalDomain }}
               {{- end }}
+              {{- if include "deepCheck" (dict "root" .Values "path" (splitList "." "zitadel.configmapConfig.TLS.Enabled")) }}
+              scheme: HTTPS
+              {{- end }}
             initialDelaySeconds: {{ .Values.livenessProbe.initialDelaySeconds }}
             periodSeconds: {{ .Values.livenessProbe.periodSeconds }}
             failureThreshold: {{ .Values.livenessProbe.failureThreshold }}
@@ -102,6 +118,9 @@ spec:
               httpHeaders:
                 - name: Host
                   value: {{ .Values.zitadel.configmapConfig.ExternalDomain }}
+              {{- end }}
+              {{- if include "deepCheck" (dict "root" .Values "path" (splitList "." "zitadel.configmapConfig.TLS.Enabled")) }}
+              scheme: HTTPS
               {{- end }}
             initialDelaySeconds: {{ .Values.readinessProbe.initialDelaySeconds }}
             periodSeconds: {{ .Values.readinessProbe.periodSeconds }}
@@ -117,6 +136,9 @@ spec:
                 - name: Host
                   value: {{ .Values.zitadel.configmapConfig.ExternalDomain }}
               {{- end }}
+              {{- if include "deepCheck" (dict "root" .Values "path" (splitList "." "zitadel.configmapConfig.TLS.Enabled")) }}
+              scheme: HTTPS
+              {{- end }}
             periodSeconds: {{ .Values.startupProbe.periodSeconds }}
             failureThreshold: {{ .Values.startupProbe.failureThreshold }}
           {{- end }}
@@ -125,6 +147,10 @@ spec:
             mountPath: /config
           - name: chowned-secrets
             mountPath: /.secrets
+          {{- if .Values.zitadel.selfSignedCert.enabled }}
+          - name: tls
+            mountPath: /etc/tls
+          {{- end }}
           resources:
             {{- toYaml .Values.resources | nindent 14 }}
       initContainers:
@@ -163,6 +189,31 @@ spec:
           securityContext:
             runAsNonRoot: false
             runAsUser: 0
+        {{- if .Values.zitadel.selfSignedCert.enabled }}
+        - name: generate-self-signed-cert
+          image: alpine/openssl
+          env:
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: POD_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
+          volumeMounts:
+            - name: tls
+              mountPath: "/etc/tls"
+          command:
+            - "/bin/ash"
+            - "-c"
+            - "openssl req -nodes -x509 -sha256 -newkey rsa:4096 -keyout /etc/tls/tls.key -out /etc/tls/tls.crt -days 3560 -subj \"/CN=ZITADEL Chart Demo\" -addext \"subjectAltName = DNS:localhost,DNS:${POD_IP},DNS:${POD_NAME}{{- if .Values.zitadel.configmapConfig.ExternalDomain -}},DNS:{{- .Values.zitadel.configmapConfig.ExternalDomain -}}{{- end -}}{{- if .Values.zitadel.selfSignedCert.additionalDnsName -}},DNS:{{- .Values.zitadel.selfSignedCert.additionalDnsName -}}{{- end -}}\""
+          securityContext:
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            privileged: false
+            runAsUser: 1000
+        {{- end }}
       volumes:
       - name: zitadel-config-yaml
         configMap:
@@ -194,6 +245,10 @@ spec:
       {{- end }}
       - name: chowned-secrets
         emptyDir: {}
+      {{- if .Values.zitadel.selfSignedCert.enabled }}
+      - name: tls
+        emptyDir: {}
+      {{- end }}
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
@@ -204,5 +259,9 @@ spec:
       {{- end }}
       {{- with .Values.tolerations }}
       tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.topologySpreadConstraints }}
+      topologySpreadConstraints:
         {{- toYaml . | nindent 8 }}
       {{- end }}
