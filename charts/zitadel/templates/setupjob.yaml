@@ -42,19 +42,23 @@ spec:
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           args:
             - setup
+            - --masterkeyFromEnv
             - --config
+            - /config/zitadel-config-yaml
+            - --steps
             - /config/zitadel-config-yaml
             {{- if .Values.zitadel.secretConfig }}
             - --config
+            - /.secrets/zitadel-secrets-yaml/zitadel-secrets-yaml
+            - --steps
             - /.secrets/zitadel-secrets-yaml/zitadel-secrets-yaml
             {{- end }}
             {{- if and .Values.zitadel.configSecretName .Values.zitadel.configSecretKey }}
             - --config
             - /.secrets/zitadel-secret-config-yaml/{{ .Values.zitadel.configSecretKey }}
-            {{- end }}
             - --steps
-            - /config/zitadel-config-yaml
-            - --masterkeyFromEnv
+            - /.secrets/zitadel-secret-config-yaml/{{ .Values.zitadel.configSecretKey }}
+            {{- end }}
             {{- if .Values.setupJob.additionalArgs }}
             {{- toYaml .Values.setupJob.additionalArgs | nindent 12 }}
             {{- end }}
