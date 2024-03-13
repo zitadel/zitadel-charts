@@ -61,6 +61,16 @@ zitadel:
     enabled: false
     additionalDnsName:
 
+  # Enabling this will create a debug pod that can be used to inspect the ZITADEL configuration and run zitadel commands using the zitadel binary.
+  # This is useful for debugging and troubleshooting.
+  # After the debug pod is created, you can open a shell within the pod.
+  # See more instructions by printing the pods logs using kubectl logs [pod name].
+  debug:
+    enabled: false
+    annotations:
+      helm.sh/hook: pre-install,pre-upgrade
+      helm.sh/hook-weight: "1"
+
 replicaCount: 3
 
 image:

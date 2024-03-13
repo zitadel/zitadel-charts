@@ -49,6 +49,14 @@ app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end }}
 
 {{/*
+Debug Selector labels
+*/}}
+{{- define "zitadel.debugSelectorLabels" -}}
+app.kubernetes.io/name: {{ include "zitadel.name" . }}
+app.kubernetes.io/instance: {{ .Release.Name }}-debug
+{{- end }}
+
+{{/*
 Create the name of the service account to use
 */}}
 {{- define "zitadel.serviceAccountName" -}}

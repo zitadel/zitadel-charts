@@ -67,6 +67,27 @@ for k8sresourcetype in job configmap secret rolebinding role serviceaccount; do
 done
 ```
 
+## Troubleshooting
+
+### Debug Pod
+
+For troubleshooting, you can deploy a debug pod by setting the `zitadel.debug.enabled` property to `true`.
+You can then use this pod to inspect the ZITADEL configuration and run zitadel commands using the zitadel binary.
+For more information, print the debug pods logs using something like the following command:
+
+```bash 
+kubectl logs rs/my-zitadel-debug
+``` 
+
+### migration already started, will check again in 5 seconds
+
+If you see this error message in the logs of the setup job, you need to reset the last migration step once you resolved the issue.
+To do so, start a [debug pod](#debug-pod) and run something like the following command:
+
+```bash
+kubectl exec -it my-zitadel-debug -- zitadel setup cleanup --config /config/zitadel-config-yaml
+```
+
 ## Contributing
 
 Lint the chart:
