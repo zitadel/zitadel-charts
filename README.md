@@ -4,8 +4,7 @@
 
 ## A Better Identity and Access Management Solution
 
-ZITADEL combines the best of Auth0 and Keycloak.
-It is built for the serverless era.
+Identity infrastructure, simplified for you.
 
 Learn more about ZITADEL by checking out the [source repository on GitHub](https://github.com/zitadel/zitadel)
 
@@ -66,6 +65,27 @@ helm uninstall my-zitadel
 for k8sresourcetype in job configmap secret rolebinding role serviceaccount; do
     kubectl delete $k8sresourcetype --selector app.kubernetes.io/name=zitadel,app.kubernetes.io/managed-by=Helm
 done
+```
+
+## Troubleshooting
+
+### Debug Pod
+
+For troubleshooting, you can deploy a debug pod by setting the `zitadel.debug.enabled` property to `true`.
+You can then use this pod to inspect the ZITADEL configuration and run zitadel commands using the zitadel binary.
+For more information, print the debug pods logs using something like the following command:
+
+```bash 
+kubectl logs rs/my-zitadel-debug
+``` 
+
+### migration already started, will check again in 5 seconds
+
+If you see this error message in the logs of the setup job, you need to reset the last migration step once you resolved the issue.
+To do so, start a [debug pod](#debug-pod) and run something like the following command:
+
+```bash
+kubectl exec -it my-zitadel-debug -- zitadel setup cleanup --config /config/zitadel-config-yaml
 ```
 
 ## Contributing
