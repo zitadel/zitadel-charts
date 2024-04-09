@@ -171,6 +171,7 @@ initJob:
   activeDeadlineSeconds: 300
   extraContainers: []
   podAnnotations: {}
+  podAdditionalLabels: {}
   # Available init commands :
   # "": initialize ZITADEL instance (without skip anything)
   # database: initialize only the database
@@ -188,6 +189,7 @@ setupJob:
   activeDeadlineSeconds: 300
   extraContainers: []
   podAnnotations: {}
+  podAdditionalLabels: {}
   additionalArgs:
     - "--init-projections=true"
   machinekeyWriter:

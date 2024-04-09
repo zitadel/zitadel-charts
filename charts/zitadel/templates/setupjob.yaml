@@ -20,6 +20,9 @@ spec:
       labels:
         {{- include "zitadel.selectorLabels" . | nindent 8 }}
         app.kubernetes.io/component: setup
+        {{- with .Values.setupJob.podAdditionalLabels }}
+          {{- toYaml . | nindent 8 }}
+        {{- end }}
       {{- with .Values.setupJob.podAnnotations }}
       annotations:
         {{- toYaml . | nindent 8 }}
