@@ -1,0 +1,100 @@
+{{- if .Values.networkPolicies.enabled }}
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ include "zitadel.fullname" . }}-main
+  labels:
+    {{- include "zitadel.labels" . | nindent 4 }}  
+  {{- with .Values.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/component: start
+      {{- include "zitadel.selectorLabels" . | nindent 6 }} 
+  policyTypes:
+    - Egress
+    - Ingress
+  egress:
+    - {}
+  ingress:
+    - ports:
+        - port: 80
+        - port: 8080  
+        - port: 443  
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ include "zitadel.fullname" . }}-setup
+  labels:
+    {{- include "zitadel.labels" . | nindent 4 }}  
+  annotations:
+    helm.sh/hook: pre-install,pre-upgrade
+    helm.sh/hook-delete-policy: before-hook-creation
+    helm.sh/hook-weight: "-5"
+spec:
+  podSelector:
+    matchLabels:
+      {{- include "zitadel.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: setup
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    - {}
+  egress:
+    - {}
+  {{- if .Values.initJob.enabled }}
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ include "zitadel.fullname" . }}-init
+  labels:
+    {{- include "zitadel.labels" . | nindent 4 }}  
+  annotations:
+    helm.sh/hook: pre-install,pre-upgrade
+    helm.sh/hook-delete-policy: before-hook-creation
+    helm.sh/hook-weight: "-5"
+spec:
+  podSelector:
+    matchLabels:
+      {{- include "zitadel.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: init
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    - {}
+  egress:
+    - {}
+  {{ end }}
+
+  {{- if .Values.zitadel.debug.enabled }}
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ include "zitadel.fullname" . }}-debug
+  labels:
+    {{- include "zitadel.labels" . | nindent 4 }}  
+  annotations:
+    helm.sh/hook: pre-install,pre-upgrade
+    helm.sh/hook-delete-policy: before-hook-creation
+    helm.sh/hook-weight: "-5"
+spec:
+  podSelector:
+    matchLabels:
+      {{- include "zitadel.debugSelectorLabels" . | nindent 6 }}
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    - {}
+  egress:
+    - {}
+  {{ end }}
+{{- end }}
