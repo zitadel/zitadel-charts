@@ -1,8 +1,6 @@
 package acceptance
 
-import (
-	"github.com/gruntwork-io/terratest/modules/k8s"
-)
+import "github.com/gruntwork-io/terratest/modules/k8s"
 
 func (s *ConfigurationTest) TearDownTest() {
 	if !s.T().Failed() {
