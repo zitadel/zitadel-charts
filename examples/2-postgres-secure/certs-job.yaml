@@ -33,16 +33,11 @@ spec:
     spec:
       restartPolicy: OnFailure
       serviceAccountName: certs-creator
-      containers:
+      initContainers:
       - command:
-          - /usr/local/bin/bash
-          - -ecx
+          - /bin/ash
+          - -cx
           - |
-            apk add openssl curl
-            
-            export APISERVER=https://kubernetes.default.svc SERVICEACCOUNT=/var/run/secrets/kubernetes.io/serviceaccount
-            export NAMESPACE=$(cat ${SERVICEACCOUNT}/namespace) TOKEN=$(cat ${SERVICEACCOUNT}/token) CACERT=${SERVICEACCOUNT}/ca.crt
-
             function createKey() {
               USER=$1
               openssl genrsa -out ${USER}.key 2048
@@ -96,17 +91,10 @@ spec:
 
             function createCertSecret {
               USER=$1
-              echo "CACERT value: ${CACERT}"
-              echo "TOKEN value: ${TOKEN}"
-              echo "APISERVER value: ${APISERVER}"
-              echo "NAMESPACE value: ${NAMESPACE}"
-              curl \
-              --cacert ${CACERT} \
-              --header "Authorization: Bearer ${TOKEN}" \
-              --header "Content-Type: application/json" \
-              -X POST ${APISERVER}/api/v1/namespaces/${NAMESPACE}/secrets \
-              --data "$(echo -n $(secretJson ${USER}) | tr -d '\n')"
+              secretJson ${USER} >> ${USER}-cert.json
             }
+
+            cd /secret
 
             # Create a CA key and cert for signing other certs
             createKey ca
@@ -121,6 +109,45 @@ spec:
             createSigningRequest zitadel
             signCertificate zitadel.csr zitadel.crt ca.crt ca.key
             createCertSecret zitadel
-        image: bash:5.2.15
+        image: alpine/openssl
         imagePullPolicy: IfNotPresent
         name: create-certs
+        volumeMounts:
+          - mountPath: /secret
+            name: secret
+      containers:
+      - image: alpine/curl
+        name: apply-certs
+        imagePullPolicy: IfNotPresent
+        command:
+          - /bin/ash
+          - -cx
+          - |
+            export APISERVER=https://kubernetes.default.svc SERVICEACCOUNT=/var/run/secrets/kubernetes.io/serviceaccount
+            export NAMESPACE=$(cat ${SERVICEACCOUNT}/namespace) TOKEN=$(cat ${SERVICEACCOUNT}/token) CACERT=${SERVICEACCOUNT}/ca.crt
+
+            echo "CACERT value: ${CACERT}"
+            echo "TOKEN value: ${TOKEN}"
+            echo "APISERVER value: ${APISERVER}"
+            echo "NAMESPACE value: ${NAMESPACE}"
+
+            function uploadSecret {
+              USER=$1
+              curl \
+                --cacert ${CACERT} \
+                --header "Authorization: Bearer ${TOKEN}" \
+                --header "Content-Type: application/json" \
+                -X POST ${APISERVER}/api/v1/namespaces/${NAMESPACE}/secrets \
+                --data "$(tr -d '\n' < /secret/${USER}-cert.json)" \
+                || echo "error uploading ${USER} secret: $?"
+            }
+        
+            uploadSecret postgres
+            uploadSecret zitadel
+        volumeMounts:
+          - mountPath: /secret
+            name: secret
+      volumes:
+        - name: secret
+          emptyDir:
+            medium: Memory
