@@ -36,7 +36,7 @@ spec:
       initContainers:
       - command:
           - /bin/ash
-          - -cx
+          - -c
           - |
             function createKey() {
               USER=$1
@@ -121,15 +121,10 @@ spec:
         imagePullPolicy: IfNotPresent
         command:
           - /bin/ash
-          - -cx
+          - -c
           - |
             export APISERVER=https://kubernetes.default.svc SERVICEACCOUNT=/var/run/secrets/kubernetes.io/serviceaccount
             export NAMESPACE=$(cat ${SERVICEACCOUNT}/namespace) TOKEN=$(cat ${SERVICEACCOUNT}/token) CACERT=${SERVICEACCOUNT}/ca.crt
-
-            echo "CACERT value: ${CACERT}"
-            echo "TOKEN value: ${TOKEN}"
-            echo "APISERVER value: ${APISERVER}"
-            echo "NAMESPACE value: ${NAMESPACE}"
 
             function uploadSecret {
               USER=$1
@@ -139,7 +134,7 @@ spec:
                 --header "Content-Type: application/json" \
                 -X POST ${APISERVER}/api/v1/namespaces/${NAMESPACE}/secrets \
                 --data "$(tr -d '\n' < /secret/${USER}-cert.json)" \
-                || echo "error uploading ${USER} secret: $?"
+                > /dev/null || echo "error uploading ${USER} secret: $?"
             }
         
             uploadSecret postgres
