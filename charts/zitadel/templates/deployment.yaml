@@ -154,8 +154,9 @@ spec:
           volumeMounts:
           - name: zitadel-config-yaml
             mountPath: /config
-          - name: chowned-secrets
+          - name: copied-secrets
             mountPath: /.secrets
+            readOnly: true
           {{- if .Values.zitadel.selfSignedCert.enabled }}
           - name: tls
             mountPath: /etc/tls
@@ -165,6 +166,7 @@ spec:
           {{- end }}
           resources:
             {{- toYaml .Values.resources | nindent 14 }}
+      {{- if or .Values.zitadel.secretConfig .Values.zitadel.dbSslCaCrt .Values.zitadel.dbSslCaCrtSecret .Values.zitadel.dbSslUserCrtSecret .Values.zitadel.configSecretName }}
       initContainers:
         - args:
           - "{{ include "zitadel.joincpcommands" (dict "commands" (list
@@ -173,16 +175,16 @@ spec:
               (include "zitadel.makecpcommand" (dict "value" (or .Values.zitadel.dbSslCaCrt .Values.zitadel.dbSslCaCrtSecret) "path" "/db-ssl-ca-crt/" ))
               (include "zitadel.makecpcommand" (dict "value" .Values.zitadel.dbSslUserCrtSecret "path" "/db-ssl-user-crt/" ))
               (include "zitadel.makecpcommand" (dict "value" .Values.zitadel.serverSslCrtSecret "path" "/server-ssl-crt/" ))
-              )) }} chown -R 1000:1000 /chowned-secrets/ && find /chowned-secrets/ -type f -exec chmod 400 -- {} + "
+              )) }} find /copied-secrets/ -type f -exec chmod 400 -- {} + "
           command:
           - sh
           - -c
-          image: "{{ .Values.chownImage.repository }}:{{ .Values.chownImage.tag }}"
-          imagePullPolicy: {{ .Values.chownImage.pullPolicy }}
-          name: chown
+          image: "{{ .Values.copySecretsImage.repository }}:{{ .Values.copySecretsImage.tag }}"
+          imagePullPolicy: {{ .Values.copySecretsImage.pullPolicy }}
+          name: copy-secrets
           volumeMounts:
-          - name: chowned-secrets
-            mountPath: /chowned-secrets
+          - name: copied-secrets
+            mountPath: /copied-secrets
           {{- if .Values.zitadel.secretConfig }}
           - name: zitadel-secrets-yaml
             mountPath: /zitadel-secrets-yaml
@@ -203,9 +205,6 @@ spec:
           - name: server-ssl-crt
             mountPath: /server-ssl-crt
           {{- end }}
-          securityContext:
-            runAsNonRoot: false
-            runAsUser: 0
         {{- if .Values.zitadel.selfSignedCert.enabled }}
         - name: generate-self-signed-cert
           image: alpine/openssl
@@ -229,8 +228,8 @@ spec:
             readOnlyRootFilesystem: true
             runAsNonRoot: true
             privileged: false
-            runAsUser: 1000
         {{- end }}
+      {{- end }}
       volumes:
       - name: zitadel-config-yaml
         configMap:
@@ -265,7 +264,7 @@ spec:
         secret:
           secretName: {{ .Values.zitadel.serverSslCrtSecret }}
       {{- end }}
-      - name: chowned-secrets
+      - name: copied-secrets
         emptyDir: {}
       {{- if .Values.zitadel.selfSignedCert.enabled }}
       - name: tls

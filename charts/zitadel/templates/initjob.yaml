@@ -92,8 +92,9 @@ spec:
           volumeMounts:
           - name: zitadel-config-yaml
             mountPath: /config
-          - name: chowned-secrets
+          - name: copied-secrets
             mountPath: /.secrets
+            readOnly: true
           {{- with .Values.extraVolumeMounts }}
           {{- toYaml . | nindent 10 }}
           {{- end }}
@@ -111,16 +112,16 @@ spec:
             (include "zitadel.makecpcommand" (dict "value" .Values.zitadel.dbSslAdminCrtSecret "path" "/db-ssl-admin-crt/" ))
             (include "zitadel.makecpcommand" (dict "value" .Values.zitadel.dbSslUserCrtSecret "path" "/db-ssl-user-crt/" ))
             (include "zitadel.makecpcommand" (dict "value" .Values.zitadel.configSecretName "path" "/zitadel-secret-config-yaml/" ))
-          )) }} chown -R 1000:1000 /chowned-secrets/ && find /chowned-secrets/ -type f -exec chmod 400 -- {} + "
+          )) }} find /copied-secrets/ -type f -exec chmod 400 -- {} + "
           command:
           - sh
           - -c
-          image: "{{ .Values.chownImage.repository }}:{{ .Values.chownImage.tag }}"
-          imagePullPolicy: {{ .Values.chownImage.pullPolicy }}
+          image: "{{ .Values.copySecretsImage.repository }}:{{ .Values.copySecretsImage.tag }}"
+          imagePullPolicy: {{ .Values.copySecretsImage.pullPolicy }}
           name: chown
           volumeMounts:
-          - name: chowned-secrets
-            mountPath: /chowned-secrets
+          - name: copied-secrets
+            mountPath: /copied-secrets
           {{- if .Values.zitadel.secretConfig }}
           - name: zitadel-secrets-yaml
             mountPath: /zitadel-secrets-yaml
@@ -141,9 +142,6 @@ spec:
           - name: db-ssl-user-crt
             mountPath: /db-ssl-user-crt
           {{- end }}
-          securityContext:
-            runAsNonRoot: false
-            runAsUser: 0
       {{- end}}
       volumes:
       - name: zitadel-config-yaml
@@ -179,7 +177,7 @@ spec:
         secret:
           secretName: {{ .Values.zitadel.dbSslUserCrtSecret }}
       {{- end }}
-      - name: chowned-secrets
+      - name: copied-secrets
         emptyDir: {}
       {{- with .Values.extraVolumes }}
       {{- toYaml . | nindent 6 }}

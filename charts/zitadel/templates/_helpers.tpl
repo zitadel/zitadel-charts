@@ -72,7 +72,7 @@ Create copy command or empty string
 */}}
 {{- define "zitadel.makecpcommand" -}}
 {{- if .value -}}
-{{ printf "cp -r %s /chowned-secrets/" .path }}
+{{ printf "cp -rL %s /copied-secrets/" .path }}
 {{- end -}}
 {{- end -}}
 

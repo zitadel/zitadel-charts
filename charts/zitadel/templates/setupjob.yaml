@@ -95,8 +95,9 @@ spec:
           volumeMounts:
           - name: zitadel-config-yaml
             mountPath: /config
-          - name: chowned-secrets
+          - name: copied-secrets
             mountPath: /.secrets
+            readOnly: true
           {{- if include "deepCheck" (dict "root" .Values "path" (splitList "." "zitadel.configmapConfig.FirstInstance.Org.Machine")) }}
           - name: machinekey
             mountPath: "/machinekey"
@@ -138,16 +139,16 @@ spec:
               (include "zitadel.makecpcommand" (dict "value" .Values.zitadel.configSecretName "path" "/zitadel-secret-config-yaml/" ))
               (include "zitadel.makecpcommand" (dict "value" (or .Values.zitadel.dbSslCaCrt .Values.zitadel.dbSslCaCrtSecret) "path" "/db-ssl-ca-crt/" ))
               (include "zitadel.makecpcommand" (dict "value" .Values.zitadel.dbSslUserCrtSecret "path" "/db-ssl-user-crt/" ))
-              )) }} chown -R 1000:1000 /chowned-secrets/ && find /chowned-secrets/ -type f -exec chmod 400 -- {} + "
+              )) }} find /copied-secrets/ -type f -exec chmod 400 -- {} + "
           command:
           - sh
           - -c
-          image: "{{ .Values.chownImage.repository }}:{{ .Values.chownImage.tag }}"
-          imagePullPolicy: {{ .Values.chownImage.pullPolicy }}
-          name: chown
+          image: "{{ .Values.copySecretsImage.repository }}:{{ .Values.copySecretsImage.tag }}"
+          imagePullPolicy: {{ .Values.copySecretsImage.pullPolicy }}
+          name: copy-secrets
           volumeMounts:
-          - name: chowned-secrets
-            mountPath: /chowned-secrets
+          - name: copied-secrets
+            mountPath: /copied-secrets
           {{- if .Values.zitadel.secretConfig }}
           - name: zitadel-secrets-yaml
             mountPath: /zitadel-secrets-yaml
@@ -164,9 +165,6 @@ spec:
           - name: db-ssl-user-crt
             mountPath: /db-ssl-user-crt
           {{- end }}
-          securityContext:
-            runAsNonRoot: false
-            runAsUser: 0
       {{- end }}
       volumes:
       - name: zitadel-config-yaml
@@ -201,7 +199,7 @@ spec:
       - name: machinekey
         emptyDir: { }
       {{- end }}
-      - name: chowned-secrets
+      - name: copied-secrets
         emptyDir: {}
       {{- with .Values.extraVolumes }}
       {{- toYaml . | nindent 6 }}

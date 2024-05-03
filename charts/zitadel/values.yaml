@@ -82,7 +82,7 @@ image:
   # Overrides the image tag whose default is the chart appVersion.
   tag: ""
 
-chownImage:
+copySecretsImage:
   repository: alpine
   pullPolicy: IfNotPresent
   tag: "3.19"
@@ -119,9 +119,9 @@ podAdditionalLabels: {}
 
 podSecurityContext:
   runAsNonRoot: true
-  runAsUser: 1000
 
-securityContext: {}
+securityContext:
+  runAsNonRoot: true
 
 # Additional environment variables
 env:
