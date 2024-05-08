@@ -44,7 +44,6 @@ jobs:
     name: 'K8s version ${{ matrix.k8s.version }} - Helm version ${{ matrix.helm-version }}'
 
     steps:
-
     - id: 'checkout'
       name: Check The Repo Out
       uses: 'actions/checkout@v3'
