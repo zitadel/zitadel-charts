@@ -53,6 +53,9 @@ zitadel:
   # The db users secret containing the client certificate and key at tls.crt and tls.key needed for establishing secure database connections
   dbSslUserCrtSecret: ""
 
+  # The Secret containing the certificate at key tls.crt and tls.key for listening on HTTPS
+  serverSslCrtSecret: ""
+
   # Generate a self-signed certificate using an init container
   # This will also mount the generated files to /etc/tls/ so that you can reference them in the pod.
   # E.G. KeyPath: /etc/tls/tls.key CertPath: /etc/tls/tls.crt
