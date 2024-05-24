@@ -160,6 +160,9 @@ spec:
           - name: tls
             mountPath: /etc/tls
           {{- end }}
+          {{- with .Values.extraVolumeMounts }}
+          {{- toYaml . | nindent 10 }}
+          {{- end }}
           resources:
             {{- toYaml .Values.resources | nindent 14 }}
       initContainers:
@@ -267,6 +270,9 @@ spec:
       {{- if .Values.zitadel.selfSignedCert.enabled }}
       - name: tls
         emptyDir: {}
+      {{- end }}
+      {{- with .Values.extraVolumes }}
+      {{- toYaml . | nindent 6 }}
       {{- end }}
       {{- with .Values.nodeSelector }}
       nodeSelector:

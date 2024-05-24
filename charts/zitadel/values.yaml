@@ -235,3 +235,15 @@ pdb:
   minAvailable: 1
   # maxUnavailable: 1
   annotations: {}
+
+extraVolumes: []
+  # - name: ca-certs
+  #   secret:
+  #     defaultMode: 420
+  #     secretName: ca-certs
+
+extraVolumeMounts: []
+  # - name: ca-certs
+  #   mountPath: /etc/ssl/certs/myca.pem
+  #   subPath: myca.pem
+  #   readOnly: true
