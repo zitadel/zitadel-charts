@@ -235,3 +235,10 @@ pdb:
 
 networkPolicies:
   enabled: true
+
+autoscaling:
+  enabled: true
+  minReplicas: 3
+  maxReplicas: 11
+  targetCPU: 80
+  targetMemory: 80
