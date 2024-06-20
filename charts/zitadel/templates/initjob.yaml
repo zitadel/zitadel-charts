@@ -94,6 +94,9 @@ spec:
             mountPath: /config
           - name: chowned-secrets
             mountPath: /.secrets
+          {{- with .Values.extraVolumeMounts }}
+          {{- toYaml . | nindent 10 }}
+          {{- end }}
           resources:
             {{- toYaml .Values.initJob.resources | nindent 14 }}
         {{- if .Values.initJob.extraContainers }}
@@ -175,6 +178,9 @@ spec:
       {{- end }}
       - name: chowned-secrets
         emptyDir: {}
+      {{- with .Values.extraVolumes }}
+      {{- toYaml . | nindent 6 }}
+      {{- end }}
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}

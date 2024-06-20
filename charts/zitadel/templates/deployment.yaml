@@ -79,6 +79,12 @@ spec:
             - name: ZITADEL_DATABASE_{{ $dbEnv }}_USER_SSL_KEY
               value: /.secrets/db-ssl-user-crt/tls.key
             {{- end }}
+            {{- if .Values.zitadel.serverSslCrtSecret }}
+            - name: ZITADEL_TLS_CERTPATH
+              value: /.secrets/server-ssl-crt/tls.crt
+            - name: ZITADEL_TLS_KEYPATH
+              value: /.secrets/server-ssl-crt/tls.key
+            {{- end }}
             {{- if .Values.zitadel.selfSignedCert.enabled }}
             - name: ZITADEL_TLS_CERTPATH
               value: /etc/tls/tls.crt
@@ -154,6 +160,9 @@ spec:
           - name: tls
             mountPath: /etc/tls
           {{- end }}
+          {{- with .Values.extraVolumeMounts }}
+          {{- toYaml . | nindent 10 }}
+          {{- end }}
           resources:
             {{- toYaml .Values.resources | nindent 14 }}
       initContainers:
@@ -163,6 +172,7 @@ spec:
               (include "zitadel.makecpcommand" (dict "value" .Values.zitadel.configSecretName "path" "/zitadel-secret-config-yaml/" ))
               (include "zitadel.makecpcommand" (dict "value" (or .Values.zitadel.dbSslCaCrt .Values.zitadel.dbSslCaCrtSecret) "path" "/db-ssl-ca-crt/" ))
               (include "zitadel.makecpcommand" (dict "value" .Values.zitadel.dbSslUserCrtSecret "path" "/db-ssl-user-crt/" ))
+              (include "zitadel.makecpcommand" (dict "value" .Values.zitadel.serverSslCrtSecret "path" "/server-ssl-crt/" ))
               )) }} find /chowned-secrets/ -type f -exec chmod 400 -- {} + "
           command:
           - sh
@@ -188,6 +198,10 @@ spec:
           {{- if .Values.zitadel.dbSslUserCrtSecret }}
           - name: db-ssl-user-crt
             mountPath: /db-ssl-user-crt
+          {{- end }}
+          {{- if .Values.zitadel.serverSslCrtSecret }}
+          - name: server-ssl-crt
+            mountPath: /server-ssl-crt
           {{- end }}
         {{- if .Values.zitadel.selfSignedCert.enabled }}
         - name: generate-self-signed-cert
@@ -243,11 +257,19 @@ spec:
         secret:
           secretName: {{ .Values.zitadel.dbSslUserCrtSecret }}
       {{- end }}
+      {{- if .Values.zitadel.serverSslCrtSecret }}
+      - name: server-ssl-crt
+        secret:
+          secretName: {{ .Values.zitadel.serverSslCrtSecret }}
+      {{- end }}
       - name: chowned-secrets
         emptyDir: {}
       {{- if .Values.zitadel.selfSignedCert.enabled }}
       - name: tls
         emptyDir: {}
+      {{- end }}
+      {{- with .Values.extraVolumes }}
+      {{- toYaml . | nindent 6 }}
       {{- end }}
       {{- with .Values.nodeSelector }}
       nodeSelector:

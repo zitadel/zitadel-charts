@@ -19,7 +19,7 @@ spec:
     - port: {{ .Values.service.port }}
       targetPort: 8080
       protocol: TCP
-      name: {{ .Values.service.protocol }}-server
+      name: {{ regexReplaceAll "\\W+" .Values.service.protocol "-" }}-server
       {{- if semverCompare ">=1.19-0" $.Capabilities.KubeVersion.GitVersion }}
       appProtocol: {{ .Values.service.protocol }}
       {{- end }}
