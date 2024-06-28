@@ -5,12 +5,13 @@ import (
 	"crypto/x509"
 	"errors"
 	"fmt"
-	mgmt_api "github.com/zitadel/zitadel-go/v2/pkg/client/zitadel/management"
 	"net/http"
 	"strconv"
 	"strings"
 	"sync"
 	"time"
+
+	mgmt_api "github.com/zitadel/zitadel-go/v2/pkg/client/zitadel/management"
 
 	"github.com/gruntwork-io/terratest/modules/k8s"
 	corev1 "k8s.io/api/core/v1"
@@ -87,7 +88,9 @@ func (s *ConfigurationTest) checkAccessibility(pods []corev1.Pod) {
 			}
 			_, err = conn.Healthz(ctx, &mgmt_api.HealthzRequest{})
 			// TODO: Why is the key checked on the healthz RPC?
-			if strings.Contains(err.Error(), "Errors.AuthNKey.NotFound") || strings.Contains(err.Error(), "assertion invalid") {
+			if strings.Contains(err.Error(), "Errors.AuthNKey.NotFound") ||
+				strings.Contains(err.Error(), "Errors.User.NotFound") ||
+				strings.Contains(err.Error(), "assertion invalid") {
 				err = nil
 			}
 			return err
