@@ -23,6 +23,30 @@ Either follow the [guide for deploying ZITADEL on Kubernetes](https://zitadel.co
 - [Referenced Secrets Example](examples/5-referenced-secrets/README.md)
 - [Machine User Setup Example](examples/6-machine-user/README.md)
 
+## Upgrade from v7
+
+The default ZITADEL version is now >= v2.55.
+[This requires Cockroach DB to be at >= v23.2](https://zitadel.com/docs/support/advisory/a10009)
+If you are using an older version of Cockroach DB, please upgrade it before upgrading ZITADEL.
+
+Note that in order to upgrade cockroach, you should not jump minor versions.
+For example:
+
+```bash
+# install Cockroach DB v23.1.14
+helm upgrade db cockroachdb/cockroachdb --version 11.2.4 --reuse-values
+# install Cockroach DB v23.2.5
+helm upgrade db cockroachdb/cockroachdb --version 12.0.5 --reuse-values
+# install Cockroach DB v24.1.1
+helm upgrade db cockroachdb/cockroachdb --version 13.0.1 --reuse-values
+# install ZITADEL v2.55.0
+helm upgrade my-zitadel zitadel/zitadel --version 8.0.0 --reuse-values
+```
+
+Please refer to the docs by Cockroach Labs. The ZITADEL tests run against the [official CockroachDB chart](https://artifacthub.io/packages/helm/cockroachdb/cockroachdb).
+
+(Credits to @panapol-p and @kleberbaum :pray:)
+
 ## Upgrade from v6
 
 - Now, you have the flexibility to define resource requests and limits separately for the machineKeyWriter,
