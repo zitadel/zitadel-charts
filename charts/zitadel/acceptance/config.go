@@ -43,7 +43,7 @@ var (
 	Cockroach = databaseChart{
 		repoUrl: "https://charts.cockroachdb.com/",
 		name:    "cockroachdb",
-		version: "11.1.5",
+		version: "13.0.1",
 		testValues: map[string]string{
 			"statefulset.replicas": "1",
 			"conf.single-node":     "true",
