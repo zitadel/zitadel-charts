@@ -68,28 +68,6 @@ Create the name of the service account to use
 {{- end }}
 
 {{/*
-Create copy command or empty string
-*/}}
-{{- define "zitadel.makecpcommand" -}}
-{{- if .value -}}
-{{ printf "cp -rL %s /copied-secrets/" .path }}
-{{- end -}}
-{{- end -}}
-
-{{/*
-Join copy commands
-*/}}
-{{- define "zitadel.joincpcommands" -}}
-{{- $cmd := "" }}
-    {{- range .commands -}}
-        {{- if . -}}
-            {{- $cmd = printf "%s && %s" ( default "yes" . ) $cmd  -}}
-        {{- end -}}
-    {{- end -}}
-{{ print $cmd }}
-{{- end -}}
-
-{{/*
 Returns true if the full path is defined and the value at the end of the path is not empty
 */}}
 {{- define "deepCheck" -}}
@@ -107,7 +85,7 @@ Returns true if the full path is defined and the value at the end of the path is
 {{- end -}}
 
 {{/*
-Returns the database config from the secreConfig or else from the configmapConfig
+Returns the database config from the secretConfig or else from the configmapConfig
 */}}
 {{- define "zitadel.dbconfig.json" -}}
     {{- if include "deepCheck" (dict "root" . "path" (splitList "." "Values.zitadel.secretConfig.Database")) -}}

@@ -50,11 +50,11 @@ spec:
             - /config/zitadel-config-yaml
             {{- if .Values.zitadel.secretConfig }}
             - --config
-            - /.secrets/zitadel-secrets-yaml/zitadel-secrets-yaml
+            - /zitadel-secrets-yaml/zitadel-secrets-yaml
             {{- end }}
             {{- if and .Values.zitadel.configSecretName .Values.zitadel.configSecretKey }}
             - --config
-            - /.secrets/zitadel-secret-config-yaml/{{ .Values.zitadel.configSecretKey }}
+            - /zitadel-secret-config-yaml/{{ .Values.zitadel.configSecretKey }}
             {{- end }}
             - --masterkeyFromEnv
           env:
@@ -71,19 +71,19 @@ spec:
             {{- $dbEnv := get (include "zitadel.dbkey.json" . | fromJson) "env" }}
             {{- if (or .Values.zitadel.dbSslCaCrt .Values.zitadel.dbSslCaCrtSecret) }}
             - name: ZITADEL_DATABASE_{{ $dbEnv }}_USER_SSL_ROOTCERT
-              value: /.secrets/db-ssl-ca-crt/ca.crt
+              value: /db-ssl-ca-crt/ca.crt
             {{- end }}
             {{- if .Values.zitadel.dbSslUserCrtSecret }}
             - name: ZITADEL_DATABASE_{{ $dbEnv }}_USER_SSL_CERT
-              value: /.secrets/db-ssl-user-crt/tls.crt
+              value: /db-ssl-user-crt/tls.crt
             - name: ZITADEL_DATABASE_{{ $dbEnv }}_USER_SSL_KEY
-              value: /.secrets/db-ssl-user-crt/tls.key
+              value: /db-ssl-user-crt/tls.key
             {{- end }}
             {{- if .Values.zitadel.serverSslCrtSecret }}
             - name: ZITADEL_TLS_CERTPATH
-              value: /.secrets/server-ssl-crt/tls.crt
+              value: /server-ssl-crt/tls.crt
             - name: ZITADEL_TLS_KEYPATH
-              value: /.secrets/server-ssl-crt/tls.key
+              value: /server-ssl-crt/tls.key
             {{- end }}
             {{- if .Values.zitadel.selfSignedCert.enabled }}
             - name: ZITADEL_TLS_CERTPATH
@@ -154,9 +154,32 @@ spec:
           volumeMounts:
           - name: zitadel-config-yaml
             mountPath: /config
-          - name: copied-secrets
-            mountPath: /.secrets
             readOnly: true
+          {{- if .Values.zitadel.secretConfig }}
+          - name: zitadel-secrets-yaml
+            mountPath: /zitadel-secrets-yaml
+            readOnly: true
+          {{- end }}
+          {{- if .Values.zitadel.configSecretName }}
+          - name: zitadel-secret-config-yaml
+            mountPath: /zitadel-secret-config-yaml
+            readOnly: true
+          {{- end }}
+          {{- if (or .Values.zitadel.dbSslCaCrt .Values.zitadel.dbSslCaCrtSecret) }}
+          - name: db-ssl-ca-crt
+            mountPath: /db-ssl-ca-crt
+            readOnly: true
+          {{- end }}
+          {{- if .Values.zitadel.dbSslUserCrtSecret }}
+          - name: db-ssl-user-crt
+            mountPath: /db-ssl-user-crt
+            readOnly: true
+          {{- end }}
+          {{- if .Values.zitadel.serverSslCrtSecret }}
+          - name: server-ssl-crt
+            mountPath: /server-ssl-crt
+            readOnly: true
+          {{- end }}
           {{- if .Values.zitadel.selfSignedCert.enabled }}
           - name: tls
             mountPath: /etc/tls
@@ -166,46 +189,8 @@ spec:
           {{- end }}
           resources:
             {{- toYaml .Values.resources | nindent 14 }}
-      {{- if or .Values.zitadel.secretConfig .Values.zitadel.dbSslCaCrt .Values.zitadel.dbSslCaCrtSecret .Values.zitadel.dbSslUserCrtSecret .Values.zitadel.configSecretName }}
+      {{- if .Values.zitadel.selfSignedCert.enabled }}
       initContainers:
-        - args:
-          - "{{ include "zitadel.joincpcommands" (dict "commands" (list
-              (include "zitadel.makecpcommand" (dict "value" .Values.zitadel.secretConfig "path" "/zitadel-secrets-yaml/" ))
-              (include "zitadel.makecpcommand" (dict "value" .Values.zitadel.configSecretName "path" "/zitadel-secret-config-yaml/" ))
-              (include "zitadel.makecpcommand" (dict "value" (or .Values.zitadel.dbSslCaCrt .Values.zitadel.dbSslCaCrtSecret) "path" "/db-ssl-ca-crt/" ))
-              (include "zitadel.makecpcommand" (dict "value" .Values.zitadel.dbSslUserCrtSecret "path" "/db-ssl-user-crt/" ))
-              (include "zitadel.makecpcommand" (dict "value" .Values.zitadel.serverSslCrtSecret "path" "/server-ssl-crt/" ))
-              )) }} find /copied-secrets/ -type f -exec chmod 400 -- {} + "
-          command:
-          - sh
-          - -c
-          image: "{{ .Values.copySecretsImage.repository }}:{{ .Values.copySecretsImage.tag }}"
-          imagePullPolicy: {{ .Values.copySecretsImage.pullPolicy }}
-          name: copy-secrets
-          volumeMounts:
-          - name: copied-secrets
-            mountPath: /copied-secrets
-          {{- if .Values.zitadel.secretConfig }}
-          - name: zitadel-secrets-yaml
-            mountPath: /zitadel-secrets-yaml
-          {{- end }}
-          {{- if .Values.zitadel.configSecretName }}
-          - name: zitadel-secret-config-yaml
-            mountPath: /zitadel-secret-config-yaml
-          {{- end }}
-          {{- if (or .Values.zitadel.dbSslCaCrt .Values.zitadel.dbSslCaCrtSecret) }}
-          - name: db-ssl-ca-crt
-            mountPath: /db-ssl-ca-crt
-          {{- end }}
-          {{- if .Values.zitadel.dbSslUserCrtSecret }}
-          - name: db-ssl-user-crt
-            mountPath: /db-ssl-user-crt
-          {{- end }}
-          {{- if .Values.zitadel.serverSslCrtSecret }}
-          - name: server-ssl-crt
-            mountPath: /server-ssl-crt
-          {{- end }}
-        {{- if .Values.zitadel.selfSignedCert.enabled }}
         - name: generate-self-signed-cert
           image: alpine/openssl
           env:
@@ -225,10 +210,7 @@ spec:
             - "-c"
             - "openssl req -nodes -x509 -sha256 -newkey rsa:4096 -keyout /etc/tls/tls.key -out /etc/tls/tls.crt -days 3560 -subj \"/CN=ZITADEL Chart Demo\" -addext \"subjectAltName = DNS:localhost,DNS:${POD_IP},DNS:${POD_NAME}{{- if .Values.zitadel.configmapConfig.ExternalDomain -}},DNS:{{- .Values.zitadel.configmapConfig.ExternalDomain -}}{{- end -}}{{- if .Values.zitadel.selfSignedCert.additionalDnsName -}},DNS:{{- .Values.zitadel.selfSignedCert.additionalDnsName -}}{{- end -}}\""
           securityContext:
-            readOnlyRootFilesystem: true
-            runAsNonRoot: true
-            privileged: false
-        {{- end }}
+            {{- toYaml .Values.securityContext | nindent 12 }}
       {{- end }}
       volumes:
       - name: zitadel-config-yaml
@@ -264,8 +246,6 @@ spec:
         secret:
           secretName: {{ .Values.zitadel.serverSslCrtSecret }}
       {{- end }}
-      - name: copied-secrets
-        emptyDir: {}
       {{- if .Values.zitadel.selfSignedCert.enabled }}
       - name: tls
         emptyDir: {}
