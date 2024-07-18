@@ -115,6 +115,7 @@ podAdditionalLabels: {}
 podSecurityContext:
   runAsNonRoot: true
   runAsUser: 1000
+  fsGroup: 1000
 
 securityContext:
   runAsNonRoot: true
