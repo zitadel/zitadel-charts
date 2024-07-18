@@ -154,30 +154,36 @@ spec:
       - name: zitadel-config-yaml
         configMap:
           name: zitadel-config-yaml
+          defaultMode: 0440
       {{- if .Values.zitadel.secretConfig }}
       - name: zitadel-secrets-yaml
         secret:
           secretName: zitadel-secrets-yaml
+          defaultMode: 0440
       {{- end }}
       {{- if .Values.zitadel.configSecretName }}
       - name: zitadel-secret-config-yaml
         secret:
           secretName: {{ .Values.zitadel.configSecretName }}
+          defaultMode: 0440
       {{- end }}
       {{- if .Values.zitadel.dbSslCaCrt }}
       - name: db-ssl-ca-crt
         secret:
           secretName: db-ssl-ca-crt
+          defaultMode: 0440
       {{- end }}
       {{- if .Values.zitadel.dbSslCaCrtSecret }}
       - name: db-ssl-ca-crt
         secret:
           secretName: {{ .Values.zitadel.dbSslCaCrtSecret }}
+          defaultMode: 0440
       {{- end }}
       {{- if .Values.zitadel.dbSslUserCrtSecret }}
       - name: db-ssl-user-crt
         secret:
           secretName: {{ .Values.zitadel.dbSslUserCrtSecret }}
+          defaultMode: 0440
       {{- end }}
       {{- if include "deepCheck" (dict "root" .Values "path" (splitList "." "zitadel.configmapConfig.FirstInstance.Org.Machine")) }}
       - name: machinekey
