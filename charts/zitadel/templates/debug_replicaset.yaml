@@ -37,7 +37,7 @@ spec:
             {{- toYaml .Values.securityContext | nindent 14 }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}-debug"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
-          command: [ "/bin/bash", "-c", 'echo "You can now open a shell within this pod by running the following command:"; echo ""; echo "kubectl --namespace {{ .Release.Namespace }} exec -it ${HOSTNAME} -- bash"; echo ""; echo "Check the directories /config and /.secrets for ZITADEL config files"; echo "also check the ZITADEL_ prefixed environment variables"; echo "For zitadel commands that need the masterkey, pass the flag --masterkeyFromEnv"; echo "this pod completes automatically in a day"; echo "Make sure you set zitadel.debug.enabled to false and upgrade the release when you are done"; echo "Also, delete the debug pods replica set by running the following command:"; echo; echo "kubectl --namespace {{ .Release.Namespace }} delete replicaset {{ include "zitadel.fullname" . }}-debug"; sleep 86400' ]
+          command: [ "/bin/bash", "-c", 'echo "You can now open a shell within this pod by running the following command:"; echo ""; echo "kubectl --namespace {{ .Release.Namespace }} exec -it ${HOSTNAME} -- bash"; echo ""; echo "Check the /config directory and the secret mounts for ZITADEL config files"; echo "also check the ZITADEL_ prefixed environment variables"; echo "For zitadel commands that need the masterkey, pass the flag --masterkeyFromEnv"; echo "this pod completes automatically in a day"; echo "Make sure you set zitadel.debug.enabled to false and upgrade the release when you are done"; echo "Also, delete the debug pods replica set by running the following command:"; echo; echo "kubectl --namespace {{ .Release.Namespace }} delete replicaset {{ include "zitadel.fullname" . }}-debug"; sleep 86400' ]
           env:
             - name: ZITADEL_MASTERKEY
               valueFrom:
@@ -49,13 +49,13 @@ spec:
             {{- $dbEnv := get (include "zitadel.dbkey.json" . | fromJson) "env" }}
             {{- if (or .Values.zitadel.dbSslCaCrt .Values.zitadel.dbSslCaCrtSecret) }}
             - name: ZITADEL_DATABASE_{{ $dbEnv }}_USER_SSL_ROOTCERT
-              value: /.secrets/db-ssl-ca-crt/ca.crt
+              value: /db-ssl-ca-crt/ca.crt
             {{- end }}
             {{- if .Values.zitadel.dbSslUserCrtSecret }}
             - name: ZITADEL_DATABASE_{{ $dbEnv }}_USER_SSL_CERT
-              value: /.secrets/db-ssl-user-crt/tls.crt
+              value: /db-ssl-user-crt/tls.crt
             - name: ZITADEL_DATABASE_{{ $dbEnv }}_USER_SSL_KEY
-              value: /.secrets/db-ssl-user-crt/tls.key
+              value: /db-ssl-user-crt/tls.key
             {{- end}}
             {{- with .Values.env }}
               {{- toYaml . | nindent 12 }}
@@ -63,46 +63,27 @@ spec:
           volumeMounts:
           - name: zitadel-config-yaml
             mountPath: /config
-          - name: chowned-secrets
-            mountPath: /.secrets
-      {{- if or .Values.zitadel.secretConfig .Values.zitadel.dbSslCaCrt .Values.zitadel.dbSslCaCrtSecret .Values.zitadel.dbSslUserCrtSecret .Values.zitadel.configSecretName }}
-      initContainers:
-        - args:
-          - "{{ include "zitadel.joincpcommands" (dict "commands" (list
-              (include "zitadel.makecpcommand" (dict "value" .Values.zitadel.secretConfig "path" "/zitadel-secrets-yaml/" ))
-              (include "zitadel.makecpcommand" (dict "value" .Values.zitadel.configSecretName "path" "/zitadel-secret-config-yaml/" ))
-              (include "zitadel.makecpcommand" (dict "value" (or .Values.zitadel.dbSslCaCrt .Values.zitadel.dbSslCaCrtSecret) "path" "/db-ssl-ca-crt/" ))
-              (include "zitadel.makecpcommand" (dict "value" .Values.zitadel.dbSslUserCrtSecret "path" "/db-ssl-user-crt/" ))
-              )) }} chown -R 1000:1000 /chowned-secrets/ && find /chowned-secrets/ -type f -exec chmod 400 -- {} + "
-          command:
-          - sh
-          - -c
-          image: "{{ .Values.chownImage.repository }}:{{ .Values.chownImage.tag }}"
-          imagePullPolicy: {{ .Values.chownImage.pullPolicy }}
-          name: chown
-          volumeMounts:
-          - name: chowned-secrets
-            mountPath: /chowned-secrets
+            readOnly: true
           {{- if .Values.zitadel.secretConfig }}
           - name: zitadel-secrets-yaml
             mountPath: /zitadel-secrets-yaml
+            readOnly: true
           {{- end }}
           {{- if .Values.zitadel.configSecretName }}
           - name: zitadel-secret-config-yaml
             mountPath: /zitadel-secret-config-yaml
+            readOnly: true
           {{- end }}
           {{- if (or .Values.zitadel.dbSslCaCrt .Values.zitadel.dbSslCaCrtSecret) }}
           - name: db-ssl-ca-crt
             mountPath: /db-ssl-ca-crt
+            readOnly: true
           {{- end }}
           {{- if .Values.zitadel.dbSslUserCrtSecret }}
           - name: db-ssl-user-crt
             mountPath: /db-ssl-user-crt
+            readOnly: true
           {{- end }}
-          securityContext:
-            runAsNonRoot: false
-            runAsUser: 0
-      {{- end }}
       volumes:
       - name: zitadel-config-yaml
         configMap:
@@ -111,29 +92,32 @@ spec:
       - name: zitadel-secrets-yaml
         secret:
           secretName: zitadel-secrets-yaml
+          defaultMode: 0440
       {{- end }}
       {{- if .Values.zitadel.configSecretName }}
       - name: zitadel-secret-config-yaml
         secret:
           secretName: {{ .Values.zitadel.configSecretName }}
+          defaultMode: 0440
       {{- end }}
       {{- if .Values.zitadel.dbSslCaCrt }}
       - name: db-ssl-ca-crt
         secret:
           secretName: db-ssl-ca-crt
+          defaultMode: 0440
       {{- end }}
       {{- if .Values.zitadel.dbSslCaCrtSecret }}
       - name: db-ssl-ca-crt
         secret:
           secretName: {{ .Values.zitadel.dbSslCaCrtSecret }}
+          defaultMode: 0440
       {{- end }}
       {{- if .Values.zitadel.dbSslUserCrtSecret }}
       - name: db-ssl-user-crt
         secret:
           secretName: {{ .Values.zitadel.dbSslUserCrtSecret }}
+          defaultMode: 0440
       {{- end }}
-      - name: chowned-secrets
-        emptyDir: {}
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
