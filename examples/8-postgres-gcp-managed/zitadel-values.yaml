@@ -1,0 +1,35 @@
+zitadel:
+  masterkey: x123456789012345678901234567891y
+  configmapConfig:
+    ExternalSecure: false
+    ExternalDomain: 127.0.0.1.sslip.io
+    TLS:
+      Enabled: false
+    Database:
+      Postgres:
+        Host: localhost # since we use cloud sql proxy
+        Port: 5432
+        Database: zitadel
+        MaxOpenConns: 20
+        MaxIdleConns: 10
+        MaxConnLifetime: 30m
+        MaxConnIdleTime: 5m
+        User:
+          Username: postgres
+          SSL:
+            Mode: disable
+        Admin:
+          Username: postgres
+          SSL:
+            Mode: disable
+
+cloudSqlProxy:
+  enabled: true
+  imageTag: 2.12
+  instanceConnectionName: <gcp-project-id>:<region>:<instance-name>
+  args: ["--port=5432", "--structured-logs"]
+  resources:
+    requests:
+      memory: "100Mi"
+      cpu: "100m"
+      ephemeral-storage: "612Mi"
