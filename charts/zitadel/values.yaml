@@ -247,3 +247,15 @@ extraVolumeMounts: []
   #   mountPath: /etc/ssl/certs/myca.pem
   #   subPath: myca.pem
   #   readOnly: true
+
+
+cloudSqlProxy:
+  enabled: false
+  imageTag: "latest"
+  instanceConnectionName: ""
+  args: []
+  resources:
+    requests:
+      memory: "2Gi"
+      cpu: "1"
+      ephemeral-storage: "1Gi"

@@ -189,8 +189,9 @@ spec:
           {{- end }}
           resources:
             {{- toYaml .Values.resources | nindent 14 }}
-      {{- if .Values.zitadel.selfSignedCert.enabled }}
+      
       initContainers:
+        {{- if .Values.zitadel.selfSignedCert.enabled }}
         - name: generate-self-signed-cert
           image: alpine/openssl
           env:
@@ -211,7 +212,10 @@ spec:
             - "openssl req -nodes -x509 -sha256 -newkey rsa:4096 -keyout /etc/tls/tls.key -out /etc/tls/tls.crt -days 3560 -subj \"/CN=ZITADEL Chart Demo\" -addext \"subjectAltName = DNS:localhost,DNS:${POD_IP},DNS:${POD_NAME}{{- if .Values.zitadel.configmapConfig.ExternalDomain -}},DNS:{{- .Values.zitadel.configmapConfig.ExternalDomain -}}{{- end -}}{{- if .Values.zitadel.selfSignedCert.additionalDnsName -}},DNS:{{- .Values.zitadel.selfSignedCert.additionalDnsName -}}{{- end -}}\""
           securityContext:
             {{- toYaml .Values.securityContext | nindent 12 }}
-      {{- end }}
+        {{- end }}
+        {{- if .Values.cloudSqlProxy.enabled }}
+          {{- include "cloudSqlProxy" . | indent 8 }}
+        {{- end }}
       volumes:
       - name: zitadel-config-yaml
         configMap:

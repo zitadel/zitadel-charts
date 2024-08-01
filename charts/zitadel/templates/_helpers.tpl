@@ -109,3 +109,23 @@ Returns a dict with the databases key in the yaml and the environment variable p
     {{- end -}}
   {{- end -}}
 {{- end -}}
+
+
+{{- define "cloudSqlProxy" -}}
+- name: zitadel-cloud-sql-proxy
+  image: gcr.io/cloud-sql-connectors/cloud-sql-proxy:{{ .Values.cloudSqlProxy.imageTag }}
+  restartPolicy: Always
+  args:
+    {{- range .Values.cloudSqlProxy.args }}
+    - {{ . | quote }}
+    {{- end }}
+    - {{ .Values.cloudSqlProxy.instanceConnectionName | quote }}
+
+  securityContext:
+    runAsNonRoot: true
+  resources:
+    requests:
+      memory: {{ .Values.cloudSqlProxy.resources.requests.memory | default "2Gi" | quote }}
+      cpu: {{ .Values.cloudSqlProxy.resources.requests.cpu | default "1" | quote }}
+      ephemeral-storage: {{ .Values.cloudSqlProxy.resources.requests.ephemeralStorage | default "1Gi" | quote }}
+{{- end -}}
