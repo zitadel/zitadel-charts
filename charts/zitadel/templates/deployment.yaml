@@ -214,7 +214,7 @@ spec:
             {{- toYaml .Values.securityContext | nindent 12 }}
         {{- end }}
         {{- if .Values.cloudSqlProxy.enabled }}
-          {{- include "cloudSqlProxy" . | indent 8 }}
+        {{- include "cloudSqlProxy" . | nindent 8 }}
         {{- end }}
       volumes:
       - name: zitadel-config-yaml
