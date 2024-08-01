@@ -37,7 +37,7 @@ spec:
       restartPolicy: OnFailure
       initContainers:
         {{- if .Values.cloudSqlProxy.enabled }}
-        {{- include "cloudSqlProxy" . | indent 8 }}
+        {{- include "cloudSqlProxy" . | nindent 8 }}
         {{- end }}
       containers:
         - name: "{{ .Chart.Name }}-init"
