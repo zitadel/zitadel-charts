@@ -52,15 +52,15 @@ spec:
             - /config/zitadel-config-yaml
             {{- if .Values.zitadel.secretConfig }}
             - --config
-            - /.secrets/zitadel-secrets-yaml/zitadel-secrets-yaml
+            - /zitadel-secrets-yaml/zitadel-secrets-yaml
             - --steps
-            - /.secrets/zitadel-secrets-yaml/zitadel-secrets-yaml
+            - /zitadel-secrets-yaml/zitadel-secrets-yaml
             {{- end }}
             {{- if and .Values.zitadel.configSecretName .Values.zitadel.configSecretKey }}
             - --config
-            - /.secrets/zitadel-secret-config-yaml/{{ .Values.zitadel.configSecretKey }}
+            - /zitadel-secret-config-yaml/{{ .Values.zitadel.configSecretKey }}
             - --steps
-            - /.secrets/zitadel-secret-config-yaml/{{ .Values.zitadel.configSecretKey }}
+            - /zitadel-secret-config-yaml/{{ .Values.zitadel.configSecretKey }}
             {{- end }}
             {{- if .Values.setupJob.additionalArgs }}
             {{- toYaml .Values.setupJob.additionalArgs | nindent 12 }}
@@ -81,13 +81,13 @@ spec:
             {{- $dbEnv := get (include "zitadel.dbkey.json" . | fromJson) "env" }}
             {{- if (or .Values.zitadel.dbSslCaCrt .Values.zitadel.dbSslCaCrtSecret) }}
             - name: ZITADEL_DATABASE_{{ $dbEnv }}_USER_SSL_ROOTCERT
-              value: /.secrets/db-ssl-ca-crt/ca.crt
+              value: /db-ssl-ca-crt/ca.crt
             {{- end }}
             {{- if .Values.zitadel.dbSslUserCrtSecret }}
             - name: ZITADEL_DATABASE_{{ $dbEnv }}_USER_SSL_CERT
-              value: /.secrets/db-ssl-user-crt/tls.crt
+              value: /db-ssl-user-crt/tls.crt
             - name: ZITADEL_DATABASE_{{ $dbEnv }}_USER_SSL_KEY
-              value: /.secrets/db-ssl-user-crt/tls.key
+              value: /db-ssl-user-crt/tls.key
             {{- end}}
             {{- with .Values.env }}
               {{- toYaml . | nindent 12 }}
@@ -95,8 +95,27 @@ spec:
           volumeMounts:
           - name: zitadel-config-yaml
             mountPath: /config
-          - name: chowned-secrets
-            mountPath: /.secrets
+            readOnly: true
+          {{- if .Values.zitadel.secretConfig }}
+          - name: zitadel-secrets-yaml
+            mountPath: /zitadel-secrets-yaml
+            readOnly: true
+          {{- end }}
+          {{- if .Values.zitadel.configSecretName }}
+          - name: zitadel-secret-config-yaml
+            mountPath: /zitadel-secret-config-yaml
+            readOnly: true
+          {{- end }}
+          {{- if (or .Values.zitadel.dbSslCaCrt .Values.zitadel.dbSslCaCrtSecret) }}
+          - name: db-ssl-ca-crt
+            mountPath: /db-ssl-ca-crt
+            readOnly: true
+          {{- end }}
+          {{- if .Values.zitadel.dbSslUserCrtSecret }}
+          - name: db-ssl-user-crt
+            mountPath: /db-ssl-user-crt
+            readOnly: true
+          {{- end }}
           {{- if include "deepCheck" (dict "root" .Values "path" (splitList "." "zitadel.configmapConfig.FirstInstance.Org.Machine")) }}
           - name: machinekey
             mountPath: "/machinekey"
@@ -120,6 +139,7 @@ spec:
           volumeMounts:
             - name: machinekey
               mountPath: "/machinekey"
+              readOnly: true
           resources:
           {{- if .Values.setupJob.machinekeyWriter.resources }}
             {{- toYaml .Values.setupJob.machinekeyWriter.resources | nindent 12 }}
@@ -130,76 +150,45 @@ spec:
       {{- if .Values.setupJob.extraContainers }}
         {{- toYaml .Values.setupJob.extraContainers | nindent 8 }}
       {{- end }}
-      {{- if or .Values.zitadel.secretConfig .Values.zitadel.dbSslCaCrt .Values.zitadel.dbSslCaCrtSecret .Values.zitadel.dbSslUserCrtSecret .Values.zitadel.configSecretName }}
-      initContainers:
-        - args:
-          - "{{ include "zitadel.joincpcommands" (dict "commands" (list
-              (include "zitadel.makecpcommand" (dict "value" .Values.zitadel.secretConfig "path" "/zitadel-secrets-yaml/" ))
-              (include "zitadel.makecpcommand" (dict "value" .Values.zitadel.configSecretName "path" "/zitadel-secret-config-yaml/" ))
-              (include "zitadel.makecpcommand" (dict "value" (or .Values.zitadel.dbSslCaCrt .Values.zitadel.dbSslCaCrtSecret) "path" "/db-ssl-ca-crt/" ))
-              (include "zitadel.makecpcommand" (dict "value" .Values.zitadel.dbSslUserCrtSecret "path" "/db-ssl-user-crt/" ))
-              )) }} find /chowned-secrets/ -type f -exec chmod 400 -- {} + "
-          command:
-          - sh
-          - -c
-          image: "{{ .Values.chownImage.repository }}:{{ .Values.chownImage.tag }}"
-          imagePullPolicy: {{ .Values.chownImage.pullPolicy }}
-          name: chown
-          volumeMounts:
-          - name: chowned-secrets
-            mountPath: /chowned-secrets
-          {{- if .Values.zitadel.secretConfig }}
-          - name: zitadel-secrets-yaml
-            mountPath: /zitadel-secrets-yaml
-          {{- end }}
-          {{- if .Values.zitadel.configSecretName }}
-          - name: zitadel-secret-config-yaml
-            mountPath: /zitadel-secret-config-yaml
-          {{- end }}
-          {{- if (or .Values.zitadel.dbSslCaCrt .Values.zitadel.dbSslCaCrtSecret) }}
-          - name: db-ssl-ca-crt
-            mountPath: /db-ssl-ca-crt
-          {{- end }}
-          {{- if .Values.zitadel.dbSslUserCrtSecret }}
-          - name: db-ssl-user-crt
-            mountPath: /db-ssl-user-crt
-          {{- end }}
-      {{- end }}
       volumes:
       - name: zitadel-config-yaml
         configMap:
           name: zitadel-config-yaml
+          defaultMode: 0440
       {{- if .Values.zitadel.secretConfig }}
       - name: zitadel-secrets-yaml
         secret:
           secretName: zitadel-secrets-yaml
+          defaultMode: 0440
       {{- end }}
       {{- if .Values.zitadel.configSecretName }}
       - name: zitadel-secret-config-yaml
         secret:
           secretName: {{ .Values.zitadel.configSecretName }}
+          defaultMode: 0440
       {{- end }}
       {{- if .Values.zitadel.dbSslCaCrt }}
       - name: db-ssl-ca-crt
         secret:
           secretName: db-ssl-ca-crt
+          defaultMode: 0440
       {{- end }}
       {{- if .Values.zitadel.dbSslCaCrtSecret }}
       - name: db-ssl-ca-crt
         secret:
           secretName: {{ .Values.zitadel.dbSslCaCrtSecret }}
+          defaultMode: 0440
       {{- end }}
       {{- if .Values.zitadel.dbSslUserCrtSecret }}
       - name: db-ssl-user-crt
         secret:
           secretName: {{ .Values.zitadel.dbSslUserCrtSecret }}
+          defaultMode: 0440
       {{- end }}
       {{- if include "deepCheck" (dict "root" .Values "path" (splitList "." "zitadel.configmapConfig.FirstInstance.Org.Machine")) }}
       - name: machinekey
         emptyDir: { }
       {{- end }}
-      - name: chowned-secrets
-        emptyDir: {}
       {{- with .Values.extraVolumes }}
       {{- toYaml . | nindent 6 }}
       {{- end }}
