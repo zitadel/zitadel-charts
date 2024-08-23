@@ -42,13 +42,13 @@ jobs:
     steps:
     - id: 'checkout'
       name: Check The Repo Out
-      uses: 'actions/checkout@v3'
+      uses: 'actions/checkout@v4'
       with:
         fetch-depth: 0
 
     - name: Get Changed Test Relevant Files
       id: 'list-changed-test'
-      uses: tj-actions/changed-files@v42
+      uses: tj-actions/changed-files@v45
       with:
         files: |
           charts/zitadel/**
