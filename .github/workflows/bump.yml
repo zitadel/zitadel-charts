@@ -50,13 +50,14 @@ jobs:
         echo "input tag: ${INPUT}"
         echo "latest tag: ${LATEST}"
         echo "going to target zitadel version: ${TARGET_ZITADEL_VERSION}"
-        echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
+        echo "tag=${TARGET_ZITADEL_VERSION}" >> $GITHUB_OUTPUT
   
     - name: Parse Target ZITADEL Version into Major, Minor, Patch
       id: parsed-target-zitadel-version
-      uses: booxmedialtd/ws-action-parse-semver@v1
+      uses: release-kit/semver@v2
       with:
-        input_string: ${{ steps.target-zitadel-version.outputs.tag }}
+        source: string
+        string: ${{ steps.target-zitadel-version.outputs.tag }}
 
     - id: checkout
       uses: actions/checkout@v3
@@ -84,9 +85,10 @@ jobs:
 
     - name: Parse Currently ZITADEL Version into Major, Minor, Patch
       id: parsed-last-zitadel-version
-      uses: booxmedialtd/ws-action-parse-semver@v1
+      uses: release-kit/semver@v2
       with:
-        input_string: ${{ steps.current-zitadel-version.outputs.data }}
+        source: 'string'
+        string: ${{ steps.current-zitadel-version.outputs.data }}
 
     - name: Set Version Update Type
       id: set-version-type
