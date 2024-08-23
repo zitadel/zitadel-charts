@@ -31,7 +31,7 @@ jobs:
           echo "must be of schema: vX.X.X"
           exit 1
         fi
-        echo "::set-output name=input::${INPUT}"
+        echo "input=${INPUT}" >> "$GITHUB_OUTPUT"
   
     - name: Get Latest ZITADEL Release Version
       id: latest-tag
@@ -51,7 +51,7 @@ jobs:
         echo "input tag: ${INPUT}"
         echo "latest tag: ${LATEST}"
         echo "going to target zitadel version: ${TARGET_ZITADEL_VERSION}"
-        echo "::set-output name=tag::${TAG}"
+        echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
   
     - name: Parse Target ZITADEL Version into Major, Minor, Patch
       id: parsed-target-zitadel-version
@@ -92,9 +92,9 @@ jobs:
     - name: Set Version Update Type
       id: set-version-type
       run: |
-        [ ${{ steps.parsed-target-zitadel-version.outputs.patch }} -gt ${{ steps.parsed-last-zitadel-version.outputs.patch }} ] && echo '::set-output name=type::PATCH' || true
-        [ ${{ steps.parsed-target-zitadel-version.outputs.minor }} -gt ${{ steps.parsed-last-zitadel-version.outputs.minor }} ] && echo '::set-output name=type::MINOR' || true
-        [ ${{ steps.parsed-target-zitadel-version.outputs.major }} -gt ${{ steps.parsed-last-zitadel-version.outputs.major }} ] && echo '::set-output name=type::MAJOR' || true
+        [ ${{ steps.parsed-target-zitadel-version.outputs.patch }} -gt ${{ steps.parsed-last-zitadel-version.outputs.patch }} ] && echo 'type=PATCH' >> "$GITHUB_OUTPUT" || true
+        [ ${{ steps.parsed-target-zitadel-version.outputs.minor }} -gt ${{ steps.parsed-last-zitadel-version.outputs.minor }} ] && echo 'type=MINOR' >> "$GITHUB_OUTPUT" || true
+        [ ${{ steps.parsed-target-zitadel-version.outputs.major }} -gt ${{ steps.parsed-last-zitadel-version.outputs.major }} ] && echo 'type=MAJOR' >> "$GITHUB_OUTPUT" || true
 
     - name: Bump Chart Version
       uses: jessicalostinspace/bump-semantic-version-action@v1.0.1
