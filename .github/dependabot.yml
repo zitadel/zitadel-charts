@@ -13,3 +13,19 @@ updates:
     reviewers:
       - stebenz
       - eliobischof
+
+  # Maintain dependencies for GitHub Actions
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    commit-message:
+      prefix: "chore"
+    schedule:
+      interval: "weekly"
+    groups:
+      actions:
+        patterns:
+        - "*"
+    reviewers:
+      - stebenz
+      - eliobischof
+
