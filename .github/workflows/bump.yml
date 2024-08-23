@@ -22,7 +22,7 @@ jobs:
       pull-requests: write
     steps:
     - name: Validate the manually given input tag, if any
-      if: ${{github.event_name == 'workflow_dispatch'}}
+      if: ${{ (github.event_name == 'workflow_dispatch') && (github.event.inputs.tag != '') }}
       id: check-input
       run: |
         INPUT=${{github.event.inputs.tag}}
@@ -31,7 +31,6 @@ jobs:
           echo "must be of schema: vX.X.X"
           exit 1
         fi
-        echo "::set-output name=input::${INPUT}"
   
     - name: Get Latest ZITADEL Release Version
       id: latest-tag
@@ -45,19 +44,20 @@ jobs:
     - name: Decide on Target ZITADEL Version
       id: target-zitadel-version
       run: |
-        INPUT=${{ steps.check-input.outputs.input }}
+        INPUT=${{ github.event.inputs.tag }}
         LATEST=${{ steps.latest-tag.outputs.tag }}
         TARGET_ZITADEL_VERSION=${INPUT:-${LATEST}}
         echo "input tag: ${INPUT}"
         echo "latest tag: ${LATEST}"
         echo "going to target zitadel version: ${TARGET_ZITADEL_VERSION}"
-        echo "::set-output name=tag::${TAG}"
+        echo "tag=${TARGET_ZITADEL_VERSION}" >> $GITHUB_OUTPUT
   
     - name: Parse Target ZITADEL Version into Major, Minor, Patch
       id: parsed-target-zitadel-version
-      uses: booxmedialtd/ws-action-parse-semver@v1
+      uses: release-kit/semver@v2
       with:
-        input_string: ${{ steps.target-zitadel-version.outputs.tag }}
+        source: string
+        string: ${{ steps.target-zitadel-version.outputs.tag }}
 
     - id: checkout
       uses: actions/checkout@v3
@@ -85,16 +85,17 @@ jobs:
 
     - name: Parse Currently ZITADEL Version into Major, Minor, Patch
       id: parsed-last-zitadel-version
-      uses: booxmedialtd/ws-action-parse-semver@v1
+      uses: release-kit/semver@v2
       with:
-        input_string: ${{ steps.current-zitadel-version.outputs.data }}
+        source: 'string'
+        string: ${{ steps.current-zitadel-version.outputs.data }}
 
     - name: Set Version Update Type
       id: set-version-type
       run: |
-        [ ${{ steps.parsed-target-zitadel-version.outputs.patch }} -gt ${{ steps.parsed-last-zitadel-version.outputs.patch }} ] && echo '::set-output name=type::PATCH' || true
-        [ ${{ steps.parsed-target-zitadel-version.outputs.minor }} -gt ${{ steps.parsed-last-zitadel-version.outputs.minor }} ] && echo '::set-output name=type::MINOR' || true
-        [ ${{ steps.parsed-target-zitadel-version.outputs.major }} -gt ${{ steps.parsed-last-zitadel-version.outputs.major }} ] && echo '::set-output name=type::MAJOR' || true
+        [ ${{ steps.parsed-target-zitadel-version.outputs.patch }} -gt ${{ steps.parsed-last-zitadel-version.outputs.patch }} ] && echo 'type=PATCH' >> $GITHUB_OUTPUT || true
+        [ ${{ steps.parsed-target-zitadel-version.outputs.minor }} -gt ${{ steps.parsed-last-zitadel-version.outputs.minor }} ] && echo 'type=MINOR' >> $GITHUB_OUTPUT || true
+        [ ${{ steps.parsed-target-zitadel-version.outputs.major }} -gt ${{ steps.parsed-last-zitadel-version.outputs.major }} ] && echo 'type=MAJOR' >> $GITHUB_OUTPUT || true
 
     - name: Bump Chart Version
       uses: jessicalostinspace/bump-semantic-version-action@v1.0.1
@@ -109,7 +110,6 @@ jobs:
         valueFile: 'charts/zitadel/Chart.yaml'
         propertyPath: 'appVersion'
         value: ${{ steps.target-zitadel-version.outputs.tag }}
-        updateFile: true
         commitChange: false
         createPR: false
 
@@ -119,7 +119,6 @@ jobs:
         valueFile: 'charts/zitadel/Chart.yaml'
         propertyPath: 'version'
         value: ${{ steps.bumped-chart-version.outputs.bumped-semantic-version }}
-        updateFile: true
         commitChange: false
         createPR: false
 
@@ -128,7 +127,7 @@ jobs:
 
     - name: Create Pull Request
       id: pull-request
-      uses: peter-evans/create-pull-request@v4
+      uses: peter-evans/create-pull-request@v6
       with:
         title: Bump ZITADEL Version
         branch: create-pull-request/bump
