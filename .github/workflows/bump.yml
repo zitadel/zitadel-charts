@@ -22,7 +22,7 @@ jobs:
       pull-requests: write
     steps:
     - name: Validate the manually given input tag, if any
-      if: ${{github.event_name == 'workflow_dispatch'}} && ${{github.event.inputs.tag}}
+      if: ${{ (github.event_name == 'workflow_dispatch') && (github.event.inputs.tag != '') }}
       id: check-input
       run: |
         INPUT=${{github.event.inputs.tag}}
