@@ -110,7 +110,6 @@ jobs:
         valueFile: 'charts/zitadel/Chart.yaml'
         propertyPath: 'appVersion'
         value: ${{ steps.target-zitadel-version.outputs.tag }}
-        updateFile: true
         commitChange: false
         createPR: false
 
@@ -120,7 +119,6 @@ jobs:
         valueFile: 'charts/zitadel/Chart.yaml'
         propertyPath: 'version'
         value: ${{ steps.bumped-chart-version.outputs.bumped-semantic-version }}
-        updateFile: true
         commitChange: false
         createPR: false
 
