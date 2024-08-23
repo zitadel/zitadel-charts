@@ -31,7 +31,6 @@ jobs:
           echo "must be of schema: vX.X.X"
           exit 1
         fi
-        echo "input=${INPUT}" >> "$GITHUB_OUTPUT"
   
     - name: Get Latest ZITADEL Release Version
       id: latest-tag
@@ -45,7 +44,7 @@ jobs:
     - name: Decide on Target ZITADEL Version
       id: target-zitadel-version
       run: |
-        INPUT=${{ steps.check-input.outputs.input }}
+        INPUT=${{ github.event.inputs.tag }}
         LATEST=${{ steps.latest-tag.outputs.tag }}
         TARGET_ZITADEL_VERSION=${INPUT:-${LATEST}}
         echo "input tag: ${INPUT}"
