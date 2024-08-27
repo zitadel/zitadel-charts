@@ -1,0 +1,24 @@
+name: Auto-merge Dependabot
+on: pull_request
+
+permissions:
+  pull-requests: write
+  contents: write
+
+jobs:
+  automerge:
+    runs-on: ubuntu-latest
+    if: github.actor == 'dependabot[bot]'
+    steps:
+
+      - name: Enable Automerge
+        if: steps.pull-request.outputs.pull-request-operation == 'created'
+        run: gh pr merge --merge --auto "${{ github.event.pull_request.number }}"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Approve
+        if: steps.pull-request.outputs.pull-request-operation == 'created'
+        run: gh pr review --approve "${{ github.event.pull_request.number }}"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
