@@ -91,23 +91,14 @@ jobs:
         branch: create-pull-request/bump
         delete-branch: true
 
-    - uses: tibdex/github-app-token@v1
-      id: generate-token
-      with:
-        app_id: ${{ secrets.APP_ID }}
-        private_key: ${{ secrets.APP_PRIVATE_KEY }}
-
-    - name: Enable Pull Request Automerge
+    - name: Enable Automerge
       if: steps.pull-request.outputs.pull-request-operation == 'created'
-      uses: peter-evans/enable-pull-request-automerge@v2
-      with:
-        token: ${{ steps.generate-token.outputs.token }}
-        pull-request-number: ${{ steps.pull-request.outputs.pull-request-number }}
-        merge-method: squash
+      run: gh pr merge --merge --auto "${{ steps.pull-request.outputs.pull-request-number }}"
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-    - name: Auto approve
+    - name: Approve
       if: steps.pull-request.outputs.pull-request-operation == 'created'
-      uses: juliangruber/approve-pull-request-action@v1
-      with:
-        github-token: ${{ steps.generate-token.outputs.token }}
-        number: ${{ steps.pull-request.outputs.pull-request-number }}
+      run: gh pr review --approve "${{ steps.pull-request.outputs.pull-request-number }}"
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
