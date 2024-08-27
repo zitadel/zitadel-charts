@@ -11,13 +11,13 @@ jobs:
     steps:
       - id: 'checkout'
         name: Check The Repo Out
-        uses: 'actions/checkout@v3'
+        uses: 'actions/checkout@v4'
         with:
           fetch-depth: 0
 
       - name: Get Changed Test Relevant Files
         id: 'list-changed-test'
-        uses: tj-actions/changed-files@v42
+        uses: tj-actions/changed-files@v45
         with:
           files: |
             charts/zitadel/templates/**
@@ -26,14 +26,14 @@ jobs:
 
       - id: 'set-up-helm'
         name: Install Helm (The Chart Testing CLI Depends On It)
-        uses: 'azure/setup-helm@v3.5'
+        uses: 'azure/setup-helm@v4'
         with:
           version: latest
         if: steps.list-changed-test.outputs.any_changed == 'true'
 
       - id: 'set-up-python'
         name: Install Python (The Chart Testing CLI Depends On It)
-        uses: 'actions/setup-python@v3.1.4'
+        uses: 'actions/setup-python@v5.1.1'
         with:
           python-version: 3.11.4
         if: steps.list-changed-test.outputs.any_changed == 'true'
