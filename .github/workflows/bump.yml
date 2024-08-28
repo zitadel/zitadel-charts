@@ -135,7 +135,7 @@ jobs:
 
     - name: Enable Automerge
       if: steps.pull-request.outputs.pull-request-operation == 'created'
-      run: gh pr merge --merge --squash --auto "${{ steps.pull-request.outputs.pull-request-number }}"
+      run: gh pr merge --squash --auto "${{ steps.pull-request.outputs.pull-request-number }}"
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
