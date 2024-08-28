@@ -2,9 +2,9 @@ apiVersion: v2
 name: zitadel
 description: A Helm chart for ZITADEL
 type: application
-appVersion: "v2.55.0"
-version: 8.1.0
-kubeVersion: ">= 1.21.0-0"
+appVersion: v2.59.1
+version: 8.2.0
+kubeVersion: '>= 1.21.0-0'
 icon: https://zitadel.com/zitadel-logo-dark.svg
 maintainers:
   - name: zitadel
