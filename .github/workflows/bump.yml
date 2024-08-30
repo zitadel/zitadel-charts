@@ -125,6 +125,13 @@ jobs:
     - name: Print Chart.yaml
       run: cat charts/zitadel/Chart.yaml
 
+    - name: Generate GitHub App Token
+      id: generate-token
+      uses: actions/create-github-app-token@v1
+      with:
+        app-id: ${{ secrets.ZITADEL_WORKFLOW_APP_ID }}
+        private-key: ${{ secrets.ZITADEL_WORKFLOW_APP_PRIVATE_KEY }}
+
     - name: Create Pull Request
       id: pull-request
       uses: peter-evans/create-pull-request@v6
@@ -132,6 +139,9 @@ jobs:
         title: Bump ZITADEL Version
         branch: create-pull-request/bump
         delete-branch: true
+        # We can't just use the GITHUB_TOKEN here, as it wouldn't trigger other workflows needed for the required checks.
+        # https://github.com/peter-evans/create-pull-request/blob/main/docs/concepts-guidelines.md#triggering-further-workflow-runs
+        token: ${{ steps.generate-token.outputs.token }}
 
     - name: Enable Automerge
       if: steps.pull-request.outputs.pull-request-operation == 'created'
