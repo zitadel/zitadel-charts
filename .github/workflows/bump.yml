@@ -38,6 +38,7 @@ jobs:
       with:
         repository: zitadel/zitadel
         releases-only: true
+        sort-tags: true
         # ignore prereleases
         regex: '^v([0-9]+)\.([0-9]+)\.([0-9]+)$'
 
