@@ -3,7 +3,7 @@ module github.com/zitadel/zitadel-charts
 go 1.22.3
 
 require (
-	github.com/gruntwork-io/terratest v0.47.0
+	github.com/gruntwork-io/terratest v0.47.1
 	github.com/jinzhu/copier v0.4.0
 	github.com/stretchr/testify v1.9.0
 	github.com/zitadel/oidc v1.13.5
