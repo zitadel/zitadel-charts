@@ -33,7 +33,7 @@ jobs:
 
       - id: 'set-up-python'
         name: Install Python (The Chart Testing CLI Depends On It)
-        uses: 'actions/setup-python@v5.1.1'
+        uses: 'actions/setup-python@v5.2.0'
         with:
           python-version: 3.11.4
         if: steps.list-changed-test.outputs.any_changed == 'true'
