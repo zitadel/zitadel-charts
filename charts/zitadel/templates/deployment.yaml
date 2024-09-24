@@ -94,6 +94,11 @@ spec:
             {{- with .Values.env }}
               {{- toYaml . | nindent 12 }}
             {{- end }}
+          {{- if .Values.envVarsSecret }}
+          envFrom:
+            - secretRef:
+                name: {{ .Values.envVarsSecret }}
+          {{- end }}
           ports:
           - containerPort: 8080
             name: {{ .Values.service.protocol }}-server
