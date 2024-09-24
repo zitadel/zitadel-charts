@@ -123,7 +123,6 @@ lifecycle:
       command:
         - "sleep"
         - "30"
-        
 securityContext:
   runAsNonRoot: true
   runAsUser: 1000
