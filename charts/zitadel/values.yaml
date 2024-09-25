@@ -117,12 +117,6 @@ podSecurityContext:
   runAsUser: 1000
   fsGroup: 1000
 
-lifecycle:
-  preStop:
-    exec:
-      command:
-        - "sleep"
-        - "30"
 securityContext:
   runAsNonRoot: true
   runAsUser: 1000

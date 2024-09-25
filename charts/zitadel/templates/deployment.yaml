@@ -40,8 +40,6 @@ spec:
       enableServiceLinks: false
       containers:
         - name: {{ .Chart.Name }}
-          lifecycle:
-            {{- toYaml .Values.lifecycle | nindent 14 }}
           securityContext:
             {{- toYaml .Values.securityContext | nindent 14 }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
