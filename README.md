@@ -138,7 +138,11 @@ kubectl get pods --all-namespaces --watch
 # Or if you have the watch binary installed
 watch -n .1 "kubectl get pods --all-namespaces"
 ```
-
+## Screenshots
+![Dashboard](https://media.discordapp.net/attachments/1288861233541550101/1288867332093116426/image.png)
+![Login](https://media.discordapp.net/attachments/1288861233541550101/1288867328850657343/image.png)
+![Change Password](https://media.discordapp.net/attachments/1288861233541550101/1288867330755133532/image.png)
+![2FA Setup](https://media.discordapp.net/attachments/1288861233541550101/1288867330037911582/image.png)
 ## Contributors
 
 <a href="https://github.com/zitadel/zitadel-charts/graphs/contributors">
