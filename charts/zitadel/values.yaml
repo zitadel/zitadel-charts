@@ -169,6 +169,7 @@ topologySpreadConstraints: []
 
 certJob:
   enabled: false
+  manual: ""
   annotations:
     helm.sh/hook: pre-install, pre-upgrade
     helm.sh/hook-delete-policy: before-hook-creation
@@ -181,6 +182,7 @@ certJob:
   podAdditionalLabels: {}
   volumeName: certs
   secretName: certs-secret
+  serviceAccountName: zitadel-cert-creator
 
 initJob:
   # Once ZITADEL is installed, the initJob can be disabled.

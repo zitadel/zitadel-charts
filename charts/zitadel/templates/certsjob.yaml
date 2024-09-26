@@ -1,7 +1,10 @@
 {{- if .Values.certJob.enabled -}}
-{{- $overrideValid := and(not .Values.postgres.enabled) (not .Values.cockroach.enabled) -}}
-{{- $cockroachOverride := and($overrideValid) (eq .Values.certJob.override "cockroach") -}}
-{{- $postgresOverride := and($overrideValid) (eq .Values.certJob.override "postgres") -}}
+{{- if and (or .Values.postgresql.enabled .Values.cockroachdb.enabled) (.Values.certJob.manual) -}}
+{{ fail "cannot have both a DB enabled and manual option."}}
+{{- end -}}
+{{- if and .Values.postgresql.enabled .Values.cockroachdb.enabled -}}
+{{ fail "you can only enable one database."}}
+{{- end -}}
 
 apiVersion: batch/v1
 kind: Job
@@ -33,7 +36,7 @@ spec:
       restartPolicy: OnFailure
       serviceAccountName: {{ .Values.certJob.serviceAccountName }}
 
-      {{- if or (.Values.postgresql.enabled) ($postgresOverride) }}
+      {{- if or (.Values.postgresql.enabled) (eq .Values.certJob.manual "postgresql") }}
 
       initContainers:
       - image: alpine/openssl
@@ -140,7 +143,7 @@ spec:
         emptyDir: {}
       {{- end}}
 
-      {{- if or (.Values.cockroach.enabled) ($cockroachOverride) }}
+      {{- if or (.Values.cockroachdb.enabled) (eq .Values.certJob.manual "cockroachdb") }}
       initContainers:
       - image: busybox
         imagePullPolicy: IfNotPresent
