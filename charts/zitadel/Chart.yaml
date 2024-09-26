@@ -6,7 +6,66 @@ appVersion: v2.61.0
 version: 8.5.0
 kubeVersion: ">= 1.21.0-0"
 icon: https://zitadel.com/zitadel-logo-dark.svg
+home: https://zitadel.com
+keywords:
+  - auth
+  - authentication
+  - sso
+  - single-sign-on
+  - single_sign_on
+  - idp
+  - identity
+  - identity-platform
+  - identity_platform
+  - oidc
+  - open-identity
+  - open_identity
+  - open-identity-connect
+  - open_identity_connect
+  - oauth
+sources:
+  - https://zitadel.com/docs/self-hosting/deploy/overview
+  - https://github.com/zitadel/zitadel
 maintainers:
   - name: zitadel
     email: support@zitadel.com
     url: https://zitadel.com
+dependencies:
+  - name: postgresql
+    version: 15.5.35
+    repository: https://charts.bitnami.com/bitnami
+    condition: postgresql.enabled
+  - name: cockroachdb
+    version: 14.0.3
+    repository: https://charts.cockroachdb.com/
+    condition: cockroachdb.enabled
+annotations:
+  artifacthub.io/maintainers: |
+    - name: Zitadel Team
+      email: support@zitadel.com
+      url: https://zitadel.com
+  artifacthub.io/links: |
+    - name: GitHub
+      url: https://github.com/zitadel/zitadel-charts
+    - name: Examples
+      url: https://github.com/zitadel/zitadel-charts/tree/main/examples
+    - name: Discord
+      url: https://zitadel.com/chat
+    - name: Documentation
+      url: https://zitadel.com/docs/self-hosting/deploy/overview
+  artifacthub.io/images: |
+    - name: zitadel
+      image: ghcr.io/zitadel/zitadel
+  artifacthub.io/license: Apache License 2.0
+  artifacthub.io/changes: |
+    - kind: changed
+      description: overhauled helm chart
+  artifacthub.io/screenshots: |
+    - title: Dashboard
+      url: https://media.discordapp.net/attachments/1288861233541550101/1288867332093116426/image.png
+    - title: Login
+      url: https://media.discordapp.net/attachments/1288861233541550101/1288867328850657343/image.png
+    - title: Change Password
+      url: https://media.discordapp.net/attachments/1288861233541550101/1288867330755133532/image.png
+    - title: 2fa Setup
+      url: https://media.discordapp.net/attachments/1288861233541550101/1288867330037911582/image.png
