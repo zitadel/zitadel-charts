@@ -1,0 +1,213 @@
+{{- if .Values.certJob.enabled }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: "{{include "zitadel.fullname" . }}-create-certs"
+  labels:
+    {{- include "zitadel.labels" . | nindent 4 }}
+    app.kubernetes.io/component: create-certs
+    {{- with .Values.certJob.annotations }}
+  annotations:
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  backoffLimit: {{.Values.certJob.backoffLimit}}
+  activeDeadlineSeconds: {{.Values.certJob.activeDeadlineSeconds}}
+  template:
+    metadata:
+      labels:
+        {{- include "zitadel.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: init
+        {{- with .Values.certJob.podAdditionalLabels }}
+          {{- toYaml . | nindent 8 }}
+        {{- end }}
+      {{- with .Values.certJob.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    spec:
+      restartPolicy: OnFailure
+      serviceAccountName: {{ .Values.certJob.serviceAccountName }}
+
+      {{- if .Values.postgresql.enabled - }}
+
+      initContainers:
+      - image: alpine/openssl
+        imagePullPolicy: IfNotPresent
+        name: create-certs
+        volumeMounts:
+          - mountPath: /secret
+            name: secret
+        command:
+        - /bin/ash
+        - -c
+        - |
+          function createKey() {
+            USER=$1
+            openssl genrsa -out ${USER}.key 2048
+            echo "created ${USER}.key"
+          }
+          function createSigningRequest() {
+            USER=$1
+            openssl req -new -key ${USER}.key -extensions 'v3_req' -out ${USER}.csr -config <(generateServerConfig)
+            echo "created ${USER}.csr"
+          }
+          function generateServerConfig() {
+            cat<<EOF
+            [req]
+            distinguished_name = req_distinguished_name
+            x509_extensions = v3_req
+            prompt = no
+            [req_distinguished_name]
+            CN = db-postgresql
+            [v3_req]
+            keyUsage = keyEncipherment, dataEncipherment
+            extendedKeyUsage = serverAuth
+            subjectAltName = DNS:postgres,DNS:zitadel,DNS:db-postgresql
+            EOF
+          }
+          function signCertificate() {
+            INCSR=$1 OUTCRT=$2 CA_CRT=$3 CA_KEY=$4
+            openssl x509 -req -in $INCSR -CA $CA_CRT -CAkey $CA_KEY -CAcreateserial -days 365 -out $OUTCRT -extensions v3_req -extfile <(generateServerConfig)
+          }
+          function secretJson {
+            USER=$1
+            cat<<EOF
+            {
+              "apiVersion": "v1",
+              "kind": "Secret",
+              "data": {
+                "ca.crt": "$(base64 -w 0 ./ca.crt)",
+                "tls.crt": "$(base64 -w 0 ./${USER}.crt)",
+                "tls.key": "$(base64 -w 0 ./${USER}.key)"
+              },
+              "metadata": {
+                "name": "${USER}-cert"
+              },
+              "type": "kubernetes.io/tls"
+            }
+            EOF
+          }
+          function createCertSecret {
+            USER=$1
+            secretJson ${USER} >> ${USER}-cert.json
+          }
+          cd /secret
+          # Create a CA key and cert for signing other certs
+          createKey ca
+          openssl req -x509 -new -nodes -key ca.key -days 365 -out ca.crt -subj "/CN=My Custom CA"
+          createKey postgres
+          createSigningRequest postgres
+          signCertificate postgres.csr postgres.crt ca.crt ca.key
+          createCertSecret postgres
+          createKey zitadel
+          createSigningRequest zitadel
+          signCertificate zitadel.csr zitadel.crt ca.crt ca.key
+          createCertSecret zitadel
+
+      containers:
+      - image: alpine/curl
+        name: apply-certs
+        imagePullPolicy: IfNotPresent
+        volumeMounts:
+        - mountPath: /secret
+          name: secret
+        command:
+        - /bin/ash
+        - -c
+        - |
+          export APISERVER=https://kubernetes.default.svc SERVICEACCOUNT=/var/run/secrets/kubernetes.io/serviceaccount
+          export NAMESPACE=$(cat ${SERVICEACCOUNT}/namespace) TOKEN=$(cat ${SERVICEACCOUNT}/token) CACERT=${SERVICEACCOUNT}/ca.crt
+          function uploadSecret {
+            USER=$1
+            curl \
+              --cacert ${CACERT} \
+              --header "Authorization: Bearer ${TOKEN}" \
+              --header "Content-Type: application/json" \
+              -X POST ${APISERVER}/api/v1/namespaces/${NAMESPACE}/secrets \
+              --data "$(tr -d '\n' < /secret/${USER}-cert.json)" \
+              > /dev/null || echo "error uploading ${USER} secret: $?"
+          }
+          uploadSecret postgres
+          uploadSecret zitadel
+
+      volumes:
+      - name: {{ .Value.certJob.volumeName }}
+        emptyDir: {}
+
+      {{- else if .Values.cockroach.enabled }}
+
+      initContainers:
+      - image: busybox
+        imagePullPolicy: IfNotPresent
+        name: copy-certs
+        command:
+        - /bin/sh
+        - -c
+        - cp -f /certs/* /cockroach-certs/; chmod 0400 /cockroach-certs/*.key
+        
+        volumeMounts:
+        - mountPath: /cockroach-certs/
+          name: certs
+        - mountPath: /certs/
+          name: certs-secret
+
+      containers:
+      - image: cockroachdb/cockroach:v23.1.8
+        imagePullPolicy: IfNotPresent
+        name: create-zitadel-cert
+        volumeMounts:
+        - mountPath: /cockroach/cockroach-certs/
+          name: certs
+        command:
+        - /bin/bash
+        - -ecx
+        - |
+          cockroach cert create-client \
+          --certs-dir /cockroach/cockroach-certs \
+          --ca-key /cockroach/cockroach-certs/ca.key \
+          --lifetime 8760h \
+          zitadel
+          export SECRET=$(cat <<EOF
+          {
+            "apiVersion": "v1",
+            "kind": "Secret",
+            "data": {
+              "ca.crt": "$(base64 /cockroach/cockroach-certs/ca.crt --wrap 0)",
+              "tls.crt": "$(base64 /cockroach/cockroach-certs/client.zitadel.crt --wrap 0)",
+              "tls.key": "$(base64 /cockroach/cockroach-certs/client.zitadel.key --wrap 0)"
+            },
+            "metadata": {
+              "name": "db-cockroachdb-zitadel-secret"
+            },
+            "type": "kubernetes.io/tls"
+          }
+          EOF
+          )
+          export APISERVER=https://kubernetes.default.svc SERVICEACCOUNT=/var/run/secrets/kubernetes.io/serviceaccount
+          export NAMESPACE=$(cat ${SERVICEACCOUNT}/namespace) TOKEN=$(cat ${SERVICEACCOUNT}/token) CACERT=${SERVICEACCOUNT}/ca.crt
+          curl \
+          --cacert ${CACERT} \
+          --header "Authorization: Bearer ${TOKEN}" \
+          --header "Content-Type: application/json" \
+          -X POST ${APISERVER}/api/v1/namespaces/${NAMESPACE}/secrets \
+          --data "$(echo -n $SECRET | tr -d '\n')"
+
+      volumes:
+      - name: {{ .Value.certJob.volumeName }}
+        emptyDir: {}
+      - name: {{ .Value.certJob.secretName }}
+        projected:
+          defaultMode: 420
+          sources:
+            secret:
+            - name: {{ .Value.certJob.secretName}}
+              items:
+              - key: ca.crt
+                mode: 256
+                path: ca.crt
+              - key: ca.key
+                mode: 256
+                path: ca.key
+      {{- end -}}
+{{-end}}
