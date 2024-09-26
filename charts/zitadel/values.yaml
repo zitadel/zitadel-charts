@@ -167,6 +167,21 @@ affinity: {}
 
 topologySpreadConstraints: []
 
+certJob:
+  enabled: false
+  annotations:
+    helm.sh/hook: pre-install, pre-upgrade
+    helm.sh/hook-delete-policy: before-hook-creation
+    helm.sh/hook-weight: "0"
+  resources: {}
+  backoffLimit: 5
+  activeDeadlineSeconds: 300
+  extraContainers: []
+  podAnnotations: {}
+  podAdditionalLabels: {}
+  volumeName: certs
+  secretName: certs-secret
+
 initJob:
   # Once ZITADEL is installed, the initJob can be disabled.
   enabled: true
@@ -252,3 +267,24 @@ extraVolumeMounts: []
   #   mountPath: /etc/ssl/certs/myca.pem
   #   subPath: myca.pem
   #   readOnly: true
+
+postgresql:
+  # enable postgresql helm subchart: https://github.com/bitnami/charts/blob/main/bitnami/postgresql/
+  enabled: false
+  auth:
+    username: zitadel
+    password: zitadel
+    postgresPassword: zitadel
+  volumePermissions:
+    enabled: true
+  tls:
+    enabled: false
+    certificatesSecret: postgres-cert
+    certFilename: "tls.crt"
+    certKeyFilename: "tls.key"
+
+cockroachdb:
+  # enable cockroachdb helm subchart: https://github.com/cockroachdb/helm-charts
+  enabled: false
+  tls:
+    enabled: false

@@ -86,7 +86,7 @@ spec:
                 "tls.key": "$(base64 -w 0 ./${USER}.key)"
               },
               "metadata": {
-                "name": "${USER}-cert"
+                "name": "{{.Values.certJob.secretName}}"
               },
               "type": "kubernetes.io/tls"
             }
@@ -152,9 +152,9 @@ spec:
         
         volumeMounts:
         - mountPath: /cockroach-certs/
-          name: certs
+          name: {{.Values.certJob.volumeName}}
         - mountPath: /certs/
-          name: certs-secret
+          name: {{.Values.certJob.secretName}}
 
       containers:
       - image: cockroachdb/cockroach:v23.1.8
@@ -162,7 +162,7 @@ spec:
         name: create-zitadel-cert
         volumeMounts:
         - mountPath: /cockroach/cockroach-certs/
-          name: certs
+          name: {{.Values.certJob.volumeName}}
         command:
         - /bin/bash
         - -ecx
@@ -182,7 +182,7 @@ spec:
               "tls.key": "$(base64 /cockroach/cockroach-certs/client.zitadel.key --wrap 0)"
             },
             "metadata": {
-              "name": "db-cockroachdb-zitadel-secret"
+              "name": "{{ .Values.certJob.secretName}}"
             },
             "type": "kubernetes.io/tls"
           }
