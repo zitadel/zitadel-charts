@@ -1,4 +1,8 @@
-{{- if .Values.certJob.enabled }}
+{{- if .Values.certJob.enabled -}}
+{{- $overrideValid := and(not .Values.postgres.enabled) (not .Values.cockroach.enabled) -}}
+{{- $cockroachOverride := and($overrideValid) (eq .Values.certJob.override "cockroach") -}}
+{{- $postgresOverride := and($overrideValid) (eq .Values.certJob.override "postgres") -}}
+
 apiVersion: batch/v1
 kind: Job
 metadata:
@@ -29,7 +33,7 @@ spec:
       restartPolicy: OnFailure
       serviceAccountName: {{ .Values.certJob.serviceAccountName }}
 
-      {{- if .Values.postgresql.enabled - }}
+      {{- if or (.Values.postgresql.enabled) ($postgresOverride) }}
 
       initContainers:
       - image: alpine/openssl
@@ -134,9 +138,9 @@ spec:
       volumes:
       - name: {{ .Value.certJob.volumeName }}
         emptyDir: {}
+      {{- end}}
 
-      {{- else if .Values.cockroach.enabled }}
-
+      {{- if or (.Values.cockroach.enabled) ($cockroachOverride) }}
       initContainers:
       - image: busybox
         imagePullPolicy: IfNotPresent
@@ -209,5 +213,5 @@ spec:
               - key: ca.key
                 mode: 256
                 path: ca.key
-      {{- end -}}
-{{-end}}
+      {{- end }}
+{{-end -}}
