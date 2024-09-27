@@ -8,10 +8,11 @@ func (s *ConfigurationTest) BeforeTest(_, _ string) {
 	}
 	helm.AddRepo(s.T(), &helm.Options{}, s.dbRepoName, s.dbChart.repoUrl)
 	options := &helm.Options{
-		KubectlOptions: s.KubeOptions,
-		Version:        s.dbChart.version,
-		SetValues:      s.dbChart.testValues,
-		ExtraArgs:      map[string][]string{"install": {"--wait"}},
+		KubectlOptions:    s.KubeOptions,
+		Version:           s.dbChart.version,
+		SetValues:         s.dbChart.testValues,
+		ExtraArgs:         map[string][]string{"install": {"--wait"}},
+		BuildDependencies: true,
 	}
 	if s.dbChart.valuesFile != "" {
 		options.ValuesFiles = []string{s.dbChart.valuesFile}

@@ -18,6 +18,7 @@ func (s *ConfigurationTest) TestZITADELInstallation() {
 			"replicaCount": "1",
 			"pdb.enabled":  "true",
 		},
+		BuildDependencies: true,
 	}, s.zitadelChartPath, s.zitadelRelease)
 	k8s.WaitUntilJobSucceed(s.T(), s.KubeOptions, "zitadel-test-init", 900, time.Second)
 	k8s.WaitUntilJobSucceed(s.T(), s.KubeOptions, "zitadel-test-setup", 900, time.Second)
