@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"path/filepath"
-	"strings"
 	"testing"
 
 	"github.com/gruntwork-io/terratest/modules/k8s"
@@ -18,16 +17,16 @@ type hookFunc func(*ConfigurationTest)
 
 type ConfigurationTest struct {
 	suite.Suite
-	Ctx                                                     context.Context
-	log                                                     *logger.Logger
-	KubeOptions                                             *k8s.KubectlOptions
-	KubeClient                                              *kubernetes.Clientset
-	Scheme, Domain                                          string
-	Port                                                    uint16
-	zitadelValues                                           []string
-	dbChart                                                 databaseChart
-	zitadelChartPath, zitadelRelease, dbRepoName, dbRelease string
-	beforeFunc, afterDBFunc, afterZITADELFunc               hookFunc
+	Ctx                                         context.Context
+	log                                         *logger.Logger
+	KubeOptions                                 *k8s.KubectlOptions
+	KubeClient                                  *kubernetes.Clientset
+	Scheme, Domain                              string
+	Port                                        uint16
+	zitadelValues                               []string
+	dbChart                                     *databaseChart
+	zitadelChartPath, zitadelRelease, dbRelease string
+	beforeFunc, afterDBFunc, afterZITADELFunc   hookFunc
 }
 
 func (c *ConfigurationTest) APIBaseURL() string {
@@ -56,15 +55,15 @@ var (
 	}
 )
 
-func (d *databaseChart) WithValues(valuesFile string) databaseChart {
+func (d databaseChart) WithValues(valuesFile string) *databaseChart {
 	d.valuesFile = valuesFile
-	return *d
+	return &d
 }
 
 func Configure(
 	t *testing.T,
 	namespace string,
-	dbChart databaseChart,
+	dbChart *databaseChart,
 	zitadelValues []string,
 	externalDomain string,
 	externalPort uint16,
@@ -73,7 +72,6 @@ func Configure(
 ) *ConfigurationTest {
 	chartPath, err := filepath.Abs("..")
 	require.NoError(t, err)
-	dbRepoName := fmt.Sprintf("crdb-%s", strings.TrimPrefix(namespace, "zitadel-helm-"))
 	kubeOptions := k8s.NewKubectlOptions("", "", namespace)
 	clientset, err := k8s.GetKubernetesClientFromOptionsE(t, kubeOptions)
 	if err != nil {
@@ -92,7 +90,6 @@ func Configure(
 		zitadelChartPath: chartPath,
 		zitadelRelease:   "zitadel-test",
 		dbChart:          dbChart,
-		dbRepoName:       dbRepoName,
 		dbRelease:        "db",
 		beforeFunc:       before,
 		afterDBFunc:      afterDB,
