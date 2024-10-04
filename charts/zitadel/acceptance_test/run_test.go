@@ -1,4 +1,4 @@
-package acceptance
+package acceptance_test
 
 import (
 	"testing"
@@ -18,8 +18,7 @@ func (s *ConfigurationTest) TestZITADELInstallation() {
 			"replicaCount": "1",
 			"pdb.enabled":  "true",
 		},
-		BuildDependencies: true,
-	}, s.zitadelChartPath, s.zitadelRelease)
+	}, ChartPath, s.zitadelRelease)
 	k8s.WaitUntilJobSucceed(s.T(), s.KubeOptions, "zitadel-test-init", 900, time.Second)
 	k8s.WaitUntilJobSucceed(s.T(), s.KubeOptions, "zitadel-test-setup", 900, time.Second)
 	pods := listPods(s.T(), 5, s.KubeOptions)

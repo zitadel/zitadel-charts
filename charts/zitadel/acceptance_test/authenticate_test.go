@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"github.com/gruntwork-io/terratest/modules/k8s"
 	"github.com/zitadel/oidc/pkg/oidc"
-	"github.com/zitadel/zitadel-charts/charts/zitadel/acceptance"
 	mgmt_api "github.com/zitadel/zitadel-go/v2/pkg/client/zitadel/management"
 	"net/http"
 	"net/url"
@@ -15,8 +14,8 @@ import (
 	"time"
 )
 
-func testAuthenticatedAPI(secretName, secretKey string) func(test *acceptance.ConfigurationTest) {
-	return func(cfg *acceptance.ConfigurationTest) {
+func testAuthenticatedAPI(secretName, secretKey string) func(test *ConfigurationTest) {
+	return func(cfg *ConfigurationTest) {
 		t := cfg.T()
 		apiBaseURL := cfg.APIBaseURL()
 		secret := k8s.GetSecret(t, cfg.KubeOptions, secretName)
@@ -32,15 +31,15 @@ func testAuthenticatedAPI(secretName, secretKey string) func(test *acceptance.Co
 		if err != nil {
 			t.Fatal(err)
 		}
-		closeTunnel := acceptance.ServiceTunnel(cfg)
+		closeTunnel := ServiceTunnel(cfg)
 		defer closeTunnel()
 		var token string
-		acceptance.Await(cfg.Ctx, t, nil, 60, func(ctx context.Context) error {
+		Await(cfg.Ctx, t, nil, 60, func(ctx context.Context) error {
 			var tokenErr error
 			token, tokenErr = getToken(ctx, t, jwt, apiBaseURL)
 			return tokenErr
 		})
-		acceptance.Await(cfg.Ctx, t, nil, 60, func(ctx context.Context) error {
+		Await(cfg.Ctx, t, nil, 60, func(ctx context.Context) error {
 			if httpErr := callAuthenticatedHTTPEndpoint(ctx, token, apiBaseURL); httpErr != nil {
 				return httpErr
 			}
@@ -55,7 +54,7 @@ func getToken(ctx context.Context, t *testing.T, jwt, apiBaseURL string) (string
 	form.Add("scope", fmt.Sprintf("%s %s %s urn:zitadel:iam:org:project:id:zitadel:aud", oidc.ScopeOpenID, oidc.ScopeProfile, oidc.ScopeEmail))
 	form.Add("assertion", jwt)
 	//nolint:bodyclose
-	resp, tokenBody, err := acceptance.HttpPost(ctx, fmt.Sprintf("%s/oauth/v2/token", apiBaseURL), func(req *http.Request) {
+	resp, tokenBody, err := HttpPost(ctx, fmt.Sprintf("%s/oauth/v2/token", apiBaseURL), func(req *http.Request) {
 		req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
 	}, strings.NewReader(form.Encode()))
 	if err != nil {
@@ -77,7 +76,7 @@ func callAuthenticatedHTTPEndpoint(ctx context.Context, token, apiBaseURL string
 	checkCtx, checkCancel := context.WithTimeout(ctx, 5*time.Second)
 	defer checkCancel()
 	//nolint:bodyclose
-	resp, _, err := acceptance.HttpGet(checkCtx, fmt.Sprintf("%s/management/v1/languages", apiBaseURL), func(req *http.Request) {
+	resp, _, err := HttpGet(checkCtx, fmt.Sprintf("%s/management/v1/languages", apiBaseURL), func(req *http.Request) {
 		req.Header.Add("Authorization", fmt.Sprintf("Bearer %s", token))
 	})
 	if err != nil {
@@ -89,9 +88,9 @@ func callAuthenticatedHTTPEndpoint(ctx context.Context, token, apiBaseURL string
 	return nil
 }
 
-func callAuthenticatedGRPCEndpoint(cfg *acceptance.ConfigurationTest, key []byte) error {
+func callAuthenticatedGRPCEndpoint(cfg *ConfigurationTest, key []byte) error {
 	t := cfg.T()
-	conn, err := acceptance.OpenGRPCConnection(cfg, key)
+	conn, err := OpenGRPCConnection(cfg, key)
 	if err != nil {
 		return fmt.Errorf("couldn't open gRPC connection: %v", err)
 	}

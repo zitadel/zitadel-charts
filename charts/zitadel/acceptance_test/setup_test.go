@@ -1,7 +1,6 @@
-package acceptance
+package acceptance_test
 
 import (
-	"github.com/gruntwork-io/terratest/modules/helm"
 	"github.com/gruntwork-io/terratest/modules/k8s"
 	"github.com/jinzhu/copier"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -39,8 +38,6 @@ metadata:
 	if notFound {
 		k8s.CreateNamespace(t, s.KubeOptions, s.KubeOptions.Namespace)
 	}
-	helm.AddRepo(s.T(), &helm.Options{}, Postgres.name, Postgres.repoUrl)
-	helm.AddRepo(s.T(), &helm.Options{}, Cockroach.name, Cockroach.repoUrl)
 
 }
 

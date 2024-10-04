@@ -1,4 +1,4 @@
-package acceptance
+package acceptance_test
 
 import "github.com/gruntwork-io/terratest/modules/helm"
 
@@ -15,7 +15,7 @@ func (s *ConfigurationTest) BeforeTest(_, _ string) {
 	if s.dbChart.valuesFile != "" {
 		options.ValuesFiles = []string{s.dbChart.valuesFile}
 	}
-	helm.Install(s.T(), options, s.dbChart.name+"/"+s.dbChart.name, s.dbRelease)
+	helm.Install(s.T(), options, s.dbChart.Name+"/"+s.dbChart.Name, s.dbRelease)
 	if s.afterDBFunc != nil {
 		s.afterDBFunc(s)
 	}

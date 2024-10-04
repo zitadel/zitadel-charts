@@ -1,14 +1,12 @@
-package acceptance
+package acceptance_test
 
 import (
 	"context"
 	"fmt"
-	"path/filepath"
 	"testing"
 
 	"github.com/gruntwork-io/terratest/modules/k8s"
 	"github.com/gruntwork-io/terratest/modules/logger"
-	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 	"k8s.io/client-go/kubernetes"
 )
@@ -17,16 +15,16 @@ type hookFunc func(*ConfigurationTest)
 
 type ConfigurationTest struct {
 	suite.Suite
-	Ctx                                         context.Context
-	log                                         *logger.Logger
-	KubeOptions                                 *k8s.KubectlOptions
-	KubeClient                                  *kubernetes.Clientset
-	Scheme, Domain                              string
-	Port                                        uint16
-	zitadelValues                               []string
-	dbChart                                     *databaseChart
-	zitadelChartPath, zitadelRelease, dbRelease string
-	beforeFunc, afterDBFunc, afterZITADELFunc   hookFunc
+	Ctx                                       context.Context
+	log                                       *logger.Logger
+	KubeOptions                               *k8s.KubectlOptions
+	KubeClient                                *kubernetes.Clientset
+	Scheme, Domain                            string
+	Port                                      uint16
+	zitadelValues                             []string
+	dbChart                                   *databaseChart
+	zitadelRelease, dbRelease                 string
+	beforeFunc, afterDBFunc, afterZITADELFunc hookFunc
 }
 
 func (c *ConfigurationTest) APIBaseURL() string {
@@ -34,14 +32,14 @@ func (c *ConfigurationTest) APIBaseURL() string {
 }
 
 type databaseChart struct {
-	valuesFile, repoUrl, name, version string
+	valuesFile, RepoUrl, Name, version string
 	testValues                         map[string]string
 }
 
 var (
 	Cockroach = databaseChart{
-		repoUrl: "https://charts.cockroachdb.com/",
-		name:    "cockroachdb",
+		RepoUrl: "https://charts.cockroachdb.com/",
+		Name:    "cockroachdb",
 		version: "13.0.1",
 		testValues: map[string]string{
 			"statefulset.replicas": "1",
@@ -49,8 +47,8 @@ var (
 		},
 	}
 	Postgres = databaseChart{
-		repoUrl: "https://charts.bitnami.com/bitnami",
-		name:    "postgresql",
+		RepoUrl: "https://charts.bitnami.com/bitnami",
+		Name:    "postgresql",
 		version: "12.10.0",
 	}
 )
@@ -70,8 +68,6 @@ func Configure(
 	externalSecure bool,
 	before, afterDB, afterZITADEL hookFunc,
 ) *ConfigurationTest {
-	chartPath, err := filepath.Abs("..")
-	require.NoError(t, err)
 	kubeOptions := k8s.NewKubectlOptions("", "", namespace)
 	clientset, err := k8s.GetKubernetesClientFromOptionsE(t, kubeOptions)
 	if err != nil {
@@ -87,7 +83,6 @@ func Configure(
 		KubeOptions:      kubeOptions,
 		KubeClient:       clientset,
 		zitadelValues:    zitadelValues,
-		zitadelChartPath: chartPath,
 		zitadelRelease:   "zitadel-test",
 		dbChart:          dbChart,
 		dbRelease:        "db",
