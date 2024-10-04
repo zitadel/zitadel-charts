@@ -1,0 +1,12 @@
+# This Chart.yaml is extended by the Charts.yaml for the zitadel chart.
+name: zitadel-umbrella
+description: A vendored Helm chart for ZITADEL with subcharts
+dependencies:
+  - name: postgresql
+    version: 15.5.35
+    repository: https://charts.bitnami.com/bitnami
+    condition: postgresql.enabled
+  - name: cockroachdb
+    version: 14.0.3
+    repository: https://charts.cockroachdb.com/
+    condition: cockroachdb.enabled
