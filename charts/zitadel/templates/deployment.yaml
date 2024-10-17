@@ -94,6 +94,11 @@ spec:
             {{- with .Values.env }}
               {{- toYaml . | nindent 12 }}
             {{- end }}
+          {{- if .Values.envVarsSecret }}
+          envFrom:
+            - secretRef:
+                name: {{ .Values.envVarsSecret }}
+          {{- end }}
           ports:
           - containerPort: 8080
             name: {{ .Values.service.protocol }}-server
@@ -103,7 +108,7 @@ spec:
             httpGet:
               path: /debug/healthz
               port: {{ .Values.service.protocol }}-server
-              scheme: {{ .Values.service.scheme }}
+
               {{- if .Values.zitadel.configmapConfig.ExternalDomain }}
               httpHeaders:
                 - name: Host
@@ -111,6 +116,8 @@ spec:
               {{- end }}
               {{- if include "deepCheck" (dict "root" .Values "path" (splitList "." "zitadel.configmapConfig.TLS.Enabled")) }}
               scheme: HTTPS
+              {{- else }}
+              scheme: {{ .Values.service.scheme }}
               {{- end }}
             initialDelaySeconds: {{ .Values.livenessProbe.initialDelaySeconds }}
             periodSeconds: {{ .Values.livenessProbe.periodSeconds }}
@@ -121,7 +128,6 @@ spec:
             httpGet:
               path: /debug/ready
               port: {{ .Values.service.protocol }}-server
-              scheme: {{ .Values.service.scheme }}
               {{- if .Values.zitadel.configmapConfig.ExternalDomain }}
               httpHeaders:
                 - name: Host
@@ -129,6 +135,8 @@ spec:
               {{- end }}
               {{- if include "deepCheck" (dict "root" .Values "path" (splitList "." "zitadel.configmapConfig.TLS.Enabled")) }}
               scheme: HTTPS
+              {{- else }}
+              scheme: {{ .Values.service.scheme }}
               {{- end }}
             initialDelaySeconds: {{ .Values.readinessProbe.initialDelaySeconds }}
             periodSeconds: {{ .Values.readinessProbe.periodSeconds }}
@@ -139,7 +147,6 @@ spec:
             httpGet:
               path: /debug/ready
               port: {{ .Values.service.protocol }}-server
-              scheme: {{ .Values.service.scheme }}
               {{- if .Values.zitadel.configmapConfig.ExternalDomain }}
               httpHeaders:
                 - name: Host
@@ -147,6 +154,8 @@ spec:
               {{- end }}
               {{- if include "deepCheck" (dict "root" .Values "path" (splitList "." "zitadel.configmapConfig.TLS.Enabled")) }}
               scheme: HTTPS
+              {{- else }}
+              scheme: {{ .Values.service.scheme }}
               {{- end }}
             periodSeconds: {{ .Values.startupProbe.periodSeconds }}
             failureThreshold: {{ .Values.startupProbe.failureThreshold }}

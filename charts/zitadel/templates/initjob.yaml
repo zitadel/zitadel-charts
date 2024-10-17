@@ -88,6 +88,11 @@ spec:
             {{- with .Values.env }}
               {{- toYaml . | nindent 12 }}
             {{- end }}
+          {{- if .Values.envVarsSecret }}
+          envFrom:
+            - secretRef:
+                name: {{ .Values.envVarsSecret }}
+          {{- end }}
           volumeMounts:
           - name: zitadel-config-yaml
             mountPath: /config
