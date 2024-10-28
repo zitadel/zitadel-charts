@@ -3,15 +3,15 @@ module github.com/zitadel/zitadel-charts
 go 1.22.3
 
 require (
-	github.com/gruntwork-io/terratest v0.47.1
+	github.com/gruntwork-io/terratest v0.47.2
 	github.com/jinzhu/copier v0.4.0
 	github.com/stretchr/testify v1.9.0
 	github.com/zitadel/oidc v1.13.5
 	github.com/zitadel/zitadel-go/v2 v2.2.8
 	gopkg.in/yaml.v3 v3.0.1
-	k8s.io/api v0.31.0
-	k8s.io/apimachinery v0.31.0
-	k8s.io/client-go v0.31.0
+	k8s.io/api v0.31.2
+	k8s.io/apimachinery v0.31.2
+	k8s.io/client-go v0.31.2
 )
 
 require (
