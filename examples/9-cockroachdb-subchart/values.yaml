@@ -1,0 +1,35 @@
+zitadel:
+  masterkey: x123456789012345678901234567891y
+  configmapConfig:
+    ExternalSecure: false #change this to true if your ingress rule uses TLS and is routed to https
+    ExternalDomain: zitadel.example.com #replace this with your domain
+    TLS:
+      Enabled: false
+    Database:
+      Postgres:
+        Host: db-cockroach-public
+        User:
+          SSL:
+            Mode: verify-full
+        Admin:
+          SSL:
+            Mode: verify-full
+  secretConfig:
+    Database:
+      Postgres:
+        User:
+          Password: xyz
+        Admin:
+          Password: abc
+
+  certs:
+    job:
+      enabled: false #disabling this job requires that you make the certificates yourself if you want a deployment with certificates
+    dbSslCaCrtSecret: postgres-cert
+    dbSslAdminCrtSecret: postgres-cert
+    dbSslUserCrtSecret: zitadel-cert
+
+cockroach:
+  tls:
+    enabled: true
+
