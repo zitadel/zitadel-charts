@@ -7,7 +7,7 @@ import (
 	"github.com/gruntwork-io/terratest/modules/k8s"
 	"github.com/zitadel/oidc/pkg/oidc"
 	"github.com/zitadel/zitadel-charts/charts/zitadel/acceptance"
-	mgmt_api "github.com/zitadel/zitadel-go/v2/pkg/client/zitadel/management"
+	mgmt_api "github.com/zitadel/zitadel-go/v3/pkg/client/zitadel/management"
 	"net/http"
 	"net/url"
 	"strings"

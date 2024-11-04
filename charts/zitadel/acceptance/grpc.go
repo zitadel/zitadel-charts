@@ -1,19 +1,25 @@
 package acceptance
 
 import (
-	"fmt"
-	"github.com/zitadel/zitadel-go/v2/pkg/client/management"
-	"github.com/zitadel/zitadel-go/v2/pkg/client/middleware"
-	"github.com/zitadel/zitadel-go/v2/pkg/client/zitadel"
+	client2 "github.com/zitadel/oidc/v3/pkg/client"
+	"github.com/zitadel/zitadel-go/v3/pkg/client"
+	"github.com/zitadel/zitadel-go/v3/pkg/client/zitadel/management"
+	"github.com/zitadel/zitadel-go/v3/pkg/zitadel"
+	"strconv"
 )
 
-func OpenGRPCConnection(cfg *ConfigurationTest, key []byte) (*management.Client, error) {
-	conn, err := management.NewClient(
-		cfg.APIBaseURL(),
-		fmt.Sprintf("%s:%d", cfg.Domain, cfg.Port),
-		[]string{zitadel.ScopeZitadelAPI()},
-		zitadel.WithJWTProfileTokenSource(middleware.JWTProfileFromFileData(key)),
-		zitadel.WithInsecure(),
-	)
-	return conn, err
+func OpenGRPCConnection(cfg *ConfigurationTest, key []byte) (management.ManagementServiceClient, error) {
+	var options []client.Option
+	if key != nil {
+		keyFile, err := client2.ConfigFromKeyFileData(key)
+		if err != nil {
+			return nil, err
+		}
+		options = append(options, client.WithAuth(client.JWTAuthentication(keyFile, client.ScopeZitadelAPI())))
+	}
+	c, err := client.New(cfg.Ctx, zitadel.New(cfg.Domain, zitadel.WithInsecure(strconv.Itoa(int(cfg.Port)))), options...)
+	if err != nil {
+		return nil, err
+	}
+	return c.ManagementService(), nil
 }
