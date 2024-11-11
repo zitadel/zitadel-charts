@@ -2,8 +2,6 @@ package acceptance
 
 import (
 	"context"
-	"crypto/x509"
-	"errors"
 	"fmt"
 	"net/http"
 	"strconv"
@@ -78,10 +76,6 @@ func (s *ConfigurationTest) checkAccessibility(pods []corev1.Pod) {
 		},
 		checkOptionsFunc(func(ctx context.Context) error {
 			conn, err := OpenGRPCConnection(s, nil)
-			if errors.As(err, &x509.UnknownAuthorityError{}) {
-				// The gRPC client doesn't support skipping the server cert validation
-				return nil
-			}
 			if err != nil {
 				return fmt.Errorf("couldn't create gRPC management client: %w", err)
 			}

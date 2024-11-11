@@ -9,15 +9,22 @@ import (
 )
 
 func OpenGRPCConnection(cfg *ConfigurationTest, key []byte) (management.ManagementServiceClient, error) {
-	var options []client.Option
+	var clientOptions []client.Option
 	if key != nil {
 		keyFile, err := client2.ConfigFromKeyFileData(key)
 		if err != nil {
 			return nil, err
 		}
-		options = append(options, client.WithAuth(client.JWTAuthentication(keyFile, client.ScopeZitadelAPI())))
+		clientOptions = append(clientOptions, client.WithAuth(client.JWTAuthentication(keyFile, client.ScopeZitadelAPI())))
 	}
-	c, err := client.New(cfg.Ctx, zitadel.New(cfg.Domain, zitadel.WithInsecure(strconv.Itoa(int(cfg.Port)))), options...)
+	zitadelOptions := []zitadel.Option{
+		zitadel.WithPort(cfg.Port),
+		zitadel.WithInsecureSkipVerify(),
+	}
+	if cfg.Scheme != "https" {
+		zitadelOptions = append(zitadelOptions, zitadel.WithInsecure(strconv.Itoa(int(cfg.Port))))
+	}
+	c, err := client.New(cfg.Ctx, zitadel.New(cfg.Domain, zitadelOptions...), clientOptions...)
 	if err != nil {
 		return nil, err
 	}
