@@ -1,7 +1,7 @@
 package acceptance
 
 import (
-	client2 "github.com/zitadel/oidc/v3/pkg/client"
+	oidc_client "github.com/zitadel/oidc/v3/pkg/client"
 	"github.com/zitadel/zitadel-go/v3/pkg/client"
 	"github.com/zitadel/zitadel-go/v3/pkg/client/zitadel/management"
 	"github.com/zitadel/zitadel-go/v3/pkg/zitadel"
@@ -11,7 +11,7 @@ import (
 func OpenGRPCConnection(cfg *ConfigurationTest, key []byte) (management.ManagementServiceClient, error) {
 	var clientOptions []client.Option
 	if key != nil {
-		keyFile, err := client2.ConfigFromKeyFileData(key)
+		keyFile, err := oidc_client.ConfigFromKeyFileData(key)
 		if err != nil {
 			return nil, err
 		}
