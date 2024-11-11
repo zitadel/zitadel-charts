@@ -19,7 +19,7 @@ func OpenGRPCConnection(cfg *ConfigurationTest, key []byte) (management.Manageme
 	}
 	zitadelOptions := []zitadel.Option{
 		zitadel.WithPort(cfg.Port),
-		zitadel.WithInsecureSkipVerify(),
+		zitadel.WithInsecureSkipVerifyTLS(),
 	}
 	if cfg.Scheme != "https" {
 		zitadelOptions = append(zitadelOptions, zitadel.WithInsecure(strconv.Itoa(int(cfg.Port))))
