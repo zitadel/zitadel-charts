@@ -24,10 +24,10 @@ helm install my-zitadel zitadel/zitadel --values https://raw.githubusercontent.c
 When ZITADEL is ready, you can access the GUI via port-forwarding:
 
 ```bash
-kubectl port-forward svc/my-zitadel 8080
+kubectl port-forward svc/my-zitadel 8443:8080
 ```
 
-Now, open https://my-iam.127.0.0.1.sslip.io:8080 in your browser and log in with the following credentials:
+Now, open https://my-iam.127.0.0.1.sslip.io:8443 in your browser and log in with the following credentials:
 
 **Username**: zitadel-admin@zitadel.my-iam.127.0.0.1.sslip.io
 **Password**: Password1!
