@@ -5,6 +5,7 @@ zitadel:
     additionalDnsName: my-iam.127.0.0.1.sslip.io
   configmapConfig:
     ExternalSecure: true
+    ExternalPort: 8443
     ExternalDomain: my-iam.127.0.0.1.sslip.io
     TLS:
       Enabled: true
