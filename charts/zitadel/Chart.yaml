@@ -3,7 +3,7 @@ name: zitadel
 description: A Helm chart for ZITADEL
 type: application
 appVersion: v2.65.1
-version: 8.6.1
+version: 8.6.2
 kubeVersion: '>= 1.21.0-0'
 icon: https://zitadel.com/zitadel-logo-dark.svg
 maintainers:
