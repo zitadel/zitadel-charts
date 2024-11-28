@@ -30,7 +30,7 @@ zitadel:
 
   # ZITADEL uses the masterkey for symmetric encryption.
   # You can generate it for example with tr -dc A-Za-z0-9 </dev/urandom | head -c 32
-  masterkey: ""
+  masterkey: "ff"
   # Reference the name of the secret that contains the masterkey. The key should be named "masterkey".
   # Note: Either zitadel.masterkey or zitadel.masterkeySecretName must be set
   masterkeySecretName: ""
@@ -252,3 +252,12 @@ extraVolumeMounts: []
   #   mountPath: /etc/ssl/certs/myca.pem
   #   subPath: myca.pem
   #   readOnly: true
+
+extraManifests: []
+  # - apiVersion: v1
+  #   kind: Secret
+  #   metadata:
+  #     name: my-secret
+  #   data:
+  #     key: value
+  #   type: Opaque
