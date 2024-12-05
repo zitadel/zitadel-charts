@@ -253,11 +253,13 @@ extraVolumeMounts: []
   #   subPath: myca.pem
   #   readOnly: true
 
+# extraManifests allows you to add your own Kubernetes manifests
+# You can use templating logic like {{ .Release.Namespace }} and {{ .Values.replicaCount }} as long as your manifest is a valid YAML
 extraManifests: []
   # - apiVersion: v1
   #   kind: Secret
   #   metadata:
-  #     name: my-secret
-  #   data:
+  #     name: {{ include "zitadel.fullname" . }}-my-secret
+  #   stringData:
   #     key: value
   #   type: Opaque
