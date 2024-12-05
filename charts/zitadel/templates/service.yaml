@@ -21,7 +21,7 @@ spec:
       protocol: TCP
       name: {{ regexReplaceAll "\\W+" .Values.service.protocol "-" }}-server
       {{- if semverCompare ">=1.19-0" $.Capabilities.KubeVersion.GitVersion }}
-      appProtocol: {{ .Values.service.protocol }}
+      appProtocol: {{ .Values.service.appProtocol }}
       {{- end }}
   selector:
     {{- include "zitadel.selectorLabels" . | nindent 4 }}

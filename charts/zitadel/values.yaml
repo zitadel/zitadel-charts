@@ -143,6 +143,7 @@ service:
   clusterIP: ""
   port: 8080
   protocol: http2
+  appProtocol: kubernetes.io/h2c
   annotations: {}
   scheme: HTTP
 
