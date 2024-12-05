@@ -25,8 +25,13 @@ jobs:
         git config user.name "$GITHUB_ACTOR"
         git config user.email "$GITHUB_ACTOR@users.noreply.github.com"
 
-    - id: 'add-cockroachdb-repo'
-      run: 'helm repo add cockroachdb https://charts.cockroachdb.com/'
+    - id: 'prepare'
+      run: |
+        helm repo add bitnami https://charts.bitnami.com/bitnami
+        helm repo add cockroachdb https://charts.cockroachdb.com/
+        cat ./charts/zitadel/values.yaml >> charts/zitadel-umbrella/values.yaml
+        sed -n -e '/Common.*zitadel-umbrella/,$p' ./charts/zitadel/Chart.yaml >> charts/zitadel-umbrella/Chart.yaml
+        helm dependency build charts/zitadel-umbrella
 
     - id: 'release'
       uses: 'helm/chart-releaser-action@v1.6.0'
