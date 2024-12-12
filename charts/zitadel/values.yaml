@@ -44,6 +44,12 @@ zitadel:
   # The CA Certificate needed for establishing secure database connections
   dbSslCaCrt: ""
 
+  # Annotations set on database SSL CA certificate secret
+  dbSslCaCrtAnnotations:
+    helm.sh/hook: pre-install,pre-upgrade
+    helm.sh/hook-delete-policy: before-hook-creation
+    helm.sh/hook-weight: "0"
+
   # The Secret containing the CA certificate at key ca.crt needed for establishing secure database connections
   dbSslCaCrtSecret: ""
 
