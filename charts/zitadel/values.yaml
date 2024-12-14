@@ -79,7 +79,7 @@ zitadel:
   # Currently this is the Zitadel Deployment, Setup Job**, Init Job** and debug_replicaset**  **If Enabled
   extraContainers: []
     # # Example; You wish to deploy a cloud-sql-proxy sidecar to all deployments:
-    # - name: cloud-sql-proxy 
+    # - name: cloud-sql-proxy
     #   image: gcr.io/cloud-sql-connectors/cloud-sql-proxy:2.14.1
     #   command:
     #     - /cloud-sql-proxy
@@ -307,4 +307,3 @@ extraManifests: []
   #   stringData:
   #     key: value
   #   type: Opaque
-  
