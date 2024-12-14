@@ -75,7 +75,7 @@ zitadel:
       helm.sh/hook-weight: "1"
     extraContainers: []
 
-  # extraContainers allows you to add any sidecar containers you wish to use to all deployments.
+  # extraContainers allows you to add any sidecar containers you wish to use globally.
   # Currently this is the Zitadel Deployment, Setup Job**, Init Job** and debug_replicaset**  **If Enabled
   extraContainers: []
     # # Example; You wish to deploy a cloud-sql-proxy sidecar to all deployments:
@@ -282,7 +282,7 @@ pdb:
   # maxUnavailable: 1
   annotations: {}
 
-# extraContainers allows you to add any sidecar containers you wish to use to the Zitadel Deployment
+# extraContainers allows you to add any sidecar containers you wish to use in the Zitadel pod.
 extraContainers: []
 
 extraVolumes: []
