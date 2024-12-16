@@ -63,7 +63,7 @@ jobs:
 
     - id: 'create-kind'
       name: Create Kubernetes Cluster with KinD
-      uses: 'helm/kind-action@v1.10.0'
+      uses: 'helm/kind-action@v1.11.0'
       with:
         node_image: 'kindest/node:${{ matrix.k8s.kindest-image-tag }}'
         version: 'v0.23.0'
