@@ -36,6 +36,12 @@ spec:
       enableServiceLinks: false
       restartPolicy: OnFailure
       containers:
+      {{- if .Values.zitadel.extraContainers }}
+        {{- toYaml .Values.zitadel.extraContainers | nindent 8 }}
+      {{- end }}
+      {{- if .Values.initJob.extraContainers }}
+        {{- toYaml .Values.initJob.extraContainers | nindent 8 }}
+      {{- end }}
         - name: "{{ .Chart.Name }}-init"
           securityContext:
             {{- toYaml .Values.securityContext | nindent 14 }}
@@ -127,9 +133,6 @@ spec:
           {{- end }}
           resources:
             {{- toYaml .Values.initJob.resources | nindent 14 }}
-        {{- if .Values.initJob.extraContainers }}
-        {{- toYaml .Values.initJob.extraContainers | nindent 8 }}
-        {{- end }}
       volumes:
       - name: zitadel-config-yaml
         configMap:

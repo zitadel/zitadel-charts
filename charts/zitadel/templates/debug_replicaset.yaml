@@ -32,6 +32,12 @@ spec:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
       enableServiceLinks: false
       containers:
+      {{- if .Values.zitadel.extraContainers }}
+        {{- toYaml .Values.zitadel.extraContainers | nindent 8 }}
+      {{- end }}
+      {{- if .Values.zitadel.debug.extraContainers }}
+        {{- toYaml .Values.zitadel.debug.extraContainers | nindent 8 }}
+      {{- end }}
         - name: "{{ .Chart.Name }}-debug"
           securityContext:
             {{- toYaml .Values.securityContext | nindent 14 }}
