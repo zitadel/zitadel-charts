@@ -73,6 +73,46 @@ zitadel:
     annotations:
       helm.sh/hook: pre-install,pre-upgrade
       helm.sh/hook-weight: "1"
+    extraContainers: []
+
+  # extraContainers allows you to add any sidecar containers you wish to use globally.
+  # Currently this is the Zitadel Deployment, Setup Job**, Init Job** and debug_replicaset**  **If Enabled
+  extraContainers: []
+    # # Example; You wish to deploy a cloud-sql-proxy sidecar to all deployments:
+    # - name: cloud-sql-proxy
+    #   image: gcr.io/cloud-sql-connectors/cloud-sql-proxy:2.14.1
+    #   command:
+    #     - /cloud-sql-proxy
+    #   args:
+    #     - my-project:my-region:my-instance
+    #     - --port=5432
+    #     - --auto-iam-authn
+    #     - --health-check
+    #     - "--http-address=0.0.0.0"
+    #   ports:
+    #     - containerPort: 5432
+    #   startupProbe:
+    #     httpGet:
+    #       path: /startup
+    #       port: 9090
+    #     periodSeconds: 1
+    #     timeoutSeconds: 5
+    #   livenessProbe:
+    #     httpGet:
+    #       path: /liveness
+    #       port: 9090
+    #     initialDelaySeconds: 0
+    #     periodSeconds: 60
+    #     timeoutSeconds: 30
+    #     failureThreshold: 5
+    #   securityContext:
+    #     runAsNonRoot: true
+    #     readOnlyRootFilesystem: true
+    #     allowPrivilegeEscalation: false
+    #   lifecycle:
+    #     postStart:
+    #       exec:
+    #         command: ["/cloud-sql-proxy", "wait"]
 
 replicaCount: 3
 
@@ -244,6 +284,9 @@ pdb:
   minAvailable: 1
   # maxUnavailable: 1
   annotations: {}
+
+# extraContainers allows you to add any sidecar containers you wish to use in the Zitadel pod.
+extraContainers: []
 
 extraVolumes: []
   # - name: ca-certs
