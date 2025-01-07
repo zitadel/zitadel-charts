@@ -141,10 +141,13 @@ service:
   type: ClusterIP
   # If service type is "ClusterIP", this can optionally be set to a fixed IP address.
   clusterIP: ""
+  # If service type is "LoadBalancer", this can optionally be set to either "Cluster" or "Local"
+  externalTrafficPolicy: ""
   port: 8080
   protocol: http2
   appProtocol: kubernetes.io/h2c
   annotations: {}
+  labels: {}
   scheme: HTTP
 
 ingress:

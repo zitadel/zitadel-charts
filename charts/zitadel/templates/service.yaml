@@ -10,10 +10,16 @@ metadata:
   {{- end }}
   labels:
     {{- include "zitadel.labels" . | nindent 4 }}
+    {{- with .Values.service.labels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
 spec:
   type: {{ .Values.service.type }}
   {{- if and .Values.service.clusterIP (eq .Values.service.type "ClusterIP") }}
   clusterIP: {{ .Values.service.clusterIP }}
+  {{- end }}
+  {{- if and .Values.service.externalTrafficPolicy (eq .Values.service.type "LoadBalancer") }}
+  externalTrafficPolicy: {{ .Values.service.externalTrafficPolicy }}
   {{- end }}
   ports:
     - port: {{ .Values.service.port }}
