@@ -1,20 +1,23 @@
 [![Artifact Hub](https://img.shields.io/endpoint?url=https://artifacthub.io/badge/repository/zitadel)](https://artifacthub.io/packages/search?repo=zitadel)
 
-# ZITADEL
+# Zitadel
 
 ## A Better Identity and Access Management Solution
 
 Identity infrastructure, simplified for you.
 
-Learn more about ZITADEL by checking out the [source repository on GitHub](https://github.com/zitadel/zitadel)
+Learn more about Zitadel by checking out the [source repository on GitHub](https://github.com/zitadel/zitadel)
 
 ## What's in the Chart
 
-By default, this chart installs a highly available ZITADEL deployment.
+By default, this chart installs a highly available Zitadel deployment.
+
+The chart deploys a Zitadel init job, a Zitadel setup job and a Zitadel deployment.
+By default, the execution order is orchestrated using Helm hooks on installations and upgrades.
 
 ## Install the Chart
 
-Either follow the [guide for deploying ZITADEL on Kubernetes](https://zitadel.com/docs/self-hosting/deploy/kubernetes) or follow one of the example guides:
+Either follow the [guide for deploying Zitadel on Kubernetes](https://zitadel.com/docs/self-hosting/deploy/kubernetes) or follow one of the example guides:
 
 - [Insecure Postgres Example](examples/1-postgres-insecure/README.md)
 - [Secure Postgres Example](examples/2-postgres-secure/README.md)
@@ -25,9 +28,9 @@ Either follow the [guide for deploying ZITADEL on Kubernetes](https://zitadel.co
 
 ## Upgrade from v7
 
-The default ZITADEL version is now >= v2.55.
+The default Zitadel version is now >= v2.55.
 [This requires Cockroach DB to be at >= v23.2](https://zitadel.com/docs/support/advisory/a10009)
-If you are using an older version of Cockroach DB, please upgrade it before upgrading ZITADEL.
+If you are using an older version of Cockroach DB, please upgrade it before upgrading Zitadel.
 
 Note that in order to upgrade cockroach, you should not jump minor versions.
 For example:
@@ -39,11 +42,11 @@ helm upgrade db cockroachdb/cockroachdb --version 11.2.4 --reuse-values
 helm upgrade db cockroachdb/cockroachdb --version 12.0.5 --reuse-values
 # install Cockroach DB v24.1.1
 helm upgrade db cockroachdb/cockroachdb --version 13.0.1 --reuse-values
-# install ZITADEL v2.55.0
+# install Zitadel v2.55.0
 helm upgrade my-zitadel zitadel/zitadel --version 8.0.0 --reuse-values
 ```
 
-Please refer to the docs by Cockroach Labs. The ZITADEL tests run against the [official CockroachDB chart](https://artifacthub.io/packages/helm/cockroachdb/cockroachdb).
+Please refer to the docs by Cockroach Labs. The Zitadel tests run against the [official CockroachDB chart](https://artifacthub.io/packages/helm/cockroachdb/cockroachdb).
 
 (Credits to @panapol-p and @kleberbaum :pray:)
 
@@ -65,7 +68,7 @@ Please refer to the docs by Cockroach Labs. The ZITADEL tests run against the [o
 ## Upgrade from v5
 
 - CockroachDB is not in the default configuration anymore.
-  If you use CockroachDB, please check the host and ssl mode in your ZITADEL Database configuration section.
+  If you use CockroachDB, please check the host and ssl mode in your Zitadel Database configuration section.
 
 - The properties for database certificates are renamed and the defaults are removed.
   If you use one of the following properties, please check the new names and set the values accordingly:
@@ -79,9 +82,9 @@ Please refer to the docs by Cockroach Labs. The ZITADEL tests run against the [o
 
 ## Uninstalling the Chart
 
-The ZITADEL chart uses Helm hooks,
+The Zitadel chart uses Helm hooks,
 [which are not garbage collected by helm uninstall, yet](https://helm.sh/docs/topics/charts_hooks/#hook-resources-are-not-managed-with-corresponding-releases).
-Therefore, to also remove hooks installed by the ZITADEL Helm chart,
+Therefore, to also remove hooks installed by the Zitadel Helm chart,
 delete them manually:
 
 ```bash
@@ -96,7 +99,7 @@ done
 ### Debug Pod
 
 For troubleshooting, you can deploy a debug pod by setting the `zitadel.debug.enabled` property to `true`.
-You can then use this pod to inspect the ZITADEL configuration and run zitadel commands using the zitadel binary.
+You can then use this pod to inspect the Zitadel configuration and run zitadel commands using the zitadel binary.
 For more information, print the debug pods logs using something like the following command:
 
 ```bash 
