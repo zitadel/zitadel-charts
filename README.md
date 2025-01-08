@@ -12,7 +12,8 @@ Learn more about Zitadel by checking out the [source repository on GitHub](https
 
 By default, this chart installs a highly available Zitadel deployment.
 
-The chart deploy a Zitadel init job, a Zitadel setup job and a Zitadel deployment. The execution order is orchestrated using Helm hooks.
+The chart deploys a Zitadel init job, a Zitadel setup job and a Zitadel deployment.
+By default, the execution order is orchestrated using Helm hooks on installations and upgrades.
 
 ## Install the Chart
 
@@ -98,7 +99,7 @@ done
 ### Debug Pod
 
 For troubleshooting, you can deploy a debug pod by setting the `zitadel.debug.enabled` property to `true`.
-You can then use this pod to inspect the ZITADEL configuration and run zitadel commands using the zitadel binary.
+You can then use this pod to inspect the Zitadel configuration and run zitadel commands using the zitadel binary.
 For more information, print the debug pods logs using something like the following command:
 
 ```bash 
