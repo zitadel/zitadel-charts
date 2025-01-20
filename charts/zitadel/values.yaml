@@ -73,6 +73,46 @@ zitadel:
     annotations:
       helm.sh/hook: pre-install,pre-upgrade
       helm.sh/hook-weight: "1"
+    extraContainers: []
+
+  # extraContainers allows you to add any sidecar containers you wish to use globally.
+  # Currently this is the Zitadel Deployment, Setup Job**, Init Job** and debug_replicaset**  **If Enabled
+  extraContainers: []
+    # # Example; You wish to deploy a cloud-sql-proxy sidecar to all deployments:
+    # - name: cloud-sql-proxy
+    #   image: gcr.io/cloud-sql-connectors/cloud-sql-proxy:2.14.1
+    #   command:
+    #     - /cloud-sql-proxy
+    #   args:
+    #     - my-project:my-region:my-instance
+    #     - --port=5432
+    #     - --auto-iam-authn
+    #     - --health-check
+    #     - "--http-address=0.0.0.0"
+    #   ports:
+    #     - containerPort: 5432
+    #   startupProbe:
+    #     httpGet:
+    #       path: /startup
+    #       port: 9090
+    #     periodSeconds: 1
+    #     timeoutSeconds: 5
+    #   livenessProbe:
+    #     httpGet:
+    #       path: /liveness
+    #       port: 9090
+    #     initialDelaySeconds: 0
+    #     periodSeconds: 60
+    #     timeoutSeconds: 30
+    #     failureThreshold: 5
+    #   securityContext:
+    #     runAsNonRoot: true
+    #     readOnlyRootFilesystem: true
+    #     allowPrivilegeEscalation: false
+    #   lifecycle:
+    #     postStart:
+    #       exec:
+    #         command: ["/cloud-sql-proxy", "wait"]
 
 replicaCount: 3
 
@@ -141,9 +181,13 @@ service:
   type: ClusterIP
   # If service type is "ClusterIP", this can optionally be set to a fixed IP address.
   clusterIP: ""
+  # If service type is "LoadBalancer", this can optionally be set to either "Cluster" or "Local"
+  externalTrafficPolicy: ""
   port: 8080
   protocol: http2
+  appProtocol: kubernetes.io/h2c
   annotations: {}
+  labels: {}
   scheme: HTTP
 
 ingress:
@@ -241,6 +285,9 @@ pdb:
   # maxUnavailable: 1
   annotations: {}
 
+# extraContainers allows you to add any sidecar containers you wish to use in the Zitadel pod.
+extraContainers: []
+
 networkPolicies:
   enabled: true
 
@@ -261,3 +308,14 @@ extraVolumeMounts: []
   #   mountPath: /etc/ssl/certs/myca.pem
   #   subPath: myca.pem
   #   readOnly: true
+
+# extraManifests allows you to add your own Kubernetes manifests
+# You can use templating logic like {{ .Release.Namespace }} and {{ .Values.replicaCount }} as long as your manifest is a valid YAML
+extraManifests: []
+  # - apiVersion: v1
+  #   kind: Secret
+  #   metadata:
+  #     name: {{ include "zitadel.fullname" . }}-my-secret
+  #   stringData:
+  #     key: value
+  #   type: Opaque
