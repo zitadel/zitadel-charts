@@ -204,8 +204,11 @@ spec:
           {{- end }}
           resources:
             {{- toYaml .Values.resources | nindent 14 }}
-      {{- if .Values.zitadel.selfSignedCert.enabled }}
       initContainers:
+      {{- if .Values.zitadel.initContainers }}
+        {{- toYaml .Values.zitadel.initContainers | nindent 8 }}
+      {{- end }}
+      {{- if .Values.zitadel.selfSignedCert.enabled }}
         - name: generate-self-signed-cert
           image: alpine/openssl
           env:

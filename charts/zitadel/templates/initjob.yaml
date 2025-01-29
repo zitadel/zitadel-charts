@@ -35,6 +35,13 @@ spec:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
       enableServiceLinks: false
       restartPolicy: OnFailure
+      initContainers:
+      {{- if .Values.zitadel.initContainers }}
+        {{- toYaml .Values.zitadel.initContainers | nindent 8 }}
+      {{- end }}
+      {{- if .Values.initJob.initContainers }}
+        {{- toYaml .Values.initJob.initContainers | nindent 8 }}
+      {{- end }}
       containers:
       {{- if .Values.zitadel.extraContainers }}
         {{- toYaml .Values.zitadel.extraContainers | nindent 8 }}
