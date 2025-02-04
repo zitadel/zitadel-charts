@@ -18,7 +18,7 @@ spec:
     metadata:
       annotations:
         checksum/configmap: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
-        checksum/secret-db-ssl-root-crt: {{ include (print $.Template.BasePath "/secret_db-ssl-root-crt.yaml") . | sha256sum }}
+        checksum/secret-db-ssl-ca-crt: {{ include (print $.Template.BasePath "/secret_db-ssl-ca-crt.yaml") . | sha256sum }}
         checksum/secret-zitadel-secrets: {{ include (print $.Template.BasePath "/secret_zitadel-secrets.yaml") . | sha256sum }}
       labels:
         {{- include "zitadel.debugSelectorLabels" . | nindent 8 }}
