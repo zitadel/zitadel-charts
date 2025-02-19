@@ -31,12 +31,14 @@ spec:
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
       enableServiceLinks: false
+      {{- if or .Values.zitadel.initContainers .Values.debug.initContainers }}
       initContainers:
-      {{- if .Values.zitadel.initContainers }}
-        {{- toYaml .Values.zitadel.initContainers | nindent 8 }}
+      {{- with .Values.zitadel.initContainers }}
+        {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- if .Values.zitadel.debug.initContainers }}
-        {{- toYaml .Values.zitadel.debug.initContainers | nindent 8 }}
+      {{- with .Values.zitadel.debug.initContainers }}
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
       {{- end }}
       containers:
       {{- if .Values.zitadel.extraContainers }}

@@ -204,9 +204,10 @@ spec:
           {{- end }}
           resources:
             {{- toYaml .Values.resources | nindent 14 }}
+      {{- if or .Values.zitadel.selfSignedCert.enabled .Values.zitadel.initContainers}}
       initContainers:
-      {{- if .Values.zitadel.initContainers }}
-        {{- toYaml .Values.zitadel.initContainers | nindent 8 }}
+      {{- with .Values.zitadel.initContainers }}
+        {{- toYaml . | nindent 8 }}
       {{- end }}
       {{- if .Values.zitadel.selfSignedCert.enabled }}
         - name: generate-self-signed-cert
@@ -229,6 +230,7 @@ spec:
             - "openssl req -nodes -x509 -sha256 -newkey rsa:4096 -keyout /etc/tls/tls.key -out /etc/tls/tls.crt -days 3560 -subj \"/CN=ZITADEL Chart Demo\" -addext \"subjectAltName = DNS:localhost,DNS:${POD_IP},DNS:${POD_NAME}{{- if .Values.zitadel.configmapConfig.ExternalDomain -}},DNS:{{- .Values.zitadel.configmapConfig.ExternalDomain -}}{{- end -}}{{- if .Values.zitadel.selfSignedCert.additionalDnsName -}},DNS:{{- .Values.zitadel.selfSignedCert.additionalDnsName -}}{{- end -}}\""
           securityContext:
             {{- toYaml .Values.securityContext | nindent 12 }}
+      {{- end }}
       {{- end }}
       volumes:
       - name: zitadel-config-yaml
