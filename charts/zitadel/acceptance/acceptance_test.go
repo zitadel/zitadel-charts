@@ -54,7 +54,7 @@ func TestPostgresSecure(t *testing.T) {
 
 func TestReferencedSecrets(t *testing.T) {
 	t.Parallel()
-	example := "5-referenced-secrets"
+	example := "3-referenced-secrets"
 	workDir, valuesFile, values := readConfig(t, example)
 	cfg := values.Zitadel.ConfigmapConfig
 	suite.Run(t, acceptance.Configure(
@@ -76,7 +76,7 @@ func TestReferencedSecrets(t *testing.T) {
 
 func TestMachineUser(t *testing.T) {
 	t.Parallel()
-	example := "6-machine-user"
+	example := "4-machine-user"
 	workDir, valuesFile, values := readConfig(t, example)
 	cfg := values.Zitadel.ConfigmapConfig
 	saUsername := cfg.FirstInstance.Org.Machine.Machine.Username
@@ -96,7 +96,7 @@ func TestMachineUser(t *testing.T) {
 
 func TestSelfSigned(t *testing.T) {
 	t.Parallel()
-	example := "7-self-signed"
+	example := "5-self-signed"
 	workDir, valuesFile, values := readConfig(t, example)
 	cfg := values.Zitadel.ConfigmapConfig
 	suite.Run(t, acceptance.Configure(
