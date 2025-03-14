@@ -10,4 +10,4 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Skip Auto Bumping
-      run: echo "Skipping auto bumping for chart version 4"
+      run: echo "Skipping auto bumping for chart version 8.12.0"
