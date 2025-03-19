@@ -21,12 +21,15 @@ Either follow the [guide for deploying Zitadel on Kubernetes](https://zitadel.co
 
 - [Insecure Postgres Example](examples/1-postgres-insecure/README.md)
 - [Secure Postgres Example](examples/2-postgres-secure/README.md)
-- [Insecure Cockroach Example](examples/3-cockroach-insecure/README.md)
-- [Secure Cockroach Example](examples/4-cockroach-secure/README.md)
-- [Referenced Secrets Example](examples/5-referenced-secrets/README.md)
-- [Machine User Setup Example](examples/6-machine-user/README.md)
+- [Referenced Secrets Example](examples/3-referenced-secrets/README.md)
+- [Machine User Setup Example](examples/4-machine-user/README.md)
+- [TLS with Self Signed Certificate Setup Example](examples/5-self-signed/README.md)
 
 ## Upgrade from v7
+
+> [!WARNING] The chart version 8 doesn't get updates to the default Zitadel version anymore as this might break environments that use CockroachDB.
+> Please set the version explicitly using the appVersion variable if you need a newer Zitadel version.
+> The upcoming version 9 will include the latest Zitadel version by default (Zitadel v3).
 
 The default Zitadel version is now >= v2.55.
 [This requires Cockroach DB to be at >= v23.2](https://zitadel.com/docs/support/advisory/a10009)

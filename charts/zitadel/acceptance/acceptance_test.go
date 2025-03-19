@@ -52,50 +52,9 @@ func TestPostgresSecure(t *testing.T) {
 	))
 }
 
-func TestCockroachInsecure(t *testing.T) {
-	t.Parallel()
-	example := "3-cockroach-insecure"
-	workDir, valuesFile, values := readConfig(t, example)
-	cfg := values.Zitadel.ConfigmapConfig
-	suite.Run(t, acceptance.Configure(
-		t,
-		newNamespaceIdentifier(example),
-		acceptance.Cockroach.WithValues(filepath.Join(workDir, "cockroach-values.yaml")),
-		[]string{valuesFile},
-		cfg.ExternalDomain,
-		cfg.ExternalPort,
-		cfg.ExternalSecure,
-		nil,
-		nil,
-		nil,
-	))
-}
-
-func TestCockroachSecure(t *testing.T) {
-	t.Parallel()
-	example := "4-cockroach-secure"
-	workDir, valuesFile, values := readConfig(t, example)
-	cfg := values.Zitadel.ConfigmapConfig
-	suite.Run(t, acceptance.Configure(
-		t,
-		newNamespaceIdentifier(example),
-		acceptance.Cockroach.WithValues(filepath.Join(workDir, "cockroach-values.yaml")),
-		[]string{valuesFile},
-		cfg.ExternalDomain,
-		cfg.ExternalPort,
-		cfg.ExternalSecure,
-		nil,
-		func(cfg *acceptance.ConfigurationTest) {
-			k8s.KubectlApply(t, cfg.KubeOptions, filepath.Join(workDir, "zitadel-cert-job.yaml"))
-			k8s.WaitUntilJobSucceed(t, cfg.KubeOptions, "create-zitadel-cert", 120, 3*time.Second)
-		},
-		nil,
-	))
-}
-
 func TestReferencedSecrets(t *testing.T) {
 	t.Parallel()
-	example := "5-referenced-secrets"
+	example := "3-referenced-secrets"
 	workDir, valuesFile, values := readConfig(t, example)
 	cfg := values.Zitadel.ConfigmapConfig
 	suite.Run(t, acceptance.Configure(
@@ -117,7 +76,7 @@ func TestReferencedSecrets(t *testing.T) {
 
 func TestMachineUser(t *testing.T) {
 	t.Parallel()
-	example := "6-machine-user"
+	example := "4-machine-user"
 	workDir, valuesFile, values := readConfig(t, example)
 	cfg := values.Zitadel.ConfigmapConfig
 	saUsername := cfg.FirstInstance.Org.Machine.Machine.Username
@@ -137,7 +96,7 @@ func TestMachineUser(t *testing.T) {
 
 func TestSelfSigned(t *testing.T) {
 	t.Parallel()
-	example := "7-self-signed"
+	example := "5-self-signed"
 	workDir, valuesFile, values := readConfig(t, example)
 	cfg := values.Zitadel.ConfigmapConfig
 	suite.Run(t, acceptance.Configure(
