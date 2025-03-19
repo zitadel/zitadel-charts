@@ -48,18 +48,13 @@ jobs:
 
     - name: Get Changed Test Relevant Files
       id: 'list-changed-test'
-      uses: tj-actions/changed-files@v45
+      uses: tj-actions/changed-files@v46
       with:
         files: |
           charts/zitadel/**
           examples/**/*.yaml
           go.mod
           go.sum
-
-    - id: 'add-cockroachdb-repo'
-      name: Add The CockroachDB Helm Repo
-      run: 'helm repo add cockroachdb https://charts.cockroachdb.com/'
-      if: steps.list-changed-test.outputs.any_changed == 'true'
 
     - id: 'create-kind'
       name: Create Kubernetes Cluster with KinD
@@ -85,11 +80,9 @@ jobs:
       run: |
         echo "pgInsecure=$(kubectl get namespaces --output name | grep 1-postgres-insecure | cut -d / -f 2)" >> "$GITHUB_OUTPUT"
         echo "pgSecure=$(kubectl get namespaces --output name | grep 2-postgres-secure | cut -d / -f 2)" >> "$GITHUB_OUTPUT"
-        echo "crInsecure=$(kubectl get namespaces --output name | grep 3-cockroach-insecure | cut -d / -f 2)" >> "$GITHUB_OUTPUT"
-        echo "crSecure=$(kubectl get namespaces --output name | grep 4-cockroach-secure | cut -d / -f 2)" >> "$GITHUB_OUTPUT"
-        echo "refSecrets=$(kubectl get namespaces --output name | grep 5-referenced-secrets | cut -d / -f 2)" >> "$GITHUB_OUTPUT"
-        echo "machineUser=$(kubectl get namespaces --output name | grep 6-machine-user | cut -d / -f 2)" >> "$GITHUB_OUTPUT"
-        echo "selfSigned=$(kubectl get namespaces --output name | grep 7-self-signed | cut -d / -f 2)" >> "$GITHUB_OUTPUT"
+        echo "refSecrets=$(kubectl get namespaces --output name | grep 3-referenced-secrets | cut -d / -f 2)" >> "$GITHUB_OUTPUT"
+        echo "machineUser=$(kubectl get namespaces --output name | grep 4-machine-user | cut -d / -f 2)" >> "$GITHUB_OUTPUT"
+        echo "selfSigned=$(kubectl get namespaces --output name | grep 5-self-signed | cut -d / -f 2)" >> "$GITHUB_OUTPUT"
       if: failure()
 
     - id: 'namespace-report-pg-insecure'
