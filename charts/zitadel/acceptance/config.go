@@ -40,15 +40,6 @@ type databaseChart struct {
 }
 
 var (
-	Cockroach = databaseChart{
-		repoUrl: "https://charts.cockroachdb.com/",
-		name:    "cockroachdb",
-		version: "13.0.1",
-		testValues: map[string]string{
-			"statefulset.replicas": "1",
-			"conf.single-node":     "true",
-		},
-	}
 	Postgres = databaseChart{
 		repoUrl: "https://charts.bitnami.com/bitnami",
 		name:    "postgresql",
