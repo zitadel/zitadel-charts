@@ -2,8 +2,11 @@ apiVersion: v2
 name: zitadel
 description: A Helm chart for ZITADEL
 type: application
+# The chart version 8 doesn't get updates to the default appVersion anymore as this might break environments that use CockroachDB.
+# Please set the version explicitly using the appVersion variable if you need a newer Zitadel version.
+# The upcoming version 9 will include the latest Zitadel version by default (Zitadel v3).
 appVersion: v2.67.2
-version: 8.12.0
+version: 8.12.2
 kubeVersion: '>= 1.21.0-0'
 icon: https://zitadel.com/zitadel-logo-dark.svg
 maintainers:

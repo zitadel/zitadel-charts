@@ -17,7 +17,7 @@ jobs:
 
       - name: Get Changed Test Relevant Files
         id: 'list-changed-test'
-        uses: tj-actions/changed-files@v45
+        uses: tj-actions/changed-files@v46
         with:
           files: |
             charts/zitadel/templates/**
@@ -42,7 +42,7 @@ jobs:
         name: Install Chart Testing CLI
         uses: 'helm/chart-testing-action@v2.7.0'
         with:
-          version: 'v3.8.0'
+          version: 'v3.12.0'
         if: steps.list-changed-test.outputs.any_changed == 'true'
 
       - id: 'list-changed'

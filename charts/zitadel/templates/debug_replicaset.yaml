@@ -31,7 +31,7 @@ spec:
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
       enableServiceLinks: false
-      {{- if or .Values.zitadel.initContainers .Values.debug.initContainers }}
+      {{- if or .Values.zitadel.initContainers .Values.zitadel.debug.initContainers }}
       initContainers:
       {{- with .Values.zitadel.initContainers }}
         {{- toYaml . | nindent 8 }}
