@@ -13,7 +13,7 @@ metadata:
       {{- toYaml . | nindent 4 }}
     {{- end }}
 spec:
-  backoffLimit: 5
+  backoffLimit: {{ .Values.setupJob.backoffLimit }}
   activeDeadlineSeconds: {{ .Values.setupJob.activeDeadlineSeconds }}
   template:
     metadata:
