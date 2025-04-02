@@ -4,6 +4,11 @@ on:
   repository_dispatch:
     types:
     - zitadel-released 
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'ZITADEL Tag'
+        required: false
 
 jobs:
   bump:
