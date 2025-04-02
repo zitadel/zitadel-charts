@@ -36,7 +36,7 @@ Common labels
 {{- define "zitadel.labels" -}}
 helm.sh/chart: {{ include "zitadel.chart" . }}
 {{ include "zitadel.selectorLabels" . }}
-app.kubernetes.io/version: {{ default .Values.image.tag .Chart.AppVersion | quote }}
+app.kubernetes.io/version: {{ .Values.image.tag | default .Chart.AppVersion | quote }}
 app.kubernetes.io/managed-by: {{ .Release.Service }}
 {{- end }}
 
