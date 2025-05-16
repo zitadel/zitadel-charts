@@ -8,7 +8,7 @@ kind: PodDisruptionBudget
 metadata:
   name: {{ include "zitadel.fullname" . }}
   labels:
-    {{- include "zitadel.labels" . | nindent 4 }}
+    {{- include "zitadel.start.labels" . | nindent 4 }}
   {{- with .Values.pdb.annotations }}
   annotations:
     {{- toYaml . | nindent 4 }}
@@ -26,5 +26,5 @@ spec:
   {{- end }}
   selector:
     matchLabels:
-      {{- include "zitadel.selectorLabels" . | nindent 6 }}
+      {{- include "zitadel.start.selectorLabels" . | nindent 6 }}
 {{- end }}

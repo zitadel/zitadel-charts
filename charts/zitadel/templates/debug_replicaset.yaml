@@ -4,7 +4,7 @@ kind: ReplicaSet
 metadata:
   name: "{{ include "zitadel.fullname" . }}-debug"
   labels:
-    app.kubernetes.io/component: debug
+    {{- include "zitadel.debug.labels" . | nindent 4 }}
   {{- with .Values.zitadel.debug.annotations }}
   annotations:
     {{- toYaml . | nindent 4 }}
@@ -13,7 +13,7 @@ spec:
   replicas: 1
   selector:
     matchLabels:
-      {{- include "zitadel.debugSelectorLabels" . | nindent 6 }}
+      {{- include "zitadel.debug.selectorLabels" . | nindent 6 }}
   template:
     metadata:
       annotations:
@@ -21,7 +21,7 @@ spec:
         checksum/secret-db-ssl-ca-crt: {{ include (print $.Template.BasePath "/secret_db-ssl-ca-crt.yaml") . | sha256sum }}
         checksum/secret-zitadel-secrets: {{ include (print $.Template.BasePath "/secret_zitadel-secrets.yaml") . | sha256sum }}
       labels:
-        {{- include "zitadel.debugSelectorLabels" . | nindent 8 }}
+        {{- include "zitadel.debug.labels" . | nindent 8 }}
     spec:
       {{- with .Values.imagePullSecrets }}
       imagePullSecrets:

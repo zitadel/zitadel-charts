@@ -3,8 +3,7 @@ kind: Deployment
 metadata:
   name: {{ include "zitadel.fullname" . }}
   labels:
-    {{- include "zitadel.labels" . | nindent 4 }}
-    app.kubernetes.io/component: start
+    {{- include "zitadel.start.labels" . | nindent 4 }}
   {{- with .Values.annotations }}
   annotations:
     {{- toYaml . | nindent 4 }}
@@ -13,7 +12,7 @@ spec:
   replicas: {{ .Values.replicaCount }}
   selector:
     matchLabels:
-      {{- include "zitadel.selectorLabels" . | nindent 6 }}
+      {{- include "zitadel.start.selectorLabels" . | nindent 6 }}
   template:
     metadata:
       annotations:
@@ -24,8 +23,7 @@ spec:
         checksum/secret-db-ssl-ca-crt: {{ include (print $.Template.BasePath "/secret_db-ssl-ca-crt.yaml") . | sha256sum }}
         checksum/secret-zitadel-secrets: {{ include (print $.Template.BasePath "/secret_zitadel-secrets.yaml") . | sha256sum }}
       labels:
-        app.kubernetes.io/component: start
-        {{- include "zitadel.selectorLabels" . | nindent 8 }}
+        {{- include "zitadel.start.labels" . | nindent 8 }}
         {{- with .Values.podAdditionalLabels }}
           {{- toYaml . | nindent 8 }}
         {{- end }}
