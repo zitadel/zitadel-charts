@@ -7,7 +7,7 @@ metadata:
   namespace: {{ .Values.metrics.serviceMonitor.namespace }}
   {{- end }}
   labels:
-    {{- include "zitadel.labels" . | nindent 4 }}
+    {{- include "zitadel.start.labels" . | nindent 4 }}
     {{- if .Values.metrics.serviceMonitor.additionalLabels }}
         {{- toYaml .Values.metrics.serviceMonitor.additionalLabels | nindent 4 }}
     {{- end }}
@@ -47,5 +47,5 @@ spec:
     - "{{ $.Release.Namespace }}"
   selector:
     matchLabels:
-    {{- include "zitadel.selectorLabels" . | nindent 6 }}
+    {{- include "zitadel.start.selectorLabels" . | nindent 6 }}
 {{- end }}
