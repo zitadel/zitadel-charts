@@ -4,8 +4,7 @@ kind: Job
 metadata:
   name: "{{ include "zitadel.fullname" . }}-init"
   labels:
-    {{- include "zitadel.labels" . | nindent 4 }}
-    app.kubernetes.io/component: init
+    {{- include "zitadel.init.labels" . | nindent 4 }}
     {{- with .Values.initJob.annotations }}
   annotations:
       {{- toYaml . | nindent 4 }}
@@ -16,8 +15,7 @@ spec:
   template:
     metadata:
       labels:
-        {{- include "zitadel.selectorLabels" . | nindent 8 }}
-        app.kubernetes.io/component: init
+        {{- include "zitadel.init.labels" . | nindent 8 }}
         {{- with .Values.initJob.podAdditionalLabels }}
           {{- toYaml . | nindent 8 }}
         {{- end }}
