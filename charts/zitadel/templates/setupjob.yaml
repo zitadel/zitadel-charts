@@ -6,8 +6,7 @@ kind: Job
 metadata:
   name: "{{ include "zitadel.fullname" . }}-setup"
   labels:
-    {{- include "zitadel.labels" . | nindent 4 }}
-    app.kubernetes.io/component: setup
+    {{- include "zitadel.setup.labels" . | nindent 4 }}
     {{- with .Values.setupJob.annotations }}
   annotations:
       {{- toYaml . | nindent 4 }}
@@ -18,8 +17,7 @@ spec:
   template:
     metadata:
       labels:
-        {{- include "zitadel.selectorLabels" . | nindent 8 }}
-        app.kubernetes.io/component: setup
+        {{- include "zitadel.setup.labels" . | nindent 8 }}
         {{- with .Values.setupJob.podAdditionalLabels }}
           {{- toYaml . | nindent 8 }}
         {{- end }}
