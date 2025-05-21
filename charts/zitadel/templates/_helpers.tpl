@@ -45,7 +45,7 @@ Init component labels
 */}}
 {{- define "zitadel.init.labels" -}}
 {{ include "zitadel.labels" . }}
-{{ include "zitadel.init.selectorLabels" . }}
+{{ include "zitadel.componentSelectorLabels" "init" }}
 {{- end }}
 
 {{/*
@@ -53,7 +53,7 @@ Setup component labels
 */}}
 {{- define "zitadel.setup.labels" -}}
 {{ include "zitadel.labels" . }}
-{{ include "zitadel.setup.selectorLabels" . }}
+{{ include "zitadel.componentSelectorLabels" "setup" }}
 {{- end }}
 
 {{/*
@@ -61,7 +61,7 @@ Start component labels
 */}}
 {{- define "zitadel.start.labels" -}}
 {{ include "zitadel.labels" . }}
-{{ include "zitadel.start.selectorLabels" . }}
+{{ include "zitadel.componentSelectorLabels" "start" }}
 {{- end }}
 
 {{/*
@@ -69,7 +69,7 @@ Debug component labels
 */}}
 {{- define "zitadel.debug.labels" -}}
 {{ include "zitadel.labels" . }}
-{{ include "zitadel.debug.selectorLabels" . }}
+{{ include "zitadel.componentSelectorLabels" "debug" }}
 {{- end }}
 
 {{/*
