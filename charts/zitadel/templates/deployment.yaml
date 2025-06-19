@@ -3,8 +3,7 @@ kind: Deployment
 metadata:
   name: {{ include "zitadel.fullname" . }}
   labels:
-    {{- include "zitadel.labels" . | nindent 4 }}
-    app.kubernetes.io/component: start
+    {{- include "zitadel.start.labels" . | nindent 4 }}
   {{- with .Values.annotations }}
   annotations:
     {{- toYaml . | nindent 4 }}
@@ -13,7 +12,7 @@ spec:
   replicas: {{ .Values.replicaCount }}
   selector:
     matchLabels:
-      {{- include "zitadel.selectorLabels" . | nindent 6 }}
+      {{- include "zitadel.start.selectorLabels" . | nindent 6 }}
   template:
     metadata:
       annotations:
@@ -21,11 +20,10 @@ spec:
           {{- toYaml . | nindent 8 }}
         {{- end }}
         checksum/configmap: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
-        checksum/secret-db-ssl-root-crt: {{ include (print $.Template.BasePath "/secret_db-ssl-root-crt.yaml") . | sha256sum }}
+        checksum/secret-db-ssl-ca-crt: {{ include (print $.Template.BasePath "/secret_db-ssl-ca-crt.yaml") . | sha256sum }}
         checksum/secret-zitadel-secrets: {{ include (print $.Template.BasePath "/secret_zitadel-secrets.yaml") . | sha256sum }}
       labels:
-        app.kubernetes.io/component: start
-        {{- include "zitadel.selectorLabels" . | nindent 8 }}
+        {{- include "zitadel.start.labels" . | nindent 8 }}
         {{- with .Values.podAdditionalLabels }}
           {{- toYaml . | nindent 8 }}
         {{- end }}
@@ -204,8 +202,12 @@ spec:
           {{- end }}
           resources:
             {{- toYaml .Values.resources | nindent 14 }}
-      {{- if .Values.zitadel.selfSignedCert.enabled }}
+      {{- if or .Values.zitadel.selfSignedCert.enabled .Values.zitadel.initContainers}}
       initContainers:
+      {{- with .Values.zitadel.initContainers }}
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- if .Values.zitadel.selfSignedCert.enabled }}
         - name: generate-self-signed-cert
           image: alpine/openssl
           env:
@@ -226,6 +228,7 @@ spec:
             - "openssl req -nodes -x509 -sha256 -newkey rsa:4096 -keyout /etc/tls/tls.key -out /etc/tls/tls.crt -days 3560 -subj \"/CN=ZITADEL Chart Demo\" -addext \"subjectAltName = DNS:localhost,DNS:${POD_IP},DNS:${POD_NAME}{{- if .Values.zitadel.configmapConfig.ExternalDomain -}},DNS:{{- .Values.zitadel.configmapConfig.ExternalDomain -}}{{- end -}}{{- if .Values.zitadel.selfSignedCert.additionalDnsName -}},DNS:{{- .Values.zitadel.selfSignedCert.additionalDnsName -}}{{- end -}}\""
           securityContext:
             {{- toYaml .Values.securityContext | nindent 12 }}
+      {{- end }}
       {{- end }}
       volumes:
       - name: zitadel-config-yaml

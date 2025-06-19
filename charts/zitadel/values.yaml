@@ -44,6 +44,12 @@ zitadel:
   # The CA Certificate needed for establishing secure database connections
   dbSslCaCrt: ""
 
+  # Annotations set on database SSL CA certificate secret
+  dbSslCaCrtAnnotations:
+    helm.sh/hook: pre-install,pre-upgrade
+    helm.sh/hook-delete-policy: before-hook-creation
+    helm.sh/hook-weight: "0"
+
   # The Secret containing the CA certificate at key ca.crt needed for establishing secure database connections
   dbSslCaCrtSecret: ""
 
@@ -73,8 +79,12 @@ zitadel:
     annotations:
       helm.sh/hook: pre-install,pre-upgrade
       helm.sh/hook-weight: "1"
+    initContainers: []
     extraContainers: []
 
+  # initContainers allow you to add any init containers you wish to use globally.
+  # Additionally, they follow the same structure as extraContainers
+  initContainers: []
   # extraContainers allows you to add any sidecar containers you wish to use globally.
   # Currently this is the Zitadel Deployment, Setup Job**, Init Job** and debug_replicaset**  **If Enabled
   extraContainers: []
@@ -221,6 +231,7 @@ initJob:
   resources: {}
   backoffLimit: 5
   activeDeadlineSeconds: 300
+  initContainers: []
   extraContainers: []
   podAnnotations: {}
   podAdditionalLabels: {}
@@ -238,7 +249,9 @@ setupJob:
     helm.sh/hook-delete-policy: before-hook-creation
     helm.sh/hook-weight: "2"
   resources: {}
+  backoffLimit: 5
   activeDeadlineSeconds: 300
+  initContainers: []
   extraContainers: []
   podAnnotations: {}
   podAdditionalLabels: {}

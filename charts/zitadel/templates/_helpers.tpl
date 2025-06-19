@@ -36,8 +36,40 @@ Common labels
 {{- define "zitadel.labels" -}}
 helm.sh/chart: {{ include "zitadel.chart" . }}
 {{ include "zitadel.selectorLabels" . }}
-app.kubernetes.io/version: {{ default .Values.image.tag .Chart.AppVersion | quote }}
+app.kubernetes.io/version: {{ (.Values.image.tag | default .Chart.AppVersion | split "@")._0 | quote }}
 app.kubernetes.io/managed-by: {{ .Release.Service }}
+{{- end }}
+
+{{/*
+Init component labels
+*/}}
+{{- define "zitadel.init.labels" -}}
+{{ include "zitadel.labels" . }}
+{{ include "zitadel.componentSelectorLabels" "init" }}
+{{- end }}
+
+{{/*
+Setup component labels
+*/}}
+{{- define "zitadel.setup.labels" -}}
+{{ include "zitadel.labels" . }}
+{{ include "zitadel.componentSelectorLabels" "setup" }}
+{{- end }}
+
+{{/*
+Start component labels
+*/}}
+{{- define "zitadel.start.labels" -}}
+{{ include "zitadel.labels" . }}
+{{ include "zitadel.componentSelectorLabels" "start" }}
+{{- end }}
+
+{{/*
+Debug component labels
+*/}}
+{{- define "zitadel.debug.labels" -}}
+{{ include "zitadel.labels" . }}
+{{ include "zitadel.componentSelectorLabels" "debug" }}
 {{- end }}
 
 {{/*
@@ -49,11 +81,42 @@ app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end }}
 
 {{/*
-Debug Selector labels
+Component selector label
 */}}
-{{- define "zitadel.debugSelectorLabels" -}}
-app.kubernetes.io/name: {{ include "zitadel.name" . }}
-app.kubernetes.io/instance: {{ .Release.Name }}-debug
+{{- define "zitadel.componentSelectorLabels" -}}
+app.kubernetes.io/component: {{ . }}
+{{- end }}
+
+{{/*
+Init component selector labels
+*/}}
+{{- define "zitadel.init.selectorLabels" -}}
+{{ include "zitadel.selectorLabels" . }}
+{{ include "zitadel.componentSelectorLabels" "init" }}
+{{- end }}
+
+{{/*
+Setup component selector labels
+*/}}
+{{- define "zitadel.setup.selectorLabels" -}}
+{{ include "zitadel.selectorLabels" . }}
+{{ include "zitadel.componentSelectorLabels" "setup" }}
+{{- end }}
+
+{{/*
+Start component selector labels
+*/}}
+{{- define "zitadel.start.selectorLabels" -}}
+{{ include "zitadel.selectorLabels" . }}
+{{ include "zitadel.componentSelectorLabels" "start" }}
+{{- end }}
+
+{{/*
+Debug component selector labels
+*/}}
+{{- define "zitadel.debug.selectorLabels" -}}
+{{ include "zitadel.selectorLabels" . }}
+{{ include "zitadel.componentSelectorLabels" "debug" }}
 {{- end }}
 
 {{/*
