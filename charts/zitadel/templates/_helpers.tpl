@@ -6,6 +6,13 @@ Expand the name of the chart.
 {{- end }}
 
 {{/*
+Login Name label suffix
+*/}}
+{{- define "zitadel.login.name" -}}
+{{ include "zitadel.name" . | trunc 57 }}-login
+{{- end }}
+
+{{/*
 Create a default fully qualified app name.
 We truncate at 63 chars because some Kubernetes name fields are limited to this (by the DNS naming spec).
 If release name contains chart name it will be used as a full name.
@@ -21,6 +28,14 @@ If release name contains chart name it will be used as a full name.
 {{- printf "%s-%s" .Release.Name $name | trunc 63 | trimSuffix "-" }}
 {{- end }}
 {{- end }}
+{{- end }}
+
+{{/*
+Create a default fully qualified login app name.
+We suffix zitadel.fullname with -login.
+*/}}
+{{- define "zitadel.login.fullname" -}}
+{{ include "zitadel.fullname" . | trunc 57 | trimSuffix "-" }}-login
 {{- end }}
 
 {{/*
@@ -41,11 +56,21 @@ app.kubernetes.io/managed-by: {{ .Release.Service }}
 {{- end }}
 
 {{/*
+Login Labels
+*/}}
+{{- define "login.labels" -}}
+helm.sh/chart: {{ include "zitadel.chart" . }}
+{{ include "login.selectorLabels" . }}
+app.kubernetes.io/version: {{ (.Values.image.tag | default .Chart.AppVersion | split "@")._0 | quote }}
+app.kubernetes.io/managed-by: {{ .Release.Service }}
+{{- end }}
+
+{{/*
 Init component labels
 */}}
 {{- define "zitadel.init.labels" -}}
 {{ include "zitadel.labels" . }}
-{{ include "zitadel.componentSelectorLabels" "init" }}
+{{ include "componentSelectorLabels" "init" }}
 {{- end }}
 
 {{/*
@@ -53,7 +78,7 @@ Setup component labels
 */}}
 {{- define "zitadel.setup.labels" -}}
 {{ include "zitadel.labels" . }}
-{{ include "zitadel.componentSelectorLabels" "setup" }}
+{{ include "componentSelectorLabels" "setup" }}
 {{- end }}
 
 {{/*
@@ -61,7 +86,7 @@ Start component labels
 */}}
 {{- define "zitadel.start.labels" -}}
 {{ include "zitadel.labels" . }}
-{{ include "zitadel.componentSelectorLabels" "start" }}
+{{ include "componentSelectorLabels" "start" }}
 {{- end }}
 
 {{/*
@@ -69,7 +94,15 @@ Debug component labels
 */}}
 {{- define "zitadel.debug.labels" -}}
 {{ include "zitadel.labels" . }}
-{{ include "zitadel.componentSelectorLabels" "debug" }}
+{{ include "componentSelectorLabels" "debug" }}
+{{- end }}
+
+{{/*
+Login component labels
+*/}}
+{{- define "zitadel.login.labels" -}}
+{{ include "zitadel.labels" . }}
+{{ include "componentSelectorLabels" "login" }}
 {{- end }}
 
 {{/*
@@ -81,9 +114,17 @@ app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end }}
 
 {{/*
+Login Selector labels
+*/}}
+{{- define "login.selectorLabels" -}}
+app.kubernetes.io/name: {{ include "zitadel.login.name" . }}
+app.kubernetes.io/instance: {{ .Release.Name }}
+{{- end }}
+
+{{/*
 Component selector label
 */}}
-{{- define "zitadel.componentSelectorLabels" -}}
+{{- define "componentSelectorLabels" -}}
 app.kubernetes.io/component: {{ . }}
 {{- end }}
 
@@ -92,7 +133,7 @@ Init component selector labels
 */}}
 {{- define "zitadel.init.selectorLabels" -}}
 {{ include "zitadel.selectorLabels" . }}
-{{ include "zitadel.componentSelectorLabels" "init" }}
+{{ include "componentSelectorLabels" "init" }}
 {{- end }}
 
 {{/*
@@ -100,7 +141,7 @@ Setup component selector labels
 */}}
 {{- define "zitadel.setup.selectorLabels" -}}
 {{ include "zitadel.selectorLabels" . }}
-{{ include "zitadel.componentSelectorLabels" "setup" }}
+{{ include "componentSelectorLabels" "setup" }}
 {{- end }}
 
 {{/*
@@ -108,7 +149,7 @@ Start component selector labels
 */}}
 {{- define "zitadel.start.selectorLabels" -}}
 {{ include "zitadel.selectorLabels" . }}
-{{ include "zitadel.componentSelectorLabels" "start" }}
+{{ include "componentSelectorLabels" "start" }}
 {{- end }}
 
 {{/*
@@ -116,17 +157,37 @@ Debug component selector labels
 */}}
 {{- define "zitadel.debug.selectorLabels" -}}
 {{ include "zitadel.selectorLabels" . }}
-{{ include "zitadel.componentSelectorLabels" "debug" }}
+{{ include "componentSelectorLabels" "debug" }}
 {{- end }}
 
 {{/*
-Create the name of the service account to use
+Login component selector labels
+*/}}
+{{- define "zitade.login.selectorLabels" -}}
+{{ include "login.selectorLabels" . }}
+{{ include "componentSelectorLabels" "login" }}
+{{- end }}
+
+
+{{/*
+Create the name of the zitadel service account to use
 */}}
 {{- define "zitadel.serviceAccountName" -}}
 {{- if .Values.serviceAccount.create }}
 {{- default (include "zitadel.fullname" .) .Values.serviceAccount.name }}
 {{- else }}
 {{- default "default" .Values.serviceAccount.name }}
+{{- end }}
+{{- end }}
+
+{{/*
+Create the name of the login service account to use
+*/}}
+{{- define "login.serviceAccountName" -}}
+{{- if .Values.login.serviceAccount.create }}
+{{- default (include "zitadel.login.fullname" .) .Values.login.serviceAccount.name }}
+{{- else }}
+{{- default "default" .Values.login.serviceAccount.name }}
 {{- end }}
 {{- end }}
 

@@ -1,0 +1,118 @@
+{{- if .Values.login.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "zitadel.login.fullname" . }}
+  labels:
+    {{- include "zitadel.login.labels" . | nindent 4 }}
+  {{- with .Values.login.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "login.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      annotations:
+        {{- with .Values.login.podAnnotations }}
+          {{- toYaml . | nindent 8 }}
+        {{- end }}
+        checksum/configmap: {{ include (print $.Template.BasePath "/configmap_login.yaml") . | sha256sum }}
+      labels:
+        {{- include "login.labels" . | nindent 8 }}
+        {{- with .Values.podAdditionalLabels }}
+          {{- toYaml . | nindent 8 }}
+        {{- end }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "login.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.login.podSecurityContext | nindent 8 }}
+      enableServiceLinks: false
+      containers:
+      {{- if .Values.login.extraContainers }}
+        {{- toYaml .Values.login.extraContainers | nindent 8 }}
+      {{- end }}
+        - name: {{ .Chart.Name }}-login
+          securityContext:
+            {{- toYaml .Values.login.securityContext | nindent 14 }}
+          image: "{{ .Values.login.image.repository }}:{{ .Values.login.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.login.image.pullPolicy }}
+          ports:
+          - containerPort: 3000
+            name: {{ .Values.service.protocol }}-server
+            protocol: TCP
+          {{- if .Values.livenessProbe.enabled }}
+          livenessProbe:
+            httpGet:
+              path: /api/healthy
+              port: {{ .Values.service.protocol }}-server
+              scheme: {{ .Values.service.scheme }}
+            initialDelaySeconds: {{ .Values.livenessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.livenessProbe.periodSeconds }}
+            failureThreshold: {{ .Values.livenessProbe.failureThreshold }}
+          {{- end }}
+          {{- if .Values.readinessProbe.enabled }}
+          readinessProbe:
+            httpGet:
+              path: /api/security
+              port: {{ .Values.service.protocol }}-server
+              scheme: {{ .Values.service.scheme }}
+            initialDelaySeconds: {{ .Values.readinessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.readinessProbe.periodSeconds }}
+            failureThreshold: {{ .Values.readinessProbe.failureThreshold }}
+          {{- end }}
+          {{- if .Values.startupProbe.enabled }}
+          startupProbe:
+            httpGet:
+              path: /api/security
+              port: {{ .Values.service.protocol }}-server
+              scheme: {{ .Values.service.scheme }}
+            periodSeconds: {{ .Values.startupProbe.periodSeconds }}
+            failureThreshold: {{ .Values.startupProbe.failureThreshold }}
+          {{- end }}
+          volumeMounts:
+          - name: login-config-dotenv
+            mountPath: /.env-file/
+            readOnly: true
+          {{- with .Values.extraVolumeMounts }}
+          {{- toYaml . | nindent 10 }}
+          {{- end }}
+          resources:
+            {{- toYaml .Values.login.resources | nindent 14 }}
+      {{- if or .Values.zitadel.selfSignedCert.enabled .Values.login.initContainers}}
+      initContainers:
+      {{- with .Values.login.initContainers }}
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- end }}
+      volumes:
+      - name: login-config-dotenv
+        configMap:
+          name: login-config-dotenv
+      {{- with .Values.login.extraVolumes }}
+      {{- toYaml . | nindent 6 }}
+      {{- end }}
+      {{- with .Values.login.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.login.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.login.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.login.topologySpreadConstraints }}
+      topologySpreadConstraints:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+  {{- end }}

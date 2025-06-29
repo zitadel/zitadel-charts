@@ -11,6 +11,14 @@ zitadel:
           Enabled: true
         Webhook:
           Enabled: false
+    FirstInstance:
+      PatPath: '/initial-admin-machine/pat'
+      Org:
+        Machine:
+          Machine:
+            Username: 'initial-admin-machine'
+            Name: 'Automatically Initialized IAM Admin and Login Client'
+          Pat.ExpirationDate: '2029-01-01T00:00:00Z'
 
   # The ZITADEL config under secretConfig is written to a Kubernetes Secret
   # See all defaults here:
@@ -124,6 +132,81 @@ zitadel:
     #       exec:
     #         command: ["/cloud-sql-proxy", "wait"]
 
+login:
+  enabled: true
+  configmapConfig: |
+    NEXT_PUBLIC_BASE_PATH="/ui/v2/login"
+    ZITADEL_API_URL=http://zitadel:8080
+    ZITADEL_SERVICE_USER_TOKEN_FILE=/initial-login-client/pat
+  extraVolumeMounts:
+  - name: initial-login-client
+    mountPath: /initial-login-client
+    readOnly: true
+  extraVolumes:
+  - name: initial-login-client
+    secret:
+      defaultMode: 400
+      secretName: initial-admin-machine
+  replicaCount: 3
+  initContainers: []
+  extraContainers: []
+  image:
+    repository: localhost:5001/login
+    pullPolicy: IfNotPresent
+    # Overrides the image tag whose default is the chart appVersion.
+    tag: "local"
+  imagePullSecrets: []
+  nameOverride: ""
+  fullnameOverride: ""
+  annotations:
+    helm.sh/hook: pre-install,pre-upgrade
+    helm.sh/hook-weight: "4"
+  podAnnotations: {}
+  podAdditionalLabels: {}
+  # Annotations to add to the configMap
+  configMap:
+    annotations:
+      helm.sh/hook: pre-install,pre-upgrade
+      helm.sh/hook-delete-policy: before-hook-creation
+      helm.sh/hook-weight: "0"
+  service:
+    type: ClusterIP
+    # If service type is "ClusterIP", this can optionally be set to a fixed IP address.
+    clusterIP: ""
+    # If service type is "LoadBalancer", this can optionally be set to either "Cluster" or "Local"
+    externalTrafficPolicy: ""
+    port: 3000
+    protocol: http2
+    appProtocol: kubernetes.io/http
+    annotations: {}
+    labels: {}
+    scheme: HTTP
+  serviceAccount:
+    # Specifies whether a service account should be created
+    create: true
+    # Annotations to add to the service account
+    annotations:
+      helm.sh/hook: pre-install,pre-upgrade
+      helm.sh/hook-delete-policy: before-hook-creation
+      helm.sh/hook-weight: "0"
+    # The name of the service account to use.
+    # If not set and create is true, a name is generated using the fullname template
+    name: ""
+  podSecurityContext:
+    runAsNonRoot: true
+    runAsUser: 1000
+    fsGroup: 1000
+  securityContext:
+    runAsNonRoot: true
+    runAsUser: 1000
+    readOnlyRootFilesystem: true
+    privileged: false
+  resources: { }
+  nodeSelector: { }
+  tolerations: [ ]
+  affinity: { }
+  topologySpreadConstraints: [ ]
+
 replicaCount: 3
 
 image:
@@ -137,7 +220,9 @@ nameOverride: ""
 fullnameOverride: ""
 
 # Annotations to add to the deployment
-annotations: {}
+annotations:
+  helm.sh/hook: pre-install,pre-upgrade
+  helm.sh/hook-weight: "3"
 
 # Annotations to add to the configMap
 configMap:
@@ -257,7 +342,7 @@ setupJob:
   podAdditionalLabels: {}
   additionalArgs:
     - "--init-projections=true"
-  machinekeyWriter:
+  patWriter:
     image:
       repository: bitnami/kubectl
       tag: ""
