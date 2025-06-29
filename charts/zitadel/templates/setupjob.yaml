@@ -173,7 +173,7 @@ spec:
       {{- if .Values.zitadel.secretConfig }}
       - name: zitadel-secrets-yaml
         secret:
-          secretName: zitadel-secrets-yaml
+          secretName: {{ include "zitadel.fullname" . }}-secrets-yaml
           defaultMode: 0440
       {{- end }}
       {{- if .Values.zitadel.configSecretName }}
