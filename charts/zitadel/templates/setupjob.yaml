@@ -87,7 +87,7 @@ spec:
             - name: ZITADEL_MASTERKEY
               valueFrom:
                 secretKeyRef:
-                  name: {{ default "zitadel-masterkey" .Values.zitadel.masterkeySecretName }}
+                  name: {{ default (printf "%s-masterkey"  (include "zitadel.fullname" .)) .Values.zitadel.masterkeySecretName }}
                   key: masterkey
             - name: ZITADEL_FIRSTINSTANCE_MACHINEKEYPATH
               value: "/machinekey/sa.json"
