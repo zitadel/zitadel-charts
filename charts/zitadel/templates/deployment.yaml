@@ -233,7 +233,7 @@ spec:
       volumes:
       - name: zitadel-config-yaml
         configMap:
-          name: zitadel-config-yaml
+          name: {{ include "zitadel.fullname" . }}-config-yaml
       {{- if .Values.zitadel.secretConfig }}
       - name: zitadel-secrets-yaml
         secret:
