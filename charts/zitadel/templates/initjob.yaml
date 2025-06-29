@@ -160,7 +160,7 @@ spec:
       {{- if .Values.zitadel.dbSslCaCrt }}
       - name: db-ssl-ca-crt
         secret:
-          secretName: db-ssl-ca-crt
+          secretName: {{ include "zitadel.fullname" . }}-db-ssl-ca-crt
           defaultMode: 0440
       {{- end }}
       {{- if .Values.zitadel.dbSslCaCrtSecret }}
