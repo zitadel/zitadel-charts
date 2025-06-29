@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: zitadel-config-yaml
+  name: {{ include "zitadel.fullname" . }}-config-yaml
   {{- with .Values.configMap.annotations }}
   annotations:
     {{- toYaml . | nindent 4 }}
