@@ -1,10 +1,6 @@
 zitadel:
   masterkeySecretName: existing-zitadel-masterkey
   configmapConfig:
-    ExternalSecure: false
-    ExternalDomain: 127.0.0.1.sslip.io
-    TLS:
-      Enabled: false
     Database:
       Postgres:
         Port: 5432

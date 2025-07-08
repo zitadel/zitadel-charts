@@ -129,9 +129,6 @@ docker run -it --network host --workdir=/data --rm --volume $(pwd):/data quay.io
 Test the chart:
 
 ```bash
-# Create a local Kubernetes cluster
-kind create cluster --image kindest/node:v1.27.2
-
 # Test the chart
 go test ./...
 ```

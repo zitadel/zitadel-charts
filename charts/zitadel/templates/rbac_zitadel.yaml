@@ -1,4 +1,4 @@
-{{- if and .Values.login.enabled (include "deepCheck" (dict "root" .Values "path" (splitList "." "zitadel.configmapConfig.FirstInstance.Org.Machine"))) }}
+{{- if or (include "deepCheck" (dict "root" .Values "path" (splitList "." "zitadel.configmapConfig.FirstInstance.Org.LoginClient"))) (include "deepCheck" (dict "root" .Values "path" (splitList "." "zitadel.configmapConfig.FirstInstance.Org.Machine"))) }}
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:

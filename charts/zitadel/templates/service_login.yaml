@@ -31,5 +31,5 @@ spec:
       appProtocol: {{ .Values.login.service.appProtocol }}
       {{- end }}
   selector:
-    {{- include "login.selectorLabels" . | nindent 4 }}
+    {{- include "zitade.login.selectorLabels" . | nindent 4 }}
 {{- end }}

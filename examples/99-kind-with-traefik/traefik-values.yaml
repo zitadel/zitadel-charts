@@ -1,0 +1,17 @@
+additionalArguments:
+  - "--log.level=DEBUG"
+service:
+  type: NodePort
+ports:
+  web:
+    nodePort: 30080
+    redirections:
+      entryPoint:
+        to: websecure
+        scheme: https
+        permanent: true
+  websecure:
+    nodePort: 30443
+ingressClass:
+  enabled: true
+  isDefaultClass: true

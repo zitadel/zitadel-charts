@@ -13,7 +13,7 @@ spec:
   replicas: {{ .Values.replicaCount }}
   selector:
     matchLabels:
-      {{- include "login.selectorLabels" . | nindent 6 }}
+      {{- include "zitadel.login.labels" . | nindent 6 }}
   template:
     metadata:
       annotations:
@@ -22,7 +22,7 @@ spec:
         {{- end }}
         checksum/configmap: {{ include (print $.Template.BasePath "/configmap_login.yaml") . | sha256sum }}
       labels:
-        {{- include "login.labels" . | nindent 8 }}
+        {{- include "zitadel.login.labels" . | nindent 8 }}
         {{- with .Values.podAdditionalLabels }}
           {{- toYaml . | nindent 8 }}
         {{- end }}
@@ -44,44 +44,47 @@ spec:
             {{- toYaml .Values.login.securityContext | nindent 14 }}
           image: "{{ .Values.login.image.repository }}:{{ .Values.login.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.login.image.pullPolicy }}
+          env:
+            - name: NEXT_PUBLIC_BASE_PATH
+              value: /ui/v2/login
           ports:
           - containerPort: 3000
-            name: {{ .Values.service.protocol }}-server
+            name: {{ .Values.login.service.protocol }}-server
             protocol: TCP
-          {{- if .Values.livenessProbe.enabled }}
+          {{- if .Values.login.livenessProbe.enabled }}
           livenessProbe:
             httpGet:
-              path: /api/healthy
-              port: {{ .Values.service.protocol }}-server
-              scheme: {{ .Values.service.scheme }}
-            initialDelaySeconds: {{ .Values.livenessProbe.initialDelaySeconds }}
-            periodSeconds: {{ .Values.livenessProbe.periodSeconds }}
-            failureThreshold: {{ .Values.livenessProbe.failureThreshold }}
+              path: /ui/v2/login/healthy
+              port: {{ .Values.login.service.protocol }}-server
+              scheme: {{ .Values.login.service.scheme }}
+            initialDelaySeconds: {{ .Values.login.livenessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.login.livenessProbe.periodSeconds }}
+            failureThreshold: {{ .Values.login.livenessProbe.failureThreshold }}
           {{- end }}
-          {{- if .Values.readinessProbe.enabled }}
+          {{- if .Values.login.readinessProbe.enabled }}
           readinessProbe:
             httpGet:
-              path: /api/security
-              port: {{ .Values.service.protocol }}-server
-              scheme: {{ .Values.service.scheme }}
+              path: /ui/v2/login/security
+              port: {{ .Values.login.service.protocol }}-server
+              scheme: {{ .Values.login.service.scheme }}
             initialDelaySeconds: {{ .Values.readinessProbe.initialDelaySeconds }}
             periodSeconds: {{ .Values.readinessProbe.periodSeconds }}
             failureThreshold: {{ .Values.readinessProbe.failureThreshold }}
           {{- end }}
-          {{- if .Values.startupProbe.enabled }}
+          {{- if .Values.login.startupProbe.enabled }}
           startupProbe:
             httpGet:
-              path: /api/security
-              port: {{ .Values.service.protocol }}-server
-              scheme: {{ .Values.service.scheme }}
-            periodSeconds: {{ .Values.startupProbe.periodSeconds }}
-            failureThreshold: {{ .Values.startupProbe.failureThreshold }}
+              path: /ui/v2/login/security
+              port: {{ .Values.login.service.protocol }}-server
+              scheme: {{ .Values.login.service.scheme }}
+            periodSeconds: {{ .Values.login.startupProbe.periodSeconds }}
+            failureThreshold: {{ .Values.login.startupProbe.failureThreshold }}
           {{- end }}
           volumeMounts:
           - name: login-config-dotenv
             mountPath: /.env-file/
             readOnly: true
-          {{- with .Values.extraVolumeMounts }}
+          {{- with .Values.login.extraVolumeMounts }}
           {{- toYaml . | nindent 10 }}
           {{- end }}
           resources:

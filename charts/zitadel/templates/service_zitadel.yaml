@@ -30,4 +30,4 @@ spec:
       appProtocol: {{ .Values.service.appProtocol }}
       {{- end }}
   selector:
-    {{- include "zitadel.selectorLabels" . | nindent 4 }}
+    {{- include "zitadel.start.selectorLabels" . | nindent 4 }}

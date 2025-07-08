@@ -12,12 +12,11 @@ zitadel:
         Webhook:
           Enabled: false
     FirstInstance:
-      PatPath: '/initial-admin-machine/pat'
       Org:
-        Machine:
+        LoginClient:
           Machine:
-            Username: 'initial-admin-machine'
-            Name: 'Automatically Initialized IAM Admin and Login Client'
+            Username: 'login-client'
+            Name: 'Automatically Initialized IAM Login Client'
           Pat.ExpirationDate: '2029-01-01T00:00:00Z'
 
   # The ZITADEL config under secretConfig is written to a Kubernetes Secret
@@ -135,32 +134,29 @@ zitadel:
 login:
   enabled: true
   configmapConfig: |
-    NEXT_PUBLIC_BASE_PATH="/ui/v2/login"
-    ZITADEL_API_URL=http://zitadel:8080
-    ZITADEL_SERVICE_USER_TOKEN_FILE=/initial-login-client/pat
+    ZITADEL_SERVICE_USER_TOKEN_FILE="/login-client/pat"
+    ZITADEL_API_URL="http://my-zitadel:8080"
+    CUSTOM_REQUEST_HEADERS="Host:zitadel.127.0.0.1.sslip.io"
   extraVolumeMounts:
-  - name: initial-login-client
-    mountPath: /initial-login-client
+  - name: login-client
+    mountPath: /login-client
     readOnly: true
   extraVolumes:
-  - name: initial-login-client
+  - name: login-client
     secret:
-      defaultMode: 400
-      secretName: initial-admin-machine
+      defaultMode: 444
+      secretName: login-client
   replicaCount: 3
   initContainers: []
   extraContainers: []
   image:
-    repository: localhost:5001/login
+    repository: ghcr.io/zitadel/zitadel-login
     pullPolicy: IfNotPresent
     # Overrides the image tag whose default is the chart appVersion.
-    tag: "local"
+    tag: ""
   imagePullSecrets: []
   nameOverride: ""
   fullnameOverride: ""
-  annotations:
-    helm.sh/hook: pre-install,pre-upgrade
-    helm.sh/hook-weight: "4"
   podAnnotations: {}
   podAdditionalLabels: {}
   # Annotations to add to the configMap
@@ -169,6 +165,20 @@ login:
       helm.sh/hook: pre-install,pre-upgrade
       helm.sh/hook-delete-policy: before-hook-creation
       helm.sh/hook-weight: "0"
+  readinessProbe:
+    enabled: true
+    initialDelaySeconds: 0
+    periodSeconds: 5
+    failureThreshold: 3
+  livenessProbe:
+    enabled: true
+    initialDelaySeconds: 0
+    periodSeconds: 5
+    failureThreshold: 3
+  startupProbe:
+    enabled: false
+    periodSeconds: 1
+    failureThreshold: 30
   service:
     type: ClusterIP
     # If service type is "ClusterIP", this can optionally be set to a fixed IP address.
@@ -176,11 +186,20 @@ login:
     # If service type is "LoadBalancer", this can optionally be set to either "Cluster" or "Local"
     externalTrafficPolicy: ""
     port: 3000
-    protocol: http2
+    protocol: http
     appProtocol: kubernetes.io/http
     annotations: {}
     labels: {}
     scheme: HTTP
+  ingress:
+    enabled: true
+    className: ""
+    annotations: { }
+    hosts:
+      - paths:
+          - path: /ui/v2/login
+            pathType: Prefix
+    tls: [ ]
   serviceAccount:
     # Specifies whether a service account should be created
     create: true
@@ -221,7 +240,7 @@ fullnameOverride: ""
 
 # Annotations to add to the deployment
 annotations:
-  helm.sh/hook: pre-install,pre-upgrade
+  helm.sh/hook: pre-upgrade
   helm.sh/hook-weight: "3"
 
 # Annotations to add to the configMap
@@ -290,8 +309,7 @@ ingress:
   className: ""
   annotations: {}
   hosts:
-    - host: localhost
-      paths:
+    - paths:
         - path: /
           pathType: Prefix
   tls: []
@@ -342,7 +360,7 @@ setupJob:
   podAdditionalLabels: {}
   additionalArgs:
     - "--init-projections=true"
-  patWriter:
+  machinekeyWriter  :
     image:
       repository: bitnami/kubectl
       tag: ""

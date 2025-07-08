@@ -50,7 +50,7 @@ Common labels
 */}}
 {{- define "zitadel.labels" -}}
 helm.sh/chart: {{ include "zitadel.chart" . }}
-{{ include "zitadel.selectorLabels" . }}
+{{ include "zitadel.commonSelectorLabels" . }}
 app.kubernetes.io/version: {{ (.Values.image.tag | default .Chart.AppVersion | split "@")._0 | quote }}
 app.kubernetes.io/managed-by: {{ .Release.Service }}
 {{- end }}
@@ -60,7 +60,7 @@ Login Labels
 */}}
 {{- define "login.labels" -}}
 helm.sh/chart: {{ include "zitadel.chart" . }}
-{{ include "login.selectorLabels" . }}
+{{ include "login.commonSelectorLabels" . }}
 app.kubernetes.io/version: {{ (.Values.image.tag | default .Chart.AppVersion | split "@")._0 | quote }}
 app.kubernetes.io/managed-by: {{ .Release.Service }}
 {{- end }}
@@ -70,7 +70,7 @@ Init component labels
 */}}
 {{- define "zitadel.init.labels" -}}
 {{ include "zitadel.labels" . }}
-{{ include "componentSelectorLabels" "init" }}
+{{ include "componentSelectorLabel" "init" }}
 {{- end }}
 
 {{/*
@@ -78,7 +78,7 @@ Setup component labels
 */}}
 {{- define "zitadel.setup.labels" -}}
 {{ include "zitadel.labels" . }}
-{{ include "componentSelectorLabels" "setup" }}
+{{ include "componentSelectorLabel" "setup" }}
 {{- end }}
 
 {{/*
@@ -86,7 +86,7 @@ Start component labels
 */}}
 {{- define "zitadel.start.labels" -}}
 {{ include "zitadel.labels" . }}
-{{ include "componentSelectorLabels" "start" }}
+{{ include "componentSelectorLabel" "start" }}
 {{- end }}
 
 {{/*
@@ -94,21 +94,21 @@ Debug component labels
 */}}
 {{- define "zitadel.debug.labels" -}}
 {{ include "zitadel.labels" . }}
-{{ include "componentSelectorLabels" "debug" }}
+{{ include "componentSelectorLabel" "debug" }}
 {{- end }}
 
 {{/*
 Login component labels
 */}}
 {{- define "zitadel.login.labels" -}}
-{{ include "zitadel.labels" . }}
-{{ include "componentSelectorLabels" "login" }}
+{{ include "login.labels" . }}
+{{ include "componentSelectorLabel" "login" }}
 {{- end }}
 
 {{/*
 Selector labels
 */}}
-{{- define "zitadel.selectorLabels" -}}
+{{- define "zitadel.commonSelectorLabels" -}}
 app.kubernetes.io/name: {{ include "zitadel.name" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end }}
@@ -116,7 +116,7 @@ app.kubernetes.io/instance: {{ .Release.Name }}
 {{/*
 Login Selector labels
 */}}
-{{- define "login.selectorLabels" -}}
+{{- define "login.commonSelectorLabels" -}}
 app.kubernetes.io/name: {{ include "zitadel.login.name" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end }}
@@ -124,7 +124,7 @@ app.kubernetes.io/instance: {{ .Release.Name }}
 {{/*
 Component selector label
 */}}
-{{- define "componentSelectorLabels" -}}
+{{- define "componentSelectorLabel" -}}
 app.kubernetes.io/component: {{ . }}
 {{- end }}
 
@@ -132,40 +132,40 @@ app.kubernetes.io/component: {{ . }}
 Init component selector labels
 */}}
 {{- define "zitadel.init.selectorLabels" -}}
-{{ include "zitadel.selectorLabels" . }}
-{{ include "componentSelectorLabels" "init" }}
+{{ include "zitadel.commonSelectorLabels" . }}
+{{ include "componentSelectorLabel" "init" }}
 {{- end }}
 
 {{/*
 Setup component selector labels
 */}}
 {{- define "zitadel.setup.selectorLabels" -}}
-{{ include "zitadel.selectorLabels" . }}
-{{ include "componentSelectorLabels" "setup" }}
+{{ include "zitadel.commonSelectorLabels" . }}
+{{ include "componentSelectorLabel" "setup" }}
 {{- end }}
 
 {{/*
 Start component selector labels
 */}}
 {{- define "zitadel.start.selectorLabels" -}}
-{{ include "zitadel.selectorLabels" . }}
-{{ include "componentSelectorLabels" "start" }}
+{{ include "zitadel.commonSelectorLabels" . }}
+{{ include "componentSelectorLabel" "start" }}
 {{- end }}
 
 {{/*
 Debug component selector labels
 */}}
 {{- define "zitadel.debug.selectorLabels" -}}
-{{ include "zitadel.selectorLabels" . }}
-{{ include "componentSelectorLabels" "debug" }}
+{{ include "zitadel.commonSelectorLabels" . }}
+{{ include "componentSelectorLabel" "debug" }}
 {{- end }}
 
 {{/*
 Login component selector labels
 */}}
 {{- define "zitade.login.selectorLabels" -}}
-{{ include "login.selectorLabels" . }}
-{{ include "componentSelectorLabels" "login" }}
+{{ include "login.commonSelectorLabels" . }}
+{{ include "componentSelectorLabel" "login" }}
 {{- end }}
 
 
