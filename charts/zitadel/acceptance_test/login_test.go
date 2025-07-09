@@ -19,10 +19,14 @@ func (s *ConfigurationTest) login(t *testing.T) {
 	apiUrl, err := url.Parse(s.ApiBaseUrl)
 	loginFailuresDir := filepath.Join(".login-failures", s.KubeOptions.Namespace)
 	require.NoError(t, err)
-	ctxx, _ := chromedp.NewExecAllocator(context.Background(), append(
+	execAllocatorOptions := append(
 		chromedp.DefaultExecAllocatorOptions[:],
 		chromedp.IgnoreCertErrors,
-	)...)
+	)
+	if chromeBinaryPath := os.Getenv("CHROME_BINARY_PATH"); chromeBinaryPath != "" {
+		execAllocatorOptions = append(execAllocatorOptions, chromedp.ExecPath(chromeBinaryPath))
+	}
+	ctxx, _ := chromedp.NewExecAllocator(context.Background(), execAllocatorOptions...)
 	ctx, cancel := chromedp.NewContext(
 		ctxx,
 		chromedp.WithLogf(t.Logf),

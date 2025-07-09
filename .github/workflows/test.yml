@@ -69,6 +69,8 @@ jobs:
       name: Run Go Tests
       run: 'go test ./...'
       if: steps.list-changed-test.outputs.any_changed == 'true'
+      env:
+        CHROME_BINARY_PATH: ${{ steps.setup-chrome.outputs.chrome-path }}
 
     - id: 'upload-login-failures'
       name: Upload Login Failures
