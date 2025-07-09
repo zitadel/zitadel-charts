@@ -2,23 +2,15 @@ package acceptance_test
 
 import (
 	"context"
-	"sync"
 	"testing"
 	"time"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
-func Await(ctx context.Context, t *testing.T, wg *sync.WaitGroup, tries int, cb func(ctx context.Context) error) {
-	err := cb(ctx)
-	if err == nil {
-		if wg != nil {
-			wg.Done()
-		}
-		return
-	}
-	if tries == 0 {
-		t.Fatal(err)
-	}
-	t.Logf("got error %v. trying again in a second", err)
-	time.Sleep(time.Second)
-	Await(ctx, t, wg, tries-1, cb)
+func Await(ctx context.Context, t *testing.T, waitFor time.Duration, cb func(ctx context.Context) error) {
+	require.EventuallyWithT(t, func(collect *assert.CollectT) {
+		assert.NoError(collect, cb(ctx))
+	}, waitFor, time.Second)
 }

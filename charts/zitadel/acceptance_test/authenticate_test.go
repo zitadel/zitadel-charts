@@ -34,12 +34,12 @@ func testAuthenticatedAPI(secretName, secretKey string) func(test *Configuration
 		awaitCtx, cancel := context.WithTimeout(CTX, 5*time.Minute)
 		defer cancel()
 		var token string
-		Await(awaitCtx, t, nil, 60, func(ctx context.Context) error {
+		Await(awaitCtx, t, 1*time.Minute, func(ctx context.Context) error {
 			var tokenErr error
 			token, tokenErr = getToken(ctx, t, jwt, cfg.ApiBaseUrl)
 			return tokenErr
 		})
-		Await(awaitCtx, t, nil, 60, func(ctx context.Context) error {
+		Await(awaitCtx, t, 1*time.Minute, func(ctx context.Context) error {
 			if httpErr := callAuthenticatedHTTPEndpoint(ctx, token, cfg.ApiBaseUrl); httpErr != nil {
 				return httpErr
 			}

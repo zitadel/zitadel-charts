@@ -1,24 +1,17 @@
 package acceptance_test
 
 import (
-	"context"
-	"sync"
+	"testing"
 	"time"
 
 	"github.com/gruntwork-io/terratest/modules/k8s"
 	corev1 "k8s.io/api/core/v1"
 )
 
-func (s *ConfigurationTest) awaitReadiness(pods []corev1.Pod) {
-	ctx, cancel := context.WithTimeout(CTX, 5*time.Minute)
-	defer cancel()
-	wg := sync.WaitGroup{}
+func (s *ConfigurationTest) awaitReadiness(t *testing.T, pods []corev1.Pod) {
 	for _, p := range pods {
-		wg.Add(1)
-		go func(pod corev1.Pod) {
-			k8s.WaitUntilPodAvailable(s.T(), s.KubeOptions, pod.Name, 300, time.Second)
-			wg.Done()
-		}(p)
+		t.Run("pod "+p.Name, func(t *testing.T) {
+			k8s.WaitUntilPodAvailable(t, s.KubeOptions, p.Name, 300, time.Second)
+		})
 	}
-	wait(ctx, s.T(), &wg, "readiness")
 }

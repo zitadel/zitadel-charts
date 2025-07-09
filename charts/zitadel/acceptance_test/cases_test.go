@@ -82,7 +82,7 @@ func TestMachineUser(t *testing.T) {
 	)
 }
 
-func TestSelfSigned(t *testing.T) {
+func TestInternalTLS(t *testing.T) {
 	t.Parallel()
 	example := "5-internal-tls"
 	workDir, valuesFile, values := readConfig(t, example)

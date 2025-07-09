@@ -76,7 +76,7 @@ jobs:
       if: failure()
       with:
         name: login-failures-${{ matrix.k8s.version }}
-        path: .login-failures
+        path: charts/zitadel/acceptance_test/.login-failures
         retention-days: 30
 
     - id: 'zitadel-test-namespaces'

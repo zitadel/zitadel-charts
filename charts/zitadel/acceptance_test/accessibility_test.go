@@ -5,20 +5,15 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
-	"sync"
+	"testing"
 	"time"
 
 	mgmt_api "github.com/zitadel/zitadel-go/v3/pkg/client/zitadel/management"
 )
 
 type checkOptions interface {
+	name() string
 	execute(ctx context.Context) error
-}
-
-type checkOptionsFunc func(ctx context.Context) error
-
-func (f checkOptionsFunc) execute(ctx context.Context) error {
-	return f(ctx)
 }
 
 type httpCheckOptions struct {
@@ -40,10 +35,27 @@ func (c *httpCheckOptions) execute(ctx context.Context) (err error) {
 	return nil
 }
 
-func (s *ConfigurationTest) checkAccessibility() {
+func (c *httpCheckOptions) name() string {
+	return "http GET " + c.getUrl
+}
+
+type grpcCheckOptions struct {
+	checkName string
+	test      func(ctx context.Context) error
+}
+
+func (c *grpcCheckOptions) execute(ctx context.Context) error {
+	return c.test(ctx)
+}
+
+func (c *grpcCheckOptions) name() string {
+	return c.checkName
+}
+
+func (s *ConfigurationTest) checkAccessibility(t *testing.T) {
 	ctx, cancel := context.WithTimeout(CTX, time.Minute)
 	defer cancel()
-	checks := append(
+	var checks []checkOptions = append(
 		zitadelStatusChecks(s.ApiBaseUrl),
 		&httpCheckOptions{
 			getUrl: s.ApiBaseUrl + "/ui/console/assets/environment.json",
@@ -63,21 +75,22 @@ func (s *ConfigurationTest) checkAccessibility() {
 				return nil
 			},
 		},
-		checkOptionsFunc(func(ctx context.Context) error {
-			conn, err := OpenGRPCConnection(s, nil)
-			if err != nil {
-				return fmt.Errorf("couldn't create gRPC management client: %w", err)
-			}
-			_, err = conn.Healthz(ctx, &mgmt_api.HealthzRequest{})
-			return err
-		}))
-
-	wg := sync.WaitGroup{}
+		&grpcCheckOptions{
+			checkName: "zitadel",
+			test: func(ctx context.Context) (err error) {
+				conn, err := OpenGRPCConnection(s, nil)
+				if err != nil {
+					return fmt.Errorf("couldn't create gRPC management client: %w", err)
+				}
+				_, err = conn.Healthz(ctx, &mgmt_api.HealthzRequest{})
+				return err
+			},
+		})
 	for _, check := range checks {
-		wg.Add(1)
-		go Await(ctx, s.T(), &wg, 60, check.execute)
+		t.Run(check.name(), func(t *testing.T) {
+			Await(ctx, t, 1*time.Minute, check.execute)
+		})
 	}
-	wait(ctx, s.T(), &wg, "accessibility")
 }
 
 func zitadelStatusChecks(apiBaseURL string) []checkOptions {
