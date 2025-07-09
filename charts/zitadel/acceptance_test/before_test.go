@@ -1,6 +1,8 @@
-package acceptance
+package acceptance_test
 
-import "github.com/gruntwork-io/terratest/modules/helm"
+import (
+	"github.com/gruntwork-io/terratest/modules/helm"
+)
 
 func (s *ConfigurationTest) BeforeTest(_, _ string) {
 	if s.beforeFunc != nil {

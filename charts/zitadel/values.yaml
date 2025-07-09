@@ -133,10 +133,11 @@ zitadel:
 
 login:
   enabled: true
-  configmapConfig: |
-    ZITADEL_SERVICE_USER_TOKEN_FILE="/login-client/pat"
-    ZITADEL_API_URL="http://my-zitadel:8080"
-    CUSTOM_REQUEST_HEADERS="Host:zitadel.127.0.0.1.sslip.io"
+  # customConfigmapConfig defaults to this:
+  # ZITADEL_SERVICE_USER_TOKEN_FILE="/login-client/pat"
+  # ZITADEL_API_URL="http://{{ include "zitadel.fullname" . }}:{{ .Values.service.port }}"
+  # CUSTOM_REQUEST_HEADERS="Host:{{ .Values.zitadel.configmapConfig.ExternalDomain }}"
+  customConfigmapConfig:
   extraVolumeMounts:
   - name: login-client
     mountPath: /login-client
@@ -192,7 +193,7 @@ login:
     labels: {}
     scheme: HTTP
   ingress:
-    enabled: true
+    enabled: false
     className: ""
     annotations: { }
     hosts:
@@ -240,7 +241,7 @@ fullnameOverride: ""
 
 # Annotations to add to the deployment
 annotations:
-  helm.sh/hook: pre-upgrade
+  helm.sh/hook: pre-install,pre-upgrade
   helm.sh/hook-weight: "3"
 
 # Annotations to add to the configMap
@@ -300,14 +301,16 @@ service:
   port: 8080
   protocol: http2
   appProtocol: kubernetes.io/h2c
-  annotations: {}
+  annotations:
+    traefik.ingress.kubernetes.io/service.serversscheme: h2c
   labels: {}
   scheme: HTTP
 
 ingress:
   enabled: false
   className: ""
-  annotations: {}
+  annotations:
+    nginx.ingress.kubernetes.io/backend-protocol: "GRPC"
   hosts:
     - paths:
         - path: /

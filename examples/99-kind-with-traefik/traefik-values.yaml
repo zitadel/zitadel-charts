@@ -1,5 +1,8 @@
+logs:
+  general:
+    level: DEBUG
 additionalArguments:
-  - "--log.level=DEBUG"
+  - "--serverstransport.insecureskipverify=true"
 service:
   type: NodePort
 ports:

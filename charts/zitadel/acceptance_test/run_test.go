@@ -1,4 +1,4 @@
-package acceptance
+package acceptance_test
 
 import (
 	"testing"
@@ -23,15 +23,7 @@ func (s *ConfigurationTest) TestZITADELInstallation() {
 	k8s.WaitUntilJobSucceed(s.T(), s.KubeOptions, "zitadel-test-setup", 900, time.Second)
 	pods := listPods(s.T(), 5, s.KubeOptions)
 	s.awaitReadiness(pods)
-	zitadelPods := make([]corev1.Pod, 0)
-	for i := range pods {
-		pod := pods[i]
-		if name, ok := pod.GetObjectMeta().GetLabels()["app.kubernetes.io/name"]; ok && name == "zitadel" {
-			zitadelPods = append(zitadelPods, pod)
-		}
-	}
-	s.log.Logf(s.T(), "ZITADEL pods are ready")
-	s.checkAccessibility(zitadelPods)
+	s.checkAccessibility()
 }
 
 // listPods retries until all three start pods are returned from the kubeapi

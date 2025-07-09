@@ -11,5 +11,11 @@ metadata:
     {{- include "zitadel.login.labels" . | nindent 4 }}
 data:
   .env: |-
-    {{ .Values.login.configmapConfig | nindent 4 }}
+    {{- if .Values.login.customConfigmapConfig }}
+    {{ .Values.login.customConfigmapConfig | nindent 4 }}
+    {{- else }}
+      ZITADEL_SERVICE_USER_TOKEN_FILE="/login-client/pat"
+      ZITADEL_API_URL="http://{{ include "zitadel.fullname" . }}:{{ .Values.service.port }}"
+      CUSTOM_REQUEST_HEADERS="Host:{{ .Values.zitadel.configmapConfig.ExternalDomain }}"
+    {{- end }}
 {{- end }}

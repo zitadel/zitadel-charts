@@ -1,12 +1,19 @@
+ingress:
+  enabled: true
+service:
+  annotations:
+    traefik.ingress.kubernetes.io/service.serversscheme: https
+login:
+  ingress:
+    enabled: true
 zitadel:
   masterkey: x123456789012345678901234567891y
   selfSignedCert:
     enabled: true
-    additionalDnsName: my-iam.127.0.0.1.sslip.io
+    additionalDnsName: self-signed.127.0.0.1.sslip.io
   configmapConfig:
-    ExternalSecure: true
-    ExternalPort: 8443
-    ExternalDomain: my-iam.127.0.0.1.sslip.io
+    ExternalDomain: self-signed.127.0.0.1.sslip.io
+    ExternalPort: 443
     TLS:
       Enabled: true
       # No need to configure the cert and key path

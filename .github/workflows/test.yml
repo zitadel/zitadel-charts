@@ -17,25 +17,14 @@ jobs:
       fail-fast: false
       matrix:
         k8s:
-        - version: v1.25
-          kindest-image-tag: 'v1.25.16@sha256:5da57dfc290ac3599e775e63b8b6c49c0c85d3fec771cd7d55b45fae14b38d3b'
-        - version: v1.26
-          kindest-image-tag: 'v1.26.15@sha256:84333e26cae1d70361bb7339efb568df1871419f2019c80f9a12b7e2d485fe19'
-        - version: v1.27
-          kindest-image-tag: 'v1.27.13@sha256:17439fa5b32290e3ead39ead1250dca1d822d94a10d26f1981756cd51b24b9d8'
-        - version: v1.28
-          kindest-image-tag: 'v1.28.9@sha256:dca54bc6a6079dd34699d53d7d4ffa2e853e46a20cd12d619a09207e35300bd0'
-        - version: v1.29
-          kindest-image-tag: 'v1.29.4@sha256:3abb816a5b1061fb15c6e9e60856ec40d56b7b52bcea5f5f1350bc6e2320b6f8'
         - version: v1.30
-          kindest-image-tag: 'v1.30.0@sha256:047357ac0cfea04663786a612ba1eaba9702bef25227a794b52890dd8bcd692e'
-        helm-version:
-        - latest
-        include:
-        - k8s:
-            version: v1.30
-            kindest-image-tag: 'v1.30.0@sha256:047357ac0cfea04663786a612ba1eaba9702bef25227a794b52890dd8bcd692e'
-          helm-version: v3.9.0
+          kindest-image-tag: 'v1.30.13@sha256:397209b3d947d154f6641f2d0ce8d473732bd91c87d9575ade99049aa33cd648'
+        - version: v1.31
+          kindest-image-tag: 'v1.31.9@sha256:b94a3a6c06198d17f59cca8c6f486236fa05e2fb359cbd75dabbfc348a10b211'
+        - version: v1.32
+          kindest-image-tag: 'v1.32.5@sha256:e3b2327e3a5ab8c76f5ece68936e4cafaa82edf58486b769727ab0b3b97a5b0d'
+        - version: v1.33
+          kindest-image-tag: 'v1.33.1@sha256:050072256b9a903bd914c0b2866828150cb229cea0efe5892e2b644d5dd3b34f'
 
     name: 'K8s version ${{ matrix.k8s.version }} - Helm version ${{ matrix.helm-version }}'
 
@@ -61,7 +50,8 @@ jobs:
       uses: 'helm/kind-action@v1.12.0'
       with:
         node_image: 'kindest/node:${{ matrix.k8s.kindest-image-tag }}'
-        version: 'v0.23.0'
+        version: 'v0.29.0'
+        config: ./charts/zitadel/acceptance_test/kindConfig.yaml
       if: steps.list-changed-test.outputs.any_changed == 'true'
 
     - id: 'setup-go'
@@ -98,20 +88,6 @@ jobs:
       if: failure()
       with:
         namespace: ${{ steps.zitadel-test-namespaces.outputs.pgSecure }}
-
-    - id: 'namespace-report-cr-insecure'
-      name: Show ${{ steps.zitadel-test-namespaces.outputs.crInsecure }} Namespace
-      uses: jupyterhub/action-k8s-namespace-report@v1
-      if: failure()
-      with:
-        namespace: ${{ steps.zitadel-test-namespaces.outputs.crInsecure }}
-
-    - id: 'namespace-report-cr-secure'
-      name: Show ${{ steps.zitadel-test-namespaces.outputs.crSecure }} Namespace
-      uses: jupyterhub/action-k8s-namespace-report@v1
-      if: failure()
-      with:
-        namespace: ${{ steps.zitadel-test-namespaces.outputs.crSecure }}
 
     - id: 'namespace-report-ref-secrets'
       name: Show ${{ steps.zitadel-test-namespaces.outputs.refSecrets }} Namespace

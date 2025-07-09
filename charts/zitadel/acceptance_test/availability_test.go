@@ -1,4 +1,4 @@
-package acceptance
+package acceptance_test
 
 import (
 	"context"
@@ -10,7 +10,7 @@ import (
 )
 
 func (s *ConfigurationTest) awaitReadiness(pods []corev1.Pod) {
-	ctx, cancel := context.WithTimeout(s.Ctx, 5*time.Minute)
+	ctx, cancel := context.WithTimeout(CTX, 5*time.Minute)
 	defer cancel()
 	wg := sync.WaitGroup{}
 	for _, p := range pods {

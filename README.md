@@ -129,6 +129,9 @@ docker run -it --network host --workdir=/data --rm --volume $(pwd):/data quay.io
 Test the chart:
 
 ```bash
+# Create KinD cluster
+kind create cluster --config ./charts/zitadel/acceptance_test/kindConfig.yaml
+
 # Test the chart
 go test ./...
 ```

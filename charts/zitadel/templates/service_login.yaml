@@ -26,10 +26,8 @@ spec:
     - port: {{ .Values.login.service.port }}
       targetPort: 3000
       protocol: TCP
-      name: {{ regexReplaceAll "\\W+" .Values.service.protocol "-" }}-server
-      {{- if semverCompare ">=1.19-0" $.Capabilities.KubeVersion.GitVersion }}
+      name: {{ regexReplaceAll "\\W+" .Values.login.service.protocol "-" }}-server
       appProtocol: {{ .Values.login.service.appProtocol }}
-      {{- end }}
   selector:
     {{- include "zitade.login.selectorLabels" . | nindent 4 }}
 {{- end }}

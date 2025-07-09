@@ -1,15 +1,20 @@
-package acceptance
+package acceptance_test
 
 import (
+	"crypto/tls"
 	oidc_client "github.com/zitadel/oidc/v3/pkg/client"
 	"github.com/zitadel/zitadel-go/v3/pkg/client"
 	"github.com/zitadel/zitadel-go/v3/pkg/client/zitadel/management"
 	"github.com/zitadel/zitadel-go/v3/pkg/zitadel"
-	"strconv"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials"
+	"net/url"
 )
 
 func OpenGRPCConnection(cfg *ConfigurationTest, key []byte) (management.ManagementServiceClient, error) {
-	var clientOptions []client.Option
+	clientOptions := []client.Option{
+		client.WithGRPCDialOptions(grpc.WithTransportCredentials(credentials.NewTLS(&tls.Config{InsecureSkipVerify: true}))),
+	}
 	if key != nil {
 		keyFile, err := oidc_client.ConfigFromKeyFileData(key)
 		if err != nil {
@@ -17,14 +22,11 @@ func OpenGRPCConnection(cfg *ConfigurationTest, key []byte) (management.Manageme
 		}
 		clientOptions = append(clientOptions, client.WithAuth(client.JWTAuthentication(keyFile, client.ScopeZitadelAPI())))
 	}
-	zitadelOptions := []zitadel.Option{
-		zitadel.WithPort(cfg.Port),
-		zitadel.WithInsecureSkipVerifyTLS(),
+	apiBaseUrl, err := url.Parse(cfg.ApiBaseUrl)
+	if err != nil {
+		return nil, err
 	}
-	if cfg.Scheme != "https" {
-		zitadelOptions = append(zitadelOptions, zitadel.WithInsecure(strconv.Itoa(int(cfg.Port))))
-	}
-	c, err := client.New(cfg.Ctx, zitadel.New(cfg.Domain, zitadelOptions...), clientOptions...)
+	c, err := client.New(CTX, zitadel.New(apiBaseUrl.Hostname(), zitadel.WithInsecureSkipVerifyTLS()), clientOptions...)
 	if err != nil {
 		return nil, err
 	}

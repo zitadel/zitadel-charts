@@ -1,6 +1,10 @@
 zitadel:
   masterkeySecretName: existing-zitadel-masterkey
   configmapConfig:
+    ExternalDomain: ref-secrets.127.0.0.1.sslip.io
+    ExternalPort: 443
+    TLS:
+      Enabled: false
     Database:
       Postgres:
         Port: 5432
@@ -19,3 +23,8 @@ zitadel:
             Mode: disable
   configSecretName: existing-zitadel-secrets
   configSecretKey: config.yaml
+ingress:
+  enabled: true
+login:
+  ingress:
+    enabled: true

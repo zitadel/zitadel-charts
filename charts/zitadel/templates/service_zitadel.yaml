@@ -26,8 +26,6 @@ spec:
       targetPort: 8080
       protocol: TCP
       name: {{ regexReplaceAll "\\W+" .Values.service.protocol "-" }}-server
-      {{- if semverCompare ">=1.19-0" $.Capabilities.KubeVersion.GitVersion }}
       appProtocol: {{ .Values.service.appProtocol }}
-      {{- end }}
   selector:
     {{- include "zitadel.start.selectorLabels" . | nindent 4 }}

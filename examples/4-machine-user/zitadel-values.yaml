@@ -1,6 +1,12 @@
 zitadel:
   masterkey: x123456789012345678901234567891y
   configmapConfig:
+    Log:
+      Level: debug
+    ExternalDomain: machine.127.0.0.1.sslip.io
+    ExternalPort: 443
+    TLS:
+      Enabled: false
     FirstInstance:
       Org:
         Machine:
@@ -30,3 +36,8 @@ zitadel:
           Username: postgres
           SSL:
             Mode: disable
+ingress:
+  enabled: true
+login:
+  ingress:
+    enabled: true

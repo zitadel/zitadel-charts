@@ -1,6 +1,10 @@
 zitadel:
   masterkey: x123456789012345678901234567891y
   configmapConfig:
+    ExternalDomain: pg-secure.127.0.0.1.sslip.io
+    ExternalPort: 443
+    TLS:
+      Enabled: false
     Database:
       Postgres:
         Host: db-postgresql
@@ -29,3 +33,8 @@ zitadel:
   dbSslCaCrtSecret: postgres-cert
   dbSslAdminCrtSecret: postgres-cert
   dbSslUserCrtSecret: zitadel-cert
+ingress:
+  enabled: true
+login:
+  ingress:
+    enabled: true

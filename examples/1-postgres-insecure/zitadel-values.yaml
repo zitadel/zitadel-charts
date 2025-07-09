@@ -1,11 +1,8 @@
-replicaCount: 1
-login.replicaCount: 1
-
 zitadel:
   masterkey: x123456789012345678901234567891y
   configmapConfig:
-    ExternalSecure: true
-    ExternalDomain: zitadel.127.0.0.1.sslip.io
+    ExternalDomain: pg-insecure.127.0.0.1.sslip.io
+    ExternalPort: 443
     TLS:
       Enabled: false
     Database:
@@ -25,3 +22,8 @@ zitadel:
           Username: postgres
           SSL:
             Mode: disable
+ingress:
+  enabled: true
+login:
+  ingress:
+    enabled: true
