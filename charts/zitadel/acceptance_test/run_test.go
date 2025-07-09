@@ -10,13 +10,14 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-func (s *ConfigurationTest) TestZITADELInstallation() {
+func (s *ConfigurationTest) TestZitadelInstallation() {
 	helm.Install(s.T(), &helm.Options{
 		KubectlOptions: s.KubeOptions,
 		ValuesFiles:    s.zitadelValues,
 		SetValues: map[string]string{
-			"replicaCount": "1",
-			"pdb.enabled":  "true",
+			"replicaCount":       "1",
+			"login.replicaCount": "1",
+			"pdb.enabled":        "true",
 		},
 	}, s.zitadelChartPath, s.zitadelRelease)
 	k8s.WaitUntilJobSucceed(s.T(), s.KubeOptions, "zitadel-test-init", 900, time.Second)
@@ -24,6 +25,7 @@ func (s *ConfigurationTest) TestZITADELInstallation() {
 	pods := listPods(s.T(), 5, s.KubeOptions)
 	s.awaitReadiness(pods)
 	s.checkAccessibility()
+	s.login()
 }
 
 // listPods retries until all three start pods are returned from the kubeapi

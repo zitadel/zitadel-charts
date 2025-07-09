@@ -2,17 +2,17 @@ package acceptance_test
 
 import (
 	"context"
-	"crypto/tls"
 	"encoding/json"
 	"fmt"
-	"github.com/gruntwork-io/terratest/modules/k8s"
-	"github.com/zitadel/oidc/pkg/oidc"
-	mgmt_api "github.com/zitadel/zitadel-go/v3/pkg/client/zitadel/management"
 	"net/http"
 	"net/url"
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/gruntwork-io/terratest/modules/k8s"
+	"github.com/zitadel/oidc/pkg/oidc"
+	mgmt_api "github.com/zitadel/zitadel-go/v3/pkg/client/zitadel/management"
 )
 
 func testAuthenticatedAPI(secretName, secretKey string) func(test *ConfigurationTest) {
@@ -90,11 +90,8 @@ func callAuthenticatedHTTPEndpoint(ctx context.Context, token, apiBaseURL string
 
 func callAuthenticatedGRPCEndpoint(cfg *ConfigurationTest, key []byte) error {
 	t := cfg.T()
-	beforeTransport := http.DefaultClient.Transport
-	defer func() {
-		http.DefaultClient.Transport = beforeTransport
-	}()
-	http.DefaultClient.Transport = &http.Transport{TLSClientConfig: &tls.Config{InsecureSkipVerify: true}}
+	cleanup := withInsecureDefaultHttpClient()
+	defer cleanup()
 	conn, err := OpenGRPCConnection(cfg, key)
 	if err != nil {
 		return fmt.Errorf("couldn't open gRPC connection: %v", err)

@@ -2,13 +2,14 @@ package acceptance_test
 
 import (
 	"crypto/tls"
+	"net/url"
+
 	oidc_client "github.com/zitadel/oidc/v3/pkg/client"
 	"github.com/zitadel/zitadel-go/v3/pkg/client"
 	"github.com/zitadel/zitadel-go/v3/pkg/client/zitadel/management"
 	"github.com/zitadel/zitadel-go/v3/pkg/zitadel"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
-	"net/url"
 )
 
 func OpenGRPCConnection(cfg *ConfigurationTest, key []byte) (management.ManagementServiceClient, error) {

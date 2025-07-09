@@ -2,13 +2,14 @@ package acceptance_test
 
 import (
 	"fmt"
-	"github.com/gruntwork-io/terratest/modules/random"
 	"gopkg.in/yaml.v3"
 	"os"
 	"path/filepath"
 	"runtime"
 	"strings"
 	"testing"
+
+	"github.com/gruntwork-io/terratest/modules/random"
 )
 
 type Values struct {

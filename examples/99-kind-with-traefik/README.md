@@ -5,7 +5,7 @@ You configure KinD so your local machines ports 80 and 443 are mapped to the Kin
 Additionally, you deploy a docker registry, so you can easily run pods from your locally built images.
 
 > [!WARNING]  
-> This example is for development purposes only. 
+> This configuration is for development purposes only. 
 
 ```bash
 # Run Kubernetes in Docker

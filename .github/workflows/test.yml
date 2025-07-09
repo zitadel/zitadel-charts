@@ -26,7 +26,7 @@ jobs:
         - version: v1.33
           kindest-image-tag: 'v1.33.1@sha256:050072256b9a903bd914c0b2866828150cb229cea0efe5892e2b644d5dd3b34f'
 
-    name: 'K8s version ${{ matrix.k8s.version }} - Helm version ${{ matrix.helm-version }}'
+    name: 'K8s version ${{ matrix.k8s.version }}'
 
     steps:
     - id: 'checkout'
@@ -60,10 +60,24 @@ jobs:
         go-version-file: 'go.mod'
       if: steps.list-changed-test.outputs.any_changed == 'true'
 
+    - id: 'setup-chrome'
+      uses: browser-actions/setup-chrome@v1
+      with:
+        chrome-version: 138.0.7204.100
+
     - id: 'test'
       name: Run Go Tests
       run: 'go test -p 1 ./...'
       if: steps.list-changed-test.outputs.any_changed == 'true'
+
+    - id: 'upload-login-failures'
+      name: Upload Login Failures
+      uses: actions/upload-artifact@v4
+      if: failure()
+      with:
+        name: login-failures-${{ matrix.k8s.version }}
+        path: .login-failures
+        retention-days: 30
 
     - id: 'zitadel-test-namespaces'
       name: Grep Created Namespaces
@@ -72,7 +86,7 @@ jobs:
         echo "pgSecure=$(kubectl get namespaces --output name | grep 2-postgres-secure | cut -d / -f 2)" >> "$GITHUB_OUTPUT"
         echo "refSecrets=$(kubectl get namespaces --output name | grep 3-referenced-secrets | cut -d / -f 2)" >> "$GITHUB_OUTPUT"
         echo "machineUser=$(kubectl get namespaces --output name | grep 4-machine-user | cut -d / -f 2)" >> "$GITHUB_OUTPUT"
-        echo "selfSigned=$(kubectl get namespaces --output name | grep 5-self-signed | cut -d / -f 2)" >> "$GITHUB_OUTPUT"
+        echo "internalTls=$(kubectl get namespaces --output name | grep 5-internal-tls | cut -d / -f 2)" >> "$GITHUB_OUTPUT"
       if: failure()
 
     - id: 'namespace-report-pg-insecure'
@@ -104,8 +118,8 @@ jobs:
         namespace: ${{ steps.zitadel-test-namespaces.outputs.machineUser }}
 
     - id: 'namespace-report-self-signed'
-      name: Show ${{ steps.zitadel-test-namespaces.outputs.selfSigned }} Namespace
+      name: Show ${{ steps.zitadel-test-namespaces.outputs.internalTls }} Namespace
       uses: jupyterhub/action-k8s-namespace-report@v1
       if: failure()
       with:
-        namespace: ${{ steps.zitadel-test-namespaces.outputs.selfSigned }}
+        namespace: ${{ steps.zitadel-test-namespaces.outputs.internalTls }}
