@@ -195,12 +195,12 @@ login:
   ingress:
     enabled: false
     className: ""
-    annotations: { }
+    annotations: {}
     hosts:
       - paths:
           - path: /ui/v2/login
             pathType: Prefix
-    tls: [ ]
+    tls: []
   serviceAccount:
     # Specifies whether a service account should be created
     create: true
@@ -221,11 +221,11 @@ login:
     runAsUser: 1000
     readOnlyRootFilesystem: true
     privileged: false
-  resources: { }
-  nodeSelector: { }
-  tolerations: [ ]
-  affinity: { }
-  topologySpreadConstraints: [ ]
+  resources: {}
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+  topologySpreadConstraints: []
 
 replicaCount: 3
 
@@ -363,7 +363,7 @@ setupJob:
   podAdditionalLabels: {}
   additionalArgs:
     - "--init-projections=true"
-  machinekeyWriter  :
+  machinekeyWriter:
     image:
       repository: bitnami/kubectl
       tag: ""
