@@ -67,7 +67,7 @@ jobs:
 
     - id: 'test'
       name: Run Go Tests
-      run: 'go test -p 1 ./...'
+      run: 'go test ./...'
       if: steps.list-changed-test.outputs.any_changed == 'true'
 
     - id: 'upload-login-failures'
