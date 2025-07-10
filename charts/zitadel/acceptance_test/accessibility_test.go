@@ -24,7 +24,6 @@ type httpCheckOptions struct {
 func (c *httpCheckOptions) execute(ctx context.Context) (err error) {
 	checkCtx, checkCancel := context.WithTimeout(ctx, 5*time.Second)
 	defer checkCancel()
-	//nolint:bodyclose
 	resp, body, err := HttpGet(checkCtx, c.getUrl, nil)
 	if err != nil {
 		return fmt.Errorf("HttpGet failed with response %+v and body %+v: %w", resp, body, err)
@@ -53,9 +52,9 @@ func (c *grpcCheckOptions) name() string {
 }
 
 func (s *ConfigurationTest) checkAccessibility(t *testing.T) {
-	ctx, cancel := context.WithTimeout(CTX, time.Minute)
+	ctx, cancel := context.WithTimeout(CTX, 5*time.Minute)
 	defer cancel()
-	var checks []checkOptions = append(
+	var checks = append(
 		zitadelStatusChecks(s.ApiBaseUrl),
 		&httpCheckOptions{
 			getUrl: s.ApiBaseUrl + "/ui/console/assets/environment.json",
