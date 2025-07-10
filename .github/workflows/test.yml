@@ -65,6 +65,7 @@ jobs:
       with:
         chrome-version: 138
         install-chromedriver: true
+        install-dependencies: true
 
     - id: 'test'
       name: Run Go Tests
