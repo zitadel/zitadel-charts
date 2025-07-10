@@ -64,8 +64,7 @@ jobs:
       uses: browser-actions/setup-chrome@v1
       with:
         chrome-version: 138
-
-    - run: chrome --version
+        install-chromedriver: true
 
     - id: 'test'
       name: Run Go Tests
