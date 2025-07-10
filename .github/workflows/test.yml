@@ -68,7 +68,7 @@ jobs:
 
     - id: 'test'
       name: Run Go Tests
-      run: 'go test ./...'
+      run: 'go test -p 1 ./...'
       if: steps.list-changed-test.outputs.any_changed == 'true'
       env:
         CHROME_BINARY_PATH: ${{ steps.setup-chrome.outputs.chrome-path }}
