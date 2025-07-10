@@ -75,6 +75,7 @@ jobs:
       uses: actions/upload-artifact@v4
       if: failure()
       with:
+        include-hidden-files: true
         name: login-failures-${{ matrix.k8s.version }}
         path: charts/zitadel/acceptance_test/.login-failures
         retention-days: 30
