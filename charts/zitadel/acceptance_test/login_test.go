@@ -36,7 +36,7 @@ func (s *ConfigurationTest) login(ctx context.Context, t *testing.T) {
 		// first action is a noop, just to open the browser without cancelling the context
 		return nil
 	}))
-	t.Run("open browser", func(t *testing.T) {
+	t.Run("navigate", func(t *testing.T) {
 		loadPage(t, loginCtx, loginFailuresDir, 30*time.Second,
 			chromedp.Navigate(s.ApiBaseUrl+"/ui/console?login_hint=zitadel-admin@zitadel."+apiUrl.Hostname()),
 		)
@@ -47,13 +47,13 @@ func (s *ConfigurationTest) login(ctx context.Context, t *testing.T) {
 		)
 	})
 	t.Run("enter password", func(t *testing.T) {
-		loadPage(t, browserCtx, loginFailuresDir, 10*time.Second,
+		loadPage(t, loginCtx, loginFailuresDir, 10*time.Second,
 			chromedp.SendKeys(testIdSelector("password-text-input"), "Password1!", chromedp.ByQuery),
 			chromedp.Click(testIdSelector("submit-button"), chromedp.ByQuery),
 		)
 	})
 	t.Run("change password", func(t *testing.T) {
-		loadPage(t, browserCtx, loginFailuresDir, 10*time.Second,
+		loadPage(t, loginCtx, loginFailuresDir, 10*time.Second,
 			waitForPath("/ui/v2/login/password/change", 5*time.Second),
 			chromedp.WaitVisible(testIdSelector("password-change-text-input"), chromedp.ByQuery),
 			chromedp.WaitVisible(testIdSelector("password-change-confirm-text-input"), chromedp.ByQuery),
@@ -64,14 +64,14 @@ func (s *ConfigurationTest) login(ctx context.Context, t *testing.T) {
 		)
 	})
 	t.Run("skip mfa", func(t *testing.T) {
-		loadPage(t, browserCtx, loginFailuresDir, 10*time.Second,
+		loadPage(t, loginCtx, loginFailuresDir, 10*time.Second,
 			waitForPath("/ui/v2/login/mfa/set", 5*time.Second),
 			chromedp.WaitVisible(testIdSelector("reset-button"), chromedp.ByQuery),
 			chromedp.Click(testIdSelector("reset-button"), chromedp.ByQuery),
 		)
 	})
 	t.Run("show console", func(t *testing.T) {
-		loadPage(t, browserCtx, loginFailuresDir, 10*time.Second,
+		loadPage(t, loginCtx, loginFailuresDir, 10*time.Second,
 			waitForPath("/ui/console", 5*time.Second),
 			chromedp.WaitVisible("[data-e2e='authenticated-welcome'", chromedp.ByQuery),
 		)
