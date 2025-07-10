@@ -65,6 +65,8 @@ jobs:
       with:
         chrome-version: 138
 
+    - run: chrome --version
+
     - id: 'test'
       name: Run Go Tests
       run: 'go test ./...'
