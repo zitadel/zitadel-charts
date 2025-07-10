@@ -31,20 +31,20 @@ func testAuthenticatedAPI(secretName, secretKey string) func(test *Configuration
 		if err != nil {
 			t.Fatal(err)
 		}
-		awaitCtx, cancel := context.WithTimeout(CTX, 5*time.Minute)
+		awaitCtx, cancel := context.WithTimeoutCause(context.Background(), 5*time.Minute, fmt.Errorf("testing authenticated APIs timed out after 5 minutes"))
 		defer cancel()
 		var token string
-		Await(awaitCtx, t, 1*time.Minute, func(ctx context.Context) error {
+		Awaitf(awaitCtx, t, 1*time.Minute, func(ctx context.Context) error {
 			var tokenErr error
 			token, tokenErr = getToken(ctx, t, jwt, cfg.ApiBaseUrl)
 			return tokenErr
-		})
-		Await(awaitCtx, t, 1*time.Minute, func(ctx context.Context) error {
+		}, "getting token failed for a minute")
+		Awaitf(awaitCtx, t, 1*time.Minute, func(ctx context.Context) error {
 			if httpErr := callAuthenticatedHTTPEndpoint(ctx, token, cfg.ApiBaseUrl); httpErr != nil {
 				return httpErr
 			}
-			return callAuthenticatedGRPCEndpoint(cfg, key)
-		})
+			return callAuthenticatedGRPCEndpoint(ctx, cfg, key)
+		}, "calling authenticated endpoints failed for a minute")
 	}
 }
 
@@ -73,7 +73,7 @@ func getToken(ctx context.Context, t *testing.T, jwt, apiBaseURL string) (string
 }
 
 func callAuthenticatedHTTPEndpoint(ctx context.Context, token, apiBaseURL string) error {
-	checkCtx, checkCancel := context.WithTimeout(ctx, 5*time.Second)
+	checkCtx, checkCancel := context.WithTimeoutCause(ctx, 5*time.Second, fmt.Errorf("calling authenticated HTTP endpoint timed out after 5 seconds"))
 	defer checkCancel()
 	//nolint:bodyclose
 	resp, _, err := HttpGet(checkCtx, fmt.Sprintf("%s/management/v1/languages", apiBaseURL), func(req *http.Request) {
@@ -88,15 +88,15 @@ func callAuthenticatedHTTPEndpoint(ctx context.Context, token, apiBaseURL string
 	return nil
 }
 
-func callAuthenticatedGRPCEndpoint(cfg *ConfigurationTest, key []byte) error {
+func callAuthenticatedGRPCEndpoint(ctx context.Context, cfg *ConfigurationTest, key []byte) error {
 	t := cfg.T()
 	cleanup := withInsecureDefaultHttpClient()
 	defer cleanup()
-	conn, err := OpenGRPCConnection(cfg, key)
+	conn, err := OpenGRPCConnection(ctx, cfg, key)
 	if err != nil {
 		return fmt.Errorf("couldn't open gRPC connection: %v", err)
 	}
-	_, err = conn.GetSupportedLanguages(CTX, &mgmt_api.GetSupportedLanguagesRequest{})
+	_, err = conn.GetSupportedLanguages(ctx, &mgmt_api.GetSupportedLanguagesRequest{})
 	if err != nil {
 		t.Fatalf("couldn't call authenticated gRPC endpoint: %v", err)
 	}

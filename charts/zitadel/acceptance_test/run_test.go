@@ -1,6 +1,7 @@
 package acceptance_test
 
 import (
+	"context"
 	"testing"
 	"time"
 
@@ -11,6 +12,10 @@ import (
 )
 
 func (s *ConfigurationTest) TestZitadelInstallation() {
+	testCtx, testCancel := context.WithCancelCause(context.Background())
+	defer cancelTest(testCtx, testCancel, s.T())
+	ctx, cancel := context.WithTimeout(testCtx, 30*time.Minute)
+	defer cancel()
 	s.T().Run("install", func(t *testing.T) {
 		helm.Install(t, &helm.Options{
 			KubectlOptions: s.KubeOptions,
@@ -33,10 +38,14 @@ func (s *ConfigurationTest) TestZitadelInstallation() {
 		s.awaitReadiness(t, pods)
 	})
 	s.T().Run("accessibility", func(t *testing.T) {
-		s.checkAccessibility(t)
+		accessCtx, accessCancel := context.WithCancelCause(ctx)
+		defer cancelTest(accessCtx, accessCancel, t)
+		s.checkAccessibility(accessCtx, t)
 	})
 	s.T().Run("login", func(t *testing.T) {
-		s.login(t)
+		loginCtx, loginCancel := context.WithCancelCause(ctx)
+		defer cancelTest(loginCtx, loginCancel, t)
+		s.login(loginCtx, t)
 	})
 }
 

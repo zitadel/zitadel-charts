@@ -22,7 +22,7 @@ type httpCheckOptions struct {
 }
 
 func (c *httpCheckOptions) execute(ctx context.Context) (err error) {
-	checkCtx, checkCancel := context.WithTimeout(ctx, 5*time.Second)
+	checkCtx, checkCancel := context.WithTimeoutCause(ctx, 5*time.Second, fmt.Errorf("http GET check %s timed out after 5 seconds", c.getUrl))
 	defer checkCancel()
 	//nolint:bodyclose
 	resp, body, err := HttpGet(checkCtx, c.getUrl, nil)
@@ -52,8 +52,8 @@ func (c *grpcCheckOptions) name() string {
 	return c.checkName
 }
 
-func (s *ConfigurationTest) checkAccessibility(t *testing.T) {
-	ctx, cancel := context.WithTimeout(CTX, time.Minute)
+func (s *ConfigurationTest) checkAccessibility(ctx context.Context, t *testing.T) {
+	ctx, cancel := context.WithTimeoutCause(ctx, time.Minute, fmt.Errorf("accessibility checks timed out after a minute"))
 	defer cancel()
 	var checks []checkOptions = append(
 		zitadelStatusChecks(s.ApiBaseUrl),
@@ -78,7 +78,7 @@ func (s *ConfigurationTest) checkAccessibility(t *testing.T) {
 		&grpcCheckOptions{
 			checkName: "zitadel",
 			test: func(ctx context.Context) (err error) {
-				conn, err := OpenGRPCConnection(s, nil)
+				conn, err := OpenGRPCConnection(ctx, s, nil)
 				if err != nil {
 					return fmt.Errorf("couldn't create gRPC management client: %w", err)
 				}
@@ -88,7 +88,7 @@ func (s *ConfigurationTest) checkAccessibility(t *testing.T) {
 		})
 	for _, check := range checks {
 		t.Run(check.name(), func(t *testing.T) {
-			Await(ctx, t, 1*time.Minute, check.execute)
+			Awaitf(ctx, t, 1*time.Minute, check.execute, "check %s failed for a minute", check.name())
 		})
 	}
 }

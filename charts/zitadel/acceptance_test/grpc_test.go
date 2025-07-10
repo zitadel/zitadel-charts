@@ -1,6 +1,7 @@
 package acceptance_test
 
 import (
+	"context"
 	"crypto/tls"
 	"net/url"
 
@@ -12,7 +13,7 @@ import (
 	"google.golang.org/grpc/credentials"
 )
 
-func OpenGRPCConnection(cfg *ConfigurationTest, key []byte) (management.ManagementServiceClient, error) {
+func OpenGRPCConnection(ctx context.Context, cfg *ConfigurationTest, key []byte) (management.ManagementServiceClient, error) {
 	clientOptions := []client.Option{
 		client.WithGRPCDialOptions(grpc.WithTransportCredentials(credentials.NewTLS(&tls.Config{InsecureSkipVerify: true}))),
 	}
@@ -27,7 +28,7 @@ func OpenGRPCConnection(cfg *ConfigurationTest, key []byte) (management.Manageme
 	if err != nil {
 		return nil, err
 	}
-	c, err := client.New(CTX, zitadel.New(apiBaseUrl.Hostname(), zitadel.WithInsecureSkipVerifyTLS()), clientOptions...)
+	c, err := client.New(ctx, zitadel.New(apiBaseUrl.Hostname(), zitadel.WithInsecureSkipVerifyTLS()), clientOptions...)
 	if err != nil {
 		return nil, err
 	}

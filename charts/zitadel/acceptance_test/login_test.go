@@ -15,39 +15,45 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func (s *ConfigurationTest) login(t *testing.T) {
+func (s *ConfigurationTest) login(ctx context.Context, t *testing.T) {
 	apiUrl, err := url.Parse(s.ApiBaseUrl)
 	loginFailuresDir := filepath.Join(".login-failures", s.KubeOptions.Namespace)
 	require.NoError(t, err)
-	ctxx, _ := chromedp.NewExecAllocator(context.Background(), append(
+	allocCtx, _ := chromedp.NewExecAllocator(ctx, append(
 		chromedp.DefaultExecAllocatorOptions[:],
 		chromedp.IgnoreCertErrors,
+		chromedp.NoSandbox,
 	)...)
-	ctx, cancel := chromedp.NewContext(
-		ctxx,
+	browserCtx, _ := chromedp.NewContext(
+		allocCtx,
 		chromedp.WithLogf(t.Logf),
 		chromedp.WithDebugf(t.Logf),
 		chromedp.WithErrorf(t.Logf),
 	)
-	defer cancel()
+	loginCtx, loginCancel := context.WithTimeoutCause(browserCtx, 5*time.Minute, fmt.Errorf("login test timed out after 5 minutes"))
+	defer loginCancel()
+	_ = chromedp.Run(browserCtx, chromedp.ActionFunc(func(ctx context.Context) error {
+		// first action is a noop, just to open the browser without cancelling the context
+		return nil
+	}))
 	t.Run("open browser", func(t *testing.T) {
-		// We don't time out the first chromedp.Run context as this would stop the browser.
-		// see chromedp.Run docs
-		require.NoError(t, chromedp.Run(ctx, chromedp.Navigate(s.ApiBaseUrl+"/ui/console?login_hint=zitadel-admin@zitadel."+apiUrl.Hostname())))
+		loadPage(t, loginCtx, loginFailuresDir, 30*time.Second,
+			chromedp.Navigate(s.ApiBaseUrl+"/ui/console?login_hint=zitadel-admin@zitadel."+apiUrl.Hostname()),
+		)
 	})
 	t.Run("await password page", func(t *testing.T) {
-		loadPage(t, ctx, loginFailuresDir, 10*time.Second,
+		loadPage(t, loginCtx, loginFailuresDir, 10*time.Second,
 			chromedp.WaitVisible(testIdSelector("password-text-input"), chromedp.ByQuery),
 		)
 	})
 	t.Run("enter password", func(t *testing.T) {
-		loadPage(t, ctx, loginFailuresDir, 10*time.Second,
+		loadPage(t, browserCtx, loginFailuresDir, 10*time.Second,
 			chromedp.SendKeys(testIdSelector("password-text-input"), "Password1!", chromedp.ByQuery),
 			chromedp.Click(testIdSelector("submit-button"), chromedp.ByQuery),
 		)
 	})
 	t.Run("change password", func(t *testing.T) {
-		loadPage(t, ctx, loginFailuresDir, 10*time.Second,
+		loadPage(t, browserCtx, loginFailuresDir, 10*time.Second,
 			waitForPath("/ui/v2/login/password/change", 5*time.Second),
 			chromedp.WaitVisible(testIdSelector("password-change-text-input"), chromedp.ByQuery),
 			chromedp.WaitVisible(testIdSelector("password-change-confirm-text-input"), chromedp.ByQuery),
@@ -58,14 +64,14 @@ func (s *ConfigurationTest) login(t *testing.T) {
 		)
 	})
 	t.Run("skip mfa", func(t *testing.T) {
-		loadPage(t, ctx, loginFailuresDir, 10*time.Second,
+		loadPage(t, browserCtx, loginFailuresDir, 10*time.Second,
 			waitForPath("/ui/v2/login/mfa/set", 5*time.Second),
 			chromedp.WaitVisible(testIdSelector("reset-button"), chromedp.ByQuery),
 			chromedp.Click(testIdSelector("reset-button"), chromedp.ByQuery),
 		)
 	})
 	t.Run("show console", func(t *testing.T) {
-		loadPage(t, ctx, loginFailuresDir, 10*time.Second,
+		loadPage(t, browserCtx, loginFailuresDir, 10*time.Second,
 			waitForPath("/ui/console", 5*time.Second),
 			chromedp.WaitVisible("[data-e2e='authenticated-welcome'", chromedp.ByQuery),
 		)
@@ -74,9 +80,11 @@ func (s *ConfigurationTest) login(t *testing.T) {
 
 func loadPage(t *testing.T, ctx context.Context, loginFailuresDir string, timeout time.Duration, actions ...chromedp.Action) {
 	t.Helper()
-	loadCtx, loadCancel := context.WithTimeout(ctx, timeout)
-	defer loadCancel()
-	_, err := chromedp.RunResponse(loadCtx, actions...)
+	loadPageCtx, loadPageCancel := context.WithCancelCause(ctx)
+	defer cancelTest(loadPageCtx, loadPageCancel, t)
+	timeoutCtx, timeoutCancel := context.WithTimeoutCause(loadPageCtx, timeout, fmt.Errorf("test %s timed out after %s", t.Name(), timeout))
+	defer timeoutCancel()
+	_, err := chromedp.RunResponse(timeoutCtx, actions...)
 	if err != nil {
 		var (
 			html            string

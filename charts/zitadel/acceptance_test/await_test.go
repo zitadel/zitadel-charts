@@ -9,8 +9,10 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func Await(ctx context.Context, t *testing.T, waitFor time.Duration, cb func(ctx context.Context) error) {
-	require.EventuallyWithT(t, func(collect *assert.CollectT) {
-		assert.NoError(collect, cb(ctx))
-	}, waitFor, time.Second)
+func Awaitf(ctx context.Context, t *testing.T, waitFor time.Duration, cb func(ctx context.Context) error, msg string, args ...any) {
+	require.EventuallyWithTf(t, func(collect *assert.CollectT) {
+		if !assert.NoError(collect, cb(ctx)) {
+			t.Logf("retrying in a second")
+		}
+	}, waitFor, time.Second, msg, args...)
 }

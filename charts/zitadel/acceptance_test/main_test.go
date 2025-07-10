@@ -1,18 +1,13 @@
 package acceptance_test
 
 import (
-	"context"
 	"fmt"
+	"github.com/gruntwork-io/terratest/modules/helm"
 	"os"
 	"path/filepath"
 	"runtime"
 	"testing"
-	"time"
-
-	"github.com/gruntwork-io/terratest/modules/helm"
 )
-
-var CTX context.Context
 
 type panicT struct {
 	testing.T
@@ -24,9 +19,6 @@ func (p *panicT) Errorf(format string, args ...interface{}) {
 
 func TestMain(m *testing.M) {
 	os.Exit(func() int {
-		ctx, cancel := context.WithTimeout(context.Background(), 15*time.Minute)
-		defer cancel()
-		CTX = ctx
 		t := &panicT{}
 		helm.AddRepo(t, &helm.Options{}, "traefik", "https://traefik.github.io/charts")
 		_, filename, _, _ := runtime.Caller(0)
