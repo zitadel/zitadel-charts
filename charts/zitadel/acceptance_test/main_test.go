@@ -32,6 +32,7 @@ func TestMain(m *testing.M) {
 		execAllocatorOptions := append(
 			chromedp.DefaultExecAllocatorOptions[:],
 			chromedp.IgnoreCertErrors,
+			chromedp.NoSandbox,
 		)
 		if chromeBinaryPath := os.Getenv("CHROME_BINARY_PATH"); chromeBinaryPath != "" {
 			execAllocatorOptions = append(execAllocatorOptions, chromedp.ExecPath(chromeBinaryPath))
