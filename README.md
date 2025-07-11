@@ -17,13 +17,15 @@ By default, the execution order is orchestrated using Helm hooks on installation
 
 ## Install the Chart
 
-Either follow the [guide for deploying Zitadel on Kubernetes](https://zitadel.com/docs/self-hosting/deploy/kubernetes) or follow one of the example guides:
+The easiest way to deploy a Helm release for Zitadel is by following the [Insecure Postgres Example](examples/1-postgres-insecure/README.md).
+For more sofisticated production-ready configurations, follow one of the following examples:
 
-- [Insecure Postgres Example](examples/1-postgres-insecure/README.md)
 - [Secure Postgres Example](examples/2-postgres-secure/README.md)
 - [Referenced Secrets Example](examples/3-referenced-secrets/README.md)
 - [Machine User Setup Example](examples/4-machine-user/README.md)
-- [TLS with Self Signed Certificate Setup Example](examples/5-self-signed/README.md)
+- [Internal TLS Example](examples/5-internal-tls/README.md)
+
+All the configurations from the examples above are guaranteed to work, because they are directly used in automatic acceptance tests.
 
 ## Upgrade From V8 to V9 Release Candidate
 
