@@ -32,6 +32,10 @@ All the configurations from the examples above are guaranteed to work, because t
 The v9 charts default Zitadel and login versions reference [the first Zitadel v4 release candidate](https://github.com/zitadel/zitadel/releases/tag/v4.0.0-rc.1).
 Therefore, the chart version 9 is also marked as a release candidate.
 
+### Don’t Switch to the New Login Deployment
+
+Use `login.enabled: false` to omit deploying the new login.
+
 ### Switch to the New Login Deployment
 
 By default, a new deployment for the login v2 is configured and created.
@@ -45,6 +49,18 @@ Therefore, the Kubernetes secret has to be created manually before upgrading to 
 2. Make the user an instance administrator with role `IAM_LOGIN_CLIENT`
 3. Create a personal access token for the user 
 4. Create a secret with that token: `kubectl --namespace <my-namespace> create secret generic login-client --from-file=pat=<my-local-path-to-the-downloaded-pat-file>`
+
+To make the login externally accessible, you need to route traffic with the path prefix `/ui/v2/login` to the login service.
+If you use an ingress controller, you can enable the login ingress with `login.ingress.enabled: true`
+
+[!WARNING]
+> Don't Lock Yourself Out of Your Instance
+> Before you change your Zitadel configuration, we highly recommend you to create a service user with a personal access token (PAT) and the IAM_OWNER role.
+> In case something breaks, you can use this PAT to revert your changes or fix the configuration so you can use a login UI again.
+
+To actually use the new login, enable the loginV2 feature on the instance.
+Leave the base URI empty to use the default or explicitly configure it to `/ui/v2/login`.
+If you enable this feature, the login will be used for every application configured in your Zitadel instance.
 
 ### Other Breaking Changes
 
