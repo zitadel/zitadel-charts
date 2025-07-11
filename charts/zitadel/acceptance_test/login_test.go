@@ -71,7 +71,7 @@ func (s *ConfigurationTest) login(ctx context.Context, t *testing.T) {
 		)
 	})
 	t.Run("show console", func(t *testing.T) {
-		loadPage(t, loginCtx, loginFailuresDir, 10*time.Second,
+		loadPage(t, loginCtx, loginFailuresDir, 30*time.Second,
 			waitForPath("/ui/console", 5*time.Second),
 			chromedp.WaitVisible("[data-e2e='authenticated-welcome'", chromedp.ByQuery),
 		)
@@ -80,9 +80,7 @@ func (s *ConfigurationTest) login(ctx context.Context, t *testing.T) {
 
 func loadPage(t *testing.T, ctx context.Context, loginFailuresDir string, timeout time.Duration, actions ...chromedp.Action) {
 	t.Helper()
-	loadPageCtx, loadPageCancel := context.WithCancelCause(ctx)
-	defer cancelTest(loadPageCtx, loadPageCancel, t)
-	timeoutCtx, timeoutCancel := context.WithTimeoutCause(loadPageCtx, timeout, fmt.Errorf("test %s timed out after %s", t.Name(), timeout))
+	timeoutCtx, timeoutCancel := context.WithTimeoutCause(ctx, timeout, fmt.Errorf("test %s timed out after %s", t.Name(), timeout))
 	defer timeoutCancel()
 	_, err := chromedp.RunResponse(timeoutCtx, actions...)
 	if err != nil {

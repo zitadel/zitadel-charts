@@ -12,9 +12,7 @@ import (
 )
 
 func (s *ConfigurationTest) TestZitadelInstallation() {
-	testCtx, testCancel := context.WithCancelCause(context.Background())
-	defer cancelTest(testCtx, testCancel, s.T())
-	ctx, cancel := context.WithTimeout(testCtx, 30*time.Minute)
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Minute)
 	defer cancel()
 	s.T().Run("install", func(t *testing.T) {
 		helm.Install(t, &helm.Options{
@@ -38,14 +36,10 @@ func (s *ConfigurationTest) TestZitadelInstallation() {
 		s.awaitReadiness(t, pods)
 	})
 	s.T().Run("accessibility", func(t *testing.T) {
-		accessCtx, accessCancel := context.WithCancelCause(ctx)
-		defer cancelTest(accessCtx, accessCancel, t)
-		s.checkAccessibility(accessCtx, t)
+		s.checkAccessibility(ctx, t)
 	})
 	s.T().Run("login", func(t *testing.T) {
-		loginCtx, loginCancel := context.WithCancelCause(ctx)
-		defer cancelTest(loginCtx, loginCancel, t)
-		s.login(loginCtx, t)
+		s.login(ctx, t)
 	})
 }
 

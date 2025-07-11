@@ -55,7 +55,7 @@ func (c *grpcCheckOptions) name() string {
 func (s *ConfigurationTest) checkAccessibility(ctx context.Context, t *testing.T) {
 	ctx, cancel := context.WithTimeoutCause(ctx, time.Minute, fmt.Errorf("accessibility checks timed out after a minute"))
 	defer cancel()
-	var checks []checkOptions = append(
+	var checks = append(
 		zitadelStatusChecks(s.ApiBaseUrl),
 		&httpCheckOptions{
 			getUrl: s.ApiBaseUrl + "/ui/console/assets/environment.json",
