@@ -14,7 +14,8 @@ import (
 func (s *ConfigurationTest) TestZitadelInstallation() {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Minute)
 	defer cancel()
-	s.T().Run("install", func(t *testing.T) {
+	t := s.T()
+	if !t.Run("install", func(t *testing.T) {
 		helm.Install(t, &helm.Options{
 			KubectlOptions: s.KubeOptions,
 			ValuesFiles:    s.zitadelValues,
@@ -24,23 +25,35 @@ func (s *ConfigurationTest) TestZitadelInstallation() {
 				"pdb.enabled":        "true",
 			},
 		}, s.zitadelChartPath, s.zitadelRelease)
-	})
-	s.T().Run("init", func(t *testing.T) {
+	}) {
+		t.FailNow()
+	}
+	if !t.Run("init", func(t *testing.T) {
 		k8s.WaitUntilJobSucceed(t, s.KubeOptions, "zitadel-test-init", 900, time.Second)
-	})
-	s.T().Run("setup", func(t *testing.T) {
+	}) {
+		t.FailNow()
+	}
+	if !t.Run("setup", func(t *testing.T) {
 		k8s.WaitUntilJobSucceed(t, s.KubeOptions, "zitadel-test-setup", 900, time.Second)
-	})
-	s.T().Run("readiness", func(t *testing.T) {
+	}) {
+		t.FailNow()
+	}
+	if !t.Run("readiness", func(t *testing.T) {
 		pods := listPods(t, 5, s.KubeOptions)
 		s.awaitReadiness(t, pods)
-	})
-	s.T().Run("accessibility", func(t *testing.T) {
+	}) {
+		t.FailNow()
+	}
+	if !t.Run("accessibility", func(t *testing.T) {
 		s.checkAccessibility(ctx, t)
-	})
-	s.T().Run("login", func(t *testing.T) {
+	}) {
+		t.FailNow()
+	}
+	if !t.Run("login", func(t *testing.T) {
 		s.login(ctx, t)
-	})
+	}) {
+		t.FailNow()
+	}
 }
 
 // listPods retries until all three start pods are returned from the kubeapi

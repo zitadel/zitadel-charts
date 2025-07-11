@@ -9,9 +9,15 @@ import (
 )
 
 func (s *ConfigurationTest) awaitReadiness(t *testing.T, pods []corev1.Pod) {
+	var failed bool
 	for _, p := range pods {
-		t.Run("pod "+p.Name, func(t *testing.T) {
+		if !t.Run("pod "+p.Name, func(t *testing.T) {
 			k8s.WaitUntilPodAvailable(t, s.KubeOptions, p.Name, 300, time.Second)
-		})
+		}) {
+			failed = true
+		}
+	}
+	if failed {
+		t.FailNow()
 	}
 }

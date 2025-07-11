@@ -86,10 +86,16 @@ func (s *ConfigurationTest) checkAccessibility(ctx context.Context, t *testing.T
 				return err
 			},
 		})
+	var failed bool
 	for _, check := range checks {
-		t.Run(check.name(), func(t *testing.T) {
+		if !t.Run(check.name(), func(t *testing.T) {
 			Awaitf(ctx, t, 1*time.Minute, check.execute, "check %s failed for a minute", check.name())
-		})
+		}) {
+			failed = true
+		}
+	}
+	if failed {
+		t.FailNow()
 	}
 }
 

@@ -25,6 +25,35 @@ Either follow the [guide for deploying Zitadel on Kubernetes](https://zitadel.co
 - [Machine User Setup Example](examples/4-machine-user/README.md)
 - [TLS with Self Signed Certificate Setup Example](examples/5-self-signed/README.md)
 
+## Upgrade From V8 to V9 Release Candidate
+
+The v9 charts default Zitadel and login versions reference [the first Zitadel v4 release candidate](https://github.com/zitadel/zitadel/releases/tag/v4.0.0-rc.1).
+Therefore, the chart version 9 is also marked as a release candidate.
+
+### Switch to the New Login Deployment
+
+By default, a new deployment for the login v2 is configured and created.
+For new installations, the setup job automatically creates a user of type machine with role `IAM_LOGIN_CLIENT`.
+It writes the users personal access token into a Kubernetes secret which is then mounted into the login pods.
+
+For existing installations, the setup job doesn't create this login client user.
+Therefore, the Kubernetes secret has to be created manually before upgrading to v9:
+
+1. Create a user of type machine
+2. Make the user an instance administrator with role `IAM_LOGIN_CLIENT`
+3. Create a personal access token for the user 
+4. Create a secret with that token: `kubectl --namespace <my-namespace> create secret generic login-client --from-file=pat=<my-local-path-to-the-downloaded-pat-file>`
+
+### Other Breaking Changes
+
+- Default Traefik and NGINX annotations for internal unencrypted HTTP/2 traffic to the Zitadel pods are added.
+- The default value `localhost` is removed from the Zitadel ingresses `host` field. Instead, the `host` fields for the Zitadel and login ingresses default to `zitadel.configmapConfig.ExternalDomain`.
+- The following Kubernetes versions are tested:
+  - v1.33.1
+  - v1.32.5
+  - v1.31.9
+  - v1.30.13
+
 ## Upgrade from v7
 
 > [!WARNING] The chart version 8 doesn't get updates to the default Zitadel version anymore as this might break environments that use CockroachDB.
