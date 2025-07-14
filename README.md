@@ -54,9 +54,9 @@ To make the login externally accessible, you need to route traffic with the path
 If you use an ingress controller, you can enable the login ingress with `login.ingress.enabled: true`
 
 > [!WARNING]
-> Don't Lock Yourself Out of Your Instance
-> Before you change your Zitadel configuration, we highly recommend you to create a service user with a personal access token (PAT) and the IAM_OWNER role.
-> In case something breaks, you can use this PAT to revert your changes or fix the configuration so you can use a login UI again.
+> Don't Lock Yourself Out of Your Instance  
+> Before you change your Zitadel configuration, we highly recommend you to create a service user with a personal access token (PAT) and the IAM_OWNER role.  
+> In case something breaks, you can use this PAT to revert your changes or fix the configuration so you can use a login UI again.  
 
 To actually use the new login, enable the loginV2 feature on the instance.
 Leave the base URI empty to use the default or explicitly configure it to `/ui/v2/login`.
