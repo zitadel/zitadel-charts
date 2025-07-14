@@ -24,10 +24,10 @@ spec:
   {{- end }}
   ports:
     - port: {{ .Values.login.service.port }}
-      targetPort: 3000
+      targetPort: {{ include "login.containerPort" }}
       protocol: TCP
       name: {{ regexReplaceAll "\\W+" .Values.login.service.protocol "-" }}-server
       appProtocol: {{ .Values.login.service.appProtocol }}
   selector:
-    {{- include "zitade.login.selectorLabels" . | nindent 4 }}
+    {{- include "zitadel.login.selectorLabels" . | nindent 4 }}
 {{- end }}

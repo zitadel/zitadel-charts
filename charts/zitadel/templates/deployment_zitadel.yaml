@@ -104,7 +104,7 @@ spec:
                 name: {{ .Values.envVarsSecret }}
           {{- end }}
           ports:
-          - containerPort: 8080
+          - containerPort: {{ include "zitadel.containerPort" }}
             name: {{ .Values.service.protocol }}-server
             protocol: TCP
           {{- if .Values.livenessProbe.enabled }}

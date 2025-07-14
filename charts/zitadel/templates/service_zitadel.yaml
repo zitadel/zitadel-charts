@@ -23,7 +23,7 @@ spec:
   {{- end }}
   ports:
     - port: {{ .Values.service.port }}
-      targetPort: 8080
+      targetPort: {{ include "zitadel.containerPort" }}
       protocol: TCP
       name: {{ regexReplaceAll "\\W+" .Values.service.protocol "-" }}-server
       appProtocol: {{ .Values.service.appProtocol }}

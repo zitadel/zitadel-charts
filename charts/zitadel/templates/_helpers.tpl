@@ -163,7 +163,7 @@ Debug component selector labels
 {{/*
 Login component selector labels
 */}}
-{{- define "zitade.login.selectorLabels" -}}
+{{- define "zitadel.login.selectorLabels" -}}
 {{ include "login.commonSelectorLabels" . }}
 {{ include "componentSelectorLabel" "login" }}
 {{- end }}
@@ -233,3 +233,11 @@ Returns a dict with the databases key in the yaml and the environment variable p
     {{- end -}}
   {{- end -}}
 {{- end -}}
+
+{{- define "zitadel.containerPort" -}}
+8080
+{{- end -}}}
+
+{{- define "login.containerPort" -}}
+3000
+{{- end -}}}
