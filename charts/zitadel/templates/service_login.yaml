@@ -24,7 +24,7 @@ spec:
   {{- end }}
   ports:
     - port: {{ .Values.login.service.port }}
-      targetPort: {{ include "login.containerPort" }}
+      targetPort: {{ include "login.containerPort" . }}
       protocol: TCP
       name: {{ regexReplaceAll "\\W+" .Values.login.service.protocol "-" }}-server
       appProtocol: {{ .Values.login.service.appProtocol }}

@@ -48,7 +48,7 @@ spec:
             - name: NEXT_PUBLIC_BASE_PATH
               value: /ui/v2/login
           ports:
-          - containerPort: {{ include "login.containerPort" }}
+          - containerPort: {{ include "login.containerPort" . }}
             name: {{ .Values.login.service.protocol }}-server
             protocol: TCP
           {{- if .Values.login.livenessProbe.enabled }}
