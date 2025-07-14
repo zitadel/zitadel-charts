@@ -53,7 +53,8 @@ Therefore, the Kubernetes secret has to be created manually before upgrading to 
 To make the login externally accessible, you need to route traffic with the path prefix `/ui/v2/login` to the login service.
 If you use an ingress controller, you can enable the login ingress with `login.ingress.enabled: true`
 
-> [!WARNING] Don't Lock Yourself Out of Your Instance  
+> [!CAUTION]
+> Don't Lock Yourself Out of Your Instance  
 > Before you change your Zitadel configuration, we highly recommend you to create a service user with a personal access token (PAT) and the IAM_OWNER role.  
 > In case something breaks, you can use this PAT to revert your changes or fix the configuration so you can use a login UI again.  
 
