@@ -32,7 +32,7 @@ spec:
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
       enableServiceLinks: false
-      restartPolicy: OnFailure
+      restartPolicy: Never
       {{- if or .Values.zitadel.initContainers .Values.initJob.initContainers }}
       initContainers:
       {{- with .Values.zitadel.initContainers }}

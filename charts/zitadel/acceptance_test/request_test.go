@@ -1,4 +1,4 @@
-package acceptance
+package acceptance_test
 
 import (
 	"context"
@@ -24,12 +24,20 @@ func httpCall(ctx context.Context, method string, url string, beforeSend func(re
 	if beforeSend != nil {
 		beforeSend(req)
 	}
-	httpClient := http.Client{Transport: &http.Transport{TLSClientConfig: &tls.Config{InsecureSkipVerify: true}}}
-	resp, err := httpClient.Do(req)
+	cleanup := withInsecureDefaultHttpClient()
+	defer cleanup()
+	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return nil, nil, fmt.Errorf("sending request %+v failed: %s", *req, err)
 	}
 	defer resp.Body.Close()
 	responseBody, err := io.ReadAll(resp.Body)
 	return resp, responseBody, err
+}
+
+func withInsecureDefaultHttpClient() func() {
+	http.DefaultClient.Transport = &http.Transport{TLSClientConfig: &tls.Config{InsecureSkipVerify: true}}
+	return func() {
+		http.DefaultClient.Transport = nil
+	}
 }

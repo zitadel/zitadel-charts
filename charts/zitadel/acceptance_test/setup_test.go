@@ -1,10 +1,11 @@
-package acceptance
+package acceptance_test
 
 import (
+	"strings"
+
 	"github.com/gruntwork-io/terratest/modules/k8s"
 	"github.com/jinzhu/copier"
 	"k8s.io/apimachinery/pkg/api/errors"
-	"strings"
 )
 
 func (s *ConfigurationTest) SetupTest() {

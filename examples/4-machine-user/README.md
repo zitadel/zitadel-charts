@@ -14,23 +14,18 @@ Also, you deploy [a correctly configured ZITADEL](https://artifacthub.io/package
 > Use this example only for testing purposes.
 > For deploying a secure Postgres database, see [the secure Postgres example](../2-postgres-secure/README.md).
 
+> [!INFO]
+> The example assumes you already have a running Kubernetes cluster with a working ingress controller.
+> If you don't, [run a local KinD cluster](../99-kind-with-traefik/README.md) before executing the follwing commands.
+
 ```bash
 # Install Postgres
 helm repo add bitnami https://charts.bitnami.com/bitnami
 helm install --wait db bitnami/postgresql --version 12.10.0 --values https://raw.githubusercontent.com/zitadel/zitadel-charts/main/examples/6-machine-user/postgres-values.yaml
 
-# Install ZITADEL
+# Install Zitadel
 helm repo add zitadel https://charts.zitadel.com
 helm install my-zitadel zitadel/zitadel --values https://raw.githubusercontent.com/zitadel/zitadel-charts/main/examples/6-machine-user/zitadel-values.yaml
 ```
 
-When ZITADEL is ready, you can access the GUI via port-forwarding:
-
-```bash
-kubectl port-forward svc/my-zitadel 8080
-```
-
-Now, open http://127.0.0.1.sslip.io:8080 in your browser and log in with the following credentials:
-
-**Username**: zitadel-admin@zitadel.127.0.0.1.sslip.io
-**Password**: Password1!
+When Zitadel is ready, open https://machine.127.0.0.1.sslip.io/ui/console?login_hint=zitadel-admin@zitadel.machine.127.0.0.1.sslip.io in your browser and log in with the password `Password1!`.
