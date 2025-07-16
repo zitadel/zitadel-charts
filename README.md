@@ -29,7 +29,7 @@ All the configurations from the examples above are guaranteed to work, because t
 
 ## Upgrade From V8 to V9 Release Candidate
 
-The v9 charts default Zitadel and login versions reference [the first Zitadel v4 release candidate](https://github.com/zitadel/zitadel/releases/tag/v4.0.0-rc.1).
+The v9 charts default Zitadel and login versions reference [the second Zitadel v4 release candidate](https://github.com/zitadel/zitadel/releases/tag/v4.0.0-rc.2).
 Therefore, the chart version 9 is also marked as a release candidate.
 
 ### Don’t Switch to the New Login Deployment
