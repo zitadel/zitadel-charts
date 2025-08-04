@@ -96,7 +96,7 @@ spec:
       volumes:
       - name: login-config-dotenv
         configMap:
-          name: login-config-dotenv
+          name: {{ include "login.configmapName" . }}
       {{- with .Values.login.extraVolumes }}
       {{- toYaml . | nindent 6 }}
       {{- end }}

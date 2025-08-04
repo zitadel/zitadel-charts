@@ -2,7 +2,7 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: login-config-dotenv
+  name: {{ include "login.configmapName" . }}
   {{- with .Values.login.configMap.annotations }}
   annotations:
     {{- toYaml . | nindent 4 }}
