@@ -17,13 +17,59 @@ By default, the execution order is orchestrated using Helm hooks on installation
 
 ## Install the Chart
 
-Either follow the [guide for deploying Zitadel on Kubernetes](https://zitadel.com/docs/self-hosting/deploy/kubernetes) or follow one of the example guides:
+The easiest way to deploy a Helm release for Zitadel is by following the [Insecure Postgres Example](examples/1-postgres-insecure/README.md).
+For more sofisticated production-ready configurations, follow one of the following examples:
 
-- [Insecure Postgres Example](examples/1-postgres-insecure/README.md)
 - [Secure Postgres Example](examples/2-postgres-secure/README.md)
 - [Referenced Secrets Example](examples/3-referenced-secrets/README.md)
 - [Machine User Setup Example](examples/4-machine-user/README.md)
-- [TLS with Self Signed Certificate Setup Example](examples/5-self-signed/README.md)
+- [Internal TLS Example](examples/5-internal-tls/README.md)
+
+All the configurations from the examples above are guaranteed to work, because they are directly used in automatic acceptance tests.
+
+## Upgrade From V8 to V9
+
+The v9 charts default Zitadel and login versions reference [Zitadel v4](https://github.com/zitadel/zitadel/releases/tag/v4.0.0).
+
+### Don’t Switch to the New Login Deployment
+
+Use `login.enabled: false` to omit deploying the new login.
+
+### Switch to the New Login Deployment
+
+By default, a new deployment for the login v2 is configured and created.
+For new installations, the setup job automatically creates a user of type machine with role `IAM_LOGIN_CLIENT`.
+It writes the users personal access token into a Kubernetes secret which is then mounted into the login pods.
+
+For existing installations, the setup job doesn't create this login client user.
+Therefore, the Kubernetes secret has to be created manually before upgrading to v9:
+
+1. Create a user of type machine
+2. Make the user an instance administrator with role `IAM_LOGIN_CLIENT`
+3. Create a personal access token for the user 
+4. Create a secret with that token: `kubectl --namespace <my-namespace> create secret generic login-client --from-file=pat=<my-local-path-to-the-downloaded-pat-file>`
+
+To make the login externally accessible, you need to route traffic with the path prefix `/ui/v2/login` to the login service.
+If you use an ingress controller, you can enable the login ingress with `login.ingress.enabled: true`
+
+> [!CAUTION]
+> Don't Lock Yourself Out of Your Instance  
+> Before you change your Zitadel configuration, we highly recommend you to create a service user with a personal access token (PAT) and the IAM_OWNER role.  
+> In case something breaks, you can use this PAT to revert your changes or fix the configuration so you can use a login UI again.  
+
+To actually use the new login, enable the loginV2 feature on the instance.
+Leave the base URI empty to use the default or explicitly configure it to `/ui/v2/login`.
+If you enable this feature, the login will be used for every application configured in your Zitadel instance.
+
+### Other Breaking Changes
+
+- Default Traefik and NGINX annotations for internal unencrypted HTTP/2 traffic to the Zitadel pods are added.
+- The default value `localhost` is removed from the Zitadel ingresses `host` field. Instead, the `host` fields for the Zitadel and login ingresses default to `zitadel.configmapConfig.ExternalDomain`.
+- The following Kubernetes versions are tested:
+  - v1.33.1
+  - v1.32.5
+  - v1.31.9
+  - v1.30.13
 
 ## Upgrade from v7
 
@@ -129,8 +175,8 @@ docker run -it --network host --workdir=/data --rm --volume $(pwd):/data quay.io
 Test the chart:
 
 ```bash
-# Create a local Kubernetes cluster
-kind create cluster --image kindest/node:v1.27.2
+# Create KinD cluster
+kind create cluster --config ./charts/zitadel/acceptance_test/kindConfig.yaml
 
 # Test the chart
 go test ./...

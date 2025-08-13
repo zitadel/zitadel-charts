@@ -1,6 +1,9 @@
 {{- if include "deepCheck" (dict "root" .Values "path" (splitList "." "zitadel.configmapConfig.FirstInstance.MachineKeyPath")) -}}
 {{- fail "Specifying .Values.zitadel.configmapConfig.FirstInstance.MachineKeyPath is not supported" -}}
 {{- end -}}
+{{- if include "deepCheck" (dict "root" .Values "path" (splitList "." "zitadel.configmapConfig.FirstInstance.LoginClientPatPath")) -}}
+{{- fail "Specifying .Values.zitadel.configmapConfig.FirstInstance.LoginClientPatPath is not supported" -}}
+{{- end -}}
 apiVersion: batch/v1
 kind: Job
 metadata:
@@ -34,7 +37,7 @@ spec:
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
       enableServiceLinks: false
-      restartPolicy: OnFailure
+      restartPolicy: Never
       {{- if or .Values.zitadel.initContainers .Values.setupJob.initContainers }}
       initContainers:
       {{- with .Values.zitadel.initContainers }}
@@ -91,6 +94,8 @@ spec:
                   key: masterkey
             - name: ZITADEL_FIRSTINSTANCE_MACHINEKEYPATH
               value: "/machinekey/sa.json"
+            - name: ZITADEL_FIRSTINSTANCE_LOGINCLIENTPATPATH
+              value: "/login-client/pat"
             {{- $dbEnv := get (include "zitadel.dbkey.json" . | fromJson) "env" }}
             {{- if (or .Values.zitadel.dbSslCaCrt .Values.zitadel.dbSslCaCrtSecret) }}
             - name: ZITADEL_DATABASE_{{ $dbEnv }}_USER_SSL_ROOTCERT
@@ -138,6 +143,10 @@ spec:
           - name: machinekey
             mountPath: "/machinekey"
           {{- end}}
+          {{- if include "deepCheck" (dict "root" .Values "path" (splitList "." "zitadel.configmapConfig.FirstInstance.Org.LoginClient")) }}
+          - name: login-client
+            mountPath: "/login-client"
+          {{- end}}
           {{- with .Values.extraVolumeMounts }}
           {{- toYaml . | nindent 10 }}
           {{- end }}
@@ -157,6 +166,28 @@ spec:
           volumeMounts:
             - name: machinekey
               mountPath: "/machinekey"
+              readOnly: true
+          resources:
+          {{- if .Values.setupJob.machinekeyWriter.resources }}
+            {{- toYaml .Values.setupJob.machinekeyWriter.resources | nindent 12 }}
+          {{- else }}
+            {{- toYaml .Values.setupJob.resources | nindent 12 }}
+          {{- end }}
+      {{- end }}
+      {{- if include "deepCheck" (dict "root" .Values "path" (splitList "." "zitadel.configmapConfig.FirstInstance.Org.LoginClient")) }}
+        - name: "{{ .Chart.Name}}-login-client-pat"
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 14 }}
+          image: "{{ .Values.setupJob.machinekeyWriter.image.repository }}:{{ .Values.setupJob.machinekeyWriter.image.tag | default ( printf "%s.%s" .Capabilities.KubeVersion.Major .Capabilities.KubeVersion.Minor ) }}"
+          command: [ "sh","-c","until [ ! -z $(kubectl -n {{ .Release.Namespace }} get po ${POD_NAME} -o jsonpath=\"{.status.containerStatuses[?(@.name=='{{ .Chart.Name }}-setup')].state.terminated}\") ]; do echo 'waiting for {{ .Chart.Name }}-setup container to terminate'; sleep 5; done && echo '{{ .Chart.Name }}-setup container terminated' && if [ -f /login-client/pat ]; then kubectl -n {{ .Release.Namespace }} create secret generic login-client --from-file=pat=/login-client/pat; fi;" ]
+          env:
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+          volumeMounts:
+            - name: login-client
+              mountPath: "/login-client"
               readOnly: true
           resources:
           {{- if .Values.setupJob.machinekeyWriter.resources }}
@@ -202,6 +233,10 @@ spec:
       {{- end }}
       {{- if include "deepCheck" (dict "root" .Values "path" (splitList "." "zitadel.configmapConfig.FirstInstance.Org.Machine")) }}
       - name: machinekey
+        emptyDir: { }
+      {{- end }}
+      {{- if include "deepCheck" (dict "root" .Values "path" (splitList "." "zitadel.configmapConfig.FirstInstance.Org.LoginClient")) }}
+      - name: login-client
         emptyDir: { }
       {{- end }}
       {{- with .Values.extraVolumes }}

@@ -8,22 +8,18 @@ import (
 
 	"github.com/gruntwork-io/terratest/modules/k8s"
 	"github.com/stretchr/testify/suite"
-	"github.com/zitadel/zitadel-charts/charts/zitadel/acceptance"
 )
 
 func TestPostgresInsecure(t *testing.T) {
 	t.Parallel()
 	example := "1-postgres-insecure"
 	workDir, valuesFile, values := readConfig(t, example)
-	cfg := values.Zitadel.ConfigmapConfig
-	suite.Run(t, acceptance.Configure(
+	suite.Run(t, Configure(
 		t,
 		newNamespaceIdentifier(example),
-		acceptance.Postgres.WithValues(filepath.Join(workDir, "postgres-values.yaml")),
+		values.Zitadel.ConfigmapConfig.ExternalDomain,
+		Postgres.WithValues(filepath.Join(workDir, "postgres-values.yaml")),
 		[]string{valuesFile},
-		cfg.ExternalDomain,
-		cfg.ExternalPort,
-		cfg.ExternalSecure,
 		nil,
 		nil,
 		nil,
@@ -34,16 +30,13 @@ func TestPostgresSecure(t *testing.T) {
 	t.Parallel()
 	example := "2-postgres-secure"
 	workDir, valuesFile, values := readConfig(t, example)
-	cfg := values.Zitadel.ConfigmapConfig
-	suite.Run(t, acceptance.Configure(
+	suite.Run(t, Configure(
 		t,
 		newNamespaceIdentifier(example),
-		acceptance.Postgres.WithValues(filepath.Join(workDir, "postgres-values.yaml")),
+		values.Zitadel.ConfigmapConfig.ExternalDomain,
+		Postgres.WithValues(filepath.Join(workDir, "postgres-values.yaml")),
 		[]string{valuesFile},
-		cfg.ExternalDomain,
-		cfg.ExternalPort,
-		cfg.ExternalSecure,
-		func(cfg *acceptance.ConfigurationTest) {
+		func(cfg *ConfigurationTest) {
 			k8s.KubectlApply(t, cfg.KubeOptions, filepath.Join(workDir, "certs-job.yaml"))
 			k8s.WaitUntilJobSucceed(t, cfg.KubeOptions, "create-certs", 120, 3*time.Second)
 		},
@@ -56,17 +49,14 @@ func TestReferencedSecrets(t *testing.T) {
 	t.Parallel()
 	example := "3-referenced-secrets"
 	workDir, valuesFile, values := readConfig(t, example)
-	cfg := values.Zitadel.ConfigmapConfig
-	suite.Run(t, acceptance.Configure(
+	suite.Run(t, Configure(
 		t,
 		newNamespaceIdentifier(example),
-		acceptance.Postgres.WithValues(filepath.Join(workDir, "postgres-values.yaml")),
+		values.Zitadel.ConfigmapConfig.ExternalDomain,
+		Postgres.WithValues(filepath.Join(workDir, "postgres-values.yaml")),
 		[]string{valuesFile},
-		cfg.ExternalDomain,
-		cfg.ExternalPort,
-		cfg.ExternalSecure,
 		nil,
-		func(cfg *acceptance.ConfigurationTest) {
+		func(cfg *ConfigurationTest) {
 			k8s.KubectlApply(t, cfg.KubeOptions, filepath.Join(workDir, "zitadel-secrets.yaml"))
 			k8s.KubectlApply(t, cfg.KubeOptions, filepath.Join(workDir, "zitadel-masterkey.yaml"))
 		},
@@ -80,33 +70,28 @@ func TestMachineUser(t *testing.T) {
 	workDir, valuesFile, values := readConfig(t, example)
 	cfg := values.Zitadel.ConfigmapConfig
 	saUsername := cfg.FirstInstance.Org.Machine.Machine.Username
-	suite.Run(t, acceptance.Configure(
+	suite.Run(t, Configure(
 		t,
 		newNamespaceIdentifier(example),
-		acceptance.Postgres.WithValues(filepath.Join(workDir, "postgres-values.yaml")),
+		values.Zitadel.ConfigmapConfig.ExternalDomain,
+		Postgres.WithValues(filepath.Join(workDir, "postgres-values.yaml")),
 		[]string{valuesFile},
-		cfg.ExternalDomain,
-		cfg.ExternalPort,
-		cfg.ExternalSecure,
 		nil,
 		nil,
 		testAuthenticatedAPI(saUsername, fmt.Sprintf("%s.json", saUsername))),
 	)
 }
 
-func TestSelfSigned(t *testing.T) {
+func TestInternalTLS(t *testing.T) {
 	t.Parallel()
-	example := "5-self-signed"
+	example := "5-internal-tls"
 	workDir, valuesFile, values := readConfig(t, example)
-	cfg := values.Zitadel.ConfigmapConfig
-	suite.Run(t, acceptance.Configure(
+	suite.Run(t, Configure(
 		t,
 		newNamespaceIdentifier(example),
-		acceptance.Postgres.WithValues(filepath.Join(workDir, "postgres-values.yaml")),
+		values.Zitadel.ConfigmapConfig.ExternalDomain,
+		Postgres.WithValues(filepath.Join(workDir, "postgres-values.yaml")),
 		[]string{valuesFile},
-		cfg.ExternalDomain,
-		cfg.ExternalPort,
-		cfg.ExternalSecure,
 		nil,
 		nil,
 		nil,

@@ -19,7 +19,7 @@ spec:
         {{- with .Values.podAnnotations }}
           {{- toYaml . | nindent 8 }}
         {{- end }}
-        checksum/configmap: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
+        checksum/configmap: {{ include (print $.Template.BasePath "/configmap_zitadel.yaml") . | sha256sum }}
         checksum/secret-db-ssl-ca-crt: {{ include (print $.Template.BasePath "/secret_db-ssl-ca-crt.yaml") . | sha256sum }}
         checksum/secret-zitadel-secrets: {{ include (print $.Template.BasePath "/secret_zitadel-secrets.yaml") . | sha256sum }}
       labels:
@@ -104,7 +104,7 @@ spec:
                 name: {{ .Values.envVarsSecret }}
           {{- end }}
           ports:
-          - containerPort: 8080
+          - containerPort: {{ include "zitadel.containerPort" . }}
             name: {{ .Values.service.protocol }}-server
             protocol: TCP
           {{- if .Values.livenessProbe.enabled }}

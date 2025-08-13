@@ -1,4 +1,4 @@
-package acceptance
+package acceptance_test
 
 import "github.com/gruntwork-io/terratest/modules/k8s"
 

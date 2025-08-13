@@ -1,7 +1,6 @@
-package acceptance
+package acceptance_test
 
 import (
-	"context"
 	"fmt"
 	"path/filepath"
 	"strings"
@@ -18,20 +17,13 @@ type hookFunc func(*ConfigurationTest)
 
 type ConfigurationTest struct {
 	suite.Suite
-	Ctx                                                     context.Context
-	log                                                     *logger.Logger
-	KubeOptions                                             *k8s.KubectlOptions
-	KubeClient                                              *kubernetes.Clientset
-	Scheme, Domain                                          string
-	Port                                                    uint16
-	zitadelValues                                           []string
-	dbChart                                                 databaseChart
-	zitadelChartPath, zitadelRelease, dbRepoName, dbRelease string
-	beforeFunc, afterDBFunc, afterZITADELFunc               hookFunc
-}
-
-func (c *ConfigurationTest) APIBaseURL() string {
-	return fmt.Sprintf(`%s://%s:%d`, c.Scheme, c.Domain, c.Port)
+	log                                                                 *logger.Logger
+	KubeOptions                                                         *k8s.KubectlOptions
+	KubeClient                                                          *kubernetes.Clientset
+	zitadelValues                                                       []string
+	dbChart                                                             databaseChart
+	ApiBaseUrl, zitadelChartPath, zitadelRelease, dbRepoName, dbRelease string
+	beforeFunc, afterDBFunc, afterZITADELFunc                           hookFunc
 }
 
 type databaseChart struct {
@@ -54,12 +46,9 @@ func (d *databaseChart) WithValues(valuesFile string) databaseChart {
 
 func Configure(
 	t *testing.T,
-	namespace string,
+	namespace, externalDomain string,
 	dbChart databaseChart,
 	zitadelValues []string,
-	externalDomain string,
-	externalPort uint16,
-	externalSecure bool,
 	before, afterDB, afterZITADEL hookFunc,
 ) *ConfigurationTest {
 	chartPath, err := filepath.Abs("..")
@@ -70,12 +59,7 @@ func Configure(
 	if err != nil {
 		t.Fatal(err)
 	}
-	externalScheme := "http"
-	if externalSecure {
-		externalScheme = "https"
-	}
 	cfg := &ConfigurationTest{
-		Ctx:              context.Background(),
 		log:              logger.New(logger.Terratest),
 		KubeOptions:      kubeOptions,
 		KubeClient:       clientset,
@@ -88,9 +72,7 @@ func Configure(
 		beforeFunc:       before,
 		afterDBFunc:      afterDB,
 		afterZITADELFunc: afterZITADEL,
-		Domain:           externalDomain,
-		Port:             externalPort,
-		Scheme:           externalScheme,
+		ApiBaseUrl:       "https://" + externalDomain,
 	}
 	cfg.SetT(t)
 	return cfg
