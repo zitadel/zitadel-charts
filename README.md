@@ -164,6 +164,10 @@ To do so, start a [debug pod](#debug-pod) and run something like the following c
 kubectl exec -it my-zitadel-debug -- zitadel setup cleanup --config /config/zitadel-config-yaml
 ```
 
+### Multiple Releases in Single Namespace
+
+Read the comment for the value login.loginClientSecretPrefix
+
 ## Contributing
 
 Lint the chart:

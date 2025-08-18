@@ -57,7 +57,7 @@ spec:
             - name: ZITADEL_MASTERKEY
               valueFrom:
                 secretKeyRef:
-                  name: {{ default "zitadel-masterkey" .Values.zitadel.masterkeySecretName }}
+                  name: {{ include "zitadel.masterkeySecretName" . }}
                   key: masterkey
             - name: ZITADEL_FIRSTINSTANCE_MACHINEKEYPATH
               value: "/machinekey/sa.json"
@@ -107,11 +107,11 @@ spec:
       volumes:
       - name: zitadel-config-yaml
         configMap:
-          name: zitadel-config-yaml
+          name: {{ include "zitadel.configmapName" . }}
       {{- if .Values.zitadel.secretConfig }}
       - name: zitadel-secrets-yaml
         secret:
-          secretName: zitadel-secrets-yaml
+          secretName: {{ include "zitadel.secretName" . }}
           defaultMode: 0440
       {{- end }}
       {{- if .Values.zitadel.configSecretName }}
@@ -123,7 +123,7 @@ spec:
       {{- if .Values.zitadel.dbSslCaCrt }}
       - name: db-ssl-ca-crt
         secret:
-          secretName: db-ssl-ca-crt
+          secretName: {{ include "zitadel.dbSslCaCrtSecretName" . }}
           defaultMode: 0440
       {{- end }}
       {{- if .Values.zitadel.dbSslCaCrtSecret }}
