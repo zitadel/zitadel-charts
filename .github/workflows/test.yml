@@ -61,7 +61,7 @@ jobs:
       if: steps.list-changed-test.outputs.any_changed == 'true'
 
     - id: 'setup-chrome'
-      uses: browser-actions/setup-chrome@v1
+      uses: browser-actions/setup-chrome@v2
       with:
         chrome-version: 138
 
