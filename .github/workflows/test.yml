@@ -31,7 +31,7 @@ jobs:
     steps:
     - id: 'checkout'
       name: Check The Repo Out
-      uses: 'actions/checkout@v4'
+      uses: 'actions/checkout@v5'
       with:
         fetch-depth: 0
 
