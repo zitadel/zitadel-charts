@@ -152,7 +152,7 @@ spec:
           {{- end }}
           resources:
             {{- toYaml .Values.setupJob.resources | nindent 12 }}
-        {{- if include "deepCheck" (dict "root" .Values "path" (splitList "." "zitadel.configmapConfig.FirstInstance.Org.Machine")) }}
+        {{- if and (not .Values.zitadel.configmapConfig.FirstInstance.Skip) (include "deepCheck" (dict "root" .Values "path" (splitList "." "zitadel.configmapConfig.FirstInstance.Org.Machine"))) }}
         - name: "{{ .Chart.Name}}-machinekey"
           securityContext:
             {{- toYaml .Values.securityContext | nindent 14 }}
@@ -174,7 +174,7 @@ spec:
             {{- toYaml .Values.setupJob.resources | nindent 12 }}
           {{- end }}
       {{- end }}
-      {{- if include "deepCheck" (dict "root" .Values "path" (splitList "." "zitadel.configmapConfig.FirstInstance.Org.LoginClient")) }}
+      {{- if and (not .Values.zitadel.configmapConfig.FirstInstance.Skip) (include "deepCheck" (dict "root" .Values "path" (splitList "." "zitadel.configmapConfig.FirstInstance.Org.LoginClient"))) }}
         - name: "{{ .Chart.Name}}-login-client-pat"
           securityContext:
             {{- toYaml .Values.securityContext | nindent 14 }}
