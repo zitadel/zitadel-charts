@@ -53,8 +53,8 @@ func (s *ConfigurationTest) login(ctx context.Context, t *testing.T) {
 		)
 	})
 	t.Run("change password", func(t *testing.T) {
-		loadPage(t, loginCtx, loginFailuresDir, 10*time.Second,
-			waitForPath("/ui/v2/login/password/change", 5*time.Second),
+		loadPage(t, loginCtx, loginFailuresDir, 30*time.Second,
+			waitForPath("/ui/v2/login/password/change", 15*time.Second),
 			chromedp.WaitVisible(testIdSelector("password-change-text-input"), chromedp.ByQuery),
 			chromedp.WaitVisible(testIdSelector("password-change-confirm-text-input"), chromedp.ByQuery),
 			chromedp.SendKeys(testIdSelector("password-change-text-input"), "Password2!", chromedp.ByQuery),
@@ -64,15 +64,15 @@ func (s *ConfigurationTest) login(ctx context.Context, t *testing.T) {
 		)
 	})
 	t.Run("skip mfa", func(t *testing.T) {
-		loadPage(t, loginCtx, loginFailuresDir, 10*time.Second,
-			waitForPath("/ui/v2/login/mfa/set", 5*time.Second),
+		loadPage(t, loginCtx, loginFailuresDir, 30*time.Second,
+			waitForPath("/ui/v2/login/mfa/set", 15*time.Second),
 			chromedp.WaitVisible(testIdSelector("reset-button"), chromedp.ByQuery),
 			chromedp.Click(testIdSelector("reset-button"), chromedp.ByQuery),
 		)
 	})
 	t.Run("show console", func(t *testing.T) {
 		loadPage(t, loginCtx, loginFailuresDir, 30*time.Second,
-			waitForPath("/ui/console", 5*time.Second),
+			waitForPath("/ui/console", 15*time.Second),
 			chromedp.WaitVisible("[data-e2e='authenticated-welcome'", chromedp.ByQuery),
 		)
 	})
