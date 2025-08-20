@@ -22,6 +22,9 @@ spec:
         checksum/configmap: {{ include (print $.Template.BasePath "/configmap_zitadel.yaml") . | sha256sum }}
         checksum/secret-db-ssl-ca-crt: {{ include (print $.Template.BasePath "/secret_db-ssl-ca-crt.yaml") . | sha256sum }}
         checksum/secret-zitadel-secrets: {{ include (print $.Template.BasePath "/secret_zitadel-secrets.yaml") . | sha256sum }}
+        prometheus.io/path: "/debug/metrics"
+        prometheus.io/port: "8080"
+        prometheus.io/scrape: "true"
       labels:
         {{- include "zitadel.start.labels" . | nindent 8 }}
         {{- with .Values.podAdditionalLabels }}
