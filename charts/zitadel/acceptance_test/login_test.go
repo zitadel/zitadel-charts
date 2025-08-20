@@ -99,8 +99,8 @@ func loadPage(t *testing.T, ctx context.Context, loginFailuresDir string, timeou
 }
 
 func waitForPath(expectedPath string, timeout time.Duration) chromedp.Action {
-	deadline := time.Now().Add(timeout)
 	return chromedp.ActionFunc(func(ctx context.Context) error {
+		deadline := time.Now().Add(timeout)
 		var currentURL string
 		for time.Now().Before(deadline) {
 			if err := chromedp.Location(&currentURL).Do(ctx); err != nil {
