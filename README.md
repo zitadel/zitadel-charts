@@ -145,9 +145,19 @@ done
 
 ## Troubleshooting
 
+### Debug Pod
+
+For troubleshooting, you can deploy a debug pod by setting the `zitadel.debug.enabled` property to `true`.
+You can then use this pod to inspect the Zitadel configuration and run zitadel commands using the zitadel binary.
+For more information, print the debug pods logs using something like the following command:
+
+```shell 
+kubectl logs rs/my-zitadel-debug
+``` 
+
 ### Explore Your Zitadel Data
 
-Forward the postgres service to your localhost:
+Forward the PostgreSQL service port to your localhost:
 
 ```shell
 kubectl port-forward svc/db-postgresql 5432
@@ -159,16 +169,6 @@ For example, to list all available login names:
 ```shell
 echo "select * from projections.login_names3;" | psql -h localhost -U postgres -d zitadel
 ```
-
-### Debug Pod
-
-For troubleshooting, you can deploy a debug pod by setting the `zitadel.debug.enabled` property to `true`.
-You can then use this pod to inspect the Zitadel configuration and run zitadel commands using the zitadel binary.
-For more information, print the debug pods logs using something like the following command:
-
-```shell 
-kubectl logs rs/my-zitadel-debug
-``` 
 
 ### migration already started, will check again in 5 seconds
 
