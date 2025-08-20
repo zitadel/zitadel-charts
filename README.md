@@ -84,7 +84,7 @@ If you are using an older version of Cockroach DB, please upgrade it before upgr
 Note that in order to upgrade cockroach, you should not jump minor versions.
 For example:
 
-```bash
+```shell
 # install Cockroach DB v23.1.14
 helm upgrade db cockroachdb/cockroachdb --version 11.2.4 --reuse-values
 # install Cockroach DB v23.2.5
@@ -136,7 +136,7 @@ The Zitadel chart uses Helm hooks,
 Therefore, to also remove hooks installed by the Zitadel Helm chart,
 delete them manually:
 
-```bash
+```shell
 helm uninstall my-zitadel
 for k8sresourcetype in job configmap secret rolebinding role serviceaccount; do
     kubectl delete $k8sresourcetype --selector app.kubernetes.io/name=zitadel,app.kubernetes.io/managed-by=Helm
@@ -145,13 +145,28 @@ done
 
 ## Troubleshooting
 
+### Explore Your Zitadel Data
+
+Forward the postgres service to your localhost:
+
+```shell
+kubectl port-forward svc/db-postgresql 5432
+```
+
+Connect using psql.
+For example, to list all available login names:
+
+```shell
+echo "select * from projections.login_names3;" | psql -h localhost -U postgres -d zitadel
+```
+
 ### Debug Pod
 
 For troubleshooting, you can deploy a debug pod by setting the `zitadel.debug.enabled` property to `true`.
 You can then use this pod to inspect the Zitadel configuration and run zitadel commands using the zitadel binary.
 For more information, print the debug pods logs using something like the following command:
 
-```bash 
+```shell 
 kubectl logs rs/my-zitadel-debug
 ``` 
 
@@ -160,7 +175,7 @@ kubectl logs rs/my-zitadel-debug
 If you see this error message in the logs of the setup job, you need to reset the last migration step once you resolved the issue.
 To do so, start a [debug pod](#debug-pod) and run something like the following command:
 
-```bash
+```shell
 kubectl exec -it my-zitadel-debug -- zitadel setup cleanup --config /config/zitadel-config-yaml
 ```
 
@@ -172,13 +187,13 @@ Read the comment for the value login.loginClientSecretPrefix
 
 Lint the chart:
 
-```bash
+```shell
 docker run -it --network host --workdir=/data --rm --volume $(pwd):/data quay.io/helmpack/chart-testing:v3.5.0 ct lint --charts charts/zitadel --target-branch main
 ```
 
 Test the chart:
 
-```bash
+```shell
 # Create KinD cluster
 kind create cluster --config ./charts/zitadel/acceptance_test/kindConfig.yaml
 
@@ -188,7 +203,7 @@ go test ./...
 
 Watch the Kubernetes pods if you want to see progress.
 
-```bash
+```shell
 kubectl get pods --all-namespaces --watch
 
 # Or if you have the watch binary installed
