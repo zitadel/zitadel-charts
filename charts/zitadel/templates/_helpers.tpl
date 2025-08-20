@@ -236,8 +236,51 @@ Returns a dict with the databases key in the yaml and the environment variable p
 
 {{- define "zitadel.containerPort" -}}
 8080
-{{- end -}}}
+{{- end -}}
 
 {{- define "login.containerPort" -}}
 3000
-{{- end -}}}
+{{- end -}}
+
+{{/*
+ZITADEL config ConfigMap name
+*/}}
+{{- define "zitadel.configmapName" -}}
+{{ include "zitadel.fullname" . }}-config-yaml
+{{- end -}}
+
+{{/*
+Login config ConfigMap name
+*/}}
+{{- define "login.configmapName" -}}
+{{ include "zitadel.login.fullname" . }}-config-dotenv
+{{- end -}}
+
+{{/*
+ZITADEL secrets Secret name
+*/}}
+{{- define "zitadel.secretName" -}}
+{{ include "zitadel.fullname" . }}-secrets-yaml
+{{- end -}}
+
+{{/*
+ZITADEL masterkey Secret name
+*/}}
+{{- define "zitadel.masterkeySecretName" -}}
+{{- if .Values.zitadel.masterkeySecretName -}}
+{{ .Values.zitadel.masterkeySecretName }}
+{{- else -}}
+{{ include "zitadel.fullname" . }}-masterkey
+{{- end -}}
+{{- end -}}
+
+{{/*
+Database SSL CA certificate Secret name
+*/}}
+{{- define "zitadel.dbSslCaCrtSecretName" -}}
+{{- if .Values.zitadel.dbSslCaCrtSecret -}}
+{{ .Values.zitadel.dbSslCaCrtSecret }}
+{{- else -}}
+{{ include "zitadel.fullname" . }}-db-ssl-ca-crt
+{{- end -}}
+{{- end -}}

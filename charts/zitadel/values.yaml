@@ -138,6 +138,9 @@ login:
   # ZITADEL_API_URL="http://{{ include "zitadel.fullname" . }}:{{ .Values.service.port }}"
   # CUSTOM_REQUEST_HEADERS="Host:{{ .Values.zitadel.configmapConfig.ExternalDomain }}"
   customConfigmapConfig:
+  # To deploy zitadel multiple times in the same namespace, use a loginClientSecretPrefix.
+  # To mount it, also change the referenced secretName for the login client to "{loginClientSecretPrefix}login-client"
+  loginClientSecretPrefix:
   extraVolumeMounts:
   - name: login-client
     mountPath: /login-client
@@ -146,6 +149,7 @@ login:
   - name: login-client
     secret:
       defaultMode: 444
+      # Adjust this if you want to reference a different secret for the login client PAT.
       secretName: login-client
   replicaCount: 3
   initContainers: []

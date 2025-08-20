@@ -31,7 +31,7 @@ jobs:
     steps:
     - id: 'checkout'
       name: Check The Repo Out
-      uses: 'actions/checkout@v4'
+      uses: 'actions/checkout@v5'
       with:
         fetch-depth: 0
 
@@ -61,7 +61,7 @@ jobs:
       if: steps.list-changed-test.outputs.any_changed == 'true'
 
     - id: 'setup-chrome'
-      uses: browser-actions/setup-chrome@v1
+      uses: browser-actions/setup-chrome@v2
       with:
         chrome-version: 138
 
