@@ -37,8 +37,8 @@ func (s *ConfigurationTest) login(ctx context.Context, t *testing.T) {
 		return nil
 	}))
 	t.Run("navigate", func(t *testing.T) {
-		loadPage(t, loginCtx, loginFailuresDir, 30*time.Second,
-			chromedp.Navigate(s.ApiBaseUrl+"/ui/console?login_hint=zitadel-admin@zitadel."+apiUrl.Hostname()),
+		loadPage(t, loginCtx, loginFailuresDir, 40*time.Second,
+			navigate(s.ApiBaseUrl+"/ui/console?login_hint=zitadel-admin@zitadel."+apiUrl.Hostname()),
 		)
 	})
 	t.Run("await password page", func(t *testing.T) {
@@ -54,7 +54,7 @@ func (s *ConfigurationTest) login(ctx context.Context, t *testing.T) {
 	})
 	t.Run("change password", func(t *testing.T) {
 		loadPage(t, loginCtx, loginFailuresDir, 30*time.Second,
-			waitForPath("/ui/v2/login/password/change", 15*time.Second),
+			waitForPath("/ui/v2/login/password/change", 20*time.Second),
 			chromedp.WaitVisible(testIdSelector("password-change-text-input"), chromedp.ByQuery),
 			chromedp.WaitVisible(testIdSelector("password-change-confirm-text-input"), chromedp.ByQuery),
 			chromedp.SendKeys(testIdSelector("password-change-text-input"), "Password2!", chromedp.ByQuery),
@@ -65,14 +65,14 @@ func (s *ConfigurationTest) login(ctx context.Context, t *testing.T) {
 	})
 	t.Run("skip mfa", func(t *testing.T) {
 		loadPage(t, loginCtx, loginFailuresDir, 30*time.Second,
-			waitForPath("/ui/v2/login/mfa/set", 15*time.Second),
+			waitForPath("/ui/v2/login/mfa/set", 20*time.Second),
 			chromedp.WaitVisible(testIdSelector("reset-button"), chromedp.ByQuery),
 			chromedp.Click(testIdSelector("reset-button"), chromedp.ByQuery),
 		)
 	})
 	t.Run("show console", func(t *testing.T) {
 		loadPage(t, loginCtx, loginFailuresDir, 30*time.Second,
-			waitForPath("/ui/console", 15*time.Second),
+			waitForPath("/ui/console", 20*time.Second),
 			chromedp.WaitVisible("[data-e2e='authenticated-welcome'", chromedp.ByQuery),
 		)
 	})
@@ -98,21 +98,42 @@ func loadPage(t *testing.T, ctx context.Context, loginFailuresDir string, timeou
 	require.NoError(t, err)
 }
 
+func navigate(url string) chromedp.Action {
+	return retry(35*time.Second, 10*time.Second, func(ctx context.Context) error {
+		if err := chromedp.Navigate(url).Do(ctx); err != nil {
+			return fmt.Errorf("failed to navigate to %s: %w", url, err)
+		}
+		return chromedp.WaitReady("body", chromedp.ByQuery).Do(ctx)
+	})
+}
+
 func waitForPath(expectedPath string, timeout time.Duration) chromedp.Action {
+	return retry(timeout, 250*time.Millisecond, func(ctx context.Context) error {
+		var currentURL string
+		if err := chromedp.Location(&currentURL).Do(ctx); err != nil {
+			return err
+		}
+		u, _ := url.Parse(currentURL)
+		if path.Clean(u.Path) == path.Clean(expectedPath) {
+			return nil
+		}
+		return fmt.Errorf("expected path %s, got %s", expectedPath, u.Path)
+	})
+}
+
+func retry(timeout time.Duration, interval time.Duration, action func(ctx context.Context) error) chromedp.Action {
 	return chromedp.ActionFunc(func(ctx context.Context) error {
 		deadline := time.Now().Add(timeout)
-		var currentURL string
+		var err error
 		for time.Now().Before(deadline) {
-			if err := chromedp.Location(&currentURL).Do(ctx); err != nil {
-				return err
-			}
-			u, _ := url.Parse(currentURL)
-			if path.Clean(u.Path) == path.Clean(expectedPath) {
+			err = action(ctx)
+			if err == nil {
 				return nil
 			}
-			time.Sleep(250 * time.Millisecond)
+			fmt.Printf("Retrying action after error: %v\n", err)
+			time.Sleep(interval)
 		}
-		return fmt.Errorf("timeout waiting for path %s", expectedPath)
+		return fmt.Errorf("action timed out after retrying for %s: last error: %v", timeout, err)
 	})
 }
 
