@@ -367,7 +367,7 @@ setupJob:
     - "--init-projections=true"
   machinekeyWriter:
     image:
-      repository: bitnami/kubectl
+      repository: rancher/kubectl
       tag: ""
     resources: {}
 
