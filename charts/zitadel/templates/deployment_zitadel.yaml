@@ -103,6 +103,12 @@ spec:
             - secretRef:
                 name: {{ .Values.envVarsSecret }}
           {{- end }}
+          {{- if .Values.preStopHook.enabled }}
+          lifecycle:
+            preStop:
+              exec:
+                command: [ "/bin/sh", "-c", "sleep {{ .Values.preStopHook.sleepSeconds }}" ]
+          {{- end }}
           ports:
           - containerPort: {{ include "zitadel.containerPort" . }}
             name: {{ .Values.service.protocol }}-server
