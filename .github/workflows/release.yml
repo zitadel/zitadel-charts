@@ -12,22 +12,34 @@ jobs:
 
     permissions:
       contents: 'write'
+      packages: 'write'
       id-token: 'write'
 
     steps:
-    - id: 'checkout'
-      uses: 'actions/checkout@v5'
-      with:
-        fetch-depth: "0"
+      - id: 'checkout'
+        uses: 'actions/checkout@v5'
+        with:
+          fetch-depth: "0"
 
-    - id: 'configure-git'
-      run: |
-        git config user.name "$GITHUB_ACTOR"
-        git config user.email "$GITHUB_ACTOR@users.noreply.github.com"
+      - id: 'configure-git'
+        run: |
+          git config user.name "$GITHUB_ACTOR"
+          git config user.email "$GITHUB_ACTOR@users.noreply.github.com"
 
-    - id: 'release'
-      uses: 'helm/chart-releaser-action@v1.7.0'
-      env:
-        CR_GENERATE_RELEASE_NOTES: 'true'
-        CR_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+      - id: 'release'
+        uses: 'helm/chart-releaser-action@v1.7.0'
+        env:
+          CR_GENERATE_RELEASE_NOTES: 'true'
+          CR_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
 
+      - id: 'login-ghcr'
+        name: 'Login to GitHub Container Registry'
+        run: |
+          echo "${{ secrets.GITHUB_TOKEN }}" | helm registry login ghcr.io -u ${{ github.actor }} --password-stdin
+
+      - id: 'package-and-push-oci'
+        name: 'Package and Push OCI Image'
+        run: |
+          CHART_VERSION=$(grep '^version:' charts/zitadel/Chart.yaml | awk '{print $2}')
+          helm package charts/zitadel
+          helm push zitadel-${CHART_VERSION}.tgz oci://ghcr.io/${{ github.repository_owner }}/zitadel-charts
