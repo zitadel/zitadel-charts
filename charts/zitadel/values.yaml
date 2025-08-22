@@ -406,6 +406,22 @@ pdb:
   # maxUnavailable: 1
   annotations: {}
 
+# Configures a preStop lifecycle hook for the main ZITADEL container to ensure
+# zero-downtime deployments.
+# When a pod is terminated, Kubernetes first removes it from the service endpoints
+# and then runs this hook. The 'sleep' command creates a crucial grace period.
+# This delay allows ingress controllers (like NGINX, Traefik) or service meshes
+# to update their routing tables and stop sending traffic to the terminating pod
+# *before* the ZITADEL process actually exits. This prevents the "502 Bad Gateway"
+# errors commonly seen during rolling updates.
+preStopHook:
+  # Set to true to enable the graceful shutdown delay. Recommended for all production environments.
+  enabled: true
+  # The duration (in seconds) to pause before allowing the container to be terminated.
+  # This value should be long enough for your cluster's networking layer to react
+  # to the endpoint removal. 15 seconds is a safe default for most environments.
+  sleepSeconds: 15
+
 # extraContainers allows you to add any sidecar containers you wish to use in the Zitadel pod.
 extraContainers: []
 

@@ -47,6 +47,12 @@ spec:
           env:
             - name: NEXT_PUBLIC_BASE_PATH
               value: /ui/v2/login
+          {{- if .Values.preStopHook.enabled }}
+          lifecycle:
+            preStop:
+              exec:
+                command: [ "/bin/sh", "-c", "sleep {{ .Values.preStopHook.sleepSeconds }}" ]
+          {{- end }}
           ports:
           - containerPort: {{ include "login.containerPort" . }}
             name: {{ .Values.login.service.protocol }}-server
