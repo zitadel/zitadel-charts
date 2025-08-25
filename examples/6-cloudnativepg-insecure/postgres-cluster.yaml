@@ -1,0 +1,22 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: superuser-secret
+type: kubernetes.io/basic-auth
+stringData:
+  username: postgres
+  password: postgres
+---
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: db-postgresql
+spec:
+  instances: 1
+
+  storage:
+    size: 2Gi
+
+  enableSuperuserAccess: true
+  superuserSecret:
+    name: superuser-secret
