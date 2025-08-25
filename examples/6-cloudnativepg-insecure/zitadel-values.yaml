@@ -1,0 +1,31 @@
+zitadel:
+  masterkey: x123456789012345678901234567891y
+  configmapConfig:
+    ExternalDomain: pg-insecure.127.0.0.1.sslip.io
+    ExternalPort: 443
+    TLS:
+      Enabled: false
+    Database:
+      Postgres:
+        Host: db-postgresql-rw
+        Port: 5432
+        Database: zitadel
+        MaxOpenConns: 20
+        MaxIdleConns: 10
+        MaxConnLifetime: 30m
+        MaxConnIdleTime: 5m
+        User:
+          Username: postgres
+          Password: postgres
+          SSL:
+            Mode: disable
+        Admin:
+          Username: postgres
+          Password: postgres
+          SSL:
+            Mode: disable
+ingress:
+  enabled: true
+login:
+  ingress:
+    enabled: true
