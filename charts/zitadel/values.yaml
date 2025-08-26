@@ -367,7 +367,7 @@ setupJob:
     - "--init-projections=true"
   machinekeyWriter:
     image:
-      repository: rancher/kubectl
+      repository: alpine/k8s
       tag: ""
     resources: {}
 
