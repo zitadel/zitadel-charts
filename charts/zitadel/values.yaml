@@ -368,7 +368,7 @@ setupJob:
   machinekeyWriter:
     image:
       repository: alpine/k8s
-      tag: ""
+      tag: "1.31.12"
     resources: {}
 
 readinessProbe:
