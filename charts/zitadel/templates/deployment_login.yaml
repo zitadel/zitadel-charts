@@ -10,8 +10,8 @@ metadata:
     {{- toYaml . | nindent 4 }}
   {{- end }}
 spec:
-  {{- if .Values.revisionHistoryLimit }}
-  revisionHistoryLimit: {{ .Values.revisionHistoryLimit }}
+  {{- if .Values.login.revisionHistoryLimit }}
+  revisionHistoryLimit: {{ .Values.login.revisionHistoryLimit }}
   {{- end }}
   replicas: {{ .Values.replicaCount }}
   selector:

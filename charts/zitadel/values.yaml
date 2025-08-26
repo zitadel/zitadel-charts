@@ -234,6 +234,7 @@ login:
   tolerations: []
   affinity: {}
   topologySpreadConstraints: []
+  revisionHistoryLimit: 10
 
 replicaCount: 3
 
