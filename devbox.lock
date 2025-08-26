@@ -1,0 +1,117 @@
+{
+  "lockfile_version": "1",
+  "packages": {
+    "kubernetes-helm@latest": {
+      "last_modified": "2025-07-28T17:09:23Z",
+      "resolved": "github:NixOS/nixpkgs/648f70160c03151bc2121d179291337ad6bc564b#kubernetes-helm",
+      "source": "devbox-search",
+      "version": "3.18.4",
+      "systems": {
+        "aarch64-darwin": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/0cxdf30s34zacr305rbyavvnamx36hs4-kubernetes-helm-3.18.4",
+              "default": true
+            }
+          ],
+          "store_path": "/nix/store/0cxdf30s34zacr305rbyavvnamx36hs4-kubernetes-helm-3.18.4"
+        },
+        "aarch64-linux": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/2s4r0aik3lkdhjkhs7hj38pbk29fs968-kubernetes-helm-3.18.4",
+              "default": true
+            }
+          ],
+          "store_path": "/nix/store/2s4r0aik3lkdhjkhs7hj38pbk29fs968-kubernetes-helm-3.18.4"
+        },
+        "x86_64-darwin": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/y5wgqd0sr8grd59dzl77gc8907gb5078-kubernetes-helm-3.18.4",
+              "default": true
+            }
+          ],
+          "store_path": "/nix/store/y5wgqd0sr8grd59dzl77gc8907gb5078-kubernetes-helm-3.18.4"
+        },
+        "x86_64-linux": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/s77p25dg7dib28llm63b8xp0609gld5w-kubernetes-helm-3.18.4",
+              "default": true
+            }
+          ],
+          "store_path": "/nix/store/s77p25dg7dib28llm63b8xp0609gld5w-kubernetes-helm-3.18.4"
+        }
+      }
+    },
+    "yamllint@latest": {
+      "last_modified": "2025-07-28T17:09:23Z",
+      "resolved": "github:NixOS/nixpkgs/648f70160c03151bc2121d179291337ad6bc564b#yamllint",
+      "source": "devbox-search",
+      "version": "1.37.1",
+      "systems": {
+        "aarch64-darwin": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/lm8hla11svn8glcgc5yhg1990gdrw5qq-python3.13-yamllint-1.37.1",
+              "default": true
+            },
+            {
+              "name": "dist",
+              "path": "/nix/store/5787d9236p07pwd04gj00k6rli35wp84-python3.13-yamllint-1.37.1-dist"
+            }
+          ],
+          "store_path": "/nix/store/lm8hla11svn8glcgc5yhg1990gdrw5qq-python3.13-yamllint-1.37.1"
+        },
+        "aarch64-linux": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/8h5vdqrx7b2hzlhqy2rcniq5nf0i0j7f-python3.13-yamllint-1.37.1",
+              "default": true
+            },
+            {
+              "name": "dist",
+              "path": "/nix/store/1p8xbkrqhm0mqacghfgfdp1q9ggxrirq-python3.13-yamllint-1.37.1-dist"
+            }
+          ],
+          "store_path": "/nix/store/8h5vdqrx7b2hzlhqy2rcniq5nf0i0j7f-python3.13-yamllint-1.37.1"
+        },
+        "x86_64-darwin": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/53vl9m6b594yf85093gbhlw8lv4ivndq-python3.13-yamllint-1.37.1",
+              "default": true
+            },
+            {
+              "name": "dist",
+              "path": "/nix/store/ig2y0prb5vi6ky2fbg245439dl0w076w-python3.13-yamllint-1.37.1-dist"
+            }
+          ],
+          "store_path": "/nix/store/53vl9m6b594yf85093gbhlw8lv4ivndq-python3.13-yamllint-1.37.1"
+        },
+        "x86_64-linux": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/fhvbnxy08wqk8gvwpgyi55n6zrmgv951-python3.13-yamllint-1.37.1",
+              "default": true
+            },
+            {
+              "name": "dist",
+              "path": "/nix/store/jxjhi5yqq6d1f54x74j9d0c3s4v9imsd-python3.13-yamllint-1.37.1-dist"
+            }
+          ],
+          "store_path": "/nix/store/fhvbnxy08wqk8gvwpgyi55n6zrmgv951-python3.13-yamllint-1.37.1"
+        }
+      }
+    }
+  }
+}

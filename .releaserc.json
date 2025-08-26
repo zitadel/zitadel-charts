@@ -1,0 +1,73 @@
+{
+  "branches": [
+    "main",
+    {
+      "name": "beta",
+      "prerelease": "beta"
+    }
+  ],
+  "plugins": [
+    "@semantic-release/commit-analyzer",
+    [
+      "@mridang/semantic-release-peer-version",
+      {
+        "repo": "zitadel/zitadel"
+      }
+    ],
+    "@semantic-release/release-notes-generator",
+    [
+      "@semantic-release/exec",
+      {
+        "prepareCmd": "sed -i 's/[0-9]\\+\\.[0-9]\\+\\.[0-9]\\+[-a-zA-Z0-9\\.]*/${nextRelease.version}/' src/main/java/com/zitadel/Version.java"
+      }
+    ],
+    [
+      "@semantic-release/exec",
+      {
+        "prepareCmd": "mvn --batch-mode --show-version dependency:go-offline"
+      }
+    ],
+    [
+      "@codedependant/semantic-release-docker",
+      {
+        "dockerRegistry": "ghcr.io",
+        "dockerProject": "zitadel",
+        "dockerImage": "client-java",
+        "dockerTags": [
+          "{{version}}"
+        ]
+      }
+    ],
+    [
+      "@semantic-release/github",
+      {
+        "successComment": false,
+        "failComment": false,
+        "assets": [
+          {
+            "path": "target/*.jar"
+          }
+        ]
+      }
+    ],
+    [
+      "semantic-release-maven",
+      {
+        "serverId": "central",
+        "profiles": [
+          "deployment"
+        ]
+      }
+    ],
+    [
+      "@semantic-release/git",
+      {
+        "message": "chore(release): ${nextRelease.version} [skip ci]\n\n${nextRelease.notes}",
+        "assets": [
+          "pom.xml",
+          "src/main/java/com/zitadel/Version.java"
+        ]
+      }
+    ]
+  ]
+}
