@@ -42,6 +42,10 @@ zitadel:
   # Note: Either zitadel.masterkey or zitadel.masterkeySecretName must be set
   masterkeySecretName: ""
 
+  # Number of old ReplicaSets to retain for rollback purposes
+  # Set to 0 to not keep any old ReplicaSets
+  revisionHistoryLimit: 10
+
   # Annotations set on masterkey secret
   masterkeyAnnotations:
     helm.sh/hook: pre-install,pre-upgrade
@@ -230,6 +234,7 @@ login:
   tolerations: []
   affinity: {}
   topologySpreadConstraints: []
+  revisionHistoryLimit: 10
 
 replicaCount: 3
 
