@@ -16,7 +16,7 @@ spec:
   replicas: {{ .Values.replicaCount }}
   selector:
     matchLabels:
-      {{- include "zitadel.login.labels" . | nindent 6 }}
+      {{- include "zitadel.login.selectorLabels" . | nindent 6 }}
   template:
     metadata:
       annotations:
