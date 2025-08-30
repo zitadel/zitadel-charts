@@ -13,7 +13,7 @@
 			"@mridang/semantic-release-helm",
 			{
 				"chartPath": "charts/zitadel",
-				"ociRepo": "oci://ghcr.io/zitadel/charts",
+				"ociRepo": "oci://ghcr.io/zitadel/zitadel-charts",
 				"ociInsecure": false,
 				"ghPages": {
 					"enabled": true,
