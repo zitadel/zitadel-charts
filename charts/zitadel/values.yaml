@@ -236,7 +236,7 @@ login:
   topologySpreadConstraints: []
   # Additional environment variables
   env:
-    [ ]
+    []
     # - name: ZITADEL_DATABASE_POSTGRES_HOST
     #   valueFrom:
     #     secretKeyRef:
