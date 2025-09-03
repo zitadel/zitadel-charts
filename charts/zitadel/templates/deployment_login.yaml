@@ -10,6 +10,9 @@ metadata:
     {{- toYaml . | nindent 4 }}
   {{- end }}
 spec:
+  {{- if .Values.login.revisionHistoryLimit }}
+  revisionHistoryLimit: {{ .Values.login.revisionHistoryLimit }}
+  {{- end }}
   replicas: {{ .Values.replicaCount }}
   selector:
     matchLabels:
@@ -47,6 +50,9 @@ spec:
           env:
             - name: NEXT_PUBLIC_BASE_PATH
               value: /ui/v2/login
+            {{- with .Values.login.env }}
+              {{- toYaml . | nindent 12 }}
+            {{- end }}
           ports:
           - containerPort: {{ include "login.containerPort" . }}
             name: {{ .Values.login.service.protocol }}-server
