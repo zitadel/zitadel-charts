@@ -1,41 +1,45 @@
-name: Release
+name: 'Release Charts'
 
 on:
   push:
     branches:
-      - main
-
-permissions:
-  contents: write
-  packages: write
-  id-token: write
-  checks: read
-
-defaults:
-  run:
-    working-directory: ./
+      - 'main'
 
 jobs:
-  publish-package:
-    runs-on: ubuntu-latest
-    name: To Artifactory
+  release:
+
+    runs-on: 'ubuntu-latest'
+
+    permissions:
+      contents: 'write'
+      packages: 'write'
+      id-token: 'write'
 
     steps:
-      - name: Harden runner
-        uses: step-security/harden-runner@0634a2670c59f64b4a01f0f96f84700a4088b9f0 # v2.12.0
+      - id: 'checkout'
+        uses: 'actions/checkout@v5'
         with:
-          egress-policy: audit
+          fetch-depth: "0"
 
-      - name: Checkout code
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
-        with:
-          fetch-depth: 0
+      - id: 'configure-git'
+        run: |
+          git config user.name "$GITHUB_ACTOR"
+          git config user.email "$GITHUB_ACTOR@users.noreply.github.com"
 
-      - name: Run semantic-release
-        uses: mridang/action-semantic-release@v1
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          allow-force-install: 'true'
+      - id: 'release'
+        uses: 'helm/chart-releaser-action@v1.7.0'
         env:
-          OCI_USERNAME: ${{ github.actor }}
-          OCI_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
+          CR_GENERATE_RELEASE_NOTES: 'true'
+          CR_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+
+      - id: 'login-ghcr'
+        name: 'Login to GitHub Container Registry'
+        run: |
+          echo "${{ secrets.GITHUB_TOKEN }}" | helm registry login ghcr.io -u ${{ github.actor }} --password-stdin
+
+      - id: 'package-and-push-oci'
+        name: 'Package and Push OCI Image'
+        run: |
+          CHART_VERSION=$(grep '^version:' charts/zitadel/Chart.yaml | awk '{print $2}')
+          helm package charts/zitadel
+          helm push zitadel-${CHART_VERSION}.tgz oci://ghcr.io/${{ github.repository_owner }}/zitadel-charts
