@@ -234,6 +234,14 @@ login:
   tolerations: []
   affinity: {}
   topologySpreadConstraints: []
+  # Additional environment variables
+  env:
+    []
+    # - name: ZITADEL_DATABASE_POSTGRES_HOST
+    #   valueFrom:
+    #     secretKeyRef:
+    #       name: postgres-pguser-postgres
+    #       key: host
   revisionHistoryLimit: 10
 
 replicaCount: 3
