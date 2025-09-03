@@ -46,16 +46,16 @@ Therefore, the Kubernetes secret has to be created manually before upgrading to 
 
 1. Create a user of type machine
 2. Make the user an instance administrator with role `IAM_LOGIN_CLIENT`
-3. Create a personal access token for the user 
+3. Create a personal access token for the user
 4. Create a secret with that token: `kubectl --namespace <my-namespace> create secret generic login-client --from-file=pat=<my-local-path-to-the-downloaded-pat-file>`
 
 To make the login externally accessible, you need to route traffic with the path prefix `/ui/v2/login` to the login service.
 If you use an ingress controller, you can enable the login ingress with `login.ingress.enabled: true`
 
 > [!CAUTION]
-> Don't Lock Yourself Out of Your Instance  
-> Before you change your Zitadel configuration, we highly recommend you to create a service user with a personal access token (PAT) and the IAM_OWNER role.  
-> In case something breaks, you can use this PAT to revert your changes or fix the configuration so you can use a login UI again.  
+> Don't Lock Yourself Out of Your Instance
+> Before you change your Zitadel configuration, we highly recommend you to create a service user with a personal access token (PAT) and the IAM_OWNER role.
+> In case something breaks, you can use this PAT to revert your changes or fix the configuration so you can use a login UI again.
 
 To actually use the new login, enable the loginV2 feature on the instance.
 Leave the base URI empty to use the default or explicitly configure it to `/ui/v2/login`.
@@ -124,7 +124,7 @@ Please refer to the docs by Cockroach Labs. The Zitadel tests run against the [o
 
   | Old Value                      | New Value                     |
   |--------------------------------|-------------------------------|
-  | `zitadel.dbSslRootCrt`         | `zitadel.dbSslCaCrt`          | 
+  | `zitadel.dbSslRootCrt`         | `zitadel.dbSslCaCrt`          |
   | `zitadel.dbSslRootCrtSecret`   | `zitadel.dbSslCaCrtSecret`    |
   | `zitadel.dbSslClientCrtSecret` | `zitadel.dbSslAdminCrtSecret` |
   | `-`                            | `zitadel.dbSslUserCrtSecret`  |
@@ -143,6 +143,16 @@ for k8sresourcetype in job configmap secret rolebinding role serviceaccount; do
 done
 ```
 
+## Configuration
+
+### Values
+
+<!-- render.chart.valuesTable -->
+
+
+
+<!-- end.chart.valuesTable -->
+
 ## Troubleshooting
 
 ### Debug Pod
@@ -151,9 +161,9 @@ For troubleshooting, you can deploy a debug pod by setting the `zitadel.debug.en
 You can then use this pod to inspect the Zitadel configuration and run zitadel commands using the zitadel binary.
 For more information, print the debug pods logs using something like the following command:
 
-```bash 
+```bash
 kubectl logs rs/my-zitadel-debug
-``` 
+```
 
 ### migration already started, will check again in 5 seconds
 
