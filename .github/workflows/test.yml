@@ -2,6 +2,9 @@ name: 'Test Charts'
 
 on: 'pull_request'
 
+permissions:
+  contents: read
+
 jobs:
   test:
 
@@ -29,15 +32,20 @@ jobs:
     name: 'K8s version ${{ matrix.k8s.version }}'
 
     steps:
+    - name: Harden the runner (Audit all outbound calls)
+      uses: step-security/harden-runner@ec9f2d5744a09debf3a187a3f4f675c53b671911 # v2.13.0
+      with:
+        egress-policy: audit
+
     - id: 'checkout'
       name: Check The Repo Out
-      uses: 'actions/checkout@v5'
+      uses: 'actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8' # v5.0.0
       with:
         fetch-depth: 0
 
     - name: Get Changed Test Relevant Files
       id: 'list-changed-test'
-      uses: tj-actions/changed-files@v46
+      uses: tj-actions/changed-files@ed68ef82c095e0d48ec87eccea555d944a631a4c # v46.0.5
       with:
         files: |
           charts/zitadel/**
@@ -47,7 +55,7 @@ jobs:
 
     - id: 'create-kind'
       name: Create Kubernetes Cluster with KinD
-      uses: 'helm/kind-action@v1.12.0'
+      uses: 'helm/kind-action@a1b0e391336a6ee6713a0583f8c6240d70863de3' # v1.12.0
       with:
         node_image: 'kindest/node:${{ matrix.k8s.kindest-image-tag }}'
         version: 'v0.29.0'
@@ -55,13 +63,13 @@ jobs:
       if: steps.list-changed-test.outputs.any_changed == 'true'
 
     - id: 'setup-go'
-      uses: actions/setup-go@v5
+      uses: actions/setup-go@d35c59abb061a4a6fb18e82ac0862c26744d6ab5 # v5.5.0
       with:
         go-version-file: 'go.mod'
       if: steps.list-changed-test.outputs.any_changed == 'true'
 
     - id: 'setup-chrome'
-      uses: browser-actions/setup-chrome@v2
+      uses: browser-actions/setup-chrome@b94431e051d1c52dcbe9a7092a4f10f827795416 # v2.1.0
       with:
         chrome-version: 138
 
@@ -72,7 +80,7 @@ jobs:
 
     - id: 'upload-login-failures'
       name: Upload Login Failures
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
       if: failure()
       with:
         include-hidden-files: true
@@ -92,35 +100,35 @@ jobs:
 
     - id: 'namespace-report-pg-insecure'
       name: Show ${{ steps.zitadel-test-namespaces.outputs.pgInsecure }} Namespace
-      uses: jupyterhub/action-k8s-namespace-report@v1
+      uses: jupyterhub/action-k8s-namespace-report@ccc0e3c37860245f3906e3857df01b0a53f9c3f8 # v1.2.0
       if: failure()
       with:
         namespace: ${{ steps.zitadel-test-namespaces.outputs.pgInsecure }}
 
     - id: 'namespace-report-pg-secure'
       name: Show ${{ steps.zitadel-test-namespaces.outputs.pgSecure }} Namespace
-      uses: jupyterhub/action-k8s-namespace-report@v1
+      uses: jupyterhub/action-k8s-namespace-report@ccc0e3c37860245f3906e3857df01b0a53f9c3f8 # v1.2.0
       if: failure()
       with:
         namespace: ${{ steps.zitadel-test-namespaces.outputs.pgSecure }}
 
     - id: 'namespace-report-ref-secrets'
       name: Show ${{ steps.zitadel-test-namespaces.outputs.refSecrets }} Namespace
-      uses: jupyterhub/action-k8s-namespace-report@v1
+      uses: jupyterhub/action-k8s-namespace-report@ccc0e3c37860245f3906e3857df01b0a53f9c3f8 # v1.2.0
       if: failure()
       with:
         namespace: ${{ steps.zitadel-test-namespaces.outputs.refSecrets }}
 
     - id: 'namespace-report-machine-user'
       name: Show ${{ steps.zitadel-test-namespaces.outputs.machineUser }} Namespace
-      uses: jupyterhub/action-k8s-namespace-report@v1
+      uses: jupyterhub/action-k8s-namespace-report@ccc0e3c37860245f3906e3857df01b0a53f9c3f8 # v1.2.0
       if: failure()
       with:
         namespace: ${{ steps.zitadel-test-namespaces.outputs.machineUser }}
 
     - id: 'namespace-report-self-signed'
       name: Show ${{ steps.zitadel-test-namespaces.outputs.internalTls }} Namespace
-      uses: jupyterhub/action-k8s-namespace-report@v1
+      uses: jupyterhub/action-k8s-namespace-report@ccc0e3c37860245f3906e3857df01b0a53f9c3f8 # v1.2.0
       if: failure()
       with:
         namespace: ${{ steps.zitadel-test-namespaces.outputs.internalTls }}

@@ -7,6 +7,9 @@ on:
     paths:
       - 'README.md'
 
+permissions:
+  contents: read
+
 jobs:
   release:
 
@@ -17,9 +20,14 @@ jobs:
       pull-requests: write
 
     steps:
+    - name: Harden the runner (Audit all outbound calls)
+      uses: step-security/harden-runner@ec9f2d5744a09debf3a187a3f4f675c53b671911 # v2.13.0
+      with:
+        egress-policy: audit
+
     - name: "Checkout"
       id: 'checkout'
-      uses: 'actions/checkout@v5'
+      uses: 'actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8' # v5.0.0
       with:
         ref: 'gh-pages'
 
@@ -33,7 +41,7 @@ jobs:
 
     - name: 'Create Pull Request'
       id: 'pr'
-      uses: 'peter-evans/create-pull-request@v7'
+      uses: 'peter-evans/create-pull-request@271a8d0340265f705b14b6d32b9829c1cb33d45e' # v7.0.8
       with:
         title: 'docs: update README.md'
         branch: 'update-repo-readme'
