@@ -297,3 +297,8 @@ Database SSL CA certificate Secret name
 {{ include "zitadel.fullname" . }}-db-ssl-ca-crt
 {{- end -}}
 {{- end -}}
+
+{{- define "zitadel.kubeversion" -}}
+{{- $version := semver .Capabilities.KubeVersion.Version -}}
+{{- printf "%d.%d.%d" $version.Major $version.Minor $version.Patch -}}
+{{- end -}}
