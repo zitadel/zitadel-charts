@@ -37,6 +37,15 @@ spec:
                 name: {{ $fullName }}
                 port:
                   number: {{ $svcPort }}
+          {{- if eq $.Values.ingress.controller "aws" }}
+          - path: {{ .path }}
+            pathType: {{ .pathType }}
+            backend:
+              service:
+                name: {{ $fullName }}-grpc
+                port:
+                  number: {{ $svcPort }}
+          {{- end }}
           {{- end }}
     {{- end }}
 {{- end }}

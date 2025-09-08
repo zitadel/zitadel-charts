@@ -1,13 +1,17 @@
+{{- if eq .Values.ingress.controller "aws" }}
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ include "zitadel.fullname" . }}
-  {{- if .Values.service }}
-  {{- with .Values.service.annotations }}
+  name: {{ include "zitadel.fullname" . }}-grpc
   annotations:
+    alb.ingress.kubernetes.io/backend-protocol-version: GRPC
+    alb.ingress.kubernetes.io/healthcheck-path: /grpc.health.v1.Health/Check
+    alb.ingress.kubernetes.io/success-codes: '0'
+    {{- if .Values.service }}
+    {{- with .Values.service.annotations }}
     {{- toYaml . | nindent 4 }}
-  {{- end }}
-  {{- end }}
+    {{- end }}
+    {{- end }}
   labels:
     {{- include "zitadel.labels" . | nindent 4 }}
     {{- with .Values.service.labels }}
@@ -29,3 +33,4 @@ spec:
       appProtocol: {{ .Values.service.appProtocol }}
   selector:
     {{- include "zitadel.start.selectorLabels" . | nindent 4 }}
+{{- end }}
