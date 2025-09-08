@@ -55,7 +55,7 @@ jobs:
       if: steps.list-changed-test.outputs.any_changed == 'true'
 
     - id: 'setup-go'
-      uses: actions/setup-go@v5
+      uses: actions/setup-go@v6
       with:
         go-version-file: 'go.mod'
       if: steps.list-changed-test.outputs.any_changed == 'true'
