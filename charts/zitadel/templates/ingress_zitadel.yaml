@@ -7,10 +7,15 @@ metadata:
   name: {{ $fullName }}
   labels:
     {{- include "zitadel.labels" . | nindent 4 }}
-  {{- with .Values.ingress.annotations }}
   annotations:
+    {{- if eq .Values.ingress.controller "aws" }}
+    alb.ingress.kubernetes.io/conditions.zitadel-grpc: >
+      [{"field":"http-header","httpHeaderConfig":{"httpHeaderName":
+      "Content-Type", "values":["application/grpc"]}}]
+    {{- end }}
+    {{- with .Values.ingress.annotations }}
     {{- toYaml . | nindent 4 }}
-  {{- end }}
+    {{- end }}
 spec:
   ingressClassName: {{ .Values.ingress.className }}
   {{- if .Values.ingress.tls }}

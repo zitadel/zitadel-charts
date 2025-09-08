@@ -327,9 +327,6 @@ ingress:
   className: ""
   annotations:
     alb.ingress.kubernetes.io/group.order: '10' # to not conflict with zitadel-login
-    alb.ingress.kubernetes.io/conditions.zitadel-grpc: >
-      [{"field":"http-header","httpHeaderConfig":{"httpHeaderName":
-      "Content-Type", "values":["application/grpc"]}}]
     nginx.ingress.kubernetes.io/backend-protocol: "GRPC"
   hosts:
     - paths:
