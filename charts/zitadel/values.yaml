@@ -203,7 +203,8 @@ login:
   ingress:
     enabled: false
     className: ""
-    annotations: {}
+    annotations:
+      alb.ingress.kubernetes.io/healthcheck-path: /ui/v2/login/healthy
     hosts:
       - paths:
           - path: /ui/v2/login
