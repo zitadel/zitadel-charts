@@ -3,10 +3,11 @@ kind: Service
 metadata:
   name: {{ include "zitadel.fullname" . }}
   {{- if .Values.service }}
-  {{- with .Values.service.annotations }}
   annotations:
+    alb.ingress.kubernetes.io/healthcheck-path: /healthz
+    {{- with .Values.service.annotations }}
     {{- toYaml . | nindent 4 }}
-  {{- end }}
+    {{- end }}
   {{- end }}
   labels:
     {{- include "zitadel.labels" . | nindent 4 }}
