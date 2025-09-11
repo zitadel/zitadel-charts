@@ -35,20 +35,37 @@ zitadel:
   # The key under which the ZITADEL configuration is located in the secret.
   configSecretKey: config-yaml
 
-  # ZITADEL uses the masterkey for symmetric encryption.
-  # You can generate it for example with tr -dc A-Za-z0-9 </dev/urandom | head -c 32
+
+  # The master-key configuration for symmetric encryption. The key must be exactly
+  # 32 alphanumeric characters.
+  #
+  # Recommended approach: Leave both fields empty, and Helm will automatically
+  # generate an immutable Secret on first install, then reuse it on upgrades
+  # for consistent encryption.
+  #
+  # Alternative options: Set 'masterkey' to provide your own 32-character key,
+  # or set 'masterkeySecretName' to reference an existing Kubernetes Secret
+  # containing a 'masterkey' field.
+  #
+  # Important: Only set one field, never both, as this will cause the chart
+  # installation to fail. Note that changing the master-key after installation
+  # requires a complete fresh Zitadel deployment.
+  #
+  # To generate a secure key: tr -dc 'A-Za-z0-9' </dev/urandom | head -c 32
   masterkey: ""
-  # Reference the name of the secret that contains the masterkey. The key should be named "masterkey".
-  # Note: Either zitadel.masterkey or zitadel.masterkeySecretName must be set
+  # OR
   masterkeySecretName: ""
+
 
   # Number of old ReplicaSets to retain for rollback purposes
   # Set to 0 to not keep any old ReplicaSets
   revisionHistoryLimit: 10
 
-  # Annotations set on masterkey secret
+  # Annotations set on the masterkey Secret. It is an install-only hook.
+  # Do NOT include "pre-upgrade" here; we create the Secret once and never
+  # touch it again.
   masterkeyAnnotations:
-    helm.sh/hook: pre-install,pre-upgrade
+    helm.sh/hook: pre-install
     helm.sh/hook-delete-policy: before-hook-creation
     helm.sh/hook-weight: "0"
 
