@@ -1,7 +1,7 @@
 zitadel:
   masterkey: x123456789012345678901234567891y
   configmapConfig:
-    ExternalDomain: pg-insecure.127.0.0.1.sslip.io
+    ExternalDomain: cnpg-insecure.127.0.0.1.sslip.io
     ExternalPort: 443
     TLS:
       Enabled: false
