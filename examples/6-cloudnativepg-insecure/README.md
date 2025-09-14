@@ -21,7 +21,7 @@ kubectl apply -f https://raw.githubusercontent.com/zitadel/zitadel-charts/main/e
 
 # Install Zitadel
 helm repo add zitadel https://charts.zitadel.com
-helm install my-zitadel zitadel/zitadel --values https://raw.githubusercontent.com/zitadel/zitadel-charts/main/examples/1-postgres-insecure/zitadel-values.yaml
+helm install my-zitadel zitadel/zitadel --values https://raw.githubusercontent.com/zitadel/zitadel-charts/main/examples/6-cloudnativepg-insecure/zitadel-values.yaml
 ```
 
 When Zitadel is ready, open https://pg-insecure.127.0.0.1.sslip.io/ui/console?login_hint=zitadel-admin@zitadel.pg-insecure.127.0.0.1.sslip.io in your browser and log in with the password `Password1!`.
