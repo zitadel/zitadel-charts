@@ -419,6 +419,41 @@ pdb:
   # maxUnavailable: 1
   annotations: {}
 
+# Horizontal Pod Autoscaler configuration for scaling on CPU, memory, or custom metrics.
+# Ref: https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale/
+autoscaling:
+  # If true, enables the Horizontal Pod Autoscaler for the Zitadel deployment.
+  # This will automatically override the `replicaCount` value.
+  enabled: false
+  # The minimum number of pod replicas.
+  minReplicas: 3
+  # The maximum number of pod replicas.
+  maxReplicas: 10
+  # The target average CPU utilization percentage.
+  targetCPU: 80
+  # The target average memory utilization percentage.
+  targetMemory: 80
+  # Advanced scaling based on custom metrics exposed by Zitadel.
+  # Zitadel exposes standard Go runtime metrics. To use these for scaling,
+  # you MUST have a metrics server (e.g., Prometheus) and a metrics adapter
+  # (e.g., prometheus-adapter) running in your cluster.
+  # Ref: https://github.com/kubernetes-sigs/prometheus-adapter
+  metrics: []
+  # Example: Scale when the average number of goroutines per pod exceeds 150.
+  # The `go_goroutines` metric is a good proxy for concurrent load.
+  # You should observe your application's baseline to find a suitable value.
+  # - type: Pods
+  #   pods:
+  #     metric:
+  #       # This name must match the metric exposed by the prometheus-adapter.
+  #       name: "go_goroutines"
+  #     target:
+  #       type: AverageValue
+  #       averageValue: "150"
+  # Configures the scaling behavior for scaling up and down.
+  # See: https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale/#configurable-scaling-behavior
+  behavior: {}
+
 # extraContainers allows you to add any sidecar containers you wish to use in the Zitadel pod.
 extraContainers: []
 
