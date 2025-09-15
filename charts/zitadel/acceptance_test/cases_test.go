@@ -111,7 +111,7 @@ func TestCloudNativePGInsecure(t *testing.T) {
 		nil,
 		func(cfg *ConfigurationTest) {
 			k8s.KubectlApply(t, cfg.KubeOptions, filepath.Join(workDir, "postgres-cluster.yaml"))
-			// Wait for CloudNativePG cluster pod to be ready
+			// Wait for CloudNativePG pod to be ready
 			// Increased timeout
 			k8s.WaitUntilPodAvailable(t, cfg.KubeOptions, "db-postgresql-1", 20, 15*time.Second)
 		},

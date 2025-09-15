@@ -40,7 +40,7 @@ var (
 	CloudNativePG = databaseChart{
 		repoUrl: "https://cloudnative-pg.github.io/charts",
 		name:    "cloudnative-pg",
-		version: "0.21.6",
+		version: "0.26.0",
 	}
 )
 
