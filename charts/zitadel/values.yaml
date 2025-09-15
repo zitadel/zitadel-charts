@@ -11,13 +11,44 @@ zitadel:
           Enabled: true
         Webhook:
           Enabled: false
+        # Configures the initial instance created by the ZITADEL setup job. The values
+    # defined here are used to bootstrap the first organization and its users.
     FirstInstance:
       Org:
+        # Defines an administrative machine user created with the IAM_OWNER role.
+        # This user is intended for initial automation and administrative tasks
+        # right after the Helm chart is deployed.
+        #
+        # By default, a JWT Machine Key is generated and stored in a Kubernetes
+        # secret named after the `Username` (e.g., 'iam-admin').
+        #
+        # If the `Pat` block below is defined, a Personal Access Token (PAT) is
+        # also generated and stored in a separate Kubernetes secret. This secret
+        # will be named after the `Username` with a '-pat' suffix (e.g.,
+        # 'iam-admin-pat').
+        Machine:
+          Machine:
+            Username: 'iam-admin'
+            Name: 'Automatically Initialized IAM Admin'
+          MachineKey:
+            ExpirationDate: '2029-01-01T00:00:00Z'
+            Type: 1
+          # If this Pat object is present, a PAT will also be created.
+          Pat:
+            ExpirationDate: '2029-01-01T00:00:00Z'
+
+        # Defines the internal machine user required by the ZITADEL Login UI.
+        # This user communicates with the main ZITADEL API to handle login flows.
+        # It is a specialized, internal-use-only account and is not intended for
+        # general administrative use. A PAT is generated and stored in a
+        # Kubernetes secret named 'login-client'.
         LoginClient:
           Machine:
             Username: 'login-client'
             Name: 'Automatically Initialized IAM Login Client'
-          Pat.ExpirationDate: '2029-01-01T00:00:00Z'
+          # The expiration date for the Login UI's Personal Access Token (PAT).
+          Pat:
+            ExpirationDate: '2029-01-01T00:00:00Z'
 
   # The ZITADEL config under secretConfig is written to a Kubernetes Secret
   # See all defaults here:
