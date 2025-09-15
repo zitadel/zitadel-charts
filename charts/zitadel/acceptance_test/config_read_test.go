@@ -2,13 +2,14 @@ package acceptance_test
 
 import (
 	"fmt"
-	"github.com/gruntwork-io/terratest/modules/random"
 	"gopkg.in/yaml.v3"
 	"os"
 	"path/filepath"
 	"runtime"
 	"strings"
 	"testing"
+
+	"github.com/gruntwork-io/terratest/modules/random"
 )
 
 type Values struct {
@@ -17,8 +18,6 @@ type Values struct {
 		ConfigSecretName    string `yaml:"configSecretName"`
 		ConfigmapConfig     struct {
 			ExternalDomain string `yaml:"ExternalDomain"`
-			ExternalPort   uint16 `yaml:"ExternalPort"`
-			ExternalSecure bool   `yaml:"ExternalSecure"`
 			FirstInstance  struct {
 				Org struct {
 					Machine struct {
@@ -33,10 +32,6 @@ type Values struct {
 }
 
 func readValues(t *testing.T, valuesFilePath string) (values Values) {
-	// set default values like in the defaults.yaml
-	values.Zitadel.ConfigmapConfig.ExternalDomain = "localhost"
-	values.Zitadel.ConfigmapConfig.ExternalPort = 8080
-	values.Zitadel.ConfigmapConfig.ExternalSecure = true
 	valuesBytes, err := os.ReadFile(valuesFilePath)
 	if err != nil {
 		t.Fatal(err)

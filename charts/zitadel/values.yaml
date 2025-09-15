@@ -11,6 +11,13 @@ zitadel:
           Enabled: true
         Webhook:
           Enabled: false
+    FirstInstance:
+      Org:
+        LoginClient:
+          Machine:
+            Username: 'login-client'
+            Name: 'Automatically Initialized IAM Login Client'
+          Pat.ExpirationDate: '2029-01-01T00:00:00Z'
 
   # The ZITADEL config under secretConfig is written to a Kubernetes Secret
   # See all defaults here:
@@ -34,6 +41,10 @@ zitadel:
   # Reference the name of the secret that contains the masterkey. The key should be named "masterkey".
   # Note: Either zitadel.masterkey or zitadel.masterkeySecretName must be set
   masterkeySecretName: ""
+
+  # Number of old ReplicaSets to retain for rollback purposes
+  # Set to 0 to not keep any old ReplicaSets
+  revisionHistoryLimit: 10
 
   # Annotations set on masterkey secret
   masterkeyAnnotations:
@@ -124,6 +135,115 @@ zitadel:
     #       exec:
     #         command: ["/cloud-sql-proxy", "wait"]
 
+login:
+  enabled: true
+  # customConfigmapConfig defaults to this:
+  # ZITADEL_SERVICE_USER_TOKEN_FILE="/login-client/pat"
+  # ZITADEL_API_URL="http://{{ include "zitadel.fullname" . }}:{{ .Values.service.port }}"
+  # CUSTOM_REQUEST_HEADERS="Host:{{ .Values.zitadel.configmapConfig.ExternalDomain }}"
+  customConfigmapConfig:
+  # To deploy zitadel multiple times in the same namespace, use a loginClientSecretPrefix.
+  # To mount it, also change the referenced secretName for the login client to "{loginClientSecretPrefix}login-client"
+  loginClientSecretPrefix:
+  extraVolumeMounts:
+  - name: login-client
+    mountPath: /login-client
+    readOnly: true
+  extraVolumes:
+  - name: login-client
+    secret:
+      defaultMode: 444
+      # Adjust this if you want to reference a different secret for the login client PAT.
+      secretName: login-client
+  replicaCount: 3
+  initContainers: []
+  extraContainers: []
+  image:
+    repository: ghcr.io/zitadel/zitadel-login
+    pullPolicy: IfNotPresent
+    # Overrides the image tag whose default is the chart appVersion.
+    tag: ""
+  imagePullSecrets: []
+  nameOverride: ""
+  fullnameOverride: ""
+  podAnnotations: {}
+  podAdditionalLabels: {}
+  # Annotations to add to the configMap
+  configMap:
+    annotations:
+      helm.sh/hook: pre-install,pre-upgrade
+      helm.sh/hook-delete-policy: before-hook-creation
+      helm.sh/hook-weight: "0"
+  readinessProbe:
+    enabled: true
+    initialDelaySeconds: 0
+    periodSeconds: 5
+    failureThreshold: 3
+  livenessProbe:
+    enabled: true
+    initialDelaySeconds: 0
+    periodSeconds: 5
+    failureThreshold: 3
+  startupProbe:
+    enabled: false
+    periodSeconds: 1
+    failureThreshold: 30
+  service:
+    type: ClusterIP
+    # If service type is "ClusterIP", this can optionally be set to a fixed IP address.
+    clusterIP: ""
+    # If service type is "LoadBalancer", this can optionally be set to either "Cluster" or "Local"
+    externalTrafficPolicy: ""
+    port: 3000
+    protocol: http
+    appProtocol: kubernetes.io/http
+    annotations: {}
+    labels: {}
+    scheme: HTTP
+  ingress:
+    enabled: false
+    className: ""
+    annotations: {}
+    hosts:
+      - paths:
+          - path: /ui/v2/login
+            pathType: Prefix
+    tls: []
+  serviceAccount:
+    # Specifies whether a service account should be created
+    create: true
+    # Annotations to add to the service account
+    annotations:
+      helm.sh/hook: pre-install,pre-upgrade
+      helm.sh/hook-delete-policy: before-hook-creation
+      helm.sh/hook-weight: "0"
+    # The name of the service account to use.
+    # If not set and create is true, a name is generated using the fullname template
+    name: ""
+  podSecurityContext:
+    runAsNonRoot: true
+    runAsUser: 1000
+    fsGroup: 1000
+  securityContext:
+    runAsNonRoot: true
+    runAsUser: 1000
+    readOnlyRootFilesystem: true
+    privileged: false
+  resources: {}
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+  topologySpreadConstraints: []
+  # Additional environment variables
+  env:
+    []
+    # - name: ZITADEL_DATABASE_POSTGRES_HOST
+    #   valueFrom:
+    #     secretKeyRef:
+    #       name: postgres-pguser-postgres
+    #       key: host
+  revisionHistoryLimit: 10
+
 replicaCount: 3
 
 image:
@@ -196,17 +316,18 @@ service:
   port: 8080
   protocol: http2
   appProtocol: kubernetes.io/h2c
-  annotations: {}
+  annotations:
+    traefik.ingress.kubernetes.io/service.serversscheme: h2c
   labels: {}
   scheme: HTTP
 
 ingress:
   enabled: false
   className: ""
-  annotations: {}
+  annotations:
+    nginx.ingress.kubernetes.io/backend-protocol: "GRPC"
   hosts:
-    - host: localhost
-      paths:
+    - paths:
         - path: /
           pathType: Prefix
   tls: []
@@ -259,7 +380,7 @@ setupJob:
     - "--init-projections=true"
   machinekeyWriter:
     image:
-      repository: bitnami/kubectl
+      repository: alpine/k8s
       tag: ""
     resources: {}
 

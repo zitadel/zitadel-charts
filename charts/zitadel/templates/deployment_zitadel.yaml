@@ -9,6 +9,9 @@ metadata:
     {{- toYaml . | nindent 4 }}
   {{- end }}
 spec:
+  {{- if .Values.revisionHistoryLimit }}
+  revisionHistoryLimit: {{ .Values.revisionHistoryLimit }}
+  {{- end }}
   replicas: {{ .Values.replicaCount }}
   selector:
     matchLabels:
@@ -19,9 +22,14 @@ spec:
         {{- with .Values.podAnnotations }}
           {{- toYaml . | nindent 8 }}
         {{- end }}
-        checksum/configmap: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
+        checksum/configmap: {{ include (print $.Template.BasePath "/configmap_zitadel.yaml") . | sha256sum }}
         checksum/secret-db-ssl-ca-crt: {{ include (print $.Template.BasePath "/secret_db-ssl-ca-crt.yaml") . | sha256sum }}
         checksum/secret-zitadel-secrets: {{ include (print $.Template.BasePath "/secret_zitadel-secrets.yaml") . | sha256sum }}
+        {{- if .Values.metrics.enabled }}
+        prometheus.io/scrape: "true"
+        prometheus.io/path: "/debug/metrics"
+        prometheus.io/port: {{ include "zitadel.containerPort" . | quote }}
+        {{- end }}
       labels:
         {{- include "zitadel.start.labels" . | nindent 8 }}
         {{- with .Values.podAdditionalLabels }}
@@ -70,7 +78,7 @@ spec:
             - name: ZITADEL_MASTERKEY
               valueFrom:
                 secretKeyRef:
-                  name: {{ default "zitadel-masterkey" .Values.zitadel.masterkeySecretName }}
+                  name: {{ include "zitadel.masterkeySecretName" . }}
                   key: masterkey
             {{- $dbEnv := get (include "zitadel.dbkey.json" . | fromJson) "env" }}
             {{- if (or .Values.zitadel.dbSslCaCrt .Values.zitadel.dbSslCaCrtSecret) }}
@@ -104,7 +112,7 @@ spec:
                 name: {{ .Values.envVarsSecret }}
           {{- end }}
           ports:
-          - containerPort: 8080
+          - containerPort: {{ include "zitadel.containerPort" . }}
             name: {{ .Values.service.protocol }}-server
             protocol: TCP
           {{- if .Values.livenessProbe.enabled }}
@@ -233,11 +241,11 @@ spec:
       volumes:
       - name: zitadel-config-yaml
         configMap:
-          name: zitadel-config-yaml
+          name: {{ include "zitadel.configmapName" . }}
       {{- if .Values.zitadel.secretConfig }}
       - name: zitadel-secrets-yaml
         secret:
-          secretName: zitadel-secrets-yaml
+          secretName: {{ include "zitadel.secretName" . }}
           defaultMode: 0440
       {{- end }}
       {{- if .Values.zitadel.configSecretName }}
@@ -249,7 +257,7 @@ spec:
       {{- if .Values.zitadel.dbSslCaCrt }}
       - name: db-ssl-ca-crt
         secret:
-          secretName: db-ssl-ca-crt
+          secretName: {{ include "zitadel.dbSslCaCrtSecretName" . }}
           defaultMode: 0440
       {{- end }}
       {{- if .Values.zitadel.dbSslCaCrtSecret }}
