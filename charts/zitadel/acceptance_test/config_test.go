@@ -37,6 +37,11 @@ var (
 		name:    "postgresql",
 		version: "12.10.0",
 	}
+	CloudNativePG = databaseChart{
+		repoUrl: "https://cloudnative-pg.github.io/charts",
+		name:    "cloudnative-pg",
+		version: "0.21.6",
+	}
 )
 
 func (d *databaseChart) WithValues(valuesFile string) databaseChart {

@@ -97,3 +97,24 @@ func TestInternalTLS(t *testing.T) {
 		nil,
 	))
 }
+
+func TestCloudNativePGInsecure(t *testing.T) {
+	t.Parallel()
+	example := "6-cloudnativepg-insecure"
+	workDir, valuesFile, values := readConfig(t, example)
+	suite.Run(t, Configure(
+		t,
+		newNamespaceIdentifier(example),
+		values.Zitadel.ConfigmapConfig.ExternalDomain,
+		CloudNativePG, // Use CloudNativePG operator chart
+		[]string{valuesFile},
+		nil,
+		func(cfg *ConfigurationTest) {
+			k8s.KubectlApply(t, cfg.KubeOptions, filepath.Join(workDir, "postgres-cluster.yaml"))
+			// Wait for CloudNativePG cluster pod to be ready
+			// Increased timeout
+			k8s.WaitUntilPodAvailable(t, cfg.KubeOptions, "db-postgresql-1", 20, 15*time.Second)
+		},
+		nil,
+	))
+}
