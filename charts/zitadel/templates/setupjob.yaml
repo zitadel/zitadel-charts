@@ -164,7 +164,36 @@ spec:
           securityContext:
             {{- toYaml .Values.securityContext | nindent 14 }}
           image: "{{ .Values.setupJob.machinekeyWriter.image.repository }}:{{ .Values.setupJob.machinekeyWriter.image.tag | default (.Capabilities.KubeVersion.GitVersion | trimPrefix "v") }}"
-          command: [ "sh","-c","until [ ! -z $(kubectl -n {{ .Release.Namespace }} get po ${POD_NAME} -o jsonpath=\"{.status.containerStatuses[?(@.name=='{{ .Chart.Name }}-setup')].state.terminated}\") ]; do echo 'waiting for {{ .Chart.Name }}-setup container to terminate'; sleep 5; done && echo '{{ .Chart.Name }}-setup container terminated' && if [ -f /machinekey/sa.json ]; then kubectl -n {{ .Release.Namespace }} create secret generic {{ .Values.zitadel.configmapConfig.FirstInstance.Org.Machine.Machine.Username }} --from-file={{ .Values.zitadel.configmapConfig.FirstInstance.Org.Machine.Machine.Username }}.json=/machinekey/sa.json; fi;" ]
+          command:
+            - sh
+            - -c
+            - |
+              #!/bin/sh
+              set -e
+
+              NAMESPACE="{{ .Release.Namespace }}"
+              SECRET_NAME="{{ .Values.zitadel.configmapConfig.FirstInstance.Org.Machine.Machine.Username }}"
+              KEY_FILE_PATH="/machinekey/sa.json"
+              MAIN_CONTAINER_NAME="{{ .Chart.Name }}-setup"
+
+              echo "Waiting for main container '${MAIN_CONTAINER_NAME}' to terminate..."
+
+              while [ -z "$(kubectl --namespace="${NAMESPACE}" get pod "${POD_NAME}" --output=jsonpath="{.status.containerStatuses[?(@.name=='${MAIN_CONTAINER_NAME}')].state.terminated}")" ]; do
+                sleep 5
+              done
+
+              echo "Main container has terminated."
+
+              if [ -f "${KEY_FILE_PATH}" ]; then
+                echo "File found at '${KEY_FILE_PATH}'. Creating secret..."
+                kubectl --namespace="${NAMESPACE}" \
+                  create secret generic "${SECRET_NAME}" \
+                  --from-file="${SECRET_NAME}.json=${KEY_FILE_PATH}"
+                echo "Secret '${SECRET_NAME}' created successfully."
+              else
+                echo "File NOT found at '${KEY_FILE_PATH}'. Setup cannot continue."
+                exit 1
+              fi
           env:
             - name: POD_NAME
               valueFrom:
@@ -186,7 +215,36 @@ spec:
           securityContext:
             {{- toYaml .Values.securityContext | nindent 14 }}
           image: "{{ .Values.setupJob.machinekeyWriter.image.repository }}:{{ .Values.setupJob.machinekeyWriter.image.tag | default (.Capabilities.KubeVersion.GitVersion | trimPrefix "v") }}"
-          command: [ "sh","-c","until [ ! -z $(kubectl -n {{ .Release.Namespace }} get po ${POD_NAME} -o jsonpath=\"{.status.containerStatuses[?(@.name=='{{ .Chart.Name }}-setup')].state.terminated}\") ]; do echo 'waiting for {{ .Chart.Name }}-setup container to terminate'; sleep 5; done && echo '{{ .Chart.Name }}-setup container terminated' && if [ -f /machinekey/pat ]; then kubectl -n {{ .Release.Namespace }} create secret generic {{ .Values.zitadel.configmapConfig.FirstInstance.Org.Machine.Machine.Username }}-pat --from-file=pat=/machinekey/pat --immutable; fi;" ]
+          command:
+            - sh
+            - -c
+            - |
+              #!/bin/sh
+              set -e
+
+              NAMESPACE="{{ .Release.Namespace }}"
+              SECRET_NAME="{{ .Values.zitadel.configmapConfig.FirstInstance.Org.Machine.Machine.Username }}-pat"
+              PAT_FILE_PATH="/machinekey/pat"
+              MAIN_CONTAINER_NAME="{{ .Chart.Name }}-setup"
+
+              echo "Waiting for main container '${MAIN_CONTAINER_NAME}' to terminate..."
+
+              while [ -z "$(kubectl --namespace="${NAMESPACE}" get pod "${POD_NAME}" --output=jsonpath="{.status.containerStatuses[?(@.name=='${MAIN_CONTAINER_NAME}')].state.terminated}")" ]; do
+                sleep 5
+              done
+
+              echo "Main container has terminated."
+
+              if [ -f "${PAT_FILE_PATH}" ]; then
+                echo "File found at '${PAT_FILE_PATH}'. Creating secret..."
+                kubectl --namespace="${NAMESPACE}" \
+                  create secret generic "${SECRET_NAME}" \
+                  --from-file="${PAT_FILE_PATH}"
+                echo "Secret '${SECRET_NAME}' created successfully."
+              else
+                echo "File NOT found at '${PAT_FILE_PATH}'. Setup cannot continue."
+                exit 1
+              fi
           env:
             - name: POD_NAME
               valueFrom:
@@ -208,7 +266,36 @@ spec:
           securityContext:
             {{- toYaml .Values.securityContext | nindent 14 }}
           image: "{{ .Values.setupJob.machinekeyWriter.image.repository }}:{{ .Values.setupJob.machinekeyWriter.image.tag | default (.Capabilities.KubeVersion.GitVersion | trimPrefix "v") }}"
-          command: [ "sh","-c","until [ ! -z $(kubectl -n {{ .Release.Namespace }} get po ${POD_NAME} -o jsonpath=\"{.status.containerStatuses[?(@.name=='{{ .Chart.Name }}-setup')].state.terminated}\") ]; do echo 'waiting for {{ .Chart.Name }}-setup container to terminate'; sleep 5; done && echo '{{ .Chart.Name }}-setup container terminated' && if [ -f /login-client/pat ]; then kubectl -n {{ .Release.Namespace }} create secret generic {{ .Values.login.loginClientSecretPrefix }}login-client --from-file=pat=/login-client/pat; fi;" ]
+          command:
+            - sh
+            - -c
+            - |
+              #!/bin/sh
+              set -e
+
+              NAMESPACE="{{ .Release.Namespace }}"
+              SECRET_NAME="{{ .Values.login.loginClientSecretPrefix }}login-client"
+              PAT_FILE_PATH="/login-client/pat"
+              MAIN_CONTAINER_NAME="{{ .Chart.Name }}-setup"
+
+              echo "Waiting for main container '${MAIN_CONTAINER_NAME}' to terminate..."
+
+              while [ -z "$(kubectl --namespace="${NAMESPACE}" get pod "${POD_NAME}" --output=jsonpath="{.status.containerStatuses[?(@.name=='${MAIN_CONTAINER_NAME}')].state.terminated}")" ]; do
+                sleep 5
+              done
+
+              echo "Main container has terminated."
+
+              if [ -f "${PAT_FILE_PATH}" ]; then
+                echo "File found at '${PAT_FILE_PATH}'. Creating secret..."
+                kubectl --namespace="${NAMESPACE}" \
+                  create secret generic "${SECRET_NAME}" \
+                  --from-file="${PAT_FILE_PATH}"
+                echo "Secret '${SECRET_NAME}' created successfully."
+              else
+                echo "File NOT found at '${PAT_FILE_PATH}'. Setup cannot continue."
+                exit 1
+              fi
           env:
             - name: POD_NAME
               valueFrom:
