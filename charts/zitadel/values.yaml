@@ -380,7 +380,7 @@ setupJob:
     - "--init-projections=true"
   machinekeyWriter:
     image:
-      repository: bitnami/kubectl
+      repository: alpine/k8s
       tag: ""
     resources: {}
 
