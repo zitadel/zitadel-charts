@@ -59,9 +59,9 @@ zitadel:
     # The maximum number of pod replicas.
     maxReplicas: 10
     # The target average CPU utilization percentage.
-    targetCPU: 80
+    targetCPU: null
     # The target average memory utilization percentage.
-    targetMemory: 80
+    targetMemory: null
     # Advanced scaling based on custom metrics exposed by Zitadel.
     # Zitadel exposes standard Go runtime metrics. To use these for scaling,
     # you MUST have a metrics server (e.g., Prometheus) and a metrics adapter
@@ -294,9 +294,9 @@ login:
     # The maximum number of pod replicas.
     maxReplicas: 10
     # The target average CPU utilization percentage.
-    targetCPU: 80
+    targetCPU: null
     # The target average memory utilization percentage.
-    targetMemory: 80
+    targetMemory: null
     # Advanced scaling based on custom metrics exposed by Zitadel.
     # To use these for scaling, you MUST have a metrics server
     # (e.g., Prometheus) and a metrics adapter (e.g., prometheus-adapter)
