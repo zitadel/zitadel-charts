@@ -149,12 +149,7 @@ login:
   - name: login-client
     mountPath: /login-client
     readOnly: true
-  extraVolumes:
-  - name: login-client
-    secret:
-      defaultMode: 444
-      # Adjust this if you want to reference a different secret for the login client PAT.
-      secretName: login-client
+  extraVolumes: []
   replicaCount: 3
   initContainers: []
   extraContainers: []
