@@ -103,6 +103,12 @@ spec:
       - name: login-config-dotenv
         configMap:
           name: {{ include "login.configmapName" . }}
+      {{- if include "deepCheck" (dict "root" .Values "path" (splitList "." "zitadel.configmapConfig.FirstInstance.Org.LoginClient")) }}
+      - name: login-client
+        secret:
+          defaultMode: 444
+          secretName: {{ .Values.login.loginClientSecretPrefix }}login-client
+      {{- end }}
       {{- with .Values.login.extraVolumes }}
       {{- toYaml . | nindent 6 }}
       {{- end }}
@@ -122,4 +128,4 @@ spec:
       topologySpreadConstraints:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-  {{- end }}
+{{- end }}
