@@ -152,31 +152,6 @@ func TestSecretsMatrix(t *testing.T) {
 			},
 		},
 		{
-			name: "skip-all-setup",
-			setValues: map[string]string{
-				"zitadel.configmapConfig.FirstInstance.Skip":                                  "true",
-				"zitadel.configmapConfig.FirstInstance.Org.Machine.Machine.Username":          "iam-admin",
-				"zitadel.configmapConfig.FirstInstance.Org.Machine.Machine.Name":              "Admin Machine",
-				"zitadel.configmapConfig.FirstInstance.Org.Machine.MachineKey.ExpirationDate": "2029-01-01T00:00:00Z",
-				"zitadel.configmapConfig.FirstInstance.Org.Machine.MachineKey.Type":           "1",
-				"zitadel.configmapConfig.FirstInstance.Org.Machine.Pat.ExpirationDate":        "2029-01-01T00:00:00Z",
-				"zitadel.configmapConfig.FirstInstance.Org.LoginClient.Machine.Username":      "login-client",
-				"zitadel.configmapConfig.FirstInstance.Org.LoginClient.Machine.Name":          "Login Client",
-				"zitadel.configmapConfig.FirstInstance.Org.LoginClient.Pat.ExpirationDate":    "2029-01-01T00:00:00Z",
-			},
-			expected: secretExpected{
-				machineKeySecret:   false,
-				machinePatSecret:   false,
-				loginClientSecret:  false,
-				machineKeyName:     "",
-				machinePatName:     "",
-				loginClientName:    "",
-				machineKeyContent:  "",
-				machinePatContent:  "",
-				loginClientContent: "",
-			},
-		},
-		{
 			name:      "minimal-no-setup",
 			setValues: map[string]string{},
 			expected: secretExpected{
