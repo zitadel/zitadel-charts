@@ -180,6 +180,22 @@ Read the comment for the value login.loginClientSecretPrefix
 
 ## Contributing
 
+### Editor Configuration
+
+This repository uses an `.editorconfig` file to maintain consistent coding styles across different editors and IDEs.
+Make sure your IDE supports the `/.editorconfig` file to automatically apply the correct formatting rules.
+
+Many IDEs support EditorConfig out of the box (including IntelliJ IDEA, PyCharm, WebStorm, and others), while [some require you to install a plugin](https://editorconfig.org/#editor-plugins), like VSCode.
+
+The `.editorconfig` file in this repository defines:
+- Line endings (LF)
+- Character encoding (UTF-8)
+- Indentation style (spaces for most files, tabs for Go)
+- Trailing whitespace handling
+- Final newline requirements
+
+If your editor doesn't automatically pick up these settings, please install the appropriate EditorConfig plugin for your development environment.
+
 Lint the chart:
 
 ```bash
