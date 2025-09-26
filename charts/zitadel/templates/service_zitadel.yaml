@@ -9,7 +9,7 @@ metadata:
   {{- end }}
   {{- end }}
   labels:
-    {{- include "zitadel.labels" . | nindent 4 }}
+    {{- include "zitadel.service.labels" . | nindent 4 }}
     {{- with .Values.service.labels }}
     {{- toYaml . | nindent 4 }}
     {{- end }}
