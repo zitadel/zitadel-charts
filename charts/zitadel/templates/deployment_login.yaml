@@ -42,6 +42,50 @@ spec:
       {{- if .Values.login.extraContainers }}
         {{- toYaml .Values.login.extraContainers | nindent 8 }}
       {{- end }}
+        - name: {{ .Chart.Name }}-reverse-proxy
+          image: nginx:1.27-alpine
+          command: ["nginx", "-g", "daemon off;"]
+          ports:
+            - containerPort: {{ include "login.nginxPort" . }}
+              name: {{ .Values.login.service.protocol }}-server
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: {{ include "login.nginxPort" . }}
+              {{- if .Values.login.serverSslCrtSecret }}
+              scheme: HTTPS
+              {{- else }}
+              scheme: HTTP
+              {{- end }}
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: {{ include "login.nginxPort" . }}
+              {{- if .Values.login.serverSslCrtSecret }}
+              scheme: HTTPS
+              {{- else }}
+              scheme: HTTP
+              {{- end }}
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            failureThreshold: 3
+          volumeMounts:
+            - name: nginx-cache
+              mountPath: /var/cache/nginx
+            - name: nginx-run
+              mountPath: /var/run
+            {{- if .Values.login.serverSslCrtSecret }}
+            - name: tls-certs
+              mountPath: /etc/nginx/certs
+              readOnly: true
+            {{- end }}
+            - name: nginx-conf
+              mountPath: /etc/nginx/conf.d
+              readOnly: true
         - name: {{ .Chart.Name }}-login
           securityContext:
             {{- toYaml .Values.login.securityContext | nindent 14 }}
@@ -54,15 +98,15 @@ spec:
               {{- toYaml . | nindent 12 }}
             {{- end }}
           ports:
-          - containerPort: {{ include "login.containerPort" . }}
-            name: {{ .Values.login.service.protocol }}-server
-            protocol: TCP
+            - containerPort: {{ include "login.nextjsPort" . }}
+              name: http
+              protocol: TCP
           {{- if .Values.login.livenessProbe.enabled }}
           livenessProbe:
             httpGet:
               path: /ui/v2/login/healthy
-              port: {{ .Values.login.service.protocol }}-server
-              scheme: {{ .Values.login.service.scheme }}
+              port: {{ include "login.nextjsPort" . }}
+              scheme: HTTP
             initialDelaySeconds: {{ .Values.login.livenessProbe.initialDelaySeconds }}
             periodSeconds: {{ .Values.login.livenessProbe.periodSeconds }}
             failureThreshold: {{ .Values.login.livenessProbe.failureThreshold }}
@@ -71,8 +115,8 @@ spec:
           readinessProbe:
             httpGet:
               path: /ui/v2/login/security
-              port: {{ .Values.login.service.protocol }}-server
-              scheme: {{ .Values.login.service.scheme }}
+              port: {{ include "login.nextjsPort" . }}
+              scheme: HTTP
             initialDelaySeconds: {{ .Values.readinessProbe.initialDelaySeconds }}
             periodSeconds: {{ .Values.readinessProbe.periodSeconds }}
             failureThreshold: {{ .Values.readinessProbe.failureThreshold }}
@@ -81,18 +125,18 @@ spec:
           startupProbe:
             httpGet:
               path: /ui/v2/login/security
-              port: {{ .Values.login.service.protocol }}-server
-              scheme: {{ .Values.login.service.scheme }}
+              port: {{ include "login.nextjsPort" . }}
+              scheme: HTTP
             periodSeconds: {{ .Values.login.startupProbe.periodSeconds }}
             failureThreshold: {{ .Values.login.startupProbe.failureThreshold }}
           {{- end }}
           volumeMounts:
-          - name: login-config-dotenv
-            mountPath: /.env-file/
-            readOnly: true
-          {{- with .Values.login.extraVolumeMounts }}
-          {{- toYaml . | nindent 10 }}
-          {{- end }}
+            - name: login-config-dotenv
+              mountPath: /.env-file/
+              readOnly: true
+            {{- with .Values.login.extraVolumeMounts }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
           resources:
             {{- toYaml .Values.login.resources | nindent 14 }}
       {{- with .Values.login.initContainers }}
@@ -100,12 +144,24 @@ spec:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       volumes:
-      - name: login-config-dotenv
-        configMap:
-          name: {{ include "login.configmapName" . }}
-      {{- with .Values.login.extraVolumes }}
-      {{- toYaml . | nindent 6 }}
-      {{- end }}
+        - name: nginx-cache
+          emptyDir: {}
+        - name: nginx-run
+          emptyDir: {}
+        {{- if .Values.login.serverSslCrtSecret }}
+        - name: tls-certs
+          secret:
+            secretName: {{ .Values.login.serverSslCrtSecret }}
+        {{- end }}
+        - name: nginx-conf
+          configMap:
+            name: {{ include "zitadel.login.fullname" . }}-nginx
+        - name: login-config-dotenv
+          configMap:
+            name: {{ include "login.configmapName" . }}
+        {{- with .Values.login.extraVolumes }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
       {{- with .Values.login.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
@@ -122,4 +178,4 @@ spec:
       topologySpreadConstraints:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-  {{- end }}
+{{- end }}

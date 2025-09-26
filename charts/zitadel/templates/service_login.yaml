@@ -3,12 +3,17 @@ apiVersion: v1
 kind: Service
 metadata:
   name: {{ include "zitadel.login.fullname" . }}
-  {{- if .Values.login.service }}
-  {{- with .Values.login.service.annotations }}
   annotations:
+    {{- if .Values.login.serverSslCrtSecret }}
+    traefik.ingress.kubernetes.io/service.serversscheme: https
+    {{- else }}
+    traefik.ingress.kubernetes.io/service.serversscheme: http
+    {{- end }}
+    {{- if .Values.login.service }}
+    {{- with .Values.login.service.annotations }}
       {{- toYaml . | nindent 4 }}
-  {{- end }}
-  {{- end }}
+    {{- end }}
+    {{- end }}
   labels:
     {{- include "login.labels" . | nindent 4 }}
     {{- with .Values.login.service.labels }}
@@ -16,18 +21,32 @@ metadata:
     {{- end }}
 spec:
   type: {{ .Values.login.service.type }}
-  {{- if and .Values.service.clusterIP (eq .Values.login.service.type "ClusterIP") }}
+  {{- if and .Values.login.service.clusterIP (eq .Values.login.service.type "ClusterIP") }}
   clusterIP: {{ .Values.login.service.clusterIP }}
   {{- end }}
-  {{- if and .Values.service.externalTrafficPolicy (eq .Values.login.service.type "LoadBalancer") }}
+  {{- if and .Values.login.service.externalTrafficPolicy (eq .Values.login.service.type "LoadBalancer") }}
   externalTrafficPolicy: {{ .Values.login.service.externalTrafficPolicy }}
   {{- end }}
   ports:
-    - port: {{ .Values.login.service.port }}
-      targetPort: {{ include "login.containerPort" . }}
+    - # The externally accessible port on the Service where clients connect.
+      # This is what external traffic hits (e.g., from an Ingress or LoadBalancer).
+      # If null, automatically uses 80 for http or 443 for https. Can be explicitly
+      # set via .Values.login.service.port for legacy compatibility.
+      port: {{ include "login.servicePort" . }}
+      # The actual port inside the Pod where the nginx sidecar container listens.
+      # The Service forwards traffic from port to this targetPort. The nginx then
+      # proxies to the login app container on port 3000. Uses login.nginxPort
+      targetPort: {{ include "login.nginxPort" . }}
+      # Network protocol for this port. Typically TCP for HTTP/HTTPS
       protocol: TCP
+      # Identifier for this port within the Service. Must be unique per Service.
+      # Generated from .Values.login.service.protocol with non-alphanumeric chars
+      # replaced by hyphens (e.g., "http-server")
       name: {{ regexReplaceAll "\\W+" .Values.login.service.protocol "-" }}-server
-      appProtocol: {{ .Values.login.service.appProtocol }}
+      # Kubernetes-standard protocol indicator for this port. Automatically set to
+      # "kubernetes.io/https" when serverSslCrtSecret is configured, otherwise
+      # "kubernetes.io/http". Uses login.appProtocol helper with validation.
+      appProtocol: {{ include "login.appProtocol" . }}
   selector:
     {{- include "zitadel.login.selectorLabels" . | nindent 4 }}
 {{- end }}

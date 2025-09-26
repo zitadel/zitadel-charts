@@ -51,6 +51,26 @@ spec:
       {{- if .Values.extraContainers }}
         {{- toYaml .Values.extraContainers | nindent 8 }}
       {{- end }}
+        - name: {{ .Chart.Name }}-reverse-proxy
+          image: nginx:1.27-alpine
+          command: ["sh","-c","sleep infinity"]
+          ports:
+          {{- if .Values.zitadel.serverSslCrtSecret }}
+            - containerPort: 443
+              name: https
+          {{- else }}
+            - containerPort: 80
+              name: http
+          {{- end }}
+          volumeMounts:
+          {{- if .Values.zitadel.serverSslCrtSecret }}
+            - name: tls-certs
+              mountPath: /etc/nginx/certs
+              readOnly: true
+          {{- end }}
+            - name: nginx-conf
+              mountPath: /etc/nginx/conf.d
+              readOnly: true
         - name: {{ .Chart.Name }}
           securityContext:
             {{- toYaml .Values.securityContext | nindent 14 }}
@@ -239,6 +259,14 @@ spec:
       {{- end }}
       {{- end }}
       volumes:
+      {{- if .Values.zitadel.serverSslCrtSecret }}
+      - name: tls-certs
+        secret:
+          secretName: {{ .Values.zitadel.serverSslCrtSecret }}
+      {{- end }}
+      - name: nginx-conf
+        configMap:
+          name: {{ include "zitadel.fullname" . }}-nginx
       - name: zitadel-config-yaml
         configMap:
           name: {{ include "zitadel.configmapName" . }}

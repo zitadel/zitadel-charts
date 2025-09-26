@@ -170,6 +170,8 @@ Read the comment for the value login.loginClientSecretPrefix
 
 ## Contributing
 
+
+
 Lint the chart:
 
 ```bash

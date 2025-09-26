@@ -1,0 +1,63 @@
+# -----------------------------------------------------------------------------
+# This ConfigMap defines the NGINX configuration for the ZITADEL sidecar. It is
+# used by the additional "nginx-ssl" container that runs alongside the main
+# Zitadel application container. The sidecar is responsible for terminating TLS
+# and proxying traffic to the Zitadel service. This ConfigMap is mounted as the
+# default.conf inside the sidecar. It is separate from the login sidecar, so
+# that Zitadel and Login can evolve independently. The content here is a
+# placeholder and will be updated later with certificates, TLS, and upstream
+# routing.
+# -----------------------------------------------------------------------------
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "zitadel.fullname" . }}-nginx
+  labels:
+    {{- include "zitadel.labels" . | nindent 4 }}
+data:
+  default.conf: |
+    worker_processes  1;
+    events { worker_connections 1024; }
+    http {
+      upstream zitadel_app {
+        server 127.0.0.1:8080;
+      }
+
+      {{- if .Values.zitadel.serverSslCrtSecret }}
+      server {
+        listen 443 ssl;
+        ssl_certificate     /etc/nginx/tls/tls.crt;
+        ssl_certificate_key /etc/nginx/tls/tls.key;
+
+        location / {
+          proxy_pass http://zitadel_app;
+          proxy_set_header Host $host;
+          proxy_set_header X-Real-IP $remote_addr;
+          proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+          proxy_set_header X-Forwarded-Proto $scheme;
+
+          proxy_pass_header Server;
+          proxy_pass_header Date;
+        }
+      }
+      {{- else }}
+      server {
+        listen 80;
+
+        location /healthz {
+          return 200 "ok\n";
+        }
+
+        location / {
+          proxy_pass http://zitadel_app;
+          proxy_set_header Host $host;
+          proxy_set_header X-Real-IP $remote_addr;
+          proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+          proxy_set_header X-Forwarded-Proto $scheme;
+
+          proxy_pass_header Server;
+          proxy_pass_header Date;
+        }
+      }
+      {{- end }}
+    }
