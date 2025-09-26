@@ -20,6 +20,11 @@
 					"branch": "gh-pages",
 					"dir": "charts",
 					"url": "https://zitadel.github.io/zitadel-charts/charts"
+				},
+				"templateValues": {
+					"zitadel": {
+						"masterkey": "abrightstarglowsinthedistantgalaxy"
+					}
 				}
 			}
 		],
