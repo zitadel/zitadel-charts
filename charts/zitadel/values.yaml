@@ -162,9 +162,12 @@ login:
       defaultMode: 444
       # Adjust this if you want to reference a different secret for the login client PAT.
       secretName: login-client
-  replicaCount: 1
   nginx:
     image: nginx:1.27-alpine
+  # Number of pod replicas. While a single replica is fine for testing,
+  # production environments should use 3 or more to prevent downtime during
+  # updates and ensure high availability.
+  replicaCount: 1
   initContainers: []
   extraContainers: []
   image:
@@ -255,14 +258,9 @@ login:
   # The Secret containing the certificate at key tls.crt and tls.key for listening on HTTPS
   serverSslCrtSecret: null
 
-  # Generate a self-signed certificate using an init container
-  # This will also mount the generated files to /etc/tls/ so that you can reference them in the pod.
-  # E.G. KeyPath: /etc/tls/tls.key CertPath: /etc/tls/tls.crt
-  # By default, the SAN DNS names include, localhost, the POD IP address and the POD name. You may include one more by using additionalDnsName like "my.zitadel.fqdn".
-  selfSignedCert:
-    enabled: false
-    additionalDnsName:
-
+# Number of pod replicas. While a single replica is fine for testing,
+# production environments should use 3 or more to prevent downtime during
+# updates and ensure high availability.
 replicaCount: 1
 
 image:
