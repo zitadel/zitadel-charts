@@ -20,7 +20,7 @@ data:
       server 127.0.0.1:8080;
     }
 
-    {{- if .Values.zitadel.serverSslCrtSecret }}
+    {{- if include "zitadel.tlsEnabled" . }}
     server {
       # Nginx listens on the configured port for HTTPS with HTTP/2 support (required for gRPC)
       listen {{ include "zitadel.nginxPort" . }} ssl http2;

@@ -63,7 +63,7 @@ spec:
           # pinned to 1.27 for stability and security updates.
           # Ref: https://hub.docker.com/_/nginx
           image: {{ .Values.zitadel.nginx.image | default "nginx:1.27-alpine" }}
-          imagePullPolicy: {{ .Values.login.image.pullPolicy }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
           # Run nginx in foreground (daemon off) so Kubernetes can
           # manage the process lifecycle. Without this, nginx would
           # fork to background and the container would exit.
@@ -89,7 +89,7 @@ spec:
               port: {{ include "zitadel.nginxPort" . }}
               # Use HTTPS scheme when TLS is enabled, HTTP otherwise.
               # This matches how nginx is configured to listen.
-              {{- if .Values.zitadel.serverSslCrtSecret }}
+              {{- if include "zitadel.tlsEnabled" . }}
               scheme: HTTPS
               {{- else }}
               scheme: HTTP
@@ -108,7 +108,7 @@ spec:
             httpGet:
               path: /healthz
               port: {{ include "zitadel.nginxPort" . }}
-              {{- if .Values.zitadel.serverSslCrtSecret }}
+              {{- if include "zitadel.tlsEnabled" . }}
               scheme: HTTPS
               {{- else }}
               scheme: HTTP
@@ -133,7 +133,7 @@ spec:
             # Not readOnly - nginx must write runtime state here.
             - name: nginx-run
               mountPath: /var/run
-            {{- if .Values.zitadel.serverSslCrtSecret }}
+            {{- if include "zitadel.tlsEnabled" . }}
             # TLS certificate and private key for HTTPS termination.
             # Contains tls.crt and tls.key referenced in nginx config
             # as ssl_certificate and ssl_certificate_key.
@@ -154,7 +154,7 @@ spec:
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           args:
             - start
-            {{- if .Values.zitadel.serverSslCrtSecret }}
+            {{- if include "zitadel.tlsEnabled" . }}
             - --tlsMode
             - external
             {{- else }}
@@ -281,16 +281,20 @@ spec:
           emptyDir: {}
         - name: nginx-run
           emptyDir: {}
-        {{- if .Values.zitadel.serverSslCrtSecret }}
         # TLS certificate and key for HTTPS termination in the nginx
         # sidecar. Mounted at /etc/nginx/certs/ and referenced in the
         # nginx configuration as ssl_certificate and
         # ssl_certificate_key. The secret must contain tls.crt and
         # tls.key in standard Kubernetes TLS secret format.
         # Ref: https://kubernetes.io/docs/concepts/configuration/secret/
+        {{- if .Values.zitadel.serverSslCrtSecret }}
         - name: tls-certs
           secret:
             secretName: {{ .Values.zitadel.serverSslCrtSecret }}
+        {{- else if .Values.zitadel.selfSignedCert.enabled }}
+        - name: tls-certs
+          secret:
+            secretName: {{ include "zitadel.fullname" . }}-self-signed-tls
         {{- end }}
         # Nginx configuration that defines how traffic is proxied from
         # nginx to the zitadel application. Contains server blocks,

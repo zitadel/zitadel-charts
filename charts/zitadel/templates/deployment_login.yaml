@@ -81,7 +81,7 @@ spec:
               port: {{ include "login.nginxPort" . }}
               # Use HTTPS scheme when TLS is enabled, HTTP otherwise.
               # This matches how nginx is configured to listen.
-              {{- if .Values.login.serverSslCrtSecret }}
+              {{- if include "login.tlsEnabled" . }}
               scheme: HTTPS
               {{- else }}
               scheme: HTTP
@@ -100,7 +100,7 @@ spec:
             httpGet:
               path: /healthz
               port: {{ include "login.nginxPort" . }}
-              {{- if .Values.login.serverSslCrtSecret }}
+              {{- if include "login.tlsEnabled" . }}
               scheme: HTTPS
               {{- else }}
               scheme: HTTP
@@ -126,7 +126,7 @@ spec:
             # Not readOnly - nginx must write runtime state here.
             - name: nginx-run
               mountPath: /var/run
-            {{- if .Values.login.serverSslCrtSecret }}
+            {{- if include "login.tlsEnabled" . }}
             # TLS certificate and private key for HTTPS termination.
             # Contains tls.crt and tls.key referenced in nginx config
             # as ssl_certificate and ssl_certificate_key.
@@ -210,16 +210,20 @@ spec:
           emptyDir: { }
         - name: nginx-run
           emptyDir: { }
-        {{- if .Values.login.serverSslCrtSecret }}
         # TLS certificate and key for HTTPS termination in the nginx
         # sidecar. Mounted at /etc/nginx/certs/ and referenced in the
         # nginx configuration as ssl_certificate and
         # ssl_certificate_key. The secret must contain tls.crt and
         # tls.key in standard Kubernetes TLS secret format.
         # Ref: https://kubernetes.io/docs/concepts/configuration/secret/
+        {{- if .Values.login.serverSslCrtSecret }}
         - name: tls-certs
           secret:
             secretName: {{ .Values.login.serverSslCrtSecret }}
+        {{- else if .Values.login.selfSignedCert.enabled }}
+        - name: tls-certs
+          secret:
+            secretName: {{ include "zitadel.login.fullname" . }}-self-signed-tls
         {{- end }}
         # Nginx configuration that defines how traffic is proxied from
         # nginx to the login application. Contains server blocks,

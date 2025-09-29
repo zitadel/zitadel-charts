@@ -4,7 +4,7 @@ kind: Service
 metadata:
   name: {{ include "zitadel.login.fullname" . }}
   annotations:
-    {{- if .Values.login.serverSslCrtSecret }}
+    {{- if include "login.tlsEnabled" . }}
     traefik.ingress.kubernetes.io/service.serversscheme: https
     {{- else }}
     traefik.ingress.kubernetes.io/service.serversscheme: http

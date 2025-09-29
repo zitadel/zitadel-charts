@@ -19,7 +19,7 @@ data:
       server 127.0.0.1:{{- include "login.nextjsPort" . -}};
     }
 
-    {{- if .Values.login.serverSslCrtSecret }}
+    {{- if include "login.tlsEnabled" . }}
     server {
       # Nginx listens on the configured port for HTTPS with HTTP/2 support
       listen {{ include "login.nginxPort" . }} ssl http2;
