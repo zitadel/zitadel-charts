@@ -155,7 +155,10 @@ login:
       defaultMode: 444
       # Adjust this if you want to reference a different secret for the login client PAT.
       secretName: login-client
-  replicaCount: 3
+  # Number of pod replicas. While a single replica is fine for testing,
+  # production environments should use 3 or more to prevent downtime during
+  # updates and ensure high availability.
+  replicaCount: 1
   initContainers: []
   extraContainers: []
   image:
@@ -244,7 +247,10 @@ login:
     #       key: host
   revisionHistoryLimit: 10
 
-replicaCount: 3
+# Number of pod replicas. While a single replica is fine for testing,
+# production environments should use 3 or more to prevent downtime during
+# updates and ensure high availability.
+replicaCount: 1
 
 image:
   repository: ghcr.io/zitadel/zitadel

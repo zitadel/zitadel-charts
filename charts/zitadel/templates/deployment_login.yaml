@@ -13,7 +13,7 @@ spec:
   {{- if .Values.login.revisionHistoryLimit }}
   revisionHistoryLimit: {{ .Values.login.revisionHistoryLimit }}
   {{- end }}
-  replicas: {{ .Values.replicaCount }}
+  replicas: {{ .Values.login.replicaCount }}
   selector:
     matchLabels:
       {{- include "zitadel.login.selectorLabels" . | nindent 6 }}
