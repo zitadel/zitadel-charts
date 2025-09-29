@@ -264,11 +264,9 @@ spec:
           {{- end }}
           resources:
             {{- toYaml .Values.resources | nindent 14 }}
-      {{- if or .Values.zitadel.selfSignedCert.enabled .Values.zitadel.initContainers}}
-      initContainers:
       {{- with .Values.zitadel.initContainers }}
+      initContainers:
         {{- toYaml . | nindent 8 }}
-      {{- end }}
       {{- end }}
       volumes:
         # Nginx requires writable directories for cache and runtime
