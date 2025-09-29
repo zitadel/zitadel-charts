@@ -97,6 +97,8 @@ zitadel:
     initContainers: []
     extraContainers: []
 
+  nginx:
+    image: nginx:1.27-alpine
   # initContainers allow you to add any init containers you wish to use globally.
   # Additionally, they follow the same structure as extraContainers
   initContainers: []
@@ -141,6 +143,7 @@ zitadel:
 
 login:
   enabled: true
+  annotations: {}
   # customConfigmapConfig defaults to this:
   # ZITADEL_SERVICE_USER_TOKEN_FILE="/login-client/pat"
   # ZITADEL_API_URL="http://{{ include "zitadel.fullname" . }}:{{ .Values.service.port }}"
@@ -160,6 +163,8 @@ login:
       # Adjust this if you want to reference a different secret for the login client PAT.
       secretName: login-client
   replicaCount: 3
+  nginx:
+    image: nginx:1.27-alpine
   initContainers: []
   extraContainers: []
   image:
