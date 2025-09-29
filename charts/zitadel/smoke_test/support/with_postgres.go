@@ -23,6 +23,10 @@ func WithPostgres(testing *testing.T, env *Env) {
 
 	helmOptions := &helm.Options{
 		KubectlOptions: env.Kube,
+		SetValues: map[string]string{
+			"image.registry":   "docker.io",
+			"image.repository": "bitnamilegacy/postgresql",
+		},
 		ExtraArgs: map[string][]string{
 			"upgrade": {
 				"--install",
