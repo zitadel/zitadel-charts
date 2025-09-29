@@ -321,6 +321,73 @@ mismatches.
 {{- end -}}
 {{- end -}}
 
+{{- define "zitadel.nginxPort" -}}
+{{/*
+This helper defines the port that the nginx sidecar listens on for incoming
+traffic from the Service. It automatically selects 80 for HTTP or 443 for
+HTTPS based on whether zitadel.serverSslCrtSecret is configured. This is purely
+for reusability across templates. The nginx sidecar MUST always listen on
+either 80 or 443 (not user-configurable). The actual Zitadel app always
+runs on port 8080 internally (also not user-configurable) - nginx proxies to it.
+*/}}
+{{- if .Values.zitadel.serverSslCrtSecret -}}
+443
+{{- else -}}
+80
+{{- end -}}
+{{- end -}}
+
+{{- define "zitadel.appProtocol" -}}
+{{/*
+This helper defines and validates the Kubernetes appProtocol for the Service port.
+It automatically returns "grpc" when zitadel.serverSslCrtSecret is configured,
+otherwise "kubernetes.io/h2c" (HTTP/2 cleartext for gRPC). If the user explicitly
+sets .Values.service.appProtocol, it validates that it matches the TLS config
+and fails deployment if there's a mismatch. This ensures the appProtocol always
+accurately reflects whether TLS is enabled.
+*/}}
+{{- $appProtocol := .Values.service.appProtocol -}}
+{{- if $appProtocol -}}
+  {{- if and $appProtocol (ne $appProtocol "kubernetes.io/h2c") (ne $appProtocol "grpc") (ne $appProtocol "kubernetes.io/http") (ne $appProtocol "kubernetes.io/https") -}}
+    {{- fail (printf "service.appProtocol must be either 'kubernetes.io/h2c', 'grpc', 'kubernetes.io/http' or 'kubernetes.io/https', got: %s" $appProtocol) -}}
+  {{- end -}}
+  {{- if .Values.zitadel.serverSslCrtSecret -}}
+    {{- if or (eq $appProtocol "kubernetes.io/h2c") (eq $appProtocol "kubernetes.io/http") -}}
+      {{- fail "service.appProtocol must be 'grpc' or 'kubernetes.io/https' when zitadel.serverSslCrtSecret is provided" -}}
+    {{- end -}}
+  {{- else -}}
+    {{- if or (eq $appProtocol "grpc") (eq $appProtocol "kubernetes.io/https") -}}
+      {{- fail "service.appProtocol cannot be 'grpc' or 'kubernetes.io/https' when zitadel.serverSslCrtSecret is not provided" -}}
+    {{- end -}}
+  {{- end -}}
+{{ $appProtocol }}
+{{- else if .Values.zitadel.serverSslCrtSecret -}}
+grpc
+{{- else -}}
+kubernetes.io/h2c
+{{- end -}}
+{{- end -}}
+
+{{- define "zitadel.servicePort" -}}
+{{/*
+This helper defines the externally accessible port on the Service where clients
+connect. If .Values.service.port is explicitly set, it uses that value for
+legacy compatibility. Otherwise, it automatically defaults to 443 for HTTPS
+or 8080 for HTTP based on whether zitadel.serverSslCrtSecret is configured. This
+ensures sensible defaults while preserving backward compatibility for existing
+configs. Validates that port selection matches TLS configuration to prevent
+mismatches.
+*/}}
+{{- $port := .Values.service.port -}}
+{{- if $port -}}
+{{ $port }}
+{{- else if .Values.zitadel.serverSslCrtSecret -}}
+443
+{{- else -}}
+8080
+{{- end -}}
+{{- end -}}
+
 
 {{/*
 ZITADEL config ConfigMap name

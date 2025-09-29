@@ -1,3 +1,7 @@
+# Number of old ReplicaSets to retain for rollback purposes
+# Set to 0 to not keep any old ReplicaSets
+revisionHistoryLimit: null
+
 # Default values for zitadel.
 zitadel:
   # The ZITADEL config under configmapConfig is written to a Kubernetes ConfigMap

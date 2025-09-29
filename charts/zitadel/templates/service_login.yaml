@@ -34,10 +34,10 @@ spec:
       # set via .Values.login.service.port for legacy compatibility.
       port: {{ include "login.servicePort" . }}
       # The actual port inside the Pod where the nginx sidecar container listens.
-      # The Service forwards traffic from port to this targetPort. The nginx then
+      # The Service forwards traffic from port to this targetPort. Nginx then
       # proxies to the login app container on port 3000. Uses login.nginxPort
       targetPort: {{ include "login.nginxPort" . }}
-      # Network protocol for this port. Typically TCP for HTTP/HTTPS
+      # Network protocol for this port. Typically, TCP for HTTP/HTTPS
       protocol: TCP
       # Identifier for this port within the Service. Must be unique per Service.
       # Generated from .Values.login.service.protocol with non-alphanumeric chars

@@ -23,6 +23,7 @@ spec:
           {{- toYaml . | nindent 8 }}
         {{- end }}
         checksum/configmap: {{ include (print $.Template.BasePath "/configmap_zitadel.yaml") . | sha256sum }}
+        checksum/nginx-configmap: {{ include (print $.Template.BasePath "/configmap_nginx_zitadel.yaml") . | sha256sum }}
         checksum/secret-db-ssl-ca-crt: {{ include (print $.Template.BasePath "/secret_db-ssl-ca-crt.yaml") . | sha256sum }}
         checksum/secret-zitadel-secrets: {{ include (print $.Template.BasePath "/secret_zitadel-secrets.yaml") . | sha256sum }}
         {{- if .Values.metrics.enabled }}
@@ -53,21 +54,45 @@ spec:
       {{- end }}
         - name: {{ .Chart.Name }}-reverse-proxy
           image: nginx:1.27-alpine
-          command: ["sh","-c","sleep infinity"]
+          command: ["nginx", "-g", "daemon off;"]
           ports:
-          {{- if .Values.zitadel.serverSslCrtSecret }}
-            - containerPort: 443
-              name: https
-          {{- else }}
-            - containerPort: 80
-              name: http
-          {{- end }}
+            - containerPort: {{ include "zitadel.nginxPort" . }}
+              name: {{ .Values.service.protocol }}-server
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: {{ include "zitadel.nginxPort" . }}
+              {{- if .Values.zitadel.serverSslCrtSecret }}
+              scheme: HTTPS
+              {{- else }}
+              scheme: HTTP
+              {{- end }}
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: {{ include "zitadel.nginxPort" . }}
+              {{- if .Values.zitadel.serverSslCrtSecret }}
+              scheme: HTTPS
+              {{- else }}
+              scheme: HTTP
+              {{- end }}
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            failureThreshold: 3
           volumeMounts:
-          {{- if .Values.zitadel.serverSslCrtSecret }}
+            - name: nginx-cache
+              mountPath: /var/cache/nginx
+            - name: nginx-run
+              mountPath: /var/run
+            {{- if .Values.zitadel.serverSslCrtSecret }}
             - name: tls-certs
               mountPath: /etc/nginx/certs
               readOnly: true
-          {{- end }}
+            {{- end }}
             - name: nginx-conf
               mountPath: /etc/nginx/conf.d
               readOnly: true
@@ -78,6 +103,13 @@ spec:
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           args:
             - start
+            {{- if .Values.zitadel.serverSslCrtSecret }}
+            - --tlsMode
+            - external
+            {{- else }}
+            - --tlsMode
+            - disabled
+            {{- end }}
             - --config
             - /config/zitadel-config-yaml
             {{- if .Values.zitadel.secretConfig }}
@@ -111,18 +143,6 @@ spec:
             - name: ZITADEL_DATABASE_{{ $dbEnv }}_USER_SSL_KEY
               value: /db-ssl-user-crt/tls.key
             {{- end }}
-            {{- if .Values.zitadel.serverSslCrtSecret }}
-            - name: ZITADEL_TLS_CERTPATH
-              value: /server-ssl-crt/tls.crt
-            - name: ZITADEL_TLS_KEYPATH
-              value: /server-ssl-crt/tls.key
-            {{- end }}
-            {{- if .Values.zitadel.selfSignedCert.enabled }}
-            - name: ZITADEL_TLS_CERTPATH
-              value: /etc/tls/tls.crt
-            - name: ZITADEL_TLS_KEYPATH
-              value: /etc/tls/tls.key
-            {{- end }}
             {{- with .Values.env }}
               {{- toYaml . | nindent 12 }}
             {{- end }}
@@ -132,25 +152,15 @@ spec:
                 name: {{ .Values.envVarsSecret }}
           {{- end }}
           ports:
-          - containerPort: {{ include "zitadel.containerPort" . }}
-            name: {{ .Values.service.protocol }}-server
-            protocol: TCP
+            - containerPort: {{ include "zitadel.containerPort" . }}
+              name: http
+              protocol: TCP
           {{- if .Values.livenessProbe.enabled }}
           livenessProbe:
             httpGet:
               path: /debug/healthz
-              port: {{ .Values.service.protocol }}-server
-
-              {{- if .Values.zitadel.configmapConfig.ExternalDomain }}
-              httpHeaders:
-                - name: Host
-                  value: {{ .Values.zitadel.configmapConfig.ExternalDomain }}
-              {{- end }}
-              {{- if include "deepCheck" (dict "root" .Values "path" (splitList "." "zitadel.configmapConfig.TLS.Enabled")) }}
-              scheme: HTTPS
-              {{- else }}
-              scheme: {{ .Values.service.scheme }}
-              {{- end }}
+              port:  {{ include "zitadel.containerPort" . }}
+              scheme: HTTP
             initialDelaySeconds: {{ .Values.livenessProbe.initialDelaySeconds }}
             periodSeconds: {{ .Values.livenessProbe.periodSeconds }}
             failureThreshold: {{ .Values.livenessProbe.failureThreshold }}
@@ -159,17 +169,8 @@ spec:
           readinessProbe:
             httpGet:
               path: /debug/ready
-              port: {{ .Values.service.protocol }}-server
-              {{- if .Values.zitadel.configmapConfig.ExternalDomain }}
-              httpHeaders:
-                - name: Host
-                  value: {{ .Values.zitadel.configmapConfig.ExternalDomain }}
-              {{- end }}
-              {{- if include "deepCheck" (dict "root" .Values "path" (splitList "." "zitadel.configmapConfig.TLS.Enabled")) }}
-              scheme: HTTPS
-              {{- else }}
-              scheme: {{ .Values.service.scheme }}
-              {{- end }}
+              port:  {{ include "zitadel.containerPort" . }}
+              scheme: HTTP
             initialDelaySeconds: {{ .Values.readinessProbe.initialDelaySeconds }}
             periodSeconds: {{ .Values.readinessProbe.periodSeconds }}
             failureThreshold: {{ .Values.readinessProbe.failureThreshold }}
@@ -178,52 +179,34 @@ spec:
           startupProbe:
             httpGet:
               path: /debug/ready
-              port: {{ .Values.service.protocol }}-server
-              {{- if .Values.zitadel.configmapConfig.ExternalDomain }}
-              httpHeaders:
-                - name: Host
-                  value: {{ .Values.zitadel.configmapConfig.ExternalDomain }}
-              {{- end }}
-              {{- if include "deepCheck" (dict "root" .Values "path" (splitList "." "zitadel.configmapConfig.TLS.Enabled")) }}
-              scheme: HTTPS
-              {{- else }}
-              scheme: {{ .Values.service.scheme }}
-              {{- end }}
+              port:  {{ include "zitadel.containerPort" . }}
+              scheme: HTTP
             periodSeconds: {{ .Values.startupProbe.periodSeconds }}
             failureThreshold: {{ .Values.startupProbe.failureThreshold }}
           {{- end }}
           volumeMounts:
-          - name: zitadel-config-yaml
-            mountPath: /config
-            readOnly: true
+            - name: zitadel-config-yaml
+              mountPath: /config
+              readOnly: true
           {{- if .Values.zitadel.secretConfig }}
-          - name: zitadel-secrets-yaml
-            mountPath: /zitadel-secrets-yaml
-            readOnly: true
+            - name: zitadel-secrets-yaml
+              mountPath: /zitadel-secrets-yaml
+              readOnly: true
           {{- end }}
           {{- if .Values.zitadel.configSecretName }}
-          - name: zitadel-secret-config-yaml
-            mountPath: /zitadel-secret-config-yaml
-            readOnly: true
+            - name: zitadel-secret-config-yaml
+              mountPath: /zitadel-secret-config-yaml
+              readOnly: true
           {{- end }}
           {{- if (or .Values.zitadel.dbSslCaCrt .Values.zitadel.dbSslCaCrtSecret) }}
-          - name: db-ssl-ca-crt
-            mountPath: /db-ssl-ca-crt
-            readOnly: true
+            - name: db-ssl-ca-crt
+              mountPath: /db-ssl-ca-crt
+              readOnly: true
           {{- end }}
           {{- if .Values.zitadel.dbSslUserCrtSecret }}
-          - name: db-ssl-user-crt
-            mountPath: /db-ssl-user-crt
-            readOnly: true
-          {{- end }}
-          {{- if .Values.zitadel.serverSslCrtSecret }}
-          - name: server-ssl-crt
-            mountPath: /server-ssl-crt
-            readOnly: true
-          {{- end }}
-          {{- if .Values.zitadel.selfSignedCert.enabled }}
-          - name: tls
-            mountPath: /etc/tls
+            - name: db-ssl-user-crt
+              mountPath: /db-ssl-user-crt
+              readOnly: true
           {{- end }}
           {{- with .Values.extraVolumeMounts }}
           {{- toYaml . | nindent 10 }}
@@ -235,81 +218,53 @@ spec:
       {{- with .Values.zitadel.initContainers }}
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- if .Values.zitadel.selfSignedCert.enabled }}
-        - name: generate-self-signed-cert
-          image: alpine/openssl
-          env:
-            - name: POD_NAME
-              valueFrom:
-                fieldRef:
-                  fieldPath: metadata.name
-            - name: POD_IP
-              valueFrom:
-                fieldRef:
-                  fieldPath: status.podIP
-          volumeMounts:
-            - name: tls
-              mountPath: "/etc/tls"
-          command:
-            - "/bin/ash"
-            - "-c"
-            - "openssl req -nodes -x509 -sha256 -newkey rsa:4096 -keyout /etc/tls/tls.key -out /etc/tls/tls.crt -days 3560 -subj \"/CN=ZITADEL Chart Demo\" -addext \"subjectAltName = DNS:localhost,DNS:${POD_IP},DNS:${POD_NAME}{{- if .Values.zitadel.configmapConfig.ExternalDomain -}},DNS:{{- .Values.zitadel.configmapConfig.ExternalDomain -}}{{- end -}}{{- if .Values.zitadel.selfSignedCert.additionalDnsName -}},DNS:{{- .Values.zitadel.selfSignedCert.additionalDnsName -}}{{- end -}}\""
-          securityContext:
-            {{- toYaml .Values.securityContext | nindent 12 }}
-      {{- end }}
       {{- end }}
       volumes:
-      {{- if .Values.zitadel.serverSslCrtSecret }}
-      - name: tls-certs
-        secret:
-          secretName: {{ .Values.zitadel.serverSslCrtSecret }}
-      {{- end }}
-      - name: nginx-conf
-        configMap:
-          name: {{ include "zitadel.fullname" . }}-nginx
-      - name: zitadel-config-yaml
-        configMap:
-          name: {{ include "zitadel.configmapName" . }}
-      {{- if .Values.zitadel.secretConfig }}
-      - name: zitadel-secrets-yaml
-        secret:
-          secretName: {{ include "zitadel.secretName" . }}
-          defaultMode: 0440
-      {{- end }}
-      {{- if .Values.zitadel.configSecretName }}
-      - name: zitadel-secret-config-yaml
-        secret:
-          secretName: {{ .Values.zitadel.configSecretName }}
-          defaultMode: 0440
-      {{- end }}
-      {{- if .Values.zitadel.dbSslCaCrt }}
-      - name: db-ssl-ca-crt
-        secret:
-          secretName: {{ include "zitadel.dbSslCaCrtSecretName" . }}
-          defaultMode: 0440
-      {{- end }}
-      {{- if .Values.zitadel.dbSslCaCrtSecret }}
-      - name: db-ssl-ca-crt
-        secret:
-          secretName: {{ .Values.zitadel.dbSslCaCrtSecret }}
-          defaultMode: 0440
-      {{- end }}
-      {{- if .Values.zitadel.dbSslUserCrtSecret }}
-      - name: db-ssl-user-crt
-        secret:
-          secretName: {{ .Values.zitadel.dbSslUserCrtSecret }}
-          defaultMode: 0440
-      {{- end }}
-      {{- if .Values.zitadel.serverSslCrtSecret }}
-      - name: server-ssl-crt
-        secret:
-          secretName: {{ .Values.zitadel.serverSslCrtSecret }}
-          defaultMode: 0440
-      {{- end }}
-      {{- if .Values.zitadel.selfSignedCert.enabled }}
-      - name: tls
-        emptyDir: {}
-      {{- end }}
+        - name: nginx-cache
+          emptyDir: {}
+        - name: nginx-run
+          emptyDir: {}
+        {{- if .Values.zitadel.serverSslCrtSecret }}
+        - name: tls-certs
+          secret:
+            secretName: {{ .Values.zitadel.serverSslCrtSecret }}
+        {{- end }}
+        - name: nginx-conf
+          configMap:
+            name: {{ include "zitadel.fullname" . }}-nginx
+        - name: zitadel-config-yaml
+          configMap:
+            name: {{ include "zitadel.configmapName" . }}
+        {{- if .Values.zitadel.secretConfig }}
+        - name: zitadel-secrets-yaml
+          secret:
+            secretName: {{ include "zitadel.secretName" . }}
+            defaultMode: 0440
+        {{- end }}
+        {{- if .Values.zitadel.configSecretName }}
+        - name: zitadel-secret-config-yaml
+          secret:
+            secretName: {{ .Values.zitadel.configSecretName }}
+            defaultMode: 0440
+        {{- end }}
+        {{- if .Values.zitadel.dbSslCaCrt }}
+        - name: db-ssl-ca-crt
+          secret:
+            secretName: {{ include "zitadel.dbSslCaCrtSecretName" . }}
+            defaultMode: 0440
+        {{- end }}
+        {{- if .Values.zitadel.dbSslCaCrtSecret }}
+        - name: db-ssl-ca-crt
+          secret:
+            secretName: {{ .Values.zitadel.dbSslCaCrtSecret }}
+            defaultMode: 0440
+        {{- end }}
+        {{- if .Values.zitadel.dbSslUserCrtSecret }}
+        - name: db-ssl-user-crt
+          secret:
+            secretName: {{ .Values.zitadel.dbSslUserCrtSecret }}
+            defaultMode: 0440
+        {{- end }}
       {{- with .Values.extraVolumes }}
       {{- toYaml . | nindent 6 }}
       {{- end }}

@@ -2,12 +2,17 @@ apiVersion: v1
 kind: Service
 metadata:
   name: {{ include "zitadel.fullname" . }}
-  {{- if .Values.service }}
-  {{- with .Values.service.annotations }}
   annotations:
+    {{- if .Values.zitadel.serverSslCrtSecret }}
+    traefik.ingress.kubernetes.io/service.serversscheme: https
+    {{- else }}
+    traefik.ingress.kubernetes.io/service.serversscheme: http
+    {{- end }}
+    {{- if .Values.service }}
+    {{- with .Values.service.annotations }}
       {{- toYaml . | nindent 4 }}
-  {{- end }}
-  {{- end }}
+    {{- end }}
+    {{- end }}
   labels:
     {{- include "zitadel.labels" . | nindent 4 }}
     {{- with .Values.service.labels }}
@@ -22,10 +27,24 @@ spec:
   externalTrafficPolicy: {{ .Values.service.externalTrafficPolicy }}
   {{- end }}
   ports:
-    - port: {{ .Values.service.port }}
-      targetPort: {{ include "zitadel.containerPort" . }}
+    - # The externally accessible port on the Service where clients connect.
+      # This is what external traffic hits (e.g., from an Ingress or LoadBalancer).
+      # If null, automatically uses 8080 for http or 443 for https. Can be explicitly
+      # set via .Values.service.port for legacy compatibility.
+      port: {{ include "zitadel.servicePort" . }}
+      # The actual port inside the Pod where the nginx sidecar container listens.
+      # The Service forwards traffic from port to this targetPort. Nginx then
+      # proxies to the zitadel app container on port 8080. Uses zitadel.nginxPort
+      targetPort: {{ include "zitadel.nginxPort" . }}
+      # Network protocol for this port. Typically, TCP for HTTP/HTTPS/gRPC
       protocol: TCP
+      # Identifier for this port within the Service. Must be unique per Service.
+      # Generated from .Values.service.protocol with non-alphanumeric chars
+      # replaced by hyphens (e.g., "http2-server")
       name: {{ regexReplaceAll "\\W+" .Values.service.protocol "-" }}-server
-      appProtocol: {{ .Values.service.appProtocol }}
+      # Kubernetes-standard protocol indicator for this port. Automatically set to
+      # "grpc" when serverSslCrtSecret is configured, otherwise
+      # "kubernetes.io/h2c". Uses zitadel.appProtocol helper with validation.
+      appProtocol: {{ include "zitadel.appProtocol" . }}
   selector:
     {{- include "zitadel.start.selectorLabels" . | nindent 4 }}
