@@ -22,7 +22,8 @@ data:
     {{- if include "login.tlsEnabled" . }}
     server {
       # Nginx listens on the configured port for HTTPS with HTTP/2 support
-      listen {{ include "login.nginxPort" . }} ssl http2;
+      listen {{ include "login.nginxPort" . }} ssl;
+      http2 on;
       ssl_certificate     /etc/nginx/certs/tls.crt;
       ssl_certificate_key /etc/nginx/certs/tls.key;
 
@@ -53,7 +54,8 @@ data:
     {{- else }}
     server {
       # Nginx listens on the configured port for HTTP with HTTP/2 support
-      listen {{ include "login.nginxPort" . }} http2;
+      listen {{ include "login.nginxPort" . }};
+      http2 on;
 
       location /healthz {
         return 200 "ok\n";
