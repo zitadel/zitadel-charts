@@ -93,7 +93,7 @@ func TestNginxConfiguration(t *testing.T) {
 					KubectlOptions: env.Kube,
 					SetValues:      setValues,
 					ExtraArgs: map[string][]string{
-						"upgrade": {"--install", "--wait", "--timeout", "30m"},
+						"upgrade": {"--install", "--wait", "--timeout", "30m", "--hide-notes"},
 					},
 				}
 
