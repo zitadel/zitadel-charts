@@ -223,7 +223,7 @@ spec:
         {{- else if .Values.login.selfSignedCert.enabled }}
         - name: tls-certs
           secret:
-            secretName: {{ include "zitadel.login.fullname" . }}-self-signed-tls
+            secretName: {{ include "zitadel.fullname" . }}-self-signed-tls
         {{- end }}
         # Nginx configuration that defines how traffic is proxied from
         # nginx to the login application. Contains server blocks,

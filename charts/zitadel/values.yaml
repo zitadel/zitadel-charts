@@ -266,6 +266,22 @@ login:
   revisionHistoryLimit: 10
   # The Secret containing the certificate at key tls.crt and tls.key for listening on HTTPS
   serverSslCrtSecret: null
+  # Generate a self-signed TLS certificate using Helm's native functions.
+  # If enabled, this creates a Kubernetes secret containing a self-signed
+  # certificate and mounts it to /etc/tls/ in the ZITADEL pod.
+  #
+  # This is useful for quick demos or test environments without an ingress
+  # controller. It is NOT recommended for production use.
+  #
+  # The certificate will be valid for the `ExternalDomain`, `localhost`,
+  # and any host specified in `additionalDnsName`. It can't use dynamic
+  # values like the Pod IP, which the previous initContainer method did.
+  selfSignedCert:
+    # -- If true, enables the generation of the self-signed certificate.
+    enabled: false
+    # -- An additional DNS name (SAN) to add to the certificate.
+    # e.g., "my-zitadel.example.com"
+    additionalDnsName: ""
 
 # Number of pod replicas. While a single replica is fine for testing,
 # production environments should use 3 or more to prevent downtime during
