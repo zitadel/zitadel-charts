@@ -160,7 +160,9 @@ func assertZitadelConsoleAccessible(t *testing.T, env *support.Env, serviceName 
 			env.Logger.Logf(t, "console access failed for %s: %v", serviceName, err)
 			return false
 		}
-		defer resp.Body.Close()
+		defer func() {
+			_ = resp.Body.Close()
+		}()
 
 		env.Logger.Logf(t, "---- %s console response ----", serviceName)
 		env.Logger.Logf(t, "Status: %s", resp.Status)
@@ -215,7 +217,9 @@ func assertLoginUIAccessible(t *testing.T, env *support.Env, serviceName string,
 			env.Logger.Logf(t, "login UI access failed for %s: %v", serviceName, err)
 			return false
 		}
-		defer resp.Body.Close()
+		defer func() {
+			_ = resp.Body.Close()
+		}()
 
 		env.Logger.Logf(t, "---- %s login UI response ----", serviceName)
 		env.Logger.Logf(t, "Status: %s", resp.Status)
