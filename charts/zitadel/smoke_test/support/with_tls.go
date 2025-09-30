@@ -26,7 +26,7 @@ import (
 func WithTLSSecret(testing *testing.T, env *Env, secretName string, hosts ...string) {
 	testing.Helper()
 
-	priv, err := rsa.GenerateKey(rand.Reader, 2048)
+	privateKey, err := rsa.GenerateKey(rand.Reader, 2048)
 	require.NoError(testing, err)
 
 	serialNumberLimit := new(big.Int).Lsh(big.NewInt(1), 128)
@@ -56,30 +56,34 @@ func WithTLSSecret(testing *testing.T, env *Env, secretName string, hosts ...str
 		}
 	}
 
-	derBytes, err := x509.CreateCertificate(rand.Reader, &template, &template, &priv.PublicKey, priv)
+	derBytes, err := x509.CreateCertificate(rand.Reader, &template, &template, &privateKey.PublicKey, privateKey)
 	require.NoError(testing, err)
 
-	certPEM := pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: derBytes})
+	certPEM := pem.EncodeToMemory(&pem.Block{
+		Type:  "CERTIFICATE",
+		Bytes: derBytes,
+	})
 
-	privBytes, err := x509.MarshalPKCS8PrivateKey(priv)
+	encodedPrivateKey, err := x509.MarshalPKCS8PrivateKey(privateKey)
 	require.NoError(testing, err)
-	keyPEM := pem.EncodeToMemory(&pem.Block{Type: "PRIVATE KEY", Bytes: privBytes})
-
-	secret := &corev1.Secret{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      secretName,
-			Namespace: env.Namespace,
-		},
-		Type: corev1.SecretTypeTLS,
-		Data: map[string][]byte{
-			"tls.crt": certPEM,
-			"tls.key": keyPEM,
-		},
-	}
+	keyPEM := pem.EncodeToMemory(&pem.Block{
+		Type:  "PRIVATE KEY",
+		Bytes: encodedPrivateKey,
+	})
 
 	_, err = env.Client.CoreV1().Secrets(env.Namespace).Create(
 		context.Background(),
-		secret,
+		&corev1.Secret{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      secretName,
+				Namespace: env.Namespace,
+			},
+			Type: corev1.SecretTypeTLS,
+			Data: map[string][]byte{
+				"tls.crt": certPEM,
+				"tls.key": keyPEM,
+			},
+		},
 		metav1.CreateOptions{},
 	)
 	require.NoError(testing, err)
