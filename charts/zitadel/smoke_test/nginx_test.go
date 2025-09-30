@@ -12,6 +12,7 @@ import (
 	"github.com/stretchr/testify/require"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/util/intstr"
 
 	"github.com/zitadel/zitadel-charts/charts/zitadel/smoke_test/support"
 )
@@ -25,25 +26,19 @@ func TestNginxConfiguration(t *testing.T) {
 	require.NoError(t, err)
 
 	testCases := []struct {
-		name                 string
-		zitadelNginxImage    string
-		loginNginxImage      string
-		expectedZitadelNginx string
-		expectedLoginNginx   string
+		name              string
+		zitadelNginxImage string
+		loginNginxImage   string
 	}{
 		{
-			name:                 "default-nginx-images",
-			zitadelNginxImage:    "",
-			loginNginxImage:      "",
-			expectedZitadelNginx: "nginx:1.27-alpine",
-			expectedLoginNginx:   "nginx:1.27-alpine",
+			name:              "default-nginx-images",
+			zitadelNginxImage: "",
+			loginNginxImage:   "",
 		},
 		{
-			name:                 "custom-nginx-images",
-			zitadelNginxImage:    "nginx:1.26-alpine",
-			loginNginxImage:      "nginx:1.25-alpine",
-			expectedZitadelNginx: "nginx:1.26-alpine",
-			expectedLoginNginx:   "nginx:1.25-alpine",
+			name:              "custom-nginx-images",
+			zitadelNginxImage: "nginx:1.26-alpine",
+			loginNginxImage:   "nginx:1.25-alpine",
 		},
 	}
 
@@ -82,11 +77,16 @@ func TestNginxConfiguration(t *testing.T) {
 					"service.port":                                              "443",
 				}
 
+				zitadelImage := "nginx:1.27-alpine"
+				loginImage := "nginx:1.27-alpine"
+
 				if testCase.zitadelNginxImage != "" {
 					setValues["zitadel.nginx.image"] = testCase.zitadelNginxImage
+					zitadelImage = testCase.zitadelNginxImage
 				}
 				if testCase.loginNginxImage != "" {
 					setValues["login.nginx.image"] = testCase.loginNginxImage
+					loginImage = testCase.loginNginxImage
 				}
 
 				helmOptions := &helm.Options{
@@ -99,33 +99,161 @@ func TestNginxConfiguration(t *testing.T) {
 
 				require.NoError(t, helm.UpgradeE(t, helmOptions, chartPath, releaseName))
 
-				assertNginxImageAndValidateLogs(t, env, releaseName, testCase.expectedZitadelNginx)
-				assertNginxImageAndValidateLogs(t, env, releaseName+"-login", testCase.expectedLoginNginx)
+				assertContainer(t, env, releaseName, corev1.Container{
+					Name:            "zitadel-reverse-proxy",
+					Image:           zitadelImage,
+					Command:         []string{"nginx", "-g", "daemon off;"},
+					ImagePullPolicy: corev1.PullIfNotPresent,
+					Ports: []corev1.ContainerPort{
+						{
+							Name:          "http2-server",
+							ContainerPort: 443,
+							Protocol:      corev1.ProtocolTCP,
+						},
+					},
+					VolumeMounts: []corev1.VolumeMount{
+						{
+							Name:      "nginx-cache",
+							MountPath: "/var/cache/nginx",
+						},
+						{
+							Name:      "nginx-run",
+							MountPath: "/var/run",
+						},
+						{
+							Name:      "tls-certs",
+							ReadOnly:  true,
+							MountPath: "/etc/nginx/certs",
+						},
+						{
+							Name:      "nginx-conf",
+							ReadOnly:  true,
+							MountPath: "/etc/nginx/conf.d",
+						},
+					},
+					LivenessProbe: &corev1.Probe{
+						ProbeHandler: corev1.ProbeHandler{
+							HTTPGet: &corev1.HTTPGetAction{
+								Path:   "/healthz",
+								Port:   intstr.FromInt32(443),
+								Scheme: corev1.URISchemeHTTPS,
+							},
+						},
+						InitialDelaySeconds: 5,
+						TimeoutSeconds:      1,
+						PeriodSeconds:       10,
+						SuccessThreshold:    1,
+						FailureThreshold:    3,
+					},
+					ReadinessProbe: &corev1.Probe{
+						ProbeHandler: corev1.ProbeHandler{
+							HTTPGet: &corev1.HTTPGetAction{
+								Path:   "/healthz",
+								Port:   intstr.FromInt32(443),
+								Scheme: corev1.URISchemeHTTPS,
+							},
+						},
+						InitialDelaySeconds: 5,
+						TimeoutSeconds:      1,
+						PeriodSeconds:       5,
+						SuccessThreshold:    1,
+						FailureThreshold:    3,
+					},
+					TerminationMessagePath:   "/dev/termination-log",
+					TerminationMessagePolicy: corev1.TerminationMessageReadFile,
+					Resources:                corev1.ResourceRequirements{},
+				})
+
+				assertContainer(t, env, releaseName+"-login", corev1.Container{
+					Name:            "zitadel-reverse-proxy",
+					Image:           loginImage,
+					Command:         []string{"nginx", "-g", "daemon off;"},
+					ImagePullPolicy: corev1.PullIfNotPresent,
+					Ports: []corev1.ContainerPort{
+						{
+							Name:          "http-server",
+							ContainerPort: 443,
+							Protocol:      corev1.ProtocolTCP,
+						},
+					},
+					VolumeMounts: []corev1.VolumeMount{
+						{
+							Name:      "nginx-cache",
+							MountPath: "/var/cache/nginx",
+						},
+						{
+							Name:      "nginx-run",
+							MountPath: "/var/run",
+						},
+						{
+							Name:      "tls-certs",
+							ReadOnly:  true,
+							MountPath: "/etc/nginx/certs",
+						},
+						{
+							Name:      "nginx-conf",
+							ReadOnly:  true,
+							MountPath: "/etc/nginx/conf.d",
+						},
+					},
+					LivenessProbe: &corev1.Probe{
+						ProbeHandler: corev1.ProbeHandler{
+							HTTPGet: &corev1.HTTPGetAction{
+								Path:   "/healthz",
+								Port:   intstr.FromInt32(443),
+								Scheme: corev1.URISchemeHTTPS,
+							},
+						},
+						InitialDelaySeconds: 5,
+						TimeoutSeconds:      1,
+						PeriodSeconds:       10,
+						SuccessThreshold:    1,
+						FailureThreshold:    3,
+					},
+					ReadinessProbe: &corev1.Probe{
+						ProbeHandler: corev1.ProbeHandler{
+							HTTPGet: &corev1.HTTPGetAction{
+								Path:   "/healthz",
+								Port:   intstr.FromInt32(443),
+								Scheme: corev1.URISchemeHTTPS,
+							},
+						},
+						InitialDelaySeconds: 5,
+						TimeoutSeconds:      1,
+						PeriodSeconds:       5,
+						SuccessThreshold:    1,
+						FailureThreshold:    3,
+					},
+					TerminationMessagePath:   "/dev/termination-log",
+					TerminationMessagePolicy: corev1.TerminationMessageReadFile,
+					Resources:                corev1.ResourceRequirements{},
+				})
+
+				validateNginxLogs(t, env, releaseName)
+				validateNginxLogs(t, env, releaseName+"-login")
 			})
 		})
 	}
 }
 
-func assertNginxImageAndValidateLogs(t *testing.T, env *support.Env, deploymentName string, expectedImage string) {
+func assertContainer(t *testing.T, env *support.Env, deploymentName string, expected corev1.Container) {
 	t.Helper()
 
 	deployment, err := k8s.GetDeploymentE(t, env.Kube, deploymentName)
 	require.NoError(t, err)
 
-	var nginxContainer *corev1.Container
+	var actual *corev1.Container
 	for _, container := range deployment.Spec.Template.Spec.Containers {
-		if container.Name == "zitadel-reverse-proxy" {
-			nginxContainer = &container
+		if container.Name == expected.Name {
+			actual = &container
 			break
 		}
 	}
 
-	require.NotNil(t, nginxContainer, "nginx reverse-proxy container not found in deployment %s", deploymentName)
-	require.Equal(t, expectedImage, nginxContainer.Image, "nginx image mismatch for deployment %s", deploymentName)
+	require.NotNil(t, actual, "container %s not found in deployment %s", expected.Name, deploymentName)
+	require.Equal(t, expected, *actual, "container mismatch for %s in deployment %s", expected.Name, deploymentName)
 
-	env.Logger.Logf(t, "✓ Verified nginx image for %s: %s", deploymentName, nginxContainer.Image)
-
-	validateNginxLogs(t, env, deploymentName)
+	env.Logger.Logf(t, "✓ Verified container %s configuration for %s", expected.Name, deploymentName)
 }
 
 func validateNginxLogs(t *testing.T, env *support.Env, deploymentName string) {
