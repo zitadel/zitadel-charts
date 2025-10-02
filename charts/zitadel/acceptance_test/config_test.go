@@ -35,7 +35,10 @@ var (
 	Postgres = databaseChart{
 		repoUrl: "https://charts.bitnami.com/bitnami",
 		name:    "postgresql",
-		version: "12.10.0",
+		testValues: map[string]string{
+			"image.repository":                   "bitnamilegacy/postgresql",
+			"volumePermissions.image.repository": "bitnamilegacy/os-shell",
+		},
 	}
 	CloudNativePG = databaseChart{
 		repoUrl: "https://cloudnative-pg.github.io/charts",
