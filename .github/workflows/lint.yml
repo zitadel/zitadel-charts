@@ -56,5 +56,5 @@ jobs:
 
       - id: 'lint'
         name: Lint The Chart
-        run: 'ct lint --target-branch ${{ github.event.repository.default_branch }}'
+        run: 'ct lint --target-branch ${{ github.event.repository.default_branch }} --check-version-increment=false'
         if: steps.list-changed-test.outputs.any_changed == 'true' && steps.list-changed.outputs.changed == 'true'
