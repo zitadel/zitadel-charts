@@ -1,11 +1,7 @@
 name: Typecheck
 
 on:
-  workflow_call:
-    inputs:
-      ref:
-        required: true
-        type: string
+  push:
 
 defaults:
   run:
