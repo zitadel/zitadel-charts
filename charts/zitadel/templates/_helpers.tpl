@@ -98,6 +98,13 @@ Debug component labels
 {{- end }}
 
 {{/*
+Zitadel service labels
+*/}}
+{{- define "zitadel.service.labels" -}}
+{{ include "zitadel.labels" . }}
+{{- end }}
+
+{{/*
 Login component labels
 */}}
 {{- define "zitadel.login.labels" -}}
@@ -168,6 +175,12 @@ Login component selector labels
 {{ include "componentSelectorLabel" "login" }}
 {{- end }}
 
+{{/*
+Zitadel Service Selector labels
+*/}}
+{{- define "zitadel.service.selectorLabels" -}}
+{{ include "zitadel.commonSelectorLabels" . }}
+{{- end }}
 
 {{/*
 Create the name of the zitadel service account to use
