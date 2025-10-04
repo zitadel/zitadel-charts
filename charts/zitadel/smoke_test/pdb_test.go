@@ -247,6 +247,13 @@ func TestPodDisruptionBudgetMatrix(t *testing.T) {
 						Spec: policyv1.PodDisruptionBudgetSpec{
 							MinAvailable:   testCase.expected.zitadelMinAvailable,
 							MaxUnavailable: testCase.expected.zitadelMaxUnavailable,
+							Selector: &metav1.LabelSelector{
+								MatchLabels: map[string]string{
+									"app.kubernetes.io/component": "start",
+									"app.kubernetes.io/instance":  releaseName,
+									"app.kubernetes.io/name":      "zitadel",
+								},
+							},
 						},
 					}
 				}
@@ -270,6 +277,13 @@ func TestPodDisruptionBudgetMatrix(t *testing.T) {
 						Spec: policyv1.PodDisruptionBudgetSpec{
 							MinAvailable:   testCase.expected.loginMinAvailable,
 							MaxUnavailable: testCase.expected.loginMaxUnavailable,
+							Selector: &metav1.LabelSelector{
+								MatchLabels: map[string]string{
+									"app.kubernetes.io/component": "login",
+									"app.kubernetes.io/instance":  releaseName,
+									"app.kubernetes.io/name":      "zitadel",
+								},
+							},
 						},
 					}
 				}
