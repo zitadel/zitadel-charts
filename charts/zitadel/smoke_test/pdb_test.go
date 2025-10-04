@@ -5,14 +5,12 @@ import (
 	"fmt"
 	"path/filepath"
 	"testing"
-	"time"
 
 	"github.com/gruntwork-io/terratest/modules/helm"
 	"github.com/gruntwork-io/terratest/modules/k8s"
 	"github.com/stretchr/testify/require"
 	corev1 "k8s.io/api/core/v1"
 	policyv1 "k8s.io/api/policy/v1"
-	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
 
@@ -25,13 +23,11 @@ type pdbExpected struct {
 
 	zitadelMinAvailable   *intstr.IntOrString
 	zitadelMaxUnavailable *intstr.IntOrString
-	zitadelAnnKey         string
-	zitadelAnnVal         string
+	zitadelAnnotations    map[string]string
 
 	loginMinAvailable   *intstr.IntOrString
 	loginMaxUnavailable *intstr.IntOrString
-	loginAnnKey         string
-	loginAnnVal         string
+	loginAnnotations    map[string]string
 }
 
 func TestPodDisruptionBudgetMatrix(t *testing.T) {
@@ -83,7 +79,9 @@ func TestPodDisruptionBudgetMatrix(t *testing.T) {
 				zitadelEnabled:      true,
 				loginEnabled:        true,
 				zitadelMinAvailable: intOrStringPtr(intstr.FromInt32(2)),
+				zitadelAnnotations:  map[string]string{},
 				loginMinAvailable:   intOrStringPtr(intstr.FromInt32(1)),
+				loginAnnotations:    map[string]string{},
 			},
 		},
 		{
@@ -100,7 +98,9 @@ func TestPodDisruptionBudgetMatrix(t *testing.T) {
 				zitadelEnabled:      true,
 				loginEnabled:        true,
 				zitadelMinAvailable: intOrStringPtr(intstr.FromString("50%")),
+				zitadelAnnotations:  map[string]string{},
 				loginMinAvailable:   intOrStringPtr(intstr.FromString("75%")),
+				loginAnnotations:    map[string]string{},
 			},
 		},
 		{
@@ -117,7 +117,9 @@ func TestPodDisruptionBudgetMatrix(t *testing.T) {
 				zitadelEnabled:        true,
 				loginEnabled:          true,
 				zitadelMaxUnavailable: intOrStringPtr(intstr.FromInt32(1)),
+				zitadelAnnotations:    map[string]string{},
 				loginMaxUnavailable:   intOrStringPtr(intstr.FromInt32(2)),
+				loginAnnotations:      map[string]string{},
 			},
 		},
 		{
@@ -134,7 +136,9 @@ func TestPodDisruptionBudgetMatrix(t *testing.T) {
 				zitadelEnabled:        true,
 				loginEnabled:          true,
 				zitadelMaxUnavailable: intOrStringPtr(intstr.FromString("25%")),
+				zitadelAnnotations:    map[string]string{},
 				loginMaxUnavailable:   intOrStringPtr(intstr.FromString("33%")),
+				loginAnnotations:      map[string]string{},
 			},
 		},
 		{
@@ -150,6 +154,7 @@ func TestPodDisruptionBudgetMatrix(t *testing.T) {
 				zitadelEnabled:      true,
 				loginEnabled:        false,
 				zitadelMinAvailable: intOrStringPtr(intstr.FromInt32(1)),
+				zitadelAnnotations:  map[string]string{},
 			},
 		},
 		{
@@ -169,11 +174,14 @@ func TestPodDisruptionBudgetMatrix(t *testing.T) {
 				zitadelEnabled:      true,
 				loginEnabled:        true,
 				zitadelMinAvailable: intOrStringPtr(intstr.FromInt32(1)),
-				zitadelAnnKey:       "team",
-				zitadelAnnVal:       "platform",
-				loginMinAvailable:   intOrStringPtr(intstr.FromInt32(1)),
-				loginAnnKey:         "team",
-				loginAnnVal:         "frontend",
+				zitadelAnnotations: map[string]string{
+					"team":  "platform",
+					"owner": "sre",
+				},
+				loginMinAvailable: intOrStringPtr(intstr.FromInt32(1)),
+				loginAnnotations: map[string]string{
+					"team": "frontend",
+				},
 			},
 		},
 		{
@@ -223,81 +231,71 @@ func TestPodDisruptionBudgetMatrix(t *testing.T) {
 
 				var expectedZitadelPDB *policyv1.PodDisruptionBudget
 				if testCase.expected.zitadelEnabled {
-					pdb := &policyv1.PodDisruptionBudget{
+					zitadelAnnotations := map[string]string{
+						"meta.helm.sh/release-name":      releaseName,
+						"meta.helm.sh/release-namespace": env.Namespace,
+					}
+					for k, v := range testCase.expected.zitadelAnnotations {
+						zitadelAnnotations[k] = v
+					}
+
+					expectedZitadelPDB = &policyv1.PodDisruptionBudget{
+						ObjectMeta: metav1.ObjectMeta{
+							Name:        releaseName,
+							Annotations: zitadelAnnotations,
+						},
 						Spec: policyv1.PodDisruptionBudgetSpec{
 							MinAvailable:   testCase.expected.zitadelMinAvailable,
 							MaxUnavailable: testCase.expected.zitadelMaxUnavailable,
 						},
 					}
-					if testCase.expected.zitadelAnnKey != "" {
-						pdb.Annotations = map[string]string{
-							testCase.expected.zitadelAnnKey: testCase.expected.zitadelAnnVal,
-						}
-					}
-					expectedZitadelPDB = pdb
 				}
-				assertPDB(t, env, releaseName, expectedZitadelPDB)
+				assertPDB(t, env, expectedZitadelPDB)
 
 				var expectedLoginPDB *policyv1.PodDisruptionBudget
 				if testCase.expected.loginEnabled {
-					pdb := &policyv1.PodDisruptionBudget{
+					loginAnnotations := map[string]string{
+						"meta.helm.sh/release-name":      releaseName,
+						"meta.helm.sh/release-namespace": env.Namespace,
+					}
+					for k, v := range testCase.expected.loginAnnotations {
+						loginAnnotations[k] = v
+					}
+
+					expectedLoginPDB = &policyv1.PodDisruptionBudget{
+						ObjectMeta: metav1.ObjectMeta{
+							Name:        releaseName + "-login",
+							Annotations: loginAnnotations,
+						},
 						Spec: policyv1.PodDisruptionBudgetSpec{
 							MinAvailable:   testCase.expected.loginMinAvailable,
 							MaxUnavailable: testCase.expected.loginMaxUnavailable,
 						},
 					}
-					if testCase.expected.loginAnnKey != "" {
-						pdb.Annotations = map[string]string{
-							testCase.expected.loginAnnKey: testCase.expected.loginAnnVal,
-						}
-					}
-					expectedLoginPDB = pdb
 				}
-				assertPDB(t, env, releaseName+"-login", expectedLoginPDB)
+				assertPDB(t, env, expectedLoginPDB)
 			})
 		})
 	}
 }
 
-func mustGetPDB(t *testing.T, env *support.Env, pdbName string) *policyv1.PodDisruptionBudget {
-	var pdb *policyv1.PodDisruptionBudget
-	require.Eventually(
-		t,
-		func() bool {
-			retrievedPDB, err := env.Client.
-				PolicyV1().
-				PodDisruptionBudgets(env.Kube.Namespace).
-				Get(context.Background(), pdbName, metav1.GetOptions{})
-			if err != nil {
-				return false
-			}
-			pdb = retrievedPDB
-			return true
-		},
-		2*time.Minute,
-		2*time.Second,
-	)
-	return pdb
-}
-
-func assertPDB(t *testing.T, env *support.Env, pdbName string, expected *policyv1.PodDisruptionBudget) {
+func assertPDB(t *testing.T, env *support.Env, expected *policyv1.PodDisruptionBudget) {
 	t.Helper()
+
+	if expected == nil {
+		return
+	}
 
 	actualPDB, err := env.Client.
 		PolicyV1().
 		PodDisruptionBudgets(env.Kube.Namespace).
-		Get(context.Background(), pdbName, metav1.GetOptions{})
+		Get(context.Background(), expected.Name, metav1.GetOptions{})
 
-	if expected == nil {
-		require.True(t, apierrors.IsNotFound(err), "expected PDB %q to be NotFound, got: %v", pdbName, err)
-		env.Logger.Logf(t, "✓ Verified PDB %s does not exist", pdbName)
-		return
-	}
+	require.NoError(t, err, "failed to get PDB %s", expected.Name)
+	require.Equal(t, expected.Spec, actualPDB.Spec, "PDB spec mismatch for %s", expected.Name)
+	require.Equal(t, expected.Annotations, actualPDB.Annotations, "PDB annotations mismatch for %s", expected.Name)
 
-	require.NoError(t, err, "failed to get PDB %s", pdbName)
-	require.Equal(t, *expected, *actualPDB, "PDB mismatch for %s", pdbName)
-
-	env.Logger.Logf(t, "✓ Verified PDB configuration for %s", pdbName)
+	env.Logger.Logf(t, "✓ Verified PDB configuration for %s", expected.Name)
 }
 
 func dumpSetupAndInitJobLogs(t *testing.T, env *support.Env, releaseName string) {
