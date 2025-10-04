@@ -186,20 +186,30 @@ The `.editorconfig` file in this repository defines:
 
 If your editor doesn't automatically pick up these settings, please install the appropriate EditorConfig plugin for your development environment.
 
-Lint the chart:
+#### Lint the chart:
 
 ```bash
 docker run -it --network host --workdir=/data --rm --volume $(pwd):/data quay.io/helmpack/chart-testing:v3.5.0 ct lint --charts charts/zitadel --target-branch main
 ```
 
-Test the chart:
+#### Validate Helm Charts
+
+Validate the Helm chart manifests against Kubernetes API schemas using kubeconform:
+
+```bash
+make check
+```
+
+This renders the chart templates and validates them for correctness without requiring a Kubernetes cluster.
+
+### Test the chart:
 
 ```bash
 # Create KinD cluster
 kind create cluster --config ./charts/zitadel/acceptance_test/kindConfig.yaml
 
 # Test the chart
-go test ./...
+make test
 ```
 
 Watch the Kubernetes pods if you want to see progress.
