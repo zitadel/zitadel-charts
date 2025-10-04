@@ -1,0 +1,47 @@
+#file: noinspection ExcessiveWhitespaceTrimInspection
+{{- if .Values.zitadel.autoscaling.enabled }}
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: {{ include "zitadel.fullname" . }}
+  labels:
+    {{- include "zitadel.labels" . | nindent 4 }}
+    app.kubernetes.io/component: hpa
+  {{- with .Values.zitadel.autoscaling.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: {{ include "zitadel.fullname" . }}
+  minReplicas: {{ .Values.zitadel.autoscaling.minReplicas }}
+  maxReplicas: {{ .Values.zitadel.autoscaling.maxReplicas }}
+  {{- if or .Values.zitadel.autoscaling.targetCPU .Values.zitadel.autoscaling.targetMemory .Values.zitadel.autoscaling.metrics }}
+  metrics:
+    {{- if .Values.zitadel.autoscaling.targetCPU }}
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: {{ .Values.zitadel.autoscaling.targetCPU }}
+    {{- end }}
+    {{- if .Values.zitadel.autoscaling.targetMemory }}
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: {{ .Values.zitadel.autoscaling.targetMemory }}
+    {{- end }}
+    {{- with .Values.zitadel.autoscaling.metrics }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+  {{- end }}
+  {{- with .Values.zitadel.autoscaling.behavior }}
+  behavior:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+{{- end }}
