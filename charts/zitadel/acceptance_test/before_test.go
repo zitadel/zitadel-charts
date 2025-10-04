@@ -15,7 +15,7 @@ func (s *ConfigurationTest) BeforeTest(_, _ string) {
 		KubectlOptions: s.KubeOptions,
 		Version:        s.dbChart.version,
 		SetValues:      s.dbChart.testValues,
-		ExtraArgs:      map[string][]string{"install": {"--wait", "--timeout", "10m", "--hide-notes"}},
+		ExtraArgs:      map[string][]string{"install": {"--wait", "--timeout", "10m", "--hide-notes", "--no-update"}},
 	}
 	Awaitf(context.Background(), s.T(), 1*time.Minute, func(ctx context.Context) error {
 		err := helm.AddRepoE(s.T(), options, s.dbRepoName, s.dbChart.repoUrl)
