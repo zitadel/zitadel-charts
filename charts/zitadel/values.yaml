@@ -1,3 +1,7 @@
+# Number of old ReplicaSets to retain for rollback purposes
+# Set to 0 to not keep any old ReplicaSets
+revisionHistoryLimit: null
+
 # Default values for zitadel.
 zitadel:
   # The ZITADEL config under configmapConfig is written to a Kubernetes ConfigMap
@@ -71,15 +75,24 @@ zitadel:
   dbSslUserCrtSecret: ""
 
   # The Secret containing the certificate at key tls.crt and tls.key for listening on HTTPS
-  serverSslCrtSecret: ""
+  serverSslCrtSecret: null
 
-  # Generate a self-signed certificate using an init container
-  # This will also mount the generated files to /etc/tls/ so that you can reference them in the pod.
-  # E.G. KeyPath: /etc/tls/tls.key CertPath: /etc/tls/tls.crt
-  # By default, the SAN DNS names include, localhost, the POD IP address and the POD name. You may include one more by using additionalDnsName like "my.zitadel.fqdn".
+  # Generate a self-signed TLS certificate using Helm's native functions.
+  # If enabled, this creates a Kubernetes secret containing a self-signed
+  # certificate and mounts it to /etc/tls/ in the ZITADEL pod.
+  #
+  # This is useful for quick demos or test environments without an ingress
+  # controller. It is NOT recommended for production use.
+  #
+  # The certificate will be valid for the `ExternalDomain`, `localhost`,
+  # and any host specified in `additionalDnsName`. It can't use dynamic
+  # values like the Pod IP, which the previous initContainer method did.
   selfSignedCert:
+    # -- If true, enables the generation of the self-signed certificate.
     enabled: false
-    additionalDnsName:
+    # -- An additional DNS name (SAN) to add to the certificate.
+    # e.g., "my-zitadel.example.com"
+    additionalDnsName: ""
 
   # Enabling this will create a debug pod that can be used to inspect the ZITADEL configuration and run zitadel commands using the zitadel binary.
   # This is useful for debugging and troubleshooting.
@@ -93,6 +106,8 @@ zitadel:
     initContainers: []
     extraContainers: []
 
+  nginx:
+    image: nginx:1.27-alpine
   # initContainers allow you to add any init containers you wish to use globally.
   # Additionally, they follow the same structure as extraContainers
   initContainers: []
@@ -137,6 +152,7 @@ zitadel:
 
 login:
   enabled: true
+  annotations: {}
   # customConfigmapConfig defaults to this:
   # ZITADEL_SERVICE_USER_TOKEN_FILE="/login-client/pat"
   # ZITADEL_API_URL="http://{{ include "zitadel.fullname" . }}:{{ .Values.service.port }}"
@@ -155,7 +171,12 @@ login:
       defaultMode: 444
       # Adjust this if you want to reference a different secret for the login client PAT.
       secretName: login-client
-  replicaCount: 3
+  nginx:
+    image: nginx:1.27-alpine
+  # Number of pod replicas. While a single replica is fine for testing,
+  # production environments should use 3 or more to prevent downtime during
+  # updates and ensure high availability.
+  replicaCount: 1
   initContainers: []
   extraContainers: []
   image:
@@ -194,9 +215,9 @@ login:
     clusterIP: ""
     # If service type is "LoadBalancer", this can optionally be set to either "Cluster" or "Local"
     externalTrafficPolicy: ""
-    port: 3000
+    port: null
     protocol: http
-    appProtocol: kubernetes.io/http
+    appProtocol: null
     annotations: {}
     labels: {}
     scheme: HTTP
@@ -243,8 +264,29 @@ login:
     #       name: postgres-pguser-postgres
     #       key: host
   revisionHistoryLimit: 10
+  # The Secret containing the certificate at key tls.crt and tls.key for listening on HTTPS
+  serverSslCrtSecret: null
+  # Generate a self-signed TLS certificate using Helm's native functions.
+  # If enabled, this creates a Kubernetes secret containing a self-signed
+  # certificate and mounts it to /etc/tls/ in the ZITADEL pod.
+  #
+  # This is useful for quick demos or test environments without an ingress
+  # controller. It is NOT recommended for production use.
+  #
+  # The certificate will be valid for the `ExternalDomain`, `localhost`,
+  # and any host specified in `additionalDnsName`. It can't use dynamic
+  # values like the Pod IP, which the previous initContainer method did.
+  selfSignedCert:
+    # -- If true, enables the generation of the self-signed certificate.
+    enabled: false
+    # -- An additional DNS name (SAN) to add to the certificate.
+    # e.g., "my-zitadel.example.com"
+    additionalDnsName: ""
 
-replicaCount: 3
+# Number of pod replicas. While a single replica is fine for testing,
+# production environments should use 3 or more to prevent downtime during
+# updates and ensure high availability.
+replicaCount: 1
 
 image:
   repository: ghcr.io/zitadel/zitadel
