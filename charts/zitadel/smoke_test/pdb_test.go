@@ -281,7 +281,7 @@ func TestPodDisruptionBudgetMatrix(t *testing.T) {
 								MatchLabels: map[string]string{
 									"app.kubernetes.io/component": "login",
 									"app.kubernetes.io/instance":  releaseName,
-									"app.kubernetes.io/name":      "zitadel",
+									"app.kubernetes.io/name":      "zitadel-login",
 								},
 							},
 						},
