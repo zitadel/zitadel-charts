@@ -36,7 +36,7 @@ type Env struct {
 
 // ConnectCluster establishes a single shared client connection to the
 // Kubernetes cluster using the current KUBECONFIG and context. This function
-// should be called once at the start of your top-level test, and the returned
+// should be called once at the start of your top-level test and the returned
 // cluster connection reused across subtests for efficiency.
 func ConnectCluster(testing *testing.T) *Cluster {
 	testing.Helper()
