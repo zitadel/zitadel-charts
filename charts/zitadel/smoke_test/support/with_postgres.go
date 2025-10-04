@@ -3,10 +3,8 @@ package support
 import (
 	"fmt"
 	"testing"
-	"time"
 
 	"github.com/gruntwork-io/terratest/modules/helm"
-	"github.com/gruntwork-io/terratest/modules/k8s"
 	"github.com/stretchr/testify/require"
 )
 
@@ -25,10 +23,14 @@ func WithPostgres(testing *testing.T, env *Env) {
 
 	helmOptions := &helm.Options{
 		KubectlOptions: env.Kube,
+		SetValues: map[string]string{
+			"image.repository":                   "bitnamilegacy/postgresql",
+			"volumePermissions.image.repository": "bitnamilegacy/os-shell",
+		},
 		ExtraArgs: map[string][]string{
 			"upgrade": {
 				"--install",
-				"--wait", "--timeout", "10m",
+				"--hide-notes",
 				"--set-string", "primary.persistence.enabled=false",
 				"--set-string", "primary.pgHbaConfiguration=host all all all trust",
 				"--set-string", "primary.extendedConfiguration=max_connections = 500",
@@ -40,7 +42,4 @@ func WithPostgres(testing *testing.T, env *Env) {
 	releaseName := "db"
 
 	require.NoError(testing, helm.UpgradeE(testing, helmOptions, chartName, releaseName))
-
-	k8s.WaitUntilServiceAvailable(testing, env.Kube, "db-postgresql", 60, 5*time.Second)
-	k8s.WaitUntilPodAvailable(testing, env.Kube, "db-postgresql-0", 60, 5*time.Second)
 }
