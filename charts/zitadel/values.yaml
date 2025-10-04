@@ -137,6 +137,23 @@ zitadel:
 
 login:
   enabled: true
+  # Pod Disruption Budget configuration for the main ZITADEL deployment.
+  # Ensures high availability by limiting the number of pods that can be
+  # simultaneously unavailable during voluntary disruptions (e.g., node drains,
+  # rolling updates). Either minAvailable or maxUnavailable can be set, but not
+  # both. Values can be an integer (e.g., 1) or a percentage (e.g., "50%").
+  pdb:
+    # Enable or disable the Pod Disruption Budget for ZITADEL pods
+    enabled: false
+    # Minimum number of pods that must remain available during disruptions.
+    # Cannot be used together with maxUnavailable.
+    minAvailable: null
+    # Maximum number of pods that can be unavailable during disruptions.
+    # Cannot be used together with minAvailable.
+    maxUnavailable: null
+    # Additional annotations to apply to the Pod Disruption Budget resource
+    annotations: {}
+
   # customConfigmapConfig defaults to this:
   # ZITADEL_SERVICE_USER_TOKEN_FILE="/login-client/pat"
   # ZITADEL_API_URL="http://{{ include "zitadel.fullname" . }}:{{ .Values.service.port }}"
@@ -415,11 +432,21 @@ metrics:
     honorLabels: false
     honorTimestamps: true
 
+# Pod Disruption Budget configuration for the main ZITADEL deployment.
+# Ensures high availability by limiting the number of pods that can be
+# simultaneously unavailable during voluntary disruptions (e.g., node drains,
+# rolling updates). Either minAvailable or maxUnavailable can be set, but not
+# both. Values can be an integer (e.g., 1) or a percentage (e.g., "50%").
 pdb:
+  # Enable or disable the Pod Disruption Budget for ZITADEL pods
   enabled: false
-  # these values are used for the PDB and are mutally exclusive
-  minAvailable: 1
-  # maxUnavailable: 1
+  # Minimum number of pods that must remain available during disruptions.
+  # Cannot be used together with maxUnavailable.
+  minAvailable: null
+  # Maximum number of pods that can be unavailable during disruptions.
+  # Cannot be used together with minAvailable.
+  maxUnavailable: null
+  # Additional annotations to apply to the Pod Disruption Budget resource
   annotations: {}
 
 # extraContainers allows you to add any sidecar containers you wish to use in the Zitadel pod.
