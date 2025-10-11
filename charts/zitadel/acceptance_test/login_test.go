@@ -63,13 +63,13 @@ func (s *ConfigurationTest) login(ctx context.Context, t *testing.T) {
 			chromedp.Click(testIdSelector("submit-button"), chromedp.ByQuery),
 		)
 	})
-	//t.Run("skip mfa", func(t *testing.T) {
-	//	loadPage(t, loginCtx, loginFailuresDir, 10*time.Second,
-	//		waitForPath("/ui/v2/login/mfa/set", 5*time.Second),
-	//		chromedp.WaitVisible(testIdSelector("reset-button"), chromedp.ByQuery),
-	//		chromedp.Click(testIdSelector("reset-button"), chromedp.ByQuery),
-	//	)
-	//})
+	t.Run("skip mfa", func(t *testing.T) {
+		loadPage(t, loginCtx, loginFailuresDir, 10*time.Second,
+			waitForPath("/ui/v2/login/mfa/set", 5*time.Second),
+			chromedp.WaitVisible(testIdSelector("reset-button"), chromedp.ByQuery),
+			chromedp.Click(testIdSelector("reset-button"), chromedp.ByQuery),
+		)
+	})
 	t.Run("show console", func(t *testing.T) {
 		loadPage(t, loginCtx, loginFailuresDir, 30*time.Second,
 			waitForPath("/ui/console", 5*time.Second),
