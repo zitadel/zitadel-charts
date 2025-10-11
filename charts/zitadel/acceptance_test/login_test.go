@@ -27,7 +27,7 @@ func (s *ConfigurationTest) login(ctx context.Context, t *testing.T) {
 	browserCtx, _ := chromedp.NewContext(
 		allocCtx,
 		chromedp.WithLogf(t.Logf),
-		chromedp.WithDebugf(t.Logf),
+		//chromedp.WithDebugf(t.Logf),
 		chromedp.WithErrorf(t.Logf),
 	)
 	loginCtx, loginCancel := context.WithTimeoutCause(browserCtx, 5*time.Minute, fmt.Errorf("login test timed out after 5 minutes"))
