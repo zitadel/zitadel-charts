@@ -1,6 +1,8 @@
 package acceptance_test
 
 import (
+	"time"
+
 	"github.com/gruntwork-io/terratest/modules/helm"
 )
 
@@ -25,6 +27,8 @@ func (s *ConfigurationTest) BeforeTest(_, _ string) {
 	}
 
 	helm.Install(s.T(), options, s.dbRepoName+"/"+s.dbChart.name, s.dbRelease)
+	s.T().Log("Waiting 30 seconds for PostgreSQL to become fully ready...")
+	time.Sleep(30 * time.Second)
 
 	if s.afterDBFunc != nil {
 		s.afterDBFunc(s)
