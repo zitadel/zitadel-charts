@@ -31,7 +31,6 @@ func WithPostgres(testing *testing.T, env *Env) {
 			"upgrade": {
 				"--install",
 				"--hide-notes",
-				"--no-update",
 				"--set-string", "primary.persistence.enabled=false",
 				"--set-string", "primary.pgHbaConfiguration=host all all all trust",
 				"--set-string", "primary.extendedConfiguration=max_connections = 500",
