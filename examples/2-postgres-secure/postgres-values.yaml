@@ -1,3 +1,6 @@
+primary:
+  persistence:
+    enabled: false
 volumePermissions:
   enabled: true
 tls:
