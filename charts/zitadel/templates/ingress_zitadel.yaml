@@ -9,7 +9,7 @@ metadata:
     {{- include "zitadel.labels" . | nindent 4 }}
   annotations:
     {{- if eq .Values.ingress.controller "aws" }}
-    alb.ingress.kubernetes.io/conditions.zitadel-grpc: >
+    alb.ingress.kubernetes.io/conditions.{{ $fullName }}-grpc: >
       [{"field":"http-header","httpHeaderConfig":{"httpHeaderName":
       "Content-Type", "values":["application/grpc"]}}]
     {{- end }}
@@ -35,13 +35,6 @@ spec:
       http:
         paths:
           {{- range .paths }}
-          - path: {{ .path }}
-            pathType: {{ .pathType }}
-            backend:
-              service:
-                name: {{ $fullName }}
-                port:
-                  number: {{ $svcPort }}
           {{- if eq $.Values.ingress.controller "aws" }}
           - path: {{ .path }}
             pathType: {{ .pathType }}
@@ -51,6 +44,13 @@ spec:
                 port:
                   number: {{ $svcPort }}
           {{- end }}
+          - path: {{ .path }}
+            pathType: {{ .pathType }}
+            backend:
+              service:
+                name: {{ $fullName }}
+                port:
+                  number: {{ $svcPort }}
           {{- end }}
     {{- end }}
 {{- end }}
