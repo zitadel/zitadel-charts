@@ -1,6 +1,5 @@
 {{- if .Values.ingress.enabled -}}
 {{- $fullName := include "zitadel.fullname" . -}}
-{{- $svcPort := .Values.service.port -}}
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
@@ -25,6 +24,7 @@ spec:
   {{- end }}
   rules:
     {{- $values := .Values -}}
+    {{- $root := . -}}
     {{- range .Values.ingress.hosts }}
     - host: {{ .host | default $values.zitadel.configmapConfig.ExternalDomain | quote }}
       http:
@@ -36,7 +36,7 @@ spec:
               service:
                 name: {{ $fullName }}
                 port:
-                  number: {{ $svcPort }}
+                  number: {{ include "zitadel.servicePort" $root }}
           {{- end }}
     {{- end }}
 {{- end }}
