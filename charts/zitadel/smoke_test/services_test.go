@@ -150,7 +150,7 @@ func TestServiceMatrix(t *testing.T) {
 				"service.annotations.cloud\\.google\\.com/load-balancer-type": "Internal",
 				"service.annotations.owner":                                   "platform-team",
 				"login.enabled":                                               "true",
-				"login.service.annotations.service\\.beta\\.kubernetes\\.io/aws-load-balancer-internal": "true",
+				"login.service.annotations.service\\.beta\\.kubernetes\\.io/aws-load-balancer-internal": "yes",
 			},
 			expected: serviceExpected{
 				zitadelEnabled: true,
@@ -190,7 +190,7 @@ func TestServiceMatrix(t *testing.T) {
 					},
 				},
 				loginAnnotations: map[string]string{
-					"service.beta.kubernetes.io/aws-load-balancer-internal": "true",
+					"service.beta.kubernetes.io/aws-load-balancer-internal": "yes",
 				},
 			},
 		},
@@ -281,9 +281,8 @@ func TestServiceMatrix(t *testing.T) {
 				var expectedLoginService *corev1.Service
 				if testCase.expected.loginEnabled {
 					loginAnnotations := map[string]string{
-						"meta.helm.sh/release-name":                           releaseName,
-						"meta.helm.sh/release-namespace":                      env.Namespace,
-						"traefik.ingress.kubernetes.io/service.serversscheme": "h2c",
+						"meta.helm.sh/release-name":      releaseName,
+						"meta.helm.sh/release-namespace": env.Namespace,
 					}
 					for k, v := range testCase.expected.loginAnnotations {
 						loginAnnotations[k] = v
