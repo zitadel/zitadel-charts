@@ -19,10 +19,19 @@ func (s *ConfigurationTest) login(ctx context.Context, t *testing.T) {
 	apiUrl, err := url.Parse(s.ApiBaseUrl)
 	loginFailuresDir := filepath.Join(".login-failures", s.KubeOptions.Namespace)
 	require.NoError(t, err)
+	userDataDir, err := os.MkdirTemp("", "chromedp-test-*")
+	require.NoError(t, err)
+	t.Cleanup(func() {
+		if err := os.RemoveAll(userDataDir); err != nil {
+			t.Logf("Warning: failed to cleanup temp directory %s: %v", userDataDir, err)
+		}
+	})
 	allocCtx, _ := chromedp.NewExecAllocator(ctx, append(
 		chromedp.DefaultExecAllocatorOptions[:],
 		chromedp.IgnoreCertErrors,
 		chromedp.NoSandbox,
+		chromedp.Flag("incognito", true),
+		chromedp.UserDataDir(userDataDir),
 	)...)
 	browserCtx, _ := chromedp.NewContext(
 		allocCtx,
