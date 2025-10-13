@@ -170,20 +170,46 @@ Read the comment for the value login.loginClientSecretPrefix
 
 ## Contributing
 
-Lint the chart:
+### Editor Configuration
+
+This repository uses an `.editorconfig` file to maintain consistent coding styles across different editors and IDEs.
+Make sure your IDE supports the `/.editorconfig` file to automatically apply the correct formatting rules.
+
+Many IDEs support EditorConfig out of the box (including IntelliJ IDEA, PyCharm, WebStorm, and others), while [some require you to install a plugin](https://editorconfig.org/#editor-plugins), like VSCode.
+
+The `.editorconfig` file in this repository defines:
+- Line endings (LF)
+- Character encoding (UTF-8)
+- Indentation style (spaces for most files, tabs for Go)
+- Trailing whitespace handling
+- Final newline requirements
+
+If your editor doesn't automatically pick up these settings, please install the appropriate EditorConfig plugin for your development environment.
+
+#### Lint the chart:
 
 ```bash
 docker run -it --network host --workdir=/data --rm --volume $(pwd):/data quay.io/helmpack/chart-testing:v3.5.0 ct lint --charts charts/zitadel --target-branch main
 ```
 
-Test the chart:
+#### Validate Helm Charts
+
+Validate the Helm chart manifests against Kubernetes API schemas using kubeconform:
+
+```bash
+make check
+```
+
+This renders the chart templates and validates them for correctness without requiring a Kubernetes cluster.
+
+### Test the chart:
 
 ```bash
 # Create KinD cluster
 kind create cluster --config ./charts/zitadel/acceptance_test/kindConfig.yaml
 
 # Test the chart
-go test ./...
+make test
 ```
 
 Watch the Kubernetes pods if you want to see progress.

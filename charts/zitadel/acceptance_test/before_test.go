@@ -2,8 +2,9 @@ package acceptance_test
 
 import (
 	"context"
-	"github.com/gruntwork-io/terratest/modules/helm"
 	"time"
+
+	"github.com/gruntwork-io/terratest/modules/helm"
 )
 
 func (s *ConfigurationTest) BeforeTest(_, _ string) {
@@ -14,7 +15,7 @@ func (s *ConfigurationTest) BeforeTest(_, _ string) {
 		KubectlOptions: s.KubeOptions,
 		Version:        s.dbChart.version,
 		SetValues:      s.dbChart.testValues,
-		ExtraArgs:      map[string][]string{"install": {"--wait"}},
+		ExtraArgs:      map[string][]string{"install": {"--wait", "--timeout", "10m"}},
 	}
 	Awaitf(context.Background(), s.T(), 1*time.Minute, func(ctx context.Context) error {
 		err := helm.AddRepoE(s.T(), options, s.dbRepoName, s.dbChart.repoUrl)
