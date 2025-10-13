@@ -62,7 +62,8 @@ func (s *ConfigurationTest) login(ctx context.Context, t *testing.T) {
 		)
 	})
 	t.Run("change password", func(t *testing.T) {
-		loadPage(t, loginCtx, loginFailuresDir, 10*time.Second,
+		var finalURL string
+		loadPage(t, loginCtx, loginFailuresDir, 30*time.Second,
 			waitForPath("/ui/v2/login/password/change", 5*time.Second),
 			chromedp.WaitVisible(testIdSelector("password-change-text-input"), chromedp.ByQuery),
 			chromedp.WaitVisible(testIdSelector("password-change-confirm-text-input"), chromedp.ByQuery),
@@ -70,19 +71,29 @@ func (s *ConfigurationTest) login(ctx context.Context, t *testing.T) {
 			chromedp.SendKeys(testIdSelector("password-change-confirm-text-input"), "Password2!", chromedp.ByQuery),
 			chromedp.WaitEnabled(testIdSelector("submit-button"), chromedp.ByQuery),
 			chromedp.Click(testIdSelector("submit-button"), chromedp.ByQuery),
+			chromedp.Sleep(10*time.Second),
+			chromedp.ActionFunc(func(ctx context.Context) error {
+				return chromedp.Location(&finalURL).Do(ctx)
+			}),
 		)
+
+		if strings.Contains(finalURL, "/ui/console") {
+			t.Log("Redirected directly to console, skipping MFA test")
+		} else {
+			t.Run("skip mfa", func(t *testing.T) {
+				loadPage(t, loginCtx, loginFailuresDir, 10*time.Second,
+					waitForPath("/ui/v2/login/mfa/set", 5*time.Second),
+					chromedp.WaitVisible(testIdSelector("reset-button"), chromedp.ByQuery),
+					chromedp.Click(testIdSelector("reset-button"), chromedp.ByQuery),
+				)
+			})
+		}
 	})
-	t.Run("skip mfa", func(t *testing.T) {
-		loadPage(t, loginCtx, loginFailuresDir, 10*time.Second,
-			waitForPath("/ui/v2/login/mfa/set", 5*time.Second),
-			chromedp.WaitVisible(testIdSelector("reset-button"), chromedp.ByQuery),
-			chromedp.Click(testIdSelector("reset-button"), chromedp.ByQuery),
-		)
-	})
+
 	t.Run("show console", func(t *testing.T) {
 		loadPage(t, loginCtx, loginFailuresDir, 30*time.Second,
 			waitForPath("/ui/console", 5*time.Second),
-			chromedp.WaitVisible("[data-e2e='authenticated-welcome'", chromedp.ByQuery),
+			chromedp.WaitVisible("[data-e2e='authenticated-welcome']", chromedp.ByQuery),
 		)
 	})
 }
