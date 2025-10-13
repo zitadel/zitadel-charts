@@ -86,9 +86,9 @@ func TestServiceMatrix(t *testing.T) {
 					Type: corev1.ServiceTypeClusterIP,
 					Ports: []corev1.ServicePort{
 						{
-							Port:       8080,
+							Port:       3000,
 							Protocol:   corev1.ProtocolTCP,
-							TargetPort: intstr.FromInt32(8080),
+							TargetPort: intstr.FromInt32(3000),
 						},
 					},
 					Selector: map[string]string{
@@ -132,7 +132,7 @@ func TestServiceMatrix(t *testing.T) {
 						{
 							Port:       9091,
 							Protocol:   corev1.ProtocolTCP,
-							TargetPort: intstr.FromInt32(8080),
+							TargetPort: intstr.FromInt32(3000),
 						},
 					},
 					Selector: map[string]string{
