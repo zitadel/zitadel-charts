@@ -63,13 +63,21 @@ func TestConfigMapMatrix(t *testing.T) {
 				"login.enabled": "true",
 			},
 			expected: configMapExpected{
-				zitadelEnabled:     true,
-				loginEnabled:       true,
-				zitadelAnnotations: map[string]string{},
+				zitadelEnabled: true,
+				loginEnabled:   true,
+				zitadelAnnotations: map[string]string{
+					"helm.sh/hook":               "pre-install,pre-upgrade",
+					"helm.sh/hook-delete-policy": "before-hook-creation",
+					"helm.sh/hook-weight":        "0",
+				},
 				zitadelData: map[string]string{
 					"zitadel-config-yaml": "",
 				},
-				loginAnnotations: map[string]string{},
+				loginAnnotations: map[string]string{
+					"helm.sh/hook":               "pre-install,pre-upgrade",
+					"helm.sh/hook-delete-policy": "before-hook-creation",
+					"helm.sh/hook-weight":        "0",
+				},
 				loginData: map[string]string{
 					".env": "",
 				},
@@ -86,13 +94,19 @@ func TestConfigMapMatrix(t *testing.T) {
 				zitadelEnabled: true,
 				loginEnabled:   true,
 				zitadelAnnotations: map[string]string{
-					"owner": "platform-team",
+					"owner":                      "platform-team",
+					"helm.sh/hook":               "pre-install,pre-upgrade",
+					"helm.sh/hook-delete-policy": "before-hook-creation",
+					"helm.sh/hook-weight":        "0",
 				},
 				zitadelData: map[string]string{
 					"zitadel-config-yaml": "",
 				},
 				loginAnnotations: map[string]string{
-					"team": "frontend",
+					"team":                       "frontend",
+					"helm.sh/hook":               "pre-install,pre-upgrade",
+					"helm.sh/hook-delete-policy": "before-hook-creation",
+					"helm.sh/hook-weight":        "0",
 				},
 				loginData: map[string]string{
 					".env": "",
@@ -109,7 +123,10 @@ func TestConfigMapMatrix(t *testing.T) {
 				zitadelEnabled: true,
 				loginEnabled:   false,
 				zitadelAnnotations: map[string]string{
-					"config-version": "v2",
+					"config-version":             "v2",
+					"helm.sh/hook":               "pre-install,pre-upgrade",
+					"helm.sh/hook-delete-policy": "before-hook-creation",
+					"helm.sh/hook-weight":        "0",
 				},
 				zitadelData: map[string]string{
 					"zitadel-config-yaml": "",
