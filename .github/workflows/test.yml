@@ -52,13 +52,11 @@ jobs:
           node_image: 'kindest/node:${{ matrix.k8s.kindest-image-tag }}'
           version: 'v0.29.0'
           config: ./charts/zitadel/acceptance_test/kindConfig.yaml
-        if: steps.list-changed-test.outputs.any_changed == 'true'
 
       - id: 'setup-go'
         uses: actions/setup-go@v6
         with:
           go-version-file: 'go.mod'
-        if: steps.list-changed-test.outputs.any_changed == 'true'
 
       - id: 'setup-chrome'
         uses: browser-actions/setup-chrome@v2
