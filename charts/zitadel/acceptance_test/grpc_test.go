@@ -5,7 +5,7 @@ import (
 	"crypto/tls"
 	"net/url"
 
-	oidc_client "github.com/zitadel/oidc/v3/pkg/client"
+	oidcclient "github.com/zitadel/oidc/v3/pkg/client"
 	"github.com/zitadel/zitadel-go/v3/pkg/client"
 	"github.com/zitadel/zitadel-go/v3/pkg/client/zitadel/management"
 	"github.com/zitadel/zitadel-go/v3/pkg/zitadel"
@@ -18,7 +18,8 @@ func OpenGRPCConnection(ctx context.Context, cfg *ConfigurationTest, key []byte)
 		client.WithGRPCDialOptions(grpc.WithTransportCredentials(credentials.NewTLS(&tls.Config{InsecureSkipVerify: true}))),
 	}
 	if key != nil {
-		keyFile, err := oidc_client.ConfigFromKeyFileData(key)
+		//goland:noinspection GoDeprecation
+		keyFile, err := oidcclient.ConfigFromKeyFileData(key)
 		if err != nil {
 			return nil, err
 		}
