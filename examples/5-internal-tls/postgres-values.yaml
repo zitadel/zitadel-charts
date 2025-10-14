@@ -1,3 +1,14 @@
+image:
+  repository: bitnamilegacy/postgresql
+
+metrics:
+  image:
+    repository: bitnamilegacy/postgres-exporter
+
+volumePermissions:
+  image:
+    repository: bitnamilegacy/os-shell
+
 primary:
   pgHbaConfiguration: |
     host all all all trust
