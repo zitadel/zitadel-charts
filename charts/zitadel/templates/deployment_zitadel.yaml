@@ -9,10 +9,12 @@ metadata:
     {{- toYaml . | nindent 4 }}
   {{- end }}
 spec:
-  {{- if .Values.revisionHistoryLimit }}
-  revisionHistoryLimit: {{ .Values.revisionHistoryLimit }}
+  {{- if .Values.zitadel.revisionHistoryLimit }}
+  revisionHistoryLimit: {{ .Values.zitadel.revisionHistoryLimit }}
   {{- end }}
+  {{- if not .Values.zitadel.autoscaling.enabled }}
   replicas: {{ .Values.replicaCount }}
+  {{- end }}
   selector:
     matchLabels:
       {{- include "zitadel.start.selectorLabels" . | nindent 6 }}

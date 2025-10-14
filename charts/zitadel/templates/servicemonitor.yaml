@@ -1,3 +1,4 @@
+#file: noinspection KubernetesUnknownResourcesInspection
 {{- if and .Values.metrics.enabled .Values.metrics.serviceMonitor.enabled }}
 apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor

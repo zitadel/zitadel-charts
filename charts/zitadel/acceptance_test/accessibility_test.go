@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	mgmt_api "github.com/zitadel/zitadel-go/v3/pkg/client/zitadel/management"
+	mgmtapi "github.com/zitadel/zitadel-go/v3/pkg/client/zitadel/management"
 )
 
 type checkOptions interface {
@@ -82,7 +82,7 @@ func (s *ConfigurationTest) checkAccessibility(ctx context.Context, t *testing.T
 				if err != nil {
 					return fmt.Errorf("couldn't create gRPC management client: %w", err)
 				}
-				_, err = conn.Healthz(ctx, &mgmt_api.HealthzRequest{})
+				_, err = conn.Healthz(ctx, &mgmtapi.HealthzRequest{})
 				return err
 			},
 		})
