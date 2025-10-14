@@ -2,12 +2,13 @@ package acceptance_test
 
 import (
 	"fmt"
-	"gopkg.in/yaml.v3"
 	"os"
 	"path/filepath"
 	"runtime"
 	"strings"
 	"testing"
+
+	"gopkg.in/yaml.v3"
 
 	"github.com/gruntwork-io/terratest/modules/random"
 )
