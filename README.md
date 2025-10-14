@@ -224,5 +224,5 @@ watch -n .1 "kubectl get pods --all-namespaces"
 ## Contributors
 
 <a href="https://github.com/zitadel/zitadel-charts/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=zitadel/zitadel-charts" />
+  <img src="https://contrib.rocks/image?repo=zitadel/zitadel-charts"  alt="Contributors"/>
 </a>
