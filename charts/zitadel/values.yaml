@@ -46,6 +46,43 @@ zitadel:
   # Set to 0 to not keep any old ReplicaSets
   revisionHistoryLimit: 10
 
+  # Horizontal Pod Autoscaler configuration for scaling on CPU, memory, or custom metrics.
+  # Ref: https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale/
+  autoscaling:
+    # If true, enables the Horizontal Pod Autoscaler for the Zitadel deployment.
+    # This will automatically override the `replicaCount` value.
+    enabled: false
+    # Optional map of annotations applied to the HPA object.
+    annotations: {}
+    # The minimum number of pod replicas.
+    minReplicas: 3
+    # The maximum number of pod replicas.
+    maxReplicas: 10
+    # The target average CPU utilization percentage.
+    targetCPU: null
+    # The target average memory utilization percentage.
+    targetMemory: null
+    # Advanced scaling based on custom metrics exposed by Zitadel.
+    # Zitadel exposes standard Go runtime metrics. To use these for scaling,
+    # you MUST have a metrics server (e.g., Prometheus) and a metrics adapter
+    # (e.g., prometheus-adapter) running in your cluster.
+    # Ref: https://github.com/kubernetes-sigs/prometheus-adapter
+    metrics: []
+    # Example: Scale when the average number of goroutines per pod exceeds 150.
+    # The `go_goroutines` metric is a good proxy for concurrent load.
+    # You should observe your application's baseline to find a suitable value.
+    # - type: Pods
+    #   pods:
+    #     metric:
+    #       # This name must match the metric exposed by the prometheus-adapter.
+    #       name: "go_goroutines"
+    #     target:
+    #       type: AverageValue
+    #       averageValue: "150"
+    # Configures the scaling behavior for scaling up and down.
+    # See: https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale/#configurable-scaling-behavior
+    behavior: {}
+
   # Annotations set on masterkey secret
   masterkeyAnnotations:
     helm.sh/hook: pre-install,pre-upgrade
@@ -137,6 +174,23 @@ zitadel:
 
 login:
   enabled: true
+  # Pod Disruption Budget configuration for the main ZITADEL deployment.
+  # Ensures high availability by limiting the number of pods that can be
+  # simultaneously unavailable during voluntary disruptions (e.g., node drains,
+  # rolling updates). Either minAvailable or maxUnavailable can be set, but not
+  # both. Values can be an integer (e.g., 1) or a percentage (e.g., "50%").
+  pdb:
+    # Enable or disable the Pod Disruption Budget for ZITADEL pods
+    enabled: false
+    # Minimum number of pods that must remain available during disruptions.
+    # Cannot be used together with maxUnavailable.
+    minAvailable: null
+    # Maximum number of pods that can be unavailable during disruptions.
+    # Cannot be used together with minAvailable.
+    maxUnavailable: null
+    # Additional annotations to apply to the Pod Disruption Budget resource
+    annotations: {}
+
   # customConfigmapConfig defaults to this:
   # ZITADEL_SERVICE_USER_TOKEN_FILE="/login-client/pat"
   # ZITADEL_API_URL="http://{{ include "zitadel.fullname" . }}:{{ .Values.service.port }}"
@@ -155,7 +209,10 @@ login:
       defaultMode: 444
       # Adjust this if you want to reference a different secret for the login client PAT.
       secretName: login-client
-  replicaCount: 3
+  # Number of pod replicas. While a single replica is fine for testing,
+  # production environments should use 3 or more to prevent downtime during
+  # updates and ensure high availability.
+  replicaCount: 1
   initContainers: []
   extraContainers: []
   image:
@@ -244,7 +301,34 @@ login:
     #       key: host
   revisionHistoryLimit: 10
 
-replicaCount: 3
+  # Horizontal Pod Autoscaler configuration for scaling on CPU, memory, or custom metrics.
+  # Ref: https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale/
+  autoscaling:
+    # If true, enables the Horizontal Pod Autoscaler for the Zitadel deployment.
+    # This will automatically override the `replicaCount` value.
+    enabled: false
+    # Optional map of annotations applied to the HPA object.
+    annotations: {}
+    # The minimum number of pod replicas.
+    minReplicas: 3
+    # The maximum number of pod replicas.
+    maxReplicas: 10
+    # The target average CPU utilization percentage.
+    targetCPU: null
+    # The target average memory utilization percentage.
+    targetMemory: null
+    # Advanced scaling based on custom metrics exposed by Zitadel.
+    # To use these for scaling, you MUST have a metrics server
+    # (e.g., Prometheus) and a metrics adapter (e.g., prometheus-adapter)
+    # running in your cluster.
+    # Ref: https://github.com/kubernetes-sigs/prometheus-adapter
+    metrics: []
+    behavior: {}
+
+# Number of pod replicas. While a single replica is fine for testing,
+# production environments should use 3 or more to prevent downtime during
+# updates and ensure high availability.
+replicaCount: 1
 
 image:
   repository: ghcr.io/zitadel/zitadel
@@ -415,11 +499,21 @@ metrics:
     honorLabels: false
     honorTimestamps: true
 
+# Pod Disruption Budget configuration for the main ZITADEL deployment.
+# Ensures high availability by limiting the number of pods that can be
+# simultaneously unavailable during voluntary disruptions (e.g., node drains,
+# rolling updates). Either minAvailable or maxUnavailable can be set, but not
+# both. Values can be an integer (e.g., 1) or a percentage (e.g., "50%").
 pdb:
+  # Enable or disable the Pod Disruption Budget for ZITADEL pods
   enabled: false
-  # these values are used for the PDB and are mutally exclusive
-  minAvailable: 1
-  # maxUnavailable: 1
+  # Minimum number of pods that must remain available during disruptions.
+  # Cannot be used together with maxUnavailable.
+  minAvailable: null
+  # Maximum number of pods that can be unavailable during disruptions.
+  # Cannot be used together with minAvailable.
+  maxUnavailable: null
+  # Additional annotations to apply to the Pod Disruption Budget resource
   annotations: {}
 
 # extraContainers allows you to add any sidecar containers you wish to use in the Zitadel pod.

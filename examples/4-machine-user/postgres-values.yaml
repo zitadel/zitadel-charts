@@ -10,5 +10,7 @@ volumePermissions:
     repository: bitnamilegacy/os-shell
 
 primary:
+  persistence:
+    enabled: false
   pgHbaConfiguration: |
     host all all all trust

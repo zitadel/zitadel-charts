@@ -5,6 +5,11 @@ metrics:
   image:
     repository: bitnamilegacy/postgres-exporter
 
+
+primary:
+  persistence:
+    enabled: false
+
 volumePermissions:
   enabled: true
   image:

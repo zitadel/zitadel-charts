@@ -2,11 +2,12 @@ package acceptance_test
 
 import (
 	"fmt"
-	"github.com/gruntwork-io/terratest/modules/helm"
 	"os"
 	"path/filepath"
 	"runtime"
 	"testing"
+
+	"github.com/gruntwork-io/terratest/modules/helm"
 )
 
 type panicT struct {
