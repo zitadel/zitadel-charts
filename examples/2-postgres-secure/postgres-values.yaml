@@ -1,8 +1,20 @@
+image:
+  repository: bitnamilegacy/postgresql
+
+metrics:
+  image:
+    repository: bitnamilegacy/postgres-exporter
+
+
 primary:
   persistence:
     enabled: false
+
 volumePermissions:
   enabled: true
+  image:
+    repository: bitnamilegacy/os-shell
+
 tls:
   enabled: true
   certificatesSecret: postgres-cert
