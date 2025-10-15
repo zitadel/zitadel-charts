@@ -92,6 +92,11 @@ spec:
           - name: login-config-dotenv
             mountPath: /.env-file/
             readOnly: true
+          {{- if and (include "deepCheck" (dict "root" .Values "path" (splitList "." "zitadel.configmapConfig.FirstInstance.Org.LoginClient"))) (not (include "deepCheck" (dict "root" .Values "path" (splitList "." "zitadel.configmapConfig.FirstInstance.Skip")))) }}
+          - name: login-client
+            mountPath: /login-client
+            readOnly: true
+          {{- end }}
           {{- with .Values.login.extraVolumeMounts }}
           {{- toYaml . | nindent 10 }}
           {{- end }}
@@ -105,6 +110,12 @@ spec:
       - name: login-config-dotenv
         configMap:
           name: {{ include "login.configmapName" . }}
+      {{- if and (include "deepCheck" (dict "root" .Values "path" (splitList "." "zitadel.configmapConfig.FirstInstance.Org.LoginClient"))) (not (include "deepCheck" (dict "root" .Values "path" (splitList "." "zitadel.configmapConfig.FirstInstance.Skip")))) }}
+      - name: login-client
+        secret:
+          defaultMode: 444
+          secretName: {{ .Values.login.loginClientSecretPrefix }}login-client
+      {{- end }}
       {{- with .Values.login.extraVolumes }}
       {{- toYaml . | nindent 6 }}
       {{- end }}
@@ -124,4 +135,4 @@ spec:
       topologySpreadConstraints:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-  {{- end }}
+{{- end }}
