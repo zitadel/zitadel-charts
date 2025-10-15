@@ -103,6 +103,18 @@ spec:
           resources:
             {{- toYaml .Values.login.resources | nindent 14 }}
       initContainers:
+        - name: wait-for-zitadel
+          image: wait4x/wait4x:3.5
+          command:
+            - wait4x
+            - http
+            - {{ include "zitadel.clusterEndpoint" . }}
+            - --expect-status-code
+            - "200"
+            - --timeout
+            - "5m"
+            - --interval
+            - "5s"
       {{- with .Values.login.initContainers }}
         {{- toYaml . | nindent 8 }}
       {{- end }}
