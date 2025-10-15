@@ -2,30 +2,34 @@ version: 2
 updates:
   - package-ecosystem: "gomod"
     directory: "/"
-    commit-message:
-      prefix: "test"
     schedule:
       interval: "weekly"
+    commit-message:
+      prefix: "chore(deps):"
+    open-pull-requests-limit: 10
     groups:
-      testsuite:
+      go-version-updates:
         patterns:
-        - "*"
-    reviewers:
-      - stebenz
-      - eliobischof
+          - "*"
+        applies-to: "version-updates"
+      go-security-updates:
+        patterns:
+          - "*"
+        applies-to: "security-updates"
 
-  # Maintain dependencies for GitHub Actions
   - package-ecosystem: "github-actions"
     directory: "/"
-    commit-message:
-      prefix: "chore"
     schedule:
       interval: "weekly"
+    commit-message:
+      prefix: "chore(deps):"
+    open-pull-requests-limit: 10
     groups:
-      actions:
+      actions-version-updates:
         patterns:
-        - "*"
-    reviewers:
-      - stebenz
-      - eliobischof
-
+          - "*"
+        applies-to: "version-updates"
+      actions-security-updates:
+        patterns:
+          - "*"
+        applies-to: "security-updates"
