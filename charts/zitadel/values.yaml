@@ -199,16 +199,8 @@ login:
   # To deploy zitadel multiple times in the same namespace, use a loginClientSecretPrefix.
   # To mount it, also change the referenced secretName for the login client to "{loginClientSecretPrefix}login-client"
   loginClientSecretPrefix:
-  extraVolumeMounts:
-  - name: login-client
-    mountPath: /login-client
-    readOnly: true
-  extraVolumes:
-  - name: login-client
-    secret:
-      defaultMode: 444
-      # Adjust this if you want to reference a different secret for the login client PAT.
-      secretName: login-client
+  extraVolumeMounts: []
+  extraVolumes: []
   # Number of pod replicas. While a single replica is fine for testing,
   # production environments should use 3 or more to prevent downtime during
   # updates and ensure high availability.
