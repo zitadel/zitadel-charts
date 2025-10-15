@@ -213,16 +213,6 @@ spec:
           resources:
             {{- toYaml .Values.resources | nindent 14 }}
       initContainers:
-        - name: wait-for-postgres
-          image: wait4x/wait4x:3.5
-          command:
-            - wait4x
-            - tcp
-            - {{ include "zitadel.postgresEndpoint" . }}
-            - --timeout
-            - "5m"
-            - --interval
-            - "5s"
       {{- with .Values.zitadel.initContainers }}
         {{- toYaml . | nindent 8 }}
       {{- end }}
