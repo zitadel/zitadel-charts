@@ -329,5 +329,5 @@ Example: tcp://db-postgresql:5432
 {{- $postgres := .Values.zitadel.configmapConfig.Database.Postgres -}}
 {{- $host := $postgres.Host -}}
 {{- $port := $postgres.Port | default 5432 -}}
-tcp://{{ $host }}:{{ $port }}
+{{ $host }}:{{ $port }}
 {{- end -}}
