@@ -82,6 +82,14 @@ Setup component labels
 {{- end }}
 
 {{/*
+Cleanup component labels
+*/}}
+{{- define "zitadel.cleanup.labels" -}}
+{{ include "zitadel.labels" . }}
+{{ include "componentSelectorLabel" "cleanup" }}
+{{- end }}
+
+{{/*
 Start component labels
 */}}
 {{- define "zitadel.start.labels" -}}

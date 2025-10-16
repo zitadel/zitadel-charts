@@ -161,7 +161,7 @@ spec:
             - sh
             - -c
             - |
-              until [ ! -z $(kubectl -n {{ .Release.Namespace }} get po ${POD_NAME} -o jsonpath='{.status.containerStatuses[?(@.name=="{{ .Chart.Name }}-setup")].state.terminated}') ]; do
+              until [ ! -z $(kubectl -n {{ .Release.Namespace }} get po ${POD_NAME} -o jsonpath="{.status.containerStatuses[?(@.name=='{{ .Chart.Name }}-setup')].state.terminated}") ]; do
                 echo 'waiting for {{ .Chart.Name }}-setup container to terminate';
                 sleep 5;
               done &&
@@ -196,7 +196,7 @@ spec:
             - sh
             - -c
             - |
-              until [ ! -z $(kubectl -n {{ .Release.Namespace }} get po ${POD_NAME} -o jsonpath='{.status.containerStatuses[?(@.name=="{{ .Chart.Name }}-setup")].state.terminated}') ]; do
+              until [ ! -z $(kubectl -n {{ .Release.Namespace }} get po ${POD_NAME} -o jsonpath="{.status.containerStatuses[?(@.name=='{{ .Chart.Name }}-setup')].state.terminated}") ]; do
                 echo 'waiting for {{ .Chart.Name }}-setup container to terminate';
                 sleep 5;
               done &&
