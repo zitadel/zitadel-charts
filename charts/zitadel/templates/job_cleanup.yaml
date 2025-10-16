@@ -44,8 +44,8 @@ spec:
             - -c
             - |
               echo "Cleaning up secrets created by zitadel-setup..."
-              kubectl -n {{ .Release.Namespace }} delete secret \
-                -l 'app.kubernetes.io/managed-by=Zitadel,app.kubernetes.io/instance={{ .Release.Name }}' \
+              kubectl --namespace={{ .Release.Namespace }} delete secret \
+                --selector='app.kubernetes.io/managed-by=Zitadel,app.kubernetes.io/instance={{ .Release.Name }}' \
                 --ignore-not-found=true
               echo "Cleanup completed"
           resources:
