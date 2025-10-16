@@ -12,7 +12,7 @@ zitadel:
         Webhook:
           Enabled: false
         # Configures the initial instance created by the ZITADEL setup job. The values
-    # defined here are used to bootstrap the first organization and its users.
+        # defined here are used to bootstrap the first organization and its users.
     FirstInstance:
       Org:
         # Defines an administrative machine user created with the IAM_OWNER role.
