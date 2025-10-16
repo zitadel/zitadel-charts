@@ -326,9 +326,15 @@ Format: tcp://<host>:<port>
 Example: tcp://db-postgresql:5432
 */}}
 {{- define "zitadel.postgresEndpoint" -}}
-{{- with .Values.zitadel.configmapConfig.Database.Postgres -}}
-  {{- if .Host }}
-    {{- .Host }}:{{ .Port | default 5432 }}
+{{- if .Values.zitadel -}}
+  {{- if .Values.zitadel.configmapConfig -}}
+    {{- if .Values.zitadel.configmapConfig.Database -}}
+      {{- with .Values.zitadel.configmapConfig.Database.Postgres -}}
+        {{- if .Host }}
+          {{- .Host }}:{{ .Port | default 5432 }}
+        {{- end -}}
+      {{- end -}}
+    {{- end -}}
   {{- end -}}
 {{- end -}}
 {{- end -}}
