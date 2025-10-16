@@ -206,8 +206,8 @@ spec:
               if [ -f /login-client/pat ]; then
                 kubectl --namespace={{ .Release.Namespace }} create secret generic {{ .Values.login.loginClientSecretPrefix }}login-client \
                   --from-file=pat=/login-client/pat \
+                  --labels='app.kubernetes.io/managed-by=Zitadel,app.kubernetes.io/name={{ include "zitadel.name" . }},app.kubernetes.io/instance={{ .Release.Name }}' \
                   --dry-run=client --output=yaml | \
-                kubectl label --local -f - 'app.kubernetes.io/managed-by=Zitadel' 'app.kubernetes.io/name={{ include "zitadel.name" . }}' 'app.kubernetes.io/instance={{ .Release.Name }}' --dry-run=client --output=yaml | \
                 kubectl apply -f -;
               fi;
           env:
