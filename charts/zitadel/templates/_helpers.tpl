@@ -297,3 +297,22 @@ Database SSL CA certificate Secret name
 {{ include "zitadel.fullname" . }}-db-ssl-ca-crt
 {{- end -}}
 {{- end -}}
+
+{{/*
+zitadel.kubeversion
+
+This helper template takes the Kubernetes cluster's version string, which
+can be complex (e.g., "v1.28.5+k3s1"), and returns a sanitized, clean
+version string in the "MAJOR.MINOR.PATCH" format. This is crucial for
+creating valid container image tags that won't fail on Kubernetes
+distributions with non-standard versioning schemes.
+
+Its logic first uses the `semver` function to parse the full version
+string, intelligently separating the core version numbers from extra
+suffixes. The `printf` function then rebuilds the string using only the
+major, minor, and patch components, guaranteeing a clean and valid output.
+*/}}
+{{- define "zitadel.kubeVersion" -}}
+{{- $version := semver .Capabilities.KubeVersion.Version -}}
+{{- printf "%d.%d.%d" $version.Major $version.Minor $version.Patch -}}
+{{- end -}}
