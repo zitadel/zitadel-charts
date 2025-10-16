@@ -109,6 +109,7 @@ spec:
             - wait4x
             - http
             - {{ include "zitadel.clusterEndpoint" . }}
+            - --insecure-skip-tls-verify
             - --expect-status-code
             - "200"
             - --timeout
