@@ -452,7 +452,7 @@ cleanupJob:
   # on helm uninstall, and the delete policy removes the job after completion.
   annotations:
     helm.sh/hook: post-delete
-    helm.sh/hook-delete-policy: hook-succeeded,hook-failed
+    helm.sh/hook-delete-policy: hook-succeeded
     helm.sh/hook-weight: "-1"
   # Number of retries before marking the cleanup job as failed.
   backoffLimit: 3
