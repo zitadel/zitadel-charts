@@ -299,8 +299,46 @@ Database SSL CA certificate Secret name
 {{- end -}}
 
 {{/*
-zitadel.kubeversion
+Returns the internal cluster endpoint URL for ZITADEL health checks.
+This is used by wait4x and other internal pod-to-pod communication.
+The URL scheme (http/https) is determined by the TLS configuration:
+- If zitadel.configmapConfig.TLS.Enabled is true, uses https://
+- Otherwise, uses http://
+The URL format is: <scheme>://<service-name>:<port>/debug/ready
+Example outputs:
+  - http://my-release-zitadel:8080/debug/ready
+  - https://my-release-zitadel:8080/debug/ready
+*/}}
+{{- define "zitadel.clusterEndpoint" -}}
+{{- if include "deepCheck" (dict "root" .Values "path" (splitList "." "zitadel.configmapConfig.TLS.Enabled")) -}}
+https://{{ include "zitadel.fullname" . }}:{{ .Values.service.port }}/debug/ready
+{{- else -}}
+http://{{ include "zitadel.fullname" . }}:{{ .Values.service.port }}/debug/ready
+{{- end -}}
+{{- end -}}
 
+
+{{/*
+Returns the PostgreSQL TCP endpoint for wait4x health checks.
+Extracts the database host and port from ZITADEL configuration.
+Format: tcp://<host>:<port>
+Example: tcp://db-postgresql:5432
+*/}}
+{{- define "zitadel.postgresEndpoint" -}}
+{{- if .Values.zitadel -}}
+  {{- if .Values.zitadel.configmapConfig -}}
+    {{- if .Values.zitadel.configmapConfig.Database -}}
+      {{- with .Values.zitadel.configmapConfig.Database.Postgres -}}
+        {{- if .Host }}
+          {{- .Host }}:{{ .Port | default 5432 }}
+        {{- end -}}
+      {{- end -}}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
 This helper template takes the Kubernetes cluster's version string, which
 can be complex (e.g., "v1.28.5+k3s1"), and returns a sanitized, clean
 version string in the "MAJOR.MINOR.PATCH" format. This is crucial for

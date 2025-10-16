@@ -212,8 +212,30 @@ spec:
           {{- end }}
           resources:
             {{- toYaml .Values.resources | nindent 14 }}
-      {{- if or .Values.zitadel.selfSignedCert.enabled .Values.zitadel.initContainers}}
       initContainers:
+      # The following initContainer is conditional. It is only added if the
+      # PostgreSQL endpoint can be fully determined from the Helm values. This is
+      # necessary to gracefully handle configurations where database credentials are
+      # provided via external secrets (instead of the values file), which would
+      # otherwise cause a template rendering error during `helm install`.
+      {{- $pgEndpoint := include "zitadel.postgresEndpoint" . }}
+      {{- if $pgEndpoint }}
+        # This initContainer acts as a dependency check before the main application
+        # starts. It uses the `wait4x` tool to pause the pod's startup sequence
+        # until the PostgreSQL database is accepting TCP connections. This prevents
+        # the main ZITADEL container from starting and potentially crashing before its
+        # database is available, thus improving deployment reliability.
+        - name: wait-for-postgres
+          image: wait4x/wait4x:3.5
+          command:
+            - wait4x
+            - tcp
+            - {{ $pgEndpoint }}
+            - --timeout
+            - "5m"
+            - --interval
+            - "5s"
+      {{- end }}
       {{- with .Values.zitadel.initContainers }}
         {{- toYaml . | nindent 8 }}
       {{- end }}
@@ -238,7 +260,6 @@ spec:
             - "openssl req -nodes -x509 -sha256 -newkey rsa:4096 -keyout /etc/tls/tls.key -out /etc/tls/tls.crt -days 3560 -subj \"/CN=ZITADEL Chart Demo\" -addext \"subjectAltName = DNS:localhost,DNS:${POD_IP},DNS:${POD_NAME}{{- if .Values.zitadel.configmapConfig.ExternalDomain -}},DNS:{{- .Values.zitadel.configmapConfig.ExternalDomain -}}{{- end -}}{{- if .Values.zitadel.selfSignedCert.additionalDnsName -}},DNS:{{- .Values.zitadel.selfSignedCert.additionalDnsName -}}{{- end -}}\""
           securityContext:
             {{- toYaml .Values.securityContext | nindent 12 }}
-      {{- end }}
       {{- end }}
       volumes:
       - name: zitadel-config-yaml
