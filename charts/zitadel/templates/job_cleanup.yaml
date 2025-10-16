@@ -4,20 +4,18 @@ kind: Job
 metadata:
   name: "{{ include "zitadel.fullname" . }}-cleanup"
   labels:
-    {{- include "zitadel.labels" . | nindent 4 }}
-    app.kubernetes.io/component: cleanup
+    {{- include "zitadel.cleanup.labels" . | nindent 4 }}
+  {{- with .Values.cleanupJob.annotations }}
   annotations:
-    helm.sh/hook: post-delete
-    helm.sh/hook-delete-policy: hook-succeeded,hook-failed
-    helm.sh/hook-weight: "-1"
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
 spec:
   backoffLimit: {{ .Values.cleanupJob.backoffLimit }}
   activeDeadlineSeconds: {{ .Values.cleanupJob.activeDeadlineSeconds }}
   template:
     metadata:
       labels:
-        {{- include "zitadel.labels" . | nindent 8 }}
-        app.kubernetes.io/component: cleanup
+        {{- include "zitadel.cleanup.labels" . | nindent 8 }}
         {{- with .Values.cleanupJob.podAdditionalLabels }}
           {{- toYaml . | nindent 8 }}
         {{- end }}
