@@ -4,4 +4,4 @@ metadata:
   name: existing-zitadel-masterkey
 type: Opaque
 stringData:
-  masterkey: x123456789012345678901234567891y
+  masterkey: "x123456789012345678901234567891y"
