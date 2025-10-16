@@ -321,7 +321,6 @@ http://{{ include "zitadel.fullname" . }}:{{ .Values.service.port }}/debug/ready
 {{/*
 Returns the PostgreSQL TCP endpoint for wait4x health checks.
 Extracts the database host and port from ZITADEL configuration.
-Supports both "Postgres" and "postgres" key variations.
 Format: tcp://<host>:<port>
 Example: tcp://db-postgresql:5432
 */}}
