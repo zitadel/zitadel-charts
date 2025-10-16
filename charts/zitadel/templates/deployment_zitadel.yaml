@@ -212,8 +212,17 @@ spec:
           {{- end }}
           resources:
             {{- toYaml .Values.resources | nindent 14 }}
-      {{- if or .Values.zitadel.selfSignedCert.enabled .Values.zitadel.initContainers}}
       initContainers:
+        - name: wait-for-postgres
+          image: wait4x/wait4x:3.5
+          command:
+            - wait4x
+            - tcp
+            - {{ include "zitadel.postgresEndpoint" . }}
+            - --timeout
+            - "5m"
+            - --interval
+            - "5s"
       {{- with .Values.zitadel.initContainers }}
         {{- toYaml . | nindent 8 }}
       {{- end }}
@@ -238,7 +247,6 @@ spec:
             - "openssl req -nodes -x509 -sha256 -newkey rsa:4096 -keyout /etc/tls/tls.key -out /etc/tls/tls.crt -days 3560 -subj \"/CN=ZITADEL Chart Demo\" -addext \"subjectAltName = DNS:localhost,DNS:${POD_IP},DNS:${POD_NAME}{{- if .Values.zitadel.configmapConfig.ExternalDomain -}},DNS:{{- .Values.zitadel.configmapConfig.ExternalDomain -}}{{- end -}}{{- if .Values.zitadel.selfSignedCert.additionalDnsName -}},DNS:{{- .Values.zitadel.selfSignedCert.additionalDnsName -}}{{- end -}}\""
           securityContext:
             {{- toYaml .Values.securityContext | nindent 12 }}
-      {{- end }}
       {{- end }}
       volumes:
       - name: zitadel-config-yaml
