@@ -330,6 +330,7 @@ Example: tcp://db-postgresql:5432
 {{- $host := $postgres.Host -}}
 {{- $port := $postgres.Port | default 5432 -}}
 {{ $host }}:{{ $port }}
+{{- end -}}
 
 {{/*
 This helper template takes the Kubernetes cluster's version string, which
