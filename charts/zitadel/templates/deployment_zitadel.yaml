@@ -213,6 +213,7 @@ spec:
           resources:
             {{- toYaml .Values.resources | nindent 14 }}
       initContainers:
+      {{- if .Values.zitadel.configmapConfig.Database.Postgres }}
         - name: wait-for-postgres
           image: wait4x/wait4x:3.5
           command:
@@ -223,6 +224,7 @@ spec:
             - "5m"
             - --interval
             - "5s"
+      {{- end }}
       {{- with .Values.zitadel.initContainers }}
         {{- toYaml . | nindent 8 }}
       {{- end }}
