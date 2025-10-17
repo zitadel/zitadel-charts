@@ -6,7 +6,6 @@ metadata:
   name: {{ include "zitadel.login.fullname" . }}
   labels:
     {{- include "login.labels" . | nindent 4 }}
-    app.kubernetes.io/component: hpa
   {{- with .Values.login.autoscaling.annotations }}
   annotations:
     {{- toYaml . | nindent 4 }}
