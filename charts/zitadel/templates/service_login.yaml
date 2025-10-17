@@ -5,7 +5,7 @@ metadata:
   name: {{ include "zitadel.login.fullname" . }}
   {{- if .Values.login.service }}
   annotations:
-    {{- if eq .Values.ingress.controller "aws" }}
+    {{- if eq .Values.login.ingress.controller "aws" }}
     alb.ingress.kubernetes.io/healthcheck-path: {{ include "login.livenessProbePath" . }}
     {{- end }}
     {{- with .Values.login.service.annotations }}
