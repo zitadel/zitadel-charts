@@ -449,6 +449,39 @@ initJob:
   # zitadel: initialize ZITADEL internals (skip "create user" and "create database")
   command: ""
 
+# Cleanup Job configuration for removing imperatively created resources on
+# helm uninstall. The setup job creates secrets using kubectl that aren't
+# tracked by Helm's lifecycle, causing them to persist after chart removal.
+# This job runs as a post-delete hook to clean up those orphaned resources.
+cleanupJob:
+  # Enable the cleanup job to remove secrets created by the setup job.
+  # Set to false if you want to preserve secrets across reinstalls.
+  enabled: true
+  # Annotations for the cleanup job. The post-delete hook ensures this runs
+  # on helm uninstall, and the delete policy removes the job after completion.
+  annotations:
+    helm.sh/hook: post-delete
+    helm.sh/hook-delete-policy: hook-succeeded
+    helm.sh/hook-weight: "-1"
+  # Number of retries before marking the cleanup job as failed.
+  backoffLimit: 3
+  # Maximum time in seconds for the cleanup job to complete.
+  # After this deadline, the job is terminated even if still running.
+  activeDeadlineSeconds: 60
+  # Resource limits and requests for the cleanup job container.
+  # Keep minimal as this job only runs kubectl delete commands.
+  resources: {}
+    # limits:
+    #   cpu: 100m
+    #   memory: 128Mi
+    # requests:
+    #   cpu: 50m
+    #   memory: 64Mi
+  # Additional annotations to add to cleanup job pods.
+  podAnnotations: {}
+  # Additional labels to add to cleanup job pods.
+  podAdditionalLabels: {}
+
 setupJob:
   annotations:
     helm.sh/hook: pre-install,pre-upgrade

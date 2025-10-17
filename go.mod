@@ -3,7 +3,7 @@ module github.com/zitadel/zitadel-charts
 go 1.24.0
 
 require (
-	github.com/chromedp/chromedp v0.14.1
+	github.com/chromedp/chromedp v0.14.2
 	github.com/gruntwork-io/terratest v0.51.0
 	github.com/jinzhu/copier v0.4.0
 	github.com/stretchr/testify v1.11.1

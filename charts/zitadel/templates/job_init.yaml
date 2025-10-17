@@ -5,10 +5,10 @@ metadata:
   name: "{{ include "zitadel.fullname" . }}-init"
   labels:
     {{- include "zitadel.init.labels" . | nindent 4 }}
-    {{- with .Values.initJob.annotations }}
+  {{- with .Values.initJob.annotations }}
   annotations:
-      {{- toYaml . | nindent 4 }}
-    {{- end }}
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
 spec:
   backoffLimit: {{ .Values.initJob.backoffLimit }}
   activeDeadlineSeconds: {{ .Values.initJob.activeDeadlineSeconds }}
