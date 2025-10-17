@@ -252,7 +252,8 @@ login:
   ingress:
     enabled: false
     className: ""
-    annotations: {}
+    annotations:
+      alb.ingress.kubernetes.io/healthcheck-path: /ui/v2/login/healthy
     hosts:
       - paths:
           - path: /ui/v2/login
@@ -399,8 +400,10 @@ service:
 
 ingress:
   enabled: false
+  controller: generic # options: generic, aws
   className: ""
   annotations:
+    alb.ingress.kubernetes.io/group.order: '10' # to not conflict with zitadel-login
     nginx.ingress.kubernetes.io/backend-protocol: "GRPC"
   hosts:
     - paths:
