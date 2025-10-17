@@ -12,7 +12,6 @@ metadata:
     {{- toYaml . | nindent 4 }}
     {{- end }}
   {{- end }}
-  {{- end }}
   labels:
     {{- include "login.labels" . | nindent 4 }}
     {{- with .Values.login.service.labels }}
