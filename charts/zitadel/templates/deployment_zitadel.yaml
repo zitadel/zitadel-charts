@@ -120,7 +120,7 @@ spec:
           {{- if .Values.livenessProbe.enabled }}
           livenessProbe:
             httpGet:
-              path: /debug/healthz
+              path: {{ include "zitadel.livenessProbePath" . }}
               port: {{ .Values.service.protocol }}-server
 
               {{- if .Values.zitadel.configmapConfig.ExternalDomain }}
@@ -140,7 +140,7 @@ spec:
           {{- if .Values.readinessProbe.enabled }}
           readinessProbe:
             httpGet:
-              path: /debug/ready
+              path: {{ include "zitadel.readinessProbePath" . }}
               port: {{ .Values.service.protocol }}-server
               {{- if .Values.zitadel.configmapConfig.ExternalDomain }}
               httpHeaders:
@@ -159,7 +159,7 @@ spec:
           {{- if .Values.startupProbe.enabled }}
           startupProbe:
             httpGet:
-              path: /debug/ready
+              path: {{ include "zitadel.startupProbePath" . }}
               port: {{ .Values.service.protocol }}-server
               {{- if .Values.zitadel.configmapConfig.ExternalDomain }}
               httpHeaders:

@@ -4,7 +4,7 @@ metadata:
   name: {{ include "zitadel.fullname" . }}
   {{- if .Values.service }}
   annotations:
-    alb.ingress.kubernetes.io/healthcheck-path: /healthz
+    alb.ingress.kubernetes.io/healthcheck-path: {{ include "zitadel.livenessProbePath" . }}
     {{- with .Values.service.annotations }}
     {{- toYaml . | nindent 4 }}
     {{- end }}
