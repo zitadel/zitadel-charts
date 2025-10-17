@@ -75,9 +75,9 @@ spec:
               path: {{ include "login.readinessProbePath" . }}
               port: {{ .Values.login.service.protocol }}-server
               scheme: {{ .Values.login.service.scheme }}
-            initialDelaySeconds: {{ .Values.readinessProbe.initialDelaySeconds }}
-            periodSeconds: {{ .Values.readinessProbe.periodSeconds }}
-            failureThreshold: {{ .Values.readinessProbe.failureThreshold }}
+            initialDelaySeconds: {{ .Values.login.readinessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.login.readinessProbe.periodSeconds }}
+            failureThreshold: {{ .Values.login.readinessProbe.failureThreshold }}
           {{- end }}
           {{- if .Values.login.startupProbe.enabled }}
           startupProbe:
