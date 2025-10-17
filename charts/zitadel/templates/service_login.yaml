@@ -4,9 +4,13 @@ kind: Service
 metadata:
   name: {{ include "zitadel.login.fullname" . }}
   {{- if .Values.login.service }}
-  {{- with .Values.login.service.annotations }}
   annotations:
-      {{- toYaml . | nindent 4 }}
+    {{- if eq .Values.ingress.controller "aws" }}
+    alb.ingress.kubernetes.io/healthcheck-path: {{ include "login.livenessProbePath" . }}
+    {{- end }}
+    {{- with .Values.login.service.annotations }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
   {{- end }}
   {{- end }}
   labels:
