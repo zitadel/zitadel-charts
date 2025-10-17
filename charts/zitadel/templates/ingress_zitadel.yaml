@@ -10,8 +10,7 @@ metadata:
   annotations:
     {{- if eq .Values.ingress.controller "aws" }}
     alb.ingress.kubernetes.io/conditions.{{ $fullName }}-grpc: >
-      [{"field":"http-header","httpHeaderConfig":{"httpHeaderName":
-      "Content-Type", "values":["application/grpc"]}}]
+      [{"field":"http-header","httpHeaderConfig":{"httpHeaderName":"Content-Type","values":["application/grpc"]}}]
     {{- end }}
     {{- with .Values.ingress.annotations }}
     {{- toYaml . | nindent 4 }}
