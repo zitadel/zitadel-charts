@@ -62,7 +62,7 @@ spec:
           {{- if .Values.login.livenessProbe.enabled }}
           livenessProbe:
             httpGet:
-              path: /ui/v2/login/healthy
+              path: {{ include "login.livenessProbePath" . }}
               port: {{ .Values.login.service.protocol }}-server
               scheme: {{ .Values.login.service.scheme }}
             initialDelaySeconds: {{ .Values.login.livenessProbe.initialDelaySeconds }}
@@ -72,17 +72,17 @@ spec:
           {{- if .Values.login.readinessProbe.enabled }}
           readinessProbe:
             httpGet:
-              path: /ui/v2/login/security
+              path: {{ include "login.readinessProbePath" . }}
               port: {{ .Values.login.service.protocol }}-server
               scheme: {{ .Values.login.service.scheme }}
-            initialDelaySeconds: {{ .Values.readinessProbe.initialDelaySeconds }}
-            periodSeconds: {{ .Values.readinessProbe.periodSeconds }}
-            failureThreshold: {{ .Values.readinessProbe.failureThreshold }}
+            initialDelaySeconds: {{ .Values.login.readinessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.login.readinessProbe.periodSeconds }}
+            failureThreshold: {{ .Values.login.readinessProbe.failureThreshold }}
           {{- end }}
           {{- if .Values.login.startupProbe.enabled }}
           startupProbe:
             httpGet:
-              path: /ui/v2/login/security
+              path: {{ include "login.startupProbePath" . }}
               port: {{ .Values.login.service.protocol }}-server
               scheme: {{ .Values.login.service.scheme }}
             periodSeconds: {{ .Values.login.startupProbe.periodSeconds }}

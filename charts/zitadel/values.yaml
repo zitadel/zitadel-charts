@@ -289,14 +289,27 @@ login:
     annotations: {}
     labels: {}
     scheme: HTTP
+  # Ingress configuration for exposing the ZITADEL Login UI service. This makes
+  # the web-based login interface accessible from outside the cluster. It can be
+  # configured independently of the main ZITADEL service Ingress.
   ingress:
+    # If true, creates an Ingress resource for the Login UI service.
     enabled: false
+    # The name of the IngressClass resource to use for this Ingress.
+    # Ref: https://kubernetes.io/docs/concepts/services-networking/ingress/#ingress-class
     className: ""
+    # A chart-specific setting to enable logic for different controllers.
+    # Use "aws" to generate AWS ALB-specific annotations.
+    controller: generic
+    # A map of annotations to apply to the Login UI Ingress resource.
     annotations: {}
+    # A list of host rules for the Ingress. The default path targets the login UI.
     hosts:
       - paths:
           - path: /ui/v2/login
             pathType: Prefix
+    # TLS configuration for the Ingress. Secure the login UI with HTTPS by
+    # referencing a secret containing the TLS certificate and key.
     tls: []
   serviceAccount:
     # Specifies whether a service account should be created
@@ -437,15 +450,30 @@ service:
   labels: {}
   scheme: HTTP
 
+# Ingress configuration for exposing the main ZITADEL service. This allows
+# external traffic to reach the ZITADEL API and gRPC endpoints. It can be
+# configured to work with various ingress controllers like NGINX, Traefik, or
+# AWS ALB.
 ingress:
+  # If true, creates an Ingress resource for the ZITADEL service.
   enabled: false
+  # A chart-specific setting to enable logic for different controllers.
+  # Use "aws" to generate AWS ALB-specific annotations and resources.
+  controller: generic
+  # The name of the IngressClass resource to use for this Ingress.
+  # Ref: https://kubernetes.io/docs/concepts/services-networking/ingress/#ingress-class
   className: ""
+  # A map of annotations to apply to the Ingress resource. The default annotation
+  # is for NGINX to correctly handle gRPC traffic.
   annotations:
     nginx.ingress.kubernetes.io/backend-protocol: "GRPC"
+  # A list of host rules for the Ingress. Each host can have multiple paths.
   hosts:
     - paths:
         - path: /
           pathType: Prefix
+  # TLS configuration for the Ingress. This allows you to secure the endpoint
+  # with HTTPS by referencing a secret that contains the TLS certificate and key.
   tls: []
 
 resources: {}
