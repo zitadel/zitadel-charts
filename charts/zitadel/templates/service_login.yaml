@@ -32,5 +32,5 @@ spec:
       name: {{ regexReplaceAll "\\W+" .Values.login.service.protocol "-" }}-server
       appProtocol: {{ .Values.login.service.appProtocol }}
   selector:
-    {{- include "zitadel.login.selectorLabels" . | nindent 4 }}
+    {{- include "login.selectorLabels" . | nindent 4 }}
 {{- end }}

@@ -309,7 +309,7 @@ login:
   # Horizontal Pod Autoscaler configuration for scaling on CPU, memory, or custom metrics.
   # Ref: https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale/
   autoscaling:
-    # If true, enables the Horizontal Pod Autoscaler for the Zitadel deployment.
+    # If true, enables the Horizontal Pod Autoscaler for the login deployment.
     # This will automatically override the `replicaCount` value.
     enabled: false
     # Optional map of annotations applied to the HPA object.
