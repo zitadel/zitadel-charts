@@ -11,13 +11,12 @@ zitadel:
           Enabled: true
         Webhook:
           Enabled: false
-    FirstInstance:
-      Org:
-        LoginClient:
-          Machine:
-            Username: 'login-client'
-            Name: 'Automatically Initialized IAM Login Client'
-          Pat.ExpirationDate: '2029-01-01T00:00:00Z'
+    SystemAPIUsers:
+     - login-system-user:
+       Path: /login-client-secret/login-client-public-key
+       Memberships:
+         - MemberType: System
+           Roles: "IAM_LOGIN_CLIENT"
 
   # The ZITADEL config under secretConfig is written to a Kubernetes Secret
   # See all defaults here:
@@ -30,17 +29,17 @@ zitadel:
     helm.sh/hook-delete-policy: before-hook-creation
     helm.sh/hook-weight: "0"
 
-  # Reference the name of a secret that contains ZITADEL configuration.
-  configSecretName:
-  # The key under which the ZITADEL configuration is located in the secret.
-  configSecretKey: config-yaml
-
   # ZITADEL uses the masterkey for symmetric encryption.
   # You can generate it for example with tr -dc A-Za-z0-9 </dev/urandom | head -c 32
   masterkey: ""
   # Reference the name of the secret that contains the masterkey. The key should be named "masterkey".
   # Note: Either zitadel.masterkey or zitadel.masterkeySecretName must be set
   masterkeySecretName: ""
+
+  # Reference the name of a secret that contains ZITADEL login private and public key.
+  configSecretName:
+  # The key under which the ZITADEL configuration is located in the secret.
+  configSecretKey: config-yaml
 
   # Number of old ReplicaSets to retain for rollback purposes
   # Set to 0 to not keep any old ReplicaSets
@@ -199,6 +198,21 @@ login:
   # To deploy zitadel multiple times in the same namespace, use a loginClientSecretPrefix.
   # To mount it, also change the referenced secretName for the login client to "{loginClientSecretPrefix}login-client"
   loginClientSecretPrefix:
+
+  # Reference the name of a secret that contains ZITADEL login client private and public key.
+  # If not provided, loginClientSecretPrefix is used to generate private and public key.
+  loginClientSecretName:
+  # ZITADEL Login client private key value base64 encoded, if not provided key is generated
+  loginClientSecretPrivateKey:
+  # ZITADEL Login client public key value base64 encoded, if not provided or private key is empty key is generated
+  loginClientSecretPublicKey:
+
+  # Annotations set on login client secret
+  loginClientSecretAnnotations:
+    helm.sh/hook: pre-install,pre-upgrade
+    helm.sh/hook-delete-policy: before-hook-creation
+    helm.sh/hook-weight: "0"
+
   extraVolumeMounts: []
   extraVolumes: []
   # Number of pod replicas. While a single replica is fine for testing,

@@ -207,6 +207,11 @@ spec:
           - name: tls
             mountPath: /etc/tls
           {{- end }}
+          {{- if (or .Values.login.loginClientSecretName .Values.login.loginClientSecretPrivateKey)}}
+          - name: login-client-secret
+            mountPath: /login-client-secret
+            readOnly: true
+          {{- end }}
           {{- with .Values.extraVolumeMounts }}
           {{- toYaml . | nindent 10 }}
           {{- end }}
@@ -283,6 +288,12 @@ spec:
       {{- if .Values.zitadel.selfSignedCert.enabled }}
       - name: tls
         emptyDir: {}
+      {{- end }}
+      {{- if (or .Values.login.loginClientSecretName .Values.login.loginClientSecretPrivateKey)}}
+      - name: login-client-secret
+        secret:
+          defaultMode: 444
+          secretName: {{ include "login.loginClientSecretName" . }}
       {{- end }}
       {{- with .Values.extraVolumes }}
       {{- toYaml . | nindent 6 }}

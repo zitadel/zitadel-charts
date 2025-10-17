@@ -14,7 +14,14 @@ data:
     {{- if .Values.login.customConfigmapConfig }}
     {{ .Values.login.customConfigmapConfig | nindent 4 }}
     {{- else }}
+      {{- if and (include "deepCheck" (dict "root" .Values "path" (splitList "." "zitadel.configmapConfig.FirstInstance.Org.LoginClient"))) (not (include "deepCheck" (dict "root" .Values "path" (splitList "." "zitadel.configmapConfig.FirstInstance.Skip")))) }}
       ZITADEL_SERVICE_USER_TOKEN_FILE="/login-client/pat"
+      {{- end }}
+      {{- if (or .Values.login.loginClientSecretName .Values.login.loginClientSecretPrivateKey)}}
+      AUDIENCE="http{{ if and .Values.zitadel.configmapConfig.TLS .Values.zitadel.configmapConfig.TLS.Enabled }}s{{ end }}://{{ include "zitadel.fullname" . }}:{{ .Values.service.port }}"
+      SYSTEM_USER_ID=login-system-user
+      SYSTEM_USER_PRIVATE_KEY_FILE=/login-client-secret/login-client-private-key
+      {{- end }}
       ZITADEL_API_URL="http{{ if and .Values.zitadel.configmapConfig.TLS .Values.zitadel.configmapConfig.TLS.Enabled }}s{{ end }}://{{ include "zitadel.fullname" . }}:{{ .Values.service.port }}"
       CUSTOM_REQUEST_HEADERS="Host:{{ .Values.zitadel.configmapConfig.ExternalDomain }}"
       {{- if .Values.zitadel.selfSignedCert.enabled }}

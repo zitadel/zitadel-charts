@@ -97,6 +97,11 @@ spec:
             mountPath: /login-client
             readOnly: true
           {{- end }}
+          {{- if (or .Values.login.loginClientSecretName .Values.login.loginClientSecretPrivateKey)}}
+          - name: login-client-secret
+            mountPath: /login-client-secret
+            readOnly: true
+          {{- end }}
           {{- with .Values.login.extraVolumeMounts }}
           {{- toYaml . | nindent 10 }}
           {{- end }}
@@ -115,6 +120,12 @@ spec:
         secret:
           defaultMode: 444
           secretName: {{ .Values.login.loginClientSecretPrefix }}login-client
+      {{- end }}
+      {{- if (or .Values.login.loginClientSecretName .Values.login.loginClientSecretPrivateKey)}}
+      - name: login-client-secret
+        secret:
+          defaultMode: 444
+          secretName: {{ include "login.loginClientSecretName" . }}
       {{- end }}
       {{- with .Values.login.extraVolumes }}
       {{- toYaml . | nindent 6 }}

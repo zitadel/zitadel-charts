@@ -288,6 +288,17 @@ ZITADEL masterkey Secret name
 {{- end -}}
 
 {{/*
+ZITADEL login client Secret name
+*/}}
+{{- define "login.loginClientSecretName" -}}
+{{- if .Values.login.loginClientSecretName -}}
+{{ .Values.login.loginClientSecretName }}
+{{- else -}}
+{{ include "login.loginClientSecretPrefix" . }}-login-client
+{{- end -}}
+{{- end -}}
+
+{{/*
 Database SSL CA certificate Secret name
 */}}
 {{- define "zitadel.dbSslCaCrtSecretName" -}}
