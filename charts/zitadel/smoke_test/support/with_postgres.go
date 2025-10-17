@@ -15,11 +15,10 @@ import (
 func WithPostgres(testing *testing.T, env *Env) {
 	testing.Helper()
 
-	repoAlias := "crdb-" + env.Namespace
 	chartRepository := "https://charts.bitnami.com/bitnami"
 
 	_, _ = helm.RunHelmCommandAndGetOutputE(testing, &helm.Options{},
-		"repo", "add", repoAlias, chartRepository)
+		"repo", "add", "bitnami", chartRepository)
 
 	helmOptions := &helm.Options{
 		KubectlOptions: env.Kube,
@@ -38,8 +37,6 @@ func WithPostgres(testing *testing.T, env *Env) {
 		},
 	}
 
-	chartName := fmt.Sprintf("%s/postgresql", repoAlias)
-	releaseName := "db"
-
-	require.NoError(testing, helm.UpgradeE(testing, helmOptions, chartName, releaseName))
+	chartName := fmt.Sprintf("%s/postgresql", "bitnami")
+	require.NoError(testing, helm.UpgradeE(testing, helmOptions, chartName, "db"))
 }

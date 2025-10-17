@@ -82,6 +82,14 @@ Setup component labels
 {{- end }}
 
 {{/*
+Cleanup component labels
+*/}}
+{{- define "zitadel.cleanup.labels" -}}
+{{ include "zitadel.labels" . }}
+{{ include "componentSelectorLabel" "cleanup" }}
+{{- end }}
+
+{{/*
 Start component labels
 */}}
 {{- define "zitadel.start.labels" -}}
@@ -296,4 +304,61 @@ Database SSL CA certificate Secret name
 {{- else -}}
 {{ include "zitadel.fullname" . }}-db-ssl-ca-crt
 {{- end -}}
+{{- end -}}
+
+{{/*
+Returns the internal cluster endpoint URL for ZITADEL health checks.
+This is used by wait4x and other internal pod-to-pod communication.
+The URL scheme (http/https) is determined by the TLS configuration:
+- If zitadel.configmapConfig.TLS.Enabled is true, uses https://
+- Otherwise, uses http://
+The URL format is: <scheme>://<service-name>:<port>/debug/ready
+Example outputs:
+  - http://my-release-zitadel:8080/debug/ready
+  - https://my-release-zitadel:8080/debug/ready
+*/}}
+{{- define "zitadel.clusterEndpoint" -}}
+{{- if include "deepCheck" (dict "root" .Values "path" (splitList "." "zitadel.configmapConfig.TLS.Enabled")) -}}
+https://{{ include "zitadel.fullname" . }}:{{ .Values.service.port }}/debug/ready
+{{- else -}}
+http://{{ include "zitadel.fullname" . }}:{{ .Values.service.port }}/debug/ready
+{{- end -}}
+{{- end -}}
+
+
+{{/*
+Returns the PostgreSQL TCP endpoint for wait4x health checks.
+Extracts the database host and port from ZITADEL configuration.
+Format: tcp://<host>:<port>
+Example: tcp://db-postgresql:5432
+*/}}
+{{- define "zitadel.postgresEndpoint" -}}
+{{- if .Values.zitadel -}}
+  {{- if .Values.zitadel.configmapConfig -}}
+    {{- if .Values.zitadel.configmapConfig.Database -}}
+      {{- with .Values.zitadel.configmapConfig.Database.Postgres -}}
+        {{- if .Host }}
+          {{- .Host }}:{{ .Port | default 5432 }}
+        {{- end -}}
+      {{- end -}}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
+This helper template takes the Kubernetes cluster's version string, which
+can be complex (e.g., "v1.28.5+k3s1"), and returns a sanitized, clean
+version string in the "MAJOR.MINOR.PATCH" format. This is crucial for
+creating valid container image tags that won't fail on Kubernetes
+distributions with non-standard versioning schemes.
+
+Its logic first uses the `semver` function to parse the full version
+string, intelligently separating the core version numbers from extra
+suffixes. The `printf` function then rebuilds the string using only the
+major, minor, and patch components, guaranteeing a clean and valid output.
+*/}}
+{{- define "zitadel.kubeVersion" -}}
+{{- $version := semver .Capabilities.KubeVersion.Version -}}
+{{- printf "%d.%d.%d" $version.Major $version.Minor $version.Patch -}}
 {{- end -}}
