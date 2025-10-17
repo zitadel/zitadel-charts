@@ -262,7 +262,7 @@ login:
     # Use "aws" to generate AWS ALB-specific annotations.
     controller: generic # options: generic, aws
     # A map of annotations to apply to the Login UI Ingress resource.
-    annotations: [ ]
+    annotations: []
     # A list of host rules for the Ingress. The default path targets the login UI.
     hosts:
       - paths:
@@ -270,7 +270,7 @@ login:
             pathType: Prefix
     # TLS configuration for the Ingress. Secure the login UI with HTTPS by
     # referencing a secret containing the TLS certificate and key.
-    tls: [ ]
+    tls: []
   serviceAccount:
     # Specifies whether a service account should be created
     create: true
