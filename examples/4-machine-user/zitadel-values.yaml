@@ -15,10 +15,7 @@ zitadel:
             Name: Admin
           MachineKey:
             ExpirationDate: "2026-01-01T00:00:00Z"
-            # Type: 1 means JSON. This is currently the only supported machine key type.
             Type: 1
-        # PAT:
-        #   ExpirationDate: "2026-01-01T00:00:00Z"
     Database:
       Postgres:
         Host: db-postgresql
