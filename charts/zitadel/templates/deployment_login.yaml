@@ -108,23 +108,27 @@ spec:
         # to serve traffic. It prevents a race condition where the UI might start,
         # fail to connect to the backend, and enter an error state.
         #
-        # It uses the `wait4x` tool to poll the Zitadel pod's readiness endpoint
-        # (`/debug/ready`). Startup is paused until this endpoint returns an HTTP 200
-        # OK status. The `--insecure-skip-tls-verify` flag is included to support
-        # environments that use self-signed certificates for internal TLS.
+        # Uses curl with --http2-prior-knowledge to properly handle HTTP/2 (h2c)
+        # health checks against Zitadel's /debug/ready endpoint. This ensures
+        # compatibility with service meshes and HTTP/2 configurations.
+        #
+        # NOTE: Do not replace with wait4x - it does not properly handle HTTP/2
+        # health checks and will fail in service mesh environments.
+        #
+        # The script polls the endpoint until it returns HTTP 200 OK. The --insecure
+        # flag supports environments using self-signed certificates.
         - name: wait-for-zitadel
-          image: wait4x/wait4x:3.5
+          image: curlimages/curl:8.10.1
           command:
-            - wait4x
-            - http
-            - {{ include "zitadel.clusterEndpoint" . }}
-            - --insecure-skip-tls-verify
-            - --expect-status-code
-            - "200"
-            - --timeout
-            - "5m"
-            - --interval
-            - "5s"
+            - sh
+            - -c
+            - |
+              echo "Waiting for Zitadel to be ready..."
+              until curl -f -s --insecure --http2-prior-knowledge --max-time 5 {{ include "zitadel.clusterEndpoint" . }} > /dev/null 2>&1; do
+                echo "Zitadel not ready yet, retrying in 5s..."
+                sleep 5
+              done
+              echo "Zitadel is ready!"
       {{- with .Values.login.initContainers }}
         {{- toYaml . | nindent 8 }}
       {{- end }}
