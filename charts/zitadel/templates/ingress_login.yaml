@@ -7,12 +7,15 @@ metadata:
   name: {{ $fullName }}
   labels:
     {{- include "login.labels" . | nindent 4 }}
-  {{- with .Values.login.ingress.annotations }}
   annotations:
+    {{- if eq .Values.login.ingress.controller "aws" }}
+    alb.ingress.kubernetes.io/group.order: '100' # after zitadel
+    {{- end }}
+    {{- with .Values.login.ingress.annotations }}
     {{- toYaml . | nindent 4 }}
-  {{- end }}
+    {{- end }}
 spec:
-  ingressClassName: {{ .Values.ingress.className }}
+  ingressClassName: {{ .Values.login.ingress.className }}
   {{- if .Values.login.ingress.tls }}
   tls:
     {{- range .Values.login.ingress.tls }}

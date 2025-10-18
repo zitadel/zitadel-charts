@@ -5,8 +5,7 @@ kind: HorizontalPodAutoscaler
 metadata:
   name: {{ include "zitadel.login.fullname" . }}
   labels:
-    {{- include "zitadel.login.labels" . | nindent 4 }}
-    app.kubernetes.io/component: hpa
+    {{- include "login.labels" . | nindent 4 }}
   {{- with .Values.login.autoscaling.annotations }}
   annotations:
     {{- toYaml . | nindent 4 }}

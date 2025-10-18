@@ -1,6 +1,9 @@
 {{- if include "deepCheck" (dict "root" .Values "path" (splitList "." "zitadel.configmapConfig.FirstInstance.MachineKeyPath")) -}}
 {{- fail "Specifying .Values.zitadel.configmapConfig.FirstInstance.MachineKeyPath is not supported" -}}
 {{- end -}}
+{{- if include "deepCheck" (dict "root" .Values "path" (splitList "." "zitadel.configmapConfig.FirstInstance.PatPath")) -}}
+{{- fail "Specifying .Values.zitadel.configmapConfig.FirstInstance.PatPath is not supported" -}}
+{{- end -}}
 {{- if include "deepCheck" (dict "root" .Values "path" (splitList "." "zitadel.configmapConfig.FirstInstance.LoginClientPatPath")) -}}
 {{- fail "Specifying .Values.zitadel.configmapConfig.FirstInstance.LoginClientPatPath is not supported" -}}
 {{- end -}}
@@ -94,6 +97,10 @@ spec:
                   key: masterkey
             - name: ZITADEL_FIRSTINSTANCE_MACHINEKEYPATH
               value: "/machinekey/sa.json"
+            {{- if and (not .Values.zitadel.configmapConfig.FirstInstance.Skip) (include "deepCheck" (dict "root" .Values "path" (splitList "." "zitadel.configmapConfig.FirstInstance.Org.Machine.Pat"))) }}
+            - name: ZITADEL_FIRSTINSTANCE_PATPATH
+              value: "/machinekey/pat"
+            {{- end }}
             - name: ZITADEL_FIRSTINSTANCE_LOGINCLIENTPATPATH
               value: "/login-client/pat"
             {{- $dbEnv := get (include "zitadel.dbkey.json" . | fromJson) "env" }}
@@ -169,6 +176,47 @@ spec:
               if [ -f /machinekey/sa.json ]; then
                 kubectl --namespace={{ .Release.Namespace }} create secret generic {{ .Values.zitadel.configmapConfig.FirstInstance.Org.Machine.Machine.Username }} \
                   --from-file={{ .Values.zitadel.configmapConfig.FirstInstance.Org.Machine.Machine.Username }}.json=/machinekey/sa.json \
+                  --dry-run=client --output=yaml | \
+                kubectl label --local --filename=- \
+                  app.kubernetes.io/managed-by=Zitadel \
+                  app.kubernetes.io/name={{ include "zitadel.name" . }} \
+                  app.kubernetes.io/instance={{ .Release.Name }} \
+                  --output=yaml | \
+                kubectl apply --filename=-;
+              fi;
+          env:
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+          volumeMounts:
+            - name: machinekey
+              mountPath: "/machinekey"
+              readOnly: true
+          resources:
+          {{- if .Values.setupJob.machinekeyWriter.resources }}
+            {{- toYaml .Values.setupJob.machinekeyWriter.resources | nindent 12 }}
+          {{- else }}
+            {{- toYaml .Values.setupJob.resources | nindent 12 }}
+          {{- end }}
+      {{- end }}
+      {{- if and (not .Values.zitadel.configmapConfig.FirstInstance.Skip) (include "deepCheck" (dict "root" .Values "path" (splitList "." "zitadel.configmapConfig.FirstInstance.Org.Machine.Pat"))) }}
+        - name: "{{ .Chart.Name }}-machine-pat"
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 14 }}
+          image: "{{ .Values.setupJob.machinekeyWriter.image.repository }}:{{ .Values.setupJob.machinekeyWriter.image.tag | default (.Capabilities.KubeVersion.GitVersion | trimPrefix "v") }}"
+          command:
+            - sh
+            - -c
+            - |
+              until [ ! -z $(kubectl --namespace={{ .Release.Namespace }} get pod ${POD_NAME} --output=jsonpath="{.status.containerStatuses[?(@.name=='{{ .Chart.Name }}-setup')].state.terminated}") ]; do
+                echo 'waiting for {{ .Chart.Name }}-setup container to terminate';
+                sleep 5;
+              done &&
+              echo '{{ .Chart.Name }}-setup container terminated' &&
+              if [ -f /machinekey/pat ]; then
+                kubectl --namespace={{ .Release.Namespace }} create secret generic {{ .Values.zitadel.configmapConfig.FirstInstance.Org.Machine.Machine.Username }}-pat \
+                  --from-file=pat=/machinekey/pat \
                   --dry-run=client --output=yaml | \
                 kubectl label --local --filename=- \
                   app.kubernetes.io/managed-by=Zitadel \

@@ -5,7 +5,7 @@ kind: PodDisruptionBudget
 metadata:
   name: {{ include "zitadel.login.fullname" . }}
   labels:
-    {{- include "zitadel.login.labels" . | nindent 4 }}
+    {{- include "login.labels" . | nindent 4 }}
   {{- with .Values.login.pdb.annotations }}
   annotations:
     {{- toYaml . | nindent 4 }}
@@ -22,6 +22,6 @@ spec:
   {{- end }}
   selector:
     matchLabels:
-      {{- include "zitadel.login.selectorLabels" . | nindent 6 }}
+      {{- include "login.selectorLabels" . | nindent 6 }}
 {{- end }}
 {{- end }}

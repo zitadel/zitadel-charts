@@ -6,7 +6,6 @@ metadata:
   name: {{ include "zitadel.fullname" . }}
   labels:
     {{- include "zitadel.labels" . | nindent 4 }}
-    app.kubernetes.io/component: hpa
   {{- with .Values.zitadel.autoscaling.annotations }}
   annotations:
     {{- toYaml . | nindent 4 }}

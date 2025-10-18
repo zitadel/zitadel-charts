@@ -11,13 +11,44 @@ zitadel:
           Enabled: true
         Webhook:
           Enabled: false
+        # Configures the initial instance created by the ZITADEL setup job. The values
+        # defined here are used to bootstrap the first organization and its users.
     FirstInstance:
       Org:
+        # Defines an administrative machine user created with the IAM_OWNER role.
+        # This user is intended for initial automation and administrative tasks
+        # right after the Helm chart is deployed.
+        #
+        # By default, a JWT Machine Key is generated and stored in a Kubernetes
+        # secret named after the `Username` (e.g., 'iam-admin').
+        #
+        # If the `Pat` block below is defined, a Personal Access Token (PAT) is
+        # also generated and stored in a separate Kubernetes secret. This secret
+        # will be named after the `Username` with a '-pat' suffix (e.g.,
+        # 'iam-admin-pat').
+        Machine:
+          Machine:
+            Username: 'iam-admin'
+            Name: 'Automatically Initialized IAM Admin'
+          MachineKey:
+            ExpirationDate: '2029-01-01T00:00:00Z'
+            Type: 1
+          # If this Pat object is present, a PAT will also be created.
+          Pat:
+            ExpirationDate: '2029-01-01T00:00:00Z'
+
+        # Defines the internal machine user required by the ZITADEL Login UI.
+        # This user communicates with the main ZITADEL API to handle login flows.
+        # It is a specialized, internal-use-only account and is not intended for
+        # general administrative use. A PAT is generated and stored in a
+        # Kubernetes secret named 'login-client'.
         LoginClient:
           Machine:
             Username: 'login-client'
             Name: 'Automatically Initialized IAM Login Client'
-          Pat.ExpirationDate: '2029-01-01T00:00:00Z'
+          # The expiration date for the Login UI's Personal Access Token (PAT).
+          Pat:
+            ExpirationDate: '2029-01-01T00:00:00Z'
 
   # The ZITADEL config under secretConfig is written to a Kubernetes Secret
   # See all defaults here:
@@ -126,13 +157,22 @@ zitadel:
   # The Secret containing the certificate at key tls.crt and tls.key for listening on HTTPS
   serverSslCrtSecret: ""
 
-  # Generate a self-signed certificate using an init container
-  # This will also mount the generated files to /etc/tls/ so that you can reference them in the pod.
-  # E.G. KeyPath: /etc/tls/tls.key CertPath: /etc/tls/tls.crt
-  # By default, the SAN DNS names include, localhost, the POD IP address and the POD name. You may include one more by using additionalDnsName like "my.zitadel.fqdn".
+  # Generate a self-signed TLS certificate using Helm's native functions.
+  # If enabled, this creates a Kubernetes secret containing a self-signed
+  # certificate and mounts it to /etc/tls/ in the ZITADEL pod.
+  #
+  # This is useful for quick demos or test environments without an ingress
+  # controller. It is NOT recommended for production use.
+  #
+  # The certificate will be valid for the `ExternalDomain`, `localhost`,
+  # and any host specified in `additionalDnsName`. It can't use dynamic
+  # values like the Pod IP, which the previous initContainer method did.
   selfSignedCert:
+    # -- If true, enables the generation of the self-signed certificate.
     enabled: false
-    additionalDnsName:
+    # -- An additional DNS name (SAN) to add to the certificate.
+    # e.g., "my-zitadel.example.com"
+    additionalDnsName: ""
 
   # Enabling this will create a debug pod that can be used to inspect the ZITADEL configuration and run zitadel commands using the zitadel binary.
   # This is useful for debugging and troubleshooting.
@@ -265,14 +305,27 @@ login:
     annotations: {}
     labels: {}
     scheme: HTTP
+  # Ingress configuration for exposing the ZITADEL Login UI service. This makes
+  # the web-based login interface accessible from outside the cluster. It can be
+  # configured independently of the main ZITADEL service Ingress.
   ingress:
+    # If true, creates an Ingress resource for the Login UI service.
     enabled: false
+    # The name of the IngressClass resource to use for this Ingress.
+    # Ref: https://kubernetes.io/docs/concepts/services-networking/ingress/#ingress-class
     className: ""
+    # A chart-specific setting to enable logic for different controllers.
+    # Use "aws" to generate AWS ALB-specific annotations.
+    controller: generic
+    # A map of annotations to apply to the Login UI Ingress resource.
     annotations: {}
+    # A list of host rules for the Ingress. The default path targets the login UI.
     hosts:
       - paths:
           - path: /ui/v2/login
             pathType: Prefix
+    # TLS configuration for the Ingress. Secure the login UI with HTTPS by
+    # referencing a secret containing the TLS certificate and key.
     tls: []
   serviceAccount:
     # Specifies whether a service account should be created
@@ -312,7 +365,7 @@ login:
   # Horizontal Pod Autoscaler configuration for scaling on CPU, memory, or custom metrics.
   # Ref: https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale/
   autoscaling:
-    # If true, enables the Horizontal Pod Autoscaler for the Zitadel deployment.
+    # If true, enables the Horizontal Pod Autoscaler for the login deployment.
     # This will automatically override the `replicaCount` value.
     enabled: false
     # Optional map of annotations applied to the HPA object.
@@ -413,15 +466,30 @@ service:
   labels: {}
   scheme: HTTP
 
+# Ingress configuration for exposing the main ZITADEL service. This allows
+# external traffic to reach the ZITADEL API and gRPC endpoints. It can be
+# configured to work with various ingress controllers like NGINX, Traefik, or
+# AWS ALB.
 ingress:
+  # If true, creates an Ingress resource for the ZITADEL service.
   enabled: false
+  # A chart-specific setting to enable logic for different controllers.
+  # Use "aws" to generate AWS ALB-specific annotations and resources.
+  controller: generic
+  # The name of the IngressClass resource to use for this Ingress.
+  # Ref: https://kubernetes.io/docs/concepts/services-networking/ingress/#ingress-class
   className: ""
+  # A map of annotations to apply to the Ingress resource. The default annotation
+  # is for NGINX to correctly handle gRPC traffic.
   annotations:
     nginx.ingress.kubernetes.io/backend-protocol: "GRPC"
+  # A list of host rules for the Ingress. Each host can have multiple paths.
   hosts:
     - paths:
         - path: /
           pathType: Prefix
+  # TLS configuration for the Ingress. This allows you to secure the endpoint
+  # with HTTPS by referencing a secret that contains the TLS certificate and key.
   tls: []
 
 resources: {}

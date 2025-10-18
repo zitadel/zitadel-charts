@@ -4,7 +4,7 @@ kind: Deployment
 metadata:
   name: {{ include "zitadel.login.fullname" . }}
   labels:
-    {{- include "zitadel.login.labels" . | nindent 4 }}
+    {{- include "login.labels" . | nindent 4 }}
   {{- with .Values.login.annotations }}
   annotations:
     {{- toYaml . | nindent 4 }}
@@ -18,7 +18,7 @@ spec:
   {{- end }}
   selector:
     matchLabels:
-      {{- include "zitadel.login.selectorLabels" . | nindent 6 }}
+      {{- include "login.selectorLabels" . | nindent 6 }}
   template:
     metadata:
       annotations:
@@ -27,7 +27,7 @@ spec:
         {{- end }}
         checksum/configmap: {{ include (print $.Template.BasePath "/configmap_login.yaml") . | sha256sum }}
       labels:
-        {{- include "zitadel.login.labels" . | nindent 8 }}
+        {{- include "login.labels" . | nindent 8 }}
         {{- with .Values.podAdditionalLabels }}
           {{- toYaml . | nindent 8 }}
         {{- end }}
@@ -62,7 +62,7 @@ spec:
           {{- if .Values.login.livenessProbe.enabled }}
           livenessProbe:
             httpGet:
-              path: /ui/v2/login/healthy
+              path: {{ include "login.livenessProbePath" . }}
               port: {{ .Values.login.service.protocol }}-server
               scheme: {{ .Values.login.service.scheme }}
             initialDelaySeconds: {{ .Values.login.livenessProbe.initialDelaySeconds }}
@@ -72,17 +72,17 @@ spec:
           {{- if .Values.login.readinessProbe.enabled }}
           readinessProbe:
             httpGet:
-              path: /ui/v2/login/security
+              path: {{ include "login.readinessProbePath" . }}
               port: {{ .Values.login.service.protocol }}-server
               scheme: {{ .Values.login.service.scheme }}
-            initialDelaySeconds: {{ .Values.readinessProbe.initialDelaySeconds }}
-            periodSeconds: {{ .Values.readinessProbe.periodSeconds }}
-            failureThreshold: {{ .Values.readinessProbe.failureThreshold }}
+            initialDelaySeconds: {{ .Values.login.readinessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.login.readinessProbe.periodSeconds }}
+            failureThreshold: {{ .Values.login.readinessProbe.failureThreshold }}
           {{- end }}
           {{- if .Values.login.startupProbe.enabled }}
           startupProbe:
             httpGet:
-              path: /ui/v2/login/security
+              path: {{ include "login.startupProbePath" . }}
               port: {{ .Values.login.service.protocol }}-server
               scheme: {{ .Values.login.service.scheme }}
             periodSeconds: {{ .Values.login.startupProbe.periodSeconds }}

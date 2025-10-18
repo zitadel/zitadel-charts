@@ -63,6 +63,7 @@ helm.sh/chart: {{ include "zitadel.chart" . }}
 {{ include "login.commonSelectorLabels" . }}
 app.kubernetes.io/version: {{ (.Values.image.tag | default .Chart.AppVersion | split "@")._0 | quote }}
 app.kubernetes.io/managed-by: {{ .Release.Service }}
+{{ include "componentSelectorLabel" "login" }}
 {{- end }}
 
 {{/*
@@ -110,14 +111,6 @@ Zitadel service labels
 */}}
 {{- define "zitadel.service.labels" -}}
 {{ include "zitadel.labels" . }}
-{{- end }}
-
-{{/*
-Login component labels
-*/}}
-{{- define "zitadel.login.labels" -}}
-{{ include "login.labels" . }}
-{{ include "componentSelectorLabel" "login" }}
 {{- end }}
 
 {{/*
@@ -178,7 +171,7 @@ Debug component selector labels
 {{/*
 Login component selector labels
 */}}
-{{- define "zitadel.login.selectorLabels" -}}
+{{- define "login.selectorLabels" -}}
 {{ include "login.commonSelectorLabels" . }}
 {{ include "componentSelectorLabel" "login" }}
 {{- end }}
@@ -361,4 +354,58 @@ major, minor, and patch components, guaranteeing a clean and valid output.
 {{- define "zitadel.kubeVersion" -}}
 {{- $version := semver .Capabilities.KubeVersion.Version -}}
 {{- printf "%d.%d.%d" $version.Major $version.Minor $version.Patch -}}
+{{- end -}}
+
+{{/*
+Returns the path for the ZITADEL login liveness probe. This endpoint
+checks the basic health of the login user interface service, ensuring it is
+running and responsive without verifying deeper dependencies.
+*/}}
+{{- define "login.livenessProbePath" -}}
+/ui/v2/login/healthy
+{{- end -}}
+
+{{/*
+Returns the path for the ZITADEL login readiness probe. This endpoint
+performs a more thorough check to verify that the service is fully ready to
+accept user traffic and can connect to its required backend dependencies.
+*/}}
+{{- define "login.readinessProbePath" -}}
+/ui/v2/login/security
+{{- end -}}
+
+{{/*
+Returns the path for the ZITADEL login startup probe. It uses the same
+thorough check as the readiness probe to ensure the application is fully
+initialized before its other probes (liveness, readiness) take over.
+*/}}
+{{- define "login.startupProbePath" -}}
+/ui/v2/login/security
+{{- end -}}
+
+{{/*
+Returns the path for the ZITADEL liveness probe. This endpoint provides a
+basic health check, confirming that the main ZITADEL process is running and
+able to respond to requests.
+*/}}
+{{- define "zitadel.livenessProbePath" -}}
+/debug/healthz
+{{- end -}}
+
+{{/*
+Returns the path for the ZITADEL readiness probe. This is a more detailed
+check that verifies the service is not only running but has also
+successfully connected to its database and is ready to serve traffic.
+*/}}
+{{- define "zitadel.readinessProbePath" -}}
+/debug/ready
+{{- end -}}
+
+{{/*
+Returns the path for the ZITADEL startup probe. It uses the same readiness
+check to allow the container sufficient time to complete its lengthy
+initialization, especially connecting to the database, before other probes begin.
+*/}}
+{{- define "zitadel.startupProbePath" -}}
+/debug/ready
 {{- end -}}
