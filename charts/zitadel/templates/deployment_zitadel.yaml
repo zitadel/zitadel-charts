@@ -239,28 +239,6 @@ spec:
       {{- with .Values.zitadel.initContainers }}
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- if .Values.zitadel.selfSignedCert.enabled }}
-        - name: generate-self-signed-cert
-          image: alpine/openssl
-          env:
-            - name: POD_NAME
-              valueFrom:
-                fieldRef:
-                  fieldPath: metadata.name
-            - name: POD_IP
-              valueFrom:
-                fieldRef:
-                  fieldPath: status.podIP
-          volumeMounts:
-            - name: tls
-              mountPath: "/etc/tls"
-          command:
-            - "/bin/ash"
-            - "-c"
-            - "openssl req -nodes -x509 -sha256 -newkey rsa:4096 -keyout /etc/tls/tls.key -out /etc/tls/tls.crt -days 3560 -subj \"/CN=ZITADEL Chart Demo\" -addext \"subjectAltName = DNS:localhost,DNS:${POD_IP},DNS:${POD_NAME}{{- if .Values.zitadel.configmapConfig.ExternalDomain -}},DNS:{{- .Values.zitadel.configmapConfig.ExternalDomain -}}{{- end -}}{{- if .Values.zitadel.selfSignedCert.additionalDnsName -}},DNS:{{- .Values.zitadel.selfSignedCert.additionalDnsName -}}{{- end -}}\""
-          securityContext:
-            {{- toYaml .Values.securityContext | nindent 12 }}
-      {{- end }}
       volumes:
       - name: zitadel-config-yaml
         configMap:
@@ -303,7 +281,8 @@ spec:
       {{- end }}
       {{- if .Values.zitadel.selfSignedCert.enabled }}
       - name: tls
-        emptyDir: {}
+        secret:
+          secretName: {{ include "zitadel.fullname" . }}-self-signed-tls
       {{- end }}
       {{- with .Values.extraVolumes }}
       {{- toYaml . | nindent 6 }}
