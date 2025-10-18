@@ -301,7 +301,7 @@ Database SSL CA certificate Secret name
 
 {{/*
 Returns the internal cluster endpoint URL for ZITADEL health checks.
-This is used by wait4x and other internal pod-to-pod communication.
+This is used by init containers and other internal pod-to-pod communication.
 The URL scheme (http/https) is determined by the TLS configuration:
 - If zitadel.configmapConfig.TLS.Enabled is true, uses https://
 - Otherwise, uses http://
