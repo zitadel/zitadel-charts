@@ -10,7 +10,7 @@ metadata:
   annotations:
     {{- if eq .Values.ingress.controller "aws" }}
     alb.ingress.kubernetes.io/group.order: '-1' # to not conflict with zitadel-login
-    alb.ingress.kubernetes.io/conditions.{{ $fullName }}-grpc: >
+    alb.ingress.kubernetes.io/conditions.{{ trunc 63 $fullName }}-grpc: >
       [{"field":"http-header","httpHeaderConfig":{"httpHeaderName":"Content-Type","values":["application/grpc"]}}]
     {{- end }}
     {{- with .Values.ingress.annotations }}

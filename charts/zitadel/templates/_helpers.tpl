@@ -63,6 +63,7 @@ helm.sh/chart: {{ include "zitadel.chart" . }}
 {{ include "login.commonSelectorLabels" . }}
 app.kubernetes.io/version: {{ (.Values.image.tag | default .Chart.AppVersion | split "@")._0 | quote }}
 app.kubernetes.io/managed-by: {{ .Release.Service }}
+{{ include "componentSelectorLabel" "login" }}
 {{- end }}
 
 {{/*
@@ -110,14 +111,6 @@ Zitadel service labels
 */}}
 {{- define "zitadel.service.labels" -}}
 {{ include "zitadel.labels" . }}
-{{- end }}
-
-{{/*
-Login component labels
-*/}}
-{{- define "zitadel.login.labels" -}}
-{{ include "login.labels" . }}
-{{ include "componentSelectorLabel" "login" }}
 {{- end }}
 
 {{/*
@@ -178,7 +171,7 @@ Debug component selector labels
 {{/*
 Login component selector labels
 */}}
-{{- define "zitadel.login.selectorLabels" -}}
+{{- define "login.selectorLabels" -}}
 {{ include "login.commonSelectorLabels" . }}
 {{ include "componentSelectorLabel" "login" }}
 {{- end }}

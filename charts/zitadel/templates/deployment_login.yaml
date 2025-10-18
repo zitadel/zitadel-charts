@@ -4,7 +4,7 @@ kind: Deployment
 metadata:
   name: {{ include "zitadel.login.fullname" . }}
   labels:
-    {{- include "zitadel.login.labels" . | nindent 4 }}
+    {{- include "login.labels" . | nindent 4 }}
   {{- with .Values.login.annotations }}
   annotations:
     {{- toYaml . | nindent 4 }}
@@ -18,7 +18,7 @@ spec:
   {{- end }}
   selector:
     matchLabels:
-      {{- include "zitadel.login.selectorLabels" . | nindent 6 }}
+      {{- include "login.selectorLabels" . | nindent 6 }}
   template:
     metadata:
       annotations:
@@ -27,7 +27,7 @@ spec:
         {{- end }}
         checksum/configmap: {{ include (print $.Template.BasePath "/configmap_login.yaml") . | sha256sum }}
       labels:
-        {{- include "zitadel.login.labels" . | nindent 8 }}
+        {{- include "login.labels" . | nindent 8 }}
         {{- with .Values.podAdditionalLabels }}
           {{- toYaml . | nindent 8 }}
         {{- end }}
