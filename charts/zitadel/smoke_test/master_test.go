@@ -143,7 +143,7 @@ func TestMasterkeySecretLogic(t *testing.T) {
 					secretName = testCase.expected.secretName
 				}
 
-				assertSecret(t, env, secretName, testCase.expected)
+				assertKey(t, env, secretName, testCase.expected)
 			})
 		})
 	}
@@ -166,7 +166,7 @@ func getMasterkeySecret(t *testing.T, env *support.Env, secretName string) *core
 }
 
 // assertSecret verifies secret existence and content based on expected configuration.
-func assertSecret(t *testing.T, env *support.Env, secretName string, expected masterkeyExpected) {
+func assertKey(t *testing.T, env *support.Env, secretName string, expected masterkeyExpected) {
 	secret := getMasterkeySecret(t, env, secretName)
 
 	if expected.secretCreated {
