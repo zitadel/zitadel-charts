@@ -9,7 +9,7 @@ require (
 	github.com/stretchr/testify v1.11.1
 	github.com/zitadel/oidc v1.13.5
 	github.com/zitadel/oidc/v3 v3.45.0
-	github.com/zitadel/zitadel-go/v3 v3.13.0
+	github.com/zitadel/zitadel-go/v3 v3.14.0
 	google.golang.org/grpc v1.76.0
 	gopkg.in/yaml.v3 v3.0.1
 	k8s.io/api v0.34.1
