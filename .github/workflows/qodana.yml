@@ -24,7 +24,7 @@ jobs:
           ref: ${{ inputs.ref }}
 
       - name: Run Qodana
-        uses: JetBrains/qodana-action@201551778d1453e36c5c0aa26f89a94775cb1acc # v2025.1
+        uses: JetBrains/qodana-action@v2025.2
         with:
           args: --baseline,.qodana/qodana.sarif.json
           push-fixes: true
