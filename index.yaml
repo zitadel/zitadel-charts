@@ -3,6 +3,22 @@ entries:
   zitadel:
   - apiVersion: v2
     appVersion: v4.2.0
+    created: "2025-10-20T03:17:08.199946661Z"
+    description: A Helm chart for ZITADEL
+    digest: 6b9805497433b6c89c4b70c3fd2112a9fe1f8b6bc7d93c39291f18cf6e9f5d76
+    icon: https://zitadel.com/zitadel-logo-dark.svg
+    kubeVersion: '>= 1.30.0-0'
+    maintainers:
+    - email: support@zitadel.com
+      name: zitadel
+      url: https://zitadel.com
+    name: zitadel
+    type: application
+    urls:
+    - https://github.com/zitadel/zitadel-charts/releases/download/zitadel-9.12.1/zitadel-9.12.1.tgz
+    version: 9.12.1
+  - apiVersion: v2
+    appVersion: v4.2.0
     created: "2025-10-18T04:23:13.041879872Z"
     description: A Helm chart for ZITADEL
     digest: ab3d6d11d80af32dbe35993c106dda2838ac721afd95484a271a1dd9e1a71bc4
@@ -1973,4 +1989,4 @@ entries:
     urls:
     - https://github.com/zitadel/zitadel-charts/releases/download/zitadel-2.0.0/zitadel-2.0.0.tgz
     version: 2.0.0
-generated: "2025-10-18T04:23:13.042333872Z"
+generated: "2025-10-20T03:17:08.200484728Z"
