@@ -301,7 +301,7 @@ login:
     clusterIP: ""
     # If service type is "LoadBalancer", this can optionally be set to either "Cluster" or "Local"
     externalTrafficPolicy: ""
-    port: 3000
+    port: 8081
     protocol: http
     appProtocol: kubernetes.io/http
     annotations: {}
