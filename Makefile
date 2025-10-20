@@ -104,7 +104,6 @@ start:
 		--set=zitadel.configmapConfig.Database.Postgres.Admin.Username=postgres \
 		--set=zitadel.configmapConfig.Database.Postgres.Admin.SSL.Mode=disable \
 		--set=login.enabled=true \
-		--set=login.tls.enabled=true \
 		--set=login.selfSignedCert.enabled=true \
 		--set=login.service.port=$(LOGIN_LOCAL_PORT) \
 		--wait --atomic --timeout=5m --hide-notes

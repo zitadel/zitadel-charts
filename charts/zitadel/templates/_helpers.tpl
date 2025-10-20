@@ -409,3 +409,8 @@ initialization, especially connecting to the database, before other probes begin
 {{- define "zitadel.startupProbePath" -}}
 /debug/ready
 {{- end -}}
+
+{{/* Global toggle: use TLS when Zitadel TLS is enabled */}}
+{{- define "config.useTls" -}}
+{{- if include "deepCheck" (dict "root" .Values "path" (splitList "." "zitadel.configmapConfig.TLS.Enabled")) -}}true{{- end -}}
+{{- end -}}

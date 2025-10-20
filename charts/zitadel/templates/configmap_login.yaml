@@ -15,7 +15,7 @@ data:
     {{ .Values.login.customConfigmapConfig | nindent 4 }}
     {{- else }}
       ZITADEL_SERVICE_USER_TOKEN_FILE="/login-client/pat"
-      ZITADEL_API_URL="http{{ if and .Values.zitadel.configmapConfig.TLS .Values.zitadel.configmapConfig.TLS.Enabled }}s{{ end }}://{{ include "zitadel.fullname" . }}:{{ .Values.service.port }}"
+      ZITADEL_API_URL="http{{ if include "config.useTls" . }}s{{ end }}://{{ include "zitadel.fullname" . }}:{{ .Values.service.port }}"
       CUSTOM_REQUEST_HEADERS="Host:{{ .Values.zitadel.configmapConfig.ExternalDomain }}"
       {{- if .Values.zitadel.selfSignedCert.enabled }}
       NODE_TLS_REJECT_UNAUTHORIZED=0
