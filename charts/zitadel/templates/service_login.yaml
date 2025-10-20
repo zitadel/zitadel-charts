@@ -30,7 +30,7 @@ spec:
       targetPort: {{ .Values.login.service.port }}
       protocol: TCP
       name: {{ regexReplaceAll "\\W+" .Values.login.service.protocol "-" }}-server
-      {{- if include "config.useTls" . }}
+      {{- if include "login.terminatesTLS" . }}
       appProtocol: https
       {{- else }}
       appProtocol: http

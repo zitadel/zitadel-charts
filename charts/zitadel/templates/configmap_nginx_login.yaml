@@ -17,7 +17,7 @@ data:
       server 127.0.0.1:3000;
     }
 
-    {{- if or .Values.zitadel.selfSignedCert.enabled .Values.zitadel.serverSslCrtSecret }}
+    {{- if include "login.terminatesTLS" . }}
     server {
       listen {{ .Values.login.service.port }} ssl;
       http2 on;

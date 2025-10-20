@@ -414,3 +414,21 @@ initialization, especially connecting to the database, before other probes begin
 {{- define "config.useTls" -}}
 {{- if include "deepCheck" (dict "root" .Values "path" (splitList "." "zitadel.configmapConfig.TLS.Enabled")) -}}true{{- end -}}
 {{- end -}}
+
+{{/*
+Determines if the Nginx reverse proxy sidecar container within the Login UI
+deployment should terminate TLS connections itself. This is crucial for correctly
+configuring the Nginx listener (HTTP vs. HTTPS) and the Kubernetes probes
+(scheme HTTP vs. HTTPS). The function returns "true" if certificates are
+configured specifically for the login component, implying it should handle TLS.
+This check verifies either `.Values.login.selfSignedCert.enabled` (indicating
+chart-generated certificates are requested for login) OR that a specific secret
+name is provided via `.Values.login.serverSslCrtSecret` for login's TLS certs.
+If neither is true, it returns an empty string (evaluates to false), assuming
+TLS termination happens upstream (e.g., at an Ingress controller) or isn't used.
+*/}}
+{{- define "login.terminatesTLS" -}}
+{{- if or .Values.login.selfSignedCert.enabled .Values.login.serverSslCrtSecret -}}
+true
+{{- end -}}
+{{- end -}}

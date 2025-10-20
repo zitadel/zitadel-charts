@@ -83,7 +83,7 @@ spec:
               port: {{ .Values.login.service.port }}
               # Use HTTPS scheme when TLS is enabled, HTTP otherwise.
               # This matches how nginx is configured to listen.
-              {{- if include "config.useTls" . }}
+              {{- if include "login.terminatesTLS" . }}
               scheme: HTTPS
               {{- else }}
               scheme: HTTP
@@ -102,7 +102,7 @@ spec:
             httpGet:
               path: /healthz
               port: {{ .Values.login.service.port }}
-              {{- if include "config.useTls" . }}
+              {{- if include "login.terminatesTLS" . }}
               scheme: HTTPS
               {{- else }}
               scheme: HTTP
