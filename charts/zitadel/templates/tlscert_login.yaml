@@ -1,0 +1,18 @@
+{{- if .Values.login.selfSignedCert.enabled }}
+{{- $cn := .Values.zitadel.configmapConfig.ExternalDomain | default (include "zitadel.fullname" .) }}
+{{- $sans := list $cn "localhost" }}
+{{- if .Values.login.selfSignedCert.additionalDnsName }}
+{{- $sans = append $sans .Values.login.selfSignedCert.additionalDnsName }}
+{{- end }}
+{{- $cert := genSelfSignedCert $cn nil $sans 3650 }}
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{ include "zitadel.login.fullname" . }}-self-signed-tls
+  labels:
+    {{- include "login.labels" . | nindent 4 }}
+type: kubernetes.io/tls
+data:
+  tls.crt: {{ $cert.Cert | b64enc }}
+  tls.key: {{ $cert.Key | b64enc }}
+{{- end }}

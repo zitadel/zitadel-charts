@@ -214,6 +214,24 @@ zitadel:
 
 login:
   enabled: true
+  nginx:
+    image: nginx:1.27-alpine
+  # Generate a self-signed TLS certificate using Helm's native functions.
+  # If enabled, this creates a Kubernetes secret containing a self-signed
+  # certificate and mounts it to /etc/tls/ in the ZITADEL pod.
+  #
+  # This is useful for quick demos or test environments without an ingress
+  # controller. It is NOT recommended for production use.
+  #
+  # The certificate will be valid for the `ExternalDomain`, `localhost`,
+  # and any host specified in `additionalDnsName`. It can't use dynamic
+  # values like the Pod IP, which the previous initContainer method did.
+  selfSignedCert:
+    # -- If true, enables the generation of the self-signed certificate.
+    enabled: false
+    # -- An additional DNS name (SAN) to add to the certificate.
+    # e.g., "my-zitadel.example.com"
+    additionalDnsName: ""
   # Pod Disruption Budget configuration for the main ZITADEL deployment.
   # Ensures high availability by limiting the number of pods that can be
   # simultaneously unavailable during voluntary disruptions (e.g., node drains,

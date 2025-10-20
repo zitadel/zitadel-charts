@@ -27,10 +27,14 @@ spec:
   {{- end }}
   ports:
     - port: {{ .Values.login.service.port }}
-      targetPort: {{ include "login.containerPort" . }}
+      targetPort: {{ .Values.login.service.port }}
       protocol: TCP
       name: {{ regexReplaceAll "\\W+" .Values.login.service.protocol "-" }}-server
-      appProtocol: {{ .Values.login.service.appProtocol }}
+      {{- if .Values.login.tls.enabled }}
+      appProtocol: https
+      {{- else }}
+      appProtocol: http
+      {{- end }}
   selector:
     {{- include "login.selectorLabels" . | nindent 4 }}
 {{- end }}

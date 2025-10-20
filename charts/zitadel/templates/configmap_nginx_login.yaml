@@ -1,0 +1,68 @@
+#file: noinspection HttpUrlsUsage
+# -----------------------------------------------------------------------------
+# This ConfigMap defines the NGINX configuration for the LOGIN sidecar. It is
+# used by the additional "nginx-ssl" container that runs alongside the Zitadel
+# Login deployment. The sidecar is responsible for handling TLS termination and
+# forwarding requests to the login service.
+# -----------------------------------------------------------------------------
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "zitadel.login.fullname" . }}-nginx
+  labels:
+    {{- include "login.labels" . | nindent 4 }}
+data:
+  default.conf: |
+    upstream login_app {
+      server 127.0.0.1:3000;
+    }
+
+    {{- if .Values.login.tls.enabled }}
+    server {
+      listen {{ .Values.login.service.port }} ssl;
+      http2 on;
+      ssl_certificate     /etc/nginx/certs/tls.crt;
+      ssl_certificate_key /etc/nginx/certs/tls.key;
+
+      location /healthz { return 200 "ok\n"; }
+
+      location / {
+        proxy_pass http://login_app;
+        proxy_set_header Host $http_host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Host $http_host;
+        proxy_set_header X-Forwarded-Port $server_port;
+        proxy_set_header X-Forwarded-Proto https;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_connect_timeout 60s;
+        proxy_send_timeout 60s;
+        proxy_read_timeout 60s;
+      }
+    }
+    {{- else }}
+    server {
+      listen {{ .Values.login.service.port }};
+      http2 on;
+
+      location /healthz { return 200 "ok\n"; }
+
+      location / {
+        proxy_pass http://login_app;
+        proxy_set_header Host $http_host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Host $http_host;
+        proxy_set_header X-Forwarded-Port $server_port;
+        proxy_set_header X-Forwarded-Proto http;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_connect_timeout 60s;
+        proxy_send_timeout 60s;
+        proxy_read_timeout 60s;
+      }
+    }
+    {{- end }}
