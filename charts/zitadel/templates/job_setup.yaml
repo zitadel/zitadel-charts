@@ -204,7 +204,7 @@ spec:
         - name: "{{ .Chart.Name }}-machine-pat"
           securityContext:
             {{- toYaml .Values.securityContext | nindent 14 }}
-          image: "{{ .Values.setupJob.machinekeyWriter.image.repository }}:{{ .Values.setupJob.machinekeyWriter.image.tag | default (.Capabilities.KubeVersion.GitVersion | trimPrefix "v") }}"
+          image: "{{ .Values.setupJob.machinekeyWriter.image.repository }}:{{ .Values.setupJob.machinekeyWriter.image.tag | default (include "zitadel.kubeVersion" .) }}"
           command:
             - sh
             - -c
