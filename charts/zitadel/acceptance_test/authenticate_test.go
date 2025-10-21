@@ -12,7 +12,7 @@ import (
 
 	"github.com/gruntwork-io/terratest/modules/k8s"
 	"github.com/zitadel/oidc/pkg/oidc"
-	mgmt_api "github.com/zitadel/zitadel-go/v3/pkg/client/zitadel/management"
+	mgmtapi "github.com/zitadel/zitadel-go/v3/pkg/client/zitadel/management"
 )
 
 func testAuthenticatedAPI(secretName, secretKey string) func(test *ConfigurationTest) {
@@ -96,7 +96,7 @@ func callAuthenticatedGRPCEndpoint(ctx context.Context, cfg *ConfigurationTest, 
 	if err != nil {
 		return fmt.Errorf("couldn't open gRPC connection: %v", err)
 	}
-	_, err = conn.GetSupportedLanguages(ctx, &mgmt_api.GetSupportedLanguagesRequest{})
+	_, err = conn.GetSupportedLanguages(ctx, &mgmtapi.GetSupportedLanguagesRequest{})
 	if err != nil {
 		t.Fatalf("couldn't call authenticated gRPC endpoint: %v", err)
 	}

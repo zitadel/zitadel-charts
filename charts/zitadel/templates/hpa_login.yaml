@@ -1,0 +1,46 @@
+#file: noinspection ExcessiveWhitespaceTrimInspection
+{{- if and .Values.login.enabled .Values.login.autoscaling.enabled }}
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: {{ include "zitadel.login.fullname" . }}
+  labels:
+    {{- include "login.labels" . | nindent 4 }}
+  {{- with .Values.login.autoscaling.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: {{ include "zitadel.login.fullname" . }}
+  minReplicas: {{ .Values.login.autoscaling.minReplicas }}
+  maxReplicas: {{ .Values.login.autoscaling.maxReplicas }}
+  {{- if or .Values.login.autoscaling.targetCPU .Values.login.autoscaling.targetMemory .Values.login.autoscaling.metrics }}
+  metrics:
+    {{- if .Values.login.autoscaling.targetCPU }}
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: {{ .Values.login.autoscaling.targetCPU }}
+    {{- end }}
+    {{- if .Values.login.autoscaling.targetMemory }}
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: {{ .Values.login.autoscaling.targetMemory }}
+    {{- end }}
+    {{- with .Values.login.autoscaling.metrics }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+  {{- end }}
+  {{- with .Values.login.autoscaling.behavior }}
+  behavior:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+{{- end }}

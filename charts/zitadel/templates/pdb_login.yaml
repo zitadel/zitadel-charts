@@ -1,0 +1,27 @@
+{{- if .Values.login.enabled }}
+{{- if .Values.login.pdb.enabled }}
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ include "zitadel.login.fullname" . }}
+  labels:
+    {{- include "login.labels" . | nindent 4 }}
+  {{- with .Values.login.pdb.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  {{- if and .Values.login.pdb.minAvailable .Values.login.pdb.maxUnavailable }}
+  {{- fail "You can only set either minAvailable or maxUnavailable" }}
+  {{- end }}
+  {{- if .Values.login.pdb.minAvailable }}
+  minAvailable: {{ .Values.login.pdb.minAvailable }}
+  {{- end }}
+  {{- if .Values.login.pdb.maxUnavailable }}
+  maxUnavailable: {{ .Values.login.pdb.maxUnavailable }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "login.selectorLabels" . | nindent 6 }}
+{{- end }}
+{{- end }}

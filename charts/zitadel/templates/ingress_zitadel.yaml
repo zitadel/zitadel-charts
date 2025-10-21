@@ -7,10 +7,15 @@ metadata:
   name: {{ $fullName }}
   labels:
     {{- include "zitadel.labels" . | nindent 4 }}
-  {{- with .Values.ingress.annotations }}
   annotations:
+    {{- if eq .Values.ingress.controller "aws" }}
+    alb.ingress.kubernetes.io/group.order: '-1' # to not conflict with zitadel-login
+    alb.ingress.kubernetes.io/conditions.{{ trunc 63 $fullName }}-grpc: >
+      [{"field":"http-header","httpHeaderConfig":{"httpHeaderName":"Content-Type","values":["application/grpc"]}}]
+    {{- end }}
+    {{- with .Values.ingress.annotations }}
     {{- toYaml . | nindent 4 }}
-  {{- end }}
+    {{- end }}
 spec:
   ingressClassName: {{ .Values.ingress.className }}
   {{- if .Values.ingress.tls }}
@@ -30,6 +35,15 @@ spec:
       http:
         paths:
           {{- range .paths }}
+          {{- if eq $.Values.ingress.controller "aws" }}
+          - path: {{ .path }}
+            pathType: {{ .pathType }}
+            backend:
+              service:
+                name: {{ $fullName }}-grpc
+                port:
+                  number: {{ $svcPort }}
+          {{- end }}
           - path: {{ .path }}
             pathType: {{ .pathType }}
             backend:

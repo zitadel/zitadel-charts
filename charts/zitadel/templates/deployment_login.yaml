@@ -4,7 +4,7 @@ kind: Deployment
 metadata:
   name: {{ include "zitadel.login.fullname" . }}
   labels:
-    {{- include "zitadel.login.labels" . | nindent 4 }}
+    {{- include "login.labels" . | nindent 4 }}
   {{- with .Values.login.annotations }}
   annotations:
     {{- toYaml . | nindent 4 }}
@@ -13,10 +13,12 @@ spec:
   {{- if .Values.login.revisionHistoryLimit }}
   revisionHistoryLimit: {{ .Values.login.revisionHistoryLimit }}
   {{- end }}
-  replicas: {{ .Values.replicaCount }}
+  {{- if not .Values.login.autoscaling.enabled }}
+  replicas: {{ .Values.login.replicaCount }}
+  {{- end }}
   selector:
     matchLabels:
-      {{- include "zitadel.login.selectorLabels" . | nindent 6 }}
+      {{- include "login.selectorLabels" . | nindent 6 }}
   template:
     metadata:
       annotations:
@@ -25,7 +27,7 @@ spec:
         {{- end }}
         checksum/configmap: {{ include (print $.Template.BasePath "/configmap_login.yaml") . | sha256sum }}
       labels:
-        {{- include "zitadel.login.labels" . | nindent 8 }}
+        {{- include "login.labels" . | nindent 8 }}
         {{- with .Values.podAdditionalLabels }}
           {{- toYaml . | nindent 8 }}
         {{- end }}
@@ -60,7 +62,7 @@ spec:
           {{- if .Values.login.livenessProbe.enabled }}
           livenessProbe:
             httpGet:
-              path: /ui/v2/login/healthy
+              path: {{ include "login.livenessProbePath" . }}
               port: {{ .Values.login.service.protocol }}-server
               scheme: {{ .Values.login.service.scheme }}
             initialDelaySeconds: {{ .Values.login.livenessProbe.initialDelaySeconds }}
@@ -70,17 +72,17 @@ spec:
           {{- if .Values.login.readinessProbe.enabled }}
           readinessProbe:
             httpGet:
-              path: /ui/v2/login/security
+              path: {{ include "login.readinessProbePath" . }}
               port: {{ .Values.login.service.protocol }}-server
               scheme: {{ .Values.login.service.scheme }}
-            initialDelaySeconds: {{ .Values.readinessProbe.initialDelaySeconds }}
-            periodSeconds: {{ .Values.readinessProbe.periodSeconds }}
-            failureThreshold: {{ .Values.readinessProbe.failureThreshold }}
+            initialDelaySeconds: {{ .Values.login.readinessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.login.readinessProbe.periodSeconds }}
+            failureThreshold: {{ .Values.login.readinessProbe.failureThreshold }}
           {{- end }}
           {{- if .Values.login.startupProbe.enabled }}
           startupProbe:
             httpGet:
-              path: /ui/v2/login/security
+              path: {{ include "login.startupProbePath" . }}
               port: {{ .Values.login.service.protocol }}-server
               scheme: {{ .Values.login.service.scheme }}
             periodSeconds: {{ .Values.login.startupProbe.periodSeconds }}
@@ -90,19 +92,54 @@ spec:
           - name: login-config-dotenv
             mountPath: /.env-file/
             readOnly: true
+          {{- if and (include "deepCheck" (dict "root" .Values "path" (splitList "." "zitadel.configmapConfig.FirstInstance.Org.LoginClient"))) (not (include "deepCheck" (dict "root" .Values "path" (splitList "." "zitadel.configmapConfig.FirstInstance.Skip")))) }}
+          - name: login-client
+            mountPath: /login-client
+            readOnly: true
+          {{- end }}
           {{- with .Values.login.extraVolumeMounts }}
           {{- toYaml . | nindent 10 }}
           {{- end }}
           resources:
             {{- toYaml .Values.login.resources | nindent 14 }}
-      {{- with .Values.login.initContainers }}
       initContainers:
+        # This initContainer acts as a dependency check, ensuring the Login UI pod
+        # does not start until the main Zitadel API is fully initialized and ready
+        # to serve traffic. It prevents a race condition where the UI might start,
+        # fail to connect to the backend, and enter an error state.
+        #
+        # It uses the `wait4x` tool to poll the Zitadel pod's readiness endpoint
+        # (`/debug/ready`). Startup is paused until this endpoint returns an HTTP 200
+        # OK status. The `--insecure-skip-tls-verify` flag is included to support
+        # environments that use self-signed certificates for internal TLS.
+        - name: wait-for-zitadel
+          image: wait4x/wait4x:3.6
+          command:
+            - wait4x
+            - http
+            - {{ include "zitadel.clusterEndpoint" . }}
+            - --insecure-skip-tls-verify
+            - --h2c
+            - --no-redirect
+            - --expect-status-code
+            - "200"
+            - --timeout
+            - "5m"
+            - --interval
+            - "5s"
+      {{- with .Values.login.initContainers }}
         {{- toYaml . | nindent 8 }}
       {{- end }}
       volumes:
       - name: login-config-dotenv
         configMap:
           name: {{ include "login.configmapName" . }}
+      {{- if and (include "deepCheck" (dict "root" .Values "path" (splitList "." "zitadel.configmapConfig.FirstInstance.Org.LoginClient"))) (not (include "deepCheck" (dict "root" .Values "path" (splitList "." "zitadel.configmapConfig.FirstInstance.Skip")))) }}
+      - name: login-client
+        secret:
+          defaultMode: 444
+          secretName: {{ .Values.login.loginClientSecretPrefix }}login-client
+      {{- end }}
       {{- with .Values.login.extraVolumes }}
       {{- toYaml . | nindent 6 }}
       {{- end }}
@@ -122,4 +159,4 @@ spec:
       topologySpreadConstraints:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-  {{- end }}
+{{- end }}

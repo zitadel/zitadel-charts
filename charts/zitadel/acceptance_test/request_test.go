@@ -30,7 +30,11 @@ func httpCall(ctx context.Context, method string, url string, beforeSend func(re
 	if err != nil {
 		return nil, nil, fmt.Errorf("sending request %+v failed: %s", *req, err)
 	}
-	defer resp.Body.Close()
+	defer func(Body io.ReadCloser) {
+		err := Body.Close()
+		if err != nil {
+		}
+	}(resp.Body)
 	responseBody, err := io.ReadAll(resp.Body)
 	return resp, responseBody, err
 }
