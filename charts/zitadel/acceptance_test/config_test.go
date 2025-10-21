@@ -1,9 +1,7 @@
 package acceptance_test
 
 import (
-	"fmt"
 	"path/filepath"
-	"strings"
 	"testing"
 
 	"github.com/gruntwork-io/terratest/modules/k8s"
@@ -56,7 +54,7 @@ func Configure(
 ) *ConfigurationTest {
 	chartPath, err := filepath.Abs("..")
 	require.NoError(t, err)
-	dbRepoName := fmt.Sprintf("crdb-%s", strings.TrimPrefix(namespace, "zitadel-helm-"))
+	dbRepoName := "postgres"
 	kubeOptions := k8s.NewKubectlOptions("", "", namespace)
 	clientset, err := k8s.GetKubernetesClientFromOptionsE(t, kubeOptions)
 	if err != nil {
