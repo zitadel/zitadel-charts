@@ -1,8 +1,6 @@
 package acceptance_test
 
 import (
-	"time"
-
 	"github.com/gruntwork-io/terratest/modules/helm"
 )
 
