@@ -5,7 +5,7 @@ on: 'pull_request'
 jobs:
   test:
 
-    runs-on: 'depot-ubuntu-24.04-8'
+    runs-on: 'depot-ubuntu-24.04-16'
 
     permissions:
       contents: 'read'
