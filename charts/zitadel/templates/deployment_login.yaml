@@ -113,12 +113,14 @@ spec:
         # OK status. The `--insecure-skip-tls-verify` flag is included to support
         # environments that use self-signed certificates for internal TLS.
         - name: wait-for-zitadel
-          image: wait4x/wait4x:3.5
+          image: wait4x/wait4x:3.6
           command:
             - wait4x
             - http
             - {{ include "zitadel.clusterEndpoint" . }}
             - --insecure-skip-tls-verify
+            - --h2c
+            - --no-redirect
             - --expect-status-code
             - "200"
             - --timeout
