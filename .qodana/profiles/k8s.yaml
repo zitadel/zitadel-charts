@@ -1,0 +1,5 @@
+name: "Kubernetes profile"
+baseProfile: qodana.recommended
+inspections:
+  - group: "category:Kubernetes"
+    enabled: true

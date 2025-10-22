@@ -1,0 +1,14 @@
+version: "1.0"
+
+linter: jetbrains/qodana-go:2025.2
+
+profile:
+  path: .qodana/profiles/k8s.yaml
+
+bootstrap: |
+  go mod download
+  go mod tidy
+
+plugins:
+  - id: Docker
+  - id: com.intellij.kubernetes
