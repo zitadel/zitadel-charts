@@ -10,4 +10,5 @@ bootstrap: |
   go mod tidy
 
 plugins:
+  - id: Docker
   - id: com.intellij.kubernetes
