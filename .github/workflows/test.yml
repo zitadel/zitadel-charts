@@ -65,7 +65,7 @@ jobs:
 
       - id: 'test'
         name: Run Go Tests
-        run: 'go test ./...'
+        run: 'go test -p 32 ./...'
 
       - id: 'upload-login-failures'
         name: Upload Login Failures
