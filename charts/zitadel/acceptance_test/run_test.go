@@ -50,7 +50,6 @@ func (s *ConfigurationTest) TestZitadelInstallation() {
 		t.FailNow()
 	}
 	if !t.Run("login", func(t *testing.T) {
-		time.Sleep(6 * time.Second)
 		s.login(ctx, t)
 	}) {
 		t.FailNow()
@@ -66,6 +65,5 @@ func listPods(t *testing.T, try int, kubeOptions *k8s.KubectlOptions) []corev1.P
 	if len(pods) == 1 {
 		return pods
 	}
-	time.Sleep(time.Second)
 	return listPods(t, try-1, kubeOptions)
 }
