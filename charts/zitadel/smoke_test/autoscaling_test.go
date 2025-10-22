@@ -1,4 +1,3 @@
-// file: charts/zitadel/smoke_test/autoscaling_test.go
 package smoke_test_test
 
 import (
@@ -42,8 +41,6 @@ func TestAutoscalingMatrix(t *testing.T) {
 
 	int32Ptr := func(value int32) *int32 { return &value }
 	selectPolicyPtr := func(v autoscalingv2.ScalingPolicySelect) *autoscalingv2.ScalingPolicySelect { return &v }
-
-	// Original commonSetValues removed from here (redefined inside the loop)
 
 	testCases := []struct {
 		name      string

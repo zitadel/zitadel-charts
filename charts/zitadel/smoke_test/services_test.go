@@ -1,4 +1,3 @@
-// file: charts/zitadel/smoke_test/services_test.go
 package smoke_test_test
 
 import (
@@ -34,8 +33,6 @@ func TestServiceMatrix(t *testing.T) {
 
 	chartPath, err := filepath.Abs("..")
 	require.NoError(t, err)
-
-	// commonSetValues definition is moved inside the loop below
 
 	testCases := []struct {
 		name      string

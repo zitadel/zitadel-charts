@@ -1,4 +1,3 @@
-// file: charts/zitadel/smoke_test/servacc_test.go
 package smoke_test_test
 
 import (

@@ -1,4 +1,3 @@
-// file: charts/zitadel/smoke_test/configmap_test.go
 package smoke_test_test
 
 import (
@@ -33,8 +32,6 @@ func TestConfigMapMatrix(t *testing.T) {
 
 	chartPath, err := filepath.Abs("..")
 	require.NoError(t, err)
-
-	// commonSetValues definition is moved inside the loop below
 
 	testCases := []struct {
 		name      string
@@ -129,7 +126,7 @@ func TestConfigMapMatrix(t *testing.T) {
 				uniqueDomain := fmt.Sprintf("%s.test.local", env.Namespace)
 				commonSetValues := map[string]string{
 					"zitadel.masterkey":                                         "x123456789012345678901234567891y",
-					"zitadel.configmapConfig.ExternalDomain":                    uniqueDomain, // Use dynamic domain
+					"zitadel.configmapConfig.ExternalDomain":                    uniqueDomain,
 					"zitadel.configmapConfig.ExternalPort":                      "443",
 					"zitadel.configmapConfig.TLS.Enabled":                       "false",
 					"zitadel.configmapConfig.Database.Postgres.Host":            "db-postgresql",

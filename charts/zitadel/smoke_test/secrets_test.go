@@ -1,4 +1,3 @@
-// file: charts/zitadel/smoke_test/secrets_test.go
 package smoke_test
 
 import (
@@ -15,7 +14,6 @@ import (
 	"github.com/zitadel/zitadel-charts/charts/zitadel/smoke_test/support"
 )
 
-// secretExpected describes the expected state for secret creation test cases.
 type secretExpected struct {
 	machineKeySecret   bool
 	machinePatSecret   bool
