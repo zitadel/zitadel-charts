@@ -182,6 +182,7 @@ func TestPodDisruptionBudgetMatrix(t *testing.T) {
 	for _, testCase := range testCases {
 		testCase := testCase
 		t.Run(testCase.name, func(t *testing.T) {
+			t.Parallel()
 			support.WithNamespace(t, cluster, func(env *support.Env) {
 				env.Logger.Logf(t, "namespace %q created; installing PostgreSQL…", env.Namespace)
 				support.WithPostgres(t, env)
