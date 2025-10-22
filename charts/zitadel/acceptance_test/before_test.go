@@ -27,8 +27,6 @@ func (s *ConfigurationTest) BeforeTest(_, _ string) {
 	}
 
 	helm.Install(s.T(), options, s.dbRepoName+"/"+s.dbChart.name, s.dbRelease)
-	s.T().Log("Waiting 30 seconds for PostgreSQL to become fully ready...")
-	time.Sleep(1 * time.Minute)
 
 	if s.afterDBFunc != nil {
 		s.afterDBFunc(s)
