@@ -2,6 +2,7 @@ package smoke_test_test
 
 import (
 	"context"
+	"fmt"
 	"path/filepath"
 	"testing"
 
@@ -32,26 +33,6 @@ func TestServiceMatrix(t *testing.T) {
 
 	chartPath, err := filepath.Abs("..")
 	require.NoError(t, err)
-
-	commonSetValues := map[string]string{
-		"zitadel.masterkey":                                         "x123456789012345678901234567891y",
-		"zitadel.configmapConfig.ExternalDomain":                    "pg-insecure.127.0.0.1.sslip.io",
-		"zitadel.configmapConfig.ExternalPort":                      "443",
-		"zitadel.configmapConfig.TLS.Enabled":                       "false",
-		"zitadel.configmapConfig.Database.Postgres.Host":            "db-postgresql",
-		"zitadel.configmapConfig.Database.Postgres.Port":            "5432",
-		"zitadel.configmapConfig.Database.Postgres.Database":        "zitadel",
-		"zitadel.configmapConfig.Database.Postgres.MaxOpenConns":    "20",
-		"zitadel.configmapConfig.Database.Postgres.MaxIdleConns":    "10",
-		"zitadel.configmapConfig.Database.Postgres.MaxConnLifetime": "30m",
-		"zitadel.configmapConfig.Database.Postgres.MaxConnIdleTime": "5m",
-		"zitadel.configmapConfig.Database.Postgres.User.Username":   "postgres",
-		"zitadel.configmapConfig.Database.Postgres.User.SSL.Mode":   "disable",
-		"zitadel.configmapConfig.Database.Postgres.Admin.Username":  "postgres",
-		"zitadel.configmapConfig.Database.Postgres.Admin.SSL.Mode":  "disable",
-		"ingress.enabled":       "true",
-		"login.ingress.enabled": "true",
-	}
 
 	testCases := []struct {
 		name      string
@@ -227,9 +208,32 @@ func TestServiceMatrix(t *testing.T) {
 	for _, testCase := range testCases {
 		testCase := testCase
 		t.Run(testCase.name, func(t *testing.T) {
+			t.Parallel()
 			support.WithNamespace(t, cluster, func(env *support.Env) {
 				env.Logger.Logf(t, "namespace %q created; installing PostgreSQL…", env.Namespace)
 				support.WithPostgres(t, env)
+
+				uniqueDomain := fmt.Sprintf("%s.test.local", env.Namespace)
+
+				commonSetValues := map[string]string{
+					"zitadel.masterkey":                                         "x123456789012345678901234567891y",
+					"zitadel.configmapConfig.ExternalDomain":                    uniqueDomain,
+					"zitadel.configmapConfig.ExternalPort":                      "443",
+					"zitadel.configmapConfig.TLS.Enabled":                       "false",
+					"zitadel.configmapConfig.Database.Postgres.Host":            "db-postgresql",
+					"zitadel.configmapConfig.Database.Postgres.Port":            "5432",
+					"zitadel.configmapConfig.Database.Postgres.Database":        "zitadel",
+					"zitadel.configmapConfig.Database.Postgres.MaxOpenConns":    "20",
+					"zitadel.configmapConfig.Database.Postgres.MaxIdleConns":    "10",
+					"zitadel.configmapConfig.Database.Postgres.MaxConnLifetime": "30m",
+					"zitadel.configmapConfig.Database.Postgres.MaxConnIdleTime": "5m",
+					"zitadel.configmapConfig.Database.Postgres.User.Username":   "postgres",
+					"zitadel.configmapConfig.Database.Postgres.User.SSL.Mode":   "disable",
+					"zitadel.configmapConfig.Database.Postgres.Admin.Username":  "postgres",
+					"zitadel.configmapConfig.Database.Postgres.Admin.SSL.Mode":  "disable",
+					"ingress.enabled":       "true",
+					"login.ingress.enabled": "true",
+				}
 
 				releaseName := env.MakeRelease("zitadel-test", testCase.name)
 

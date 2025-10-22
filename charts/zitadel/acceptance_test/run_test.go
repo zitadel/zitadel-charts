@@ -50,7 +50,6 @@ func (s *ConfigurationTest) TestZitadelInstallation() {
 		t.FailNow()
 	}
 	if !t.Run("login", func(t *testing.T) {
-		time.Sleep(60 * time.Second)
 		s.login(ctx, t)
 	}) {
 		t.FailNow()

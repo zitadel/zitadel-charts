@@ -4,7 +4,7 @@ all: test
 .PHONY: test
 test:
 	@echo "Running Go tests..."
-	@cd ./charts/zitadel/acceptance_test/ && go test -v -p 1 -timeout 30m
+	go test ./...
 
 # Validate Helm chart manifests using kubeconform. This renders the Helm chart
 # templates into Kubernetes YAML manifests and validates them against the K8s
