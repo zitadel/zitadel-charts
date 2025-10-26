@@ -1,3 +1,4 @@
+// file: charts/zitadel/acceptance_test/config_test.go
 package acceptance_test
 
 import (
@@ -36,9 +37,13 @@ var (
 		testValues: map[string]string{
 			"image.repository":                   "bitnamilegacy/postgresql",
 			"volumePermissions.image.repository": "bitnamilegacy/os-shell",
+			// FIX: Override Bitnami's naming to ensure the Service name is short (db-postgresql) and consistent.
+			"fullnameOverride": "db-postgresql",
 		},
 	}
 )
+
+const helmReleaseMaxLen = 53 // Helm limit is 53 characters
 
 func (d *databaseChart) WithValues(valuesFile string) databaseChart {
 	d.valuesFile = valuesFile
@@ -60,6 +65,12 @@ func Configure(
 	if err != nil {
 		t.Fatal(err)
 	}
+
+	// Create a unique database Helm release name by prepending "db-" to the namespace
+	// and truncating it to fit the Helm release name limit of 53 characters.
+	dbReleaseCandidate := "db-" + namespace
+	dbRelease := truncateString(dbReleaseCandidate, helmReleaseMaxLen)
+
 	cfg := &ConfigurationTest{
 		log:              logger.New(logger.Terratest),
 		KubeOptions:      kubeOptions,
@@ -69,7 +80,7 @@ func Configure(
 		zitadelRelease:   "zitadel-test",
 		dbChart:          dbChart,
 		dbRepoName:       dbRepoName,
-		dbRelease:        "db",
+		dbRelease:        dbRelease, // Use the truncated, unique release name
 		beforeFunc:       before,
 		afterDBFunc:      afterDB,
 		afterZITADELFunc: afterZITADEL,
