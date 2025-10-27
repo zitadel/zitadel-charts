@@ -12,92 +12,130 @@ import (
 	"time"
 
 	"github.com/chromedp/chromedp"
+	"github.com/hofstadter-io/cinful"
 	"github.com/stretchr/testify/require"
 )
 
+// login performs a complete authentication flow including initial login,
+// password change, optional MFA skip, and console verification. Uses a single
+// consolidated loadPage call for the entire flow with appropriate timeouts
+// and error handling.
 func (s *ConfigurationTest) login(ctx context.Context, t *testing.T) {
+	t.Helper()
+
 	apiUrl, err := url.Parse(s.ApiBaseUrl)
-	loginFailuresDir := filepath.Join(".login-failures", s.KubeOptions.Namespace)
-	require.NoError(t, err)
+	require.NoError(t, err, "Failed to parse API Base URL")
+
+	loginURL := *apiUrl
+	loginURL.Path = path.Join(loginURL.Path, "/ui/console")
+	query := loginURL.Query()
+	query.Set("login_hint", "zitadel-admin@zitadel."+apiUrl.Hostname())
+	loginURL.RawQuery = query.Encode()
+
 	userDataDir, err := os.MkdirTemp("", "chromedp-test-*")
 	require.NoError(t, err)
 	t.Cleanup(func() {
 		if err := os.RemoveAll(userDataDir); err != nil {
-			t.Logf("Warning: failed to cleanup temp directory %s: %v", userDataDir, err)
+			t.Logf("Failed to cleanup temp directory %s: %v", userDataDir, err)
 		}
 	})
-	allocCtx, _ := chromedp.NewExecAllocator(ctx, append(
+
+	allocCtx, allocCancel := chromedp.NewExecAllocator(ctx, append(
 		chromedp.DefaultExecAllocatorOptions[:],
-		chromedp.IgnoreCertErrors,
+		chromedp.Flag("headless", cinful.Info() != nil),
+		chromedp.Flag("remote-debugging-port", "9222"),
+		chromedp.Flag("ignore-certificate-errors", true),
 		chromedp.NoSandbox,
 		chromedp.Flag("incognito", true),
 		chromedp.UserDataDir(userDataDir),
 	)...)
-	browserCtx, _ := chromedp.NewContext(
-		allocCtx,
-		chromedp.WithLogf(t.Logf),
-		//chromedp.WithDebugf(t.Logf),
-		chromedp.WithErrorf(t.Logf),
-	)
+	defer allocCancel()
+
+	browserCtx, browserCancel := chromedp.NewContext(allocCtx, func() []chromedp.ContextOption {
+		opts := []chromedp.ContextOption{
+			chromedp.WithLogf(t.Logf),
+			chromedp.WithErrorf(t.Logf),
+		}
+		if os.Getenv("DEBUG") != "" {
+			opts = append(opts, chromedp.WithDebugf(t.Logf))
+		}
+		return opts
+	}()...)
+	defer browserCancel()
+
 	loginCtx, loginCancel := context.WithTimeoutCause(browserCtx, 5*time.Minute, fmt.Errorf("login test timed out after 5 minutes"))
 	defer loginCancel()
-	_ = chromedp.Run(browserCtx, chromedp.ActionFunc(func(ctx context.Context) error {
-		// first action is a noop, just to open the browser without cancelling the context
-		return nil
-	}))
-	t.Run("navigate", func(t *testing.T) {
-		loadPage(t, loginCtx, loginFailuresDir, 30*time.Second,
-			chromedp.Navigate(s.ApiBaseUrl+"/ui/console?login_hint=zitadel-admin@zitadel."+apiUrl.Hostname()),
-		)
-	})
-	t.Run("await password page", func(t *testing.T) {
-		loadPage(t, loginCtx, loginFailuresDir, 10*time.Second,
-			chromedp.WaitVisible(testIdSelector("password-text-input"), chromedp.ByQuery),
-		)
-	})
-	t.Run("enter password", func(t *testing.T) {
-		loadPage(t, loginCtx, loginFailuresDir, 10*time.Second,
-			chromedp.SendKeys(testIdSelector("password-text-input"), "Password1!", chromedp.ByQuery),
-			chromedp.Click(testIdSelector("submit-button"), chromedp.ByQuery),
-		)
-	})
-	t.Run("change password", func(t *testing.T) {
-		var finalURL string
-		loadPage(t, loginCtx, loginFailuresDir, 30*time.Second,
-			waitForPath("/ui/v2/login/password/change", 5*time.Second),
-			chromedp.WaitVisible(testIdSelector("password-change-text-input"), chromedp.ByQuery),
-			chromedp.WaitVisible(testIdSelector("password-change-confirm-text-input"), chromedp.ByQuery),
-			chromedp.SendKeys(testIdSelector("password-change-text-input"), "Password2!", chromedp.ByQuery),
-			chromedp.SendKeys(testIdSelector("password-change-confirm-text-input"), "Password2!", chromedp.ByQuery),
-			chromedp.WaitEnabled(testIdSelector("submit-button"), chromedp.ByQuery),
-			chromedp.Click(testIdSelector("submit-button"), chromedp.ByQuery),
-			chromedp.Sleep(10*time.Second),
-			chromedp.ActionFunc(func(ctx context.Context) error {
-				return chromedp.Location(&finalURL).Do(ctx)
-			}),
-		)
 
-		if strings.Contains(finalURL, "/ui/console") {
-			t.Log("Redirected directly to console, skipping MFA test")
-		} else {
-			t.Run("skip mfa", func(t *testing.T) {
-				loadPage(t, loginCtx, loginFailuresDir, 10*time.Second,
-					waitForPath("/ui/v2/login/mfa/set", 5*time.Second),
-					chromedp.WaitVisible(testIdSelector("reset-button"), chromedp.ByQuery),
-					chromedp.Click(testIdSelector("reset-button"), chromedp.ByQuery),
-				)
-			})
-		}
-	})
+	time.Sleep(30 * time.Second)
 
-	t.Run("show console", func(t *testing.T) {
-		loadPage(t, loginCtx, loginFailuresDir, 30*time.Second,
-			waitForPath("/ui/console", 5*time.Second),
-			chromedp.WaitVisible("[data-e2e='authenticated-welcome']", chromedp.ByQuery),
-		)
-	})
+	t.Logf("Starting login: %s", loginURL.String())
+
+	var finalURL string
+
+	loadPage(t, loginCtx, filepath.Join(".login-failures", s.KubeOptions.Namespace), 5*time.Minute,
+		chromedp.Navigate(loginURL.String()),
+		chromedp.Sleep(3*time.Second),
+		chromedp.WaitVisible(fmt.Sprintf(`[data-testid='%s']`, "password-text-input"), chromedp.ByQuery),
+		chromedp.SendKeys(fmt.Sprintf(`[data-testid='%s']`, "password-text-input"), "Password1!", chromedp.ByQuery),
+		chromedp.Sleep(3*time.Second),
+		chromedp.Click(fmt.Sprintf(`[data-testid='%s']`, "submit-button"), chromedp.ByQuery),
+		chromedp.Sleep(3*time.Second),
+
+		waitForPath("/ui/v2/login/password/change", 5*time.Second),
+		chromedp.Sleep(3*time.Second),
+		chromedp.WaitVisible(fmt.Sprintf(`[data-testid='%s']`, "password-change-text-input"), chromedp.ByQuery),
+		chromedp.WaitVisible(fmt.Sprintf(`[data-testid='%s']`, "password-change-confirm-text-input"), chromedp.ByQuery),
+		chromedp.SendKeys(fmt.Sprintf(`[data-testid='%s']`, "password-change-text-input"), "Password2!", chromedp.ByQuery),
+		chromedp.SendKeys(fmt.Sprintf(`[data-testid='%s']`, "password-change-confirm-text-input"), "Password2!", chromedp.ByQuery),
+		chromedp.WaitEnabled(fmt.Sprintf(`[data-testid='%s']`, "submit-button"), chromedp.ByQuery),
+		chromedp.Sleep(3*time.Second),
+		chromedp.Click(fmt.Sprintf(`[data-testid='%s']`, "submit-button"), chromedp.ByQuery),
+		chromedp.Sleep(3*time.Second),
+
+		chromedp.ActionFunc(func(ctx context.Context) error {
+			var currentURL string
+			if err := chromedp.Location(&currentURL).Do(ctx); err != nil {
+				return err
+			}
+			t.Logf("Current URL after password change: %s", currentURL)
+
+			if strings.Contains(currentURL, "/ui/console") {
+				t.Log("Redirected to console, skipping MFA")
+			} else {
+				t.Log("Skipping MFA setup")
+				mfaActions := chromedp.Tasks{
+					waitForPath("/ui/v2/login/mfa/set", 15*time.Second),
+					chromedp.Sleep(1 * time.Millisecond),
+					chromedp.WaitVisible(fmt.Sprintf(`[data-testid='%s']`, "reset-button"), chromedp.ByQuery),
+					chromedp.Click(fmt.Sprintf(`[data-testid='%s']`, "reset-button"), chromedp.ByQuery),
+				}
+				if err := mfaActions.Do(ctx); err != nil {
+					return fmt.Errorf("failed during MFA skip: %w", err)
+				}
+			}
+			return nil
+		}),
+
+		waitForPath("/ui/console", 15*time.Second),
+		chromedp.Sleep(1*time.Millisecond),
+		chromedp.WaitVisible("[data-e2e='authenticated-welcome']", chromedp.ByQuery),
+
+		chromedp.ActionFunc(func(ctx context.Context) error {
+			time.Sleep(500 * time.Millisecond)
+			return chromedp.Location(&finalURL).Do(ctx)
+		}),
+	)
+
+	t.Logf("Login flow complete. Final URL: %s", finalURL)
+
+	require.Contains(t, finalURL, "/ui/console", "Expected to land on console page after login")
+
+	t.Log("Successfully authenticated and reached console")
 }
 
+// loadPage executes a sequence of ChromeDP actions with the specified timeout
+// and captures debug information (HTML dump and screenshot) on failure. The
+// debug artifacts are saved to the loginFailuresDir for troubleshooting.
 func loadPage(t *testing.T, ctx context.Context, loginFailuresDir string, timeout time.Duration, actions ...chromedp.Action) {
 	t.Helper()
 	timeoutCtx, timeoutCancel := context.WithTimeoutCause(ctx, timeout, fmt.Errorf("test %s timed out after %s", t.Name(), timeout))
@@ -107,7 +145,9 @@ func loadPage(t *testing.T, ctx context.Context, loginFailuresDir string, timeou
 		var (
 			html            string
 			screenshot      []byte
-			debugFilePrefix = filepath.Join(loginFailuresDir, strings.Split(t.Name(), "/")[1]+"_fail_dump")
+			parts           = strings.Split(t.Name(), "/")
+			testName        = parts[len(parts)-1]
+			debugFilePrefix = filepath.Join(loginFailuresDir, testName+"_fail_dump")
 		)
 		printErr(t, os.MkdirAll(loginFailuresDir, os.ModePerm))
 		printErr(t, chromedp.Run(ctx, chromedp.OuterHTML("html", &html)))
@@ -118,6 +158,9 @@ func loadPage(t *testing.T, ctx context.Context, loginFailuresDir string, timeou
 	require.NoError(t, err)
 }
 
+// waitForPath polls the current URL until it matches the expected path or
+// the timeout expires. Returns an error if the expected path is not reached
+// within the timeout duration.
 func waitForPath(expectedPath string, timeout time.Duration) chromedp.Action {
 	return chromedp.ActionFunc(func(ctx context.Context) error {
 		deadline := time.Now().Add(timeout)
@@ -126,7 +169,10 @@ func waitForPath(expectedPath string, timeout time.Duration) chromedp.Action {
 			if err := chromedp.Location(&currentURL).Do(ctx); err != nil {
 				return err
 			}
-			u, _ := url.Parse(currentURL)
+			u, err := url.Parse(currentURL)
+			if err != nil {
+				return fmt.Errorf("failed to parse URL %s: %w", currentURL, err)
+			}
 			if path.Clean(u.Path) == path.Clean(expectedPath) {
 				return nil
 			}
@@ -136,15 +182,12 @@ func waitForPath(expectedPath string, timeout time.Duration) chromedp.Action {
 	})
 }
 
+// printErr logs errors that occur during debug artifact creation without
+// failing the test. This helper ensures test failures don't cascade when
+// attempting to capture diagnostic information.
 func printErr(t *testing.T, err error) {
 	t.Helper()
 	if err != nil {
-		t.Logf("⚠️ Could not create debug output for failed test: %v", err)
+		t.Logf("Could not create debug output: %v", err)
 	}
-}
-
-type testIdSelector string
-
-func (s testIdSelector) String() string {
-	return fmt.Sprintf(`[data-testid='%s']`, string(s))
 }

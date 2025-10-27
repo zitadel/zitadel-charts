@@ -5,7 +5,7 @@ go 1.24.0
 require (
 	github.com/chromedp/chromedp v0.14.2
 	github.com/gruntwork-io/terratest v0.51.0
-	github.com/jinzhu/copier v0.4.0
+	github.com/hofstadter-io/cinful v1.0.0
 	github.com/stretchr/testify v1.11.1
 	github.com/zitadel/oidc v1.13.5
 	github.com/zitadel/oidc/v3 v3.45.0
