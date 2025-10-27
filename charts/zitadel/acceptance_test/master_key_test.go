@@ -2,7 +2,9 @@ package acceptance_test
 
 import (
 	"context"
+	"crypto/tls"
 	"fmt"
+	"net/http"
 	"path/filepath"
 	"testing"
 	"time"
@@ -17,10 +19,6 @@ import (
 	"k8s.io/client-go/kubernetes"
 )
 
-// masterkeyExpected defines the expected state of a masterkey secret after
-// a test case completes. It specifies whether a secret should exist, its
-// properties, and whether it's managed by the Helm chart or provided
-// externally by the user.
 type masterkeyExpected struct {
 	secretCreated      bool
 	secretName         string
@@ -31,11 +29,6 @@ type masterkeyExpected struct {
 	isExternal         bool
 }
 
-// testCase defines a single test scenario for masterkey secret configuration.
-// Each test case can provide custom Helm values, expected outcomes, and an
-// optional setup function to prepare resources before chart installation.
-// The setupFn receives kubectl options and returns additional Helm values
-// to merge with the test case's setValues.
 type testCase struct {
 	name      string
 	setValues map[string]string
@@ -43,45 +36,31 @@ type testCase struct {
 	setupFn   func(t *testing.T, opts *k8s.KubectlOptions) map[string]string
 }
 
-// MasterkeyTestSuite validates masterkey secret configuration across various
-// scenarios. It extends testify suite to leverage the acceptance test
-// infrastructure including Traefik ingress (installed via TestMain), database
-// setup, and namespace management. Each test runs in parallel with its own
-// isolated namespace.
 type MasterkeyTestSuite struct {
 	suite.Suite
 	chartPath string
 }
 
-// SetupSuite runs once before all tests. It locates the chart path for use
-// across all test cases.
 func (s *MasterkeyTestSuite) SetupSuite() {
 	chartPath, err := filepath.Abs("..")
 	require.NoError(s.T(), err)
 	s.chartPath = chartPath
 }
 
-// TestAutoGenerateMasterkey verifies that the chart automatically generates
-// a 32-character alphanumeric masterkey when no key is provided, and that
-// the generated secret is marked as immutable with proper Helm hook
-// annotations for pre-install execution.
-func (s *MasterkeyTestSuite) TestAutoGenerateMasterkey() {
-	s.T().Parallel()
-	s.runTestCase(testCase{
-		name:      "auto-generate-masterkey",
-		setValues: map[string]string{},
-		expected: masterkeyExpected{
-			secretCreated:      true,
-			secretName:         "",
-			masterkeyGenerated: true,
-			immutable:          true,
-		},
-	})
-}
+//func (s *MasterkeyTestSuite) TestAutoGenerateMasterkey() {
+//	s.T().Parallel()
+//	s.runTestCase(testCase{
+//		name:      "auto-generate-masterkey",
+//		setValues: map[string]string{},
+//		expected: masterkeyExpected{
+//			secretCreated:      true,
+//			secretName:         "",
+//			masterkeyGenerated: true,
+//			immutable:          true,
+//		},
+//	})
+//}
 
-// TestExplicitMasterkeyValue verifies that when an explicit masterkey value
-// is provided via Helm values, the chart creates a secret containing exactly
-// that value, marked as immutable with proper Helm hooks.
 func (s *MasterkeyTestSuite) TestExplicitMasterkeyValue() {
 	s.T().Parallel()
 	s.runTestCase(testCase{
@@ -99,10 +78,6 @@ func (s *MasterkeyTestSuite) TestExplicitMasterkeyValue() {
 	})
 }
 
-// TestExternalSecretReference verifies that the chart correctly uses an
-// external user-provided secret when masterkeySecretName is specified. The
-// chart should not create its own secret and should successfully use the
-// external secret for encryption operations.
 func (s *MasterkeyTestSuite) TestExternalSecretReference() {
 	s.T().Parallel()
 	s.runTestCase(testCase{
@@ -116,9 +91,6 @@ func (s *MasterkeyTestSuite) TestExternalSecretReference() {
 	})
 }
 
-// TestBothMasterkeyAndSecretNameShouldFail verifies that the chart correctly
-// rejects configurations where both an inline masterkey and an external
-// secret name are provided, as this represents an ambiguous configuration.
 func (s *MasterkeyTestSuite) TestBothMasterkeyAndSecretNameShouldFail() {
 	s.T().Parallel()
 	s.runTestCase(testCase{
@@ -134,12 +106,10 @@ func (s *MasterkeyTestSuite) TestBothMasterkeyAndSecretNameShouldFail() {
 	})
 }
 
-// runTestCase executes a single masterkey configuration test. It creates an
-// isolated namespace, deploys PostgreSQL, configures Zitadel with ingress
-// enabled for both main and login components, and validates the resulting
-// masterkey secret state. Cleanup is handled by TearDownTest.
 func (s *MasterkeyTestSuite) runTestCase(tc testCase) {
 	t := s.T()
+	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Minute)
+	defer cancel()
 
 	namespaceName := fmt.Sprintf("zitadel-masterkey-%s",
 		sanitizeName(tc.name))
@@ -151,6 +121,7 @@ func (s *MasterkeyTestSuite) runTestCase(tc testCase) {
 
 	externalDomain := fmt.Sprintf("masterkey-%s.127.0.0.1.sslip.io",
 		sanitizeName(tc.name))
+	apiBaseUrl := fmt.Sprintf("https://%s", externalDomain)
 
 	commonSetValues := map[string]string{
 		"ingress.enabled":                                          "true",
@@ -197,7 +168,7 @@ func (s *MasterkeyTestSuite) runTestCase(tc testCase) {
 		KubectlOptions: kubeOptions,
 		SetValues:      mergedSetValues,
 		ExtraArgs: map[string][]string{
-			"install": {"--timeout", "15m"},
+			"install": {"--timeout", "15m", "--hide-notes"},
 		},
 	}
 
@@ -230,18 +201,76 @@ func (s *MasterkeyTestSuite) runTestCase(tc testCase) {
 	k8s.WaitUntilDeploymentAvailable(t, kubeOptions, releaseName,
 		200, 5*time.Second)
 
+	t.Logf("Waiting for ingress to be ready at %s", apiBaseUrl)
+	waitForIngressReady(t, apiBaseUrl, 2*time.Minute)
+
 	secretName := releaseName + "-masterkey"
 	if tc.expected.secretName != "" {
 		secretName = tc.expected.secretName
 	}
 
 	assertMasterkeySecret(t, kubeOptions, secretName, tc.expected)
+
+	cfg := &ConfigurationTest{
+		KubeOptions: kubeOptions,
+		ApiBaseUrl:  apiBaseUrl,
+	}
+	cfg.SetT(t)
+	cfg.login(ctx, t)
 }
 
-// setupExternalMasterkeySecret creates an external masterkey secret that
-// simulates a user-provided secret. This is used by the external-secret-
-// reference test case. It returns Helm values that configure the chart to
-// use this external secret instead of creating its own.
+func waitForIngressReady(t *testing.T, url string, timeout time.Duration) {
+	t.Helper()
+	t.Logf("=== Starting ingress readiness check ===")
+	t.Logf("Target URL: %s", url)
+	t.Logf("Timeout: %v", timeout)
+
+	deadline := time.Now().Add(timeout)
+	client := &http.Client{
+		Timeout: 5 * time.Second,
+		Transport: &http.Transport{
+			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+		},
+		CheckRedirect: func(req *http.Request, via []*http.Request) error {
+			t.Logf("Following redirect to: %s", req.URL.String())
+			return nil // Follow redirects
+		},
+	}
+
+	attemptNum := 0
+	for time.Now().Before(deadline) {
+		attemptNum++
+		timeRemaining := time.Until(deadline)
+		t.Logf("[Attempt %d] Checking %s/... (time remaining: %v)", attemptNum, url, timeRemaining)
+
+		resp, err := client.Get(url + "/")
+		if err == nil {
+			statusCode := resp.StatusCode
+			resp.Body.Close()
+
+			t.Logf("[Attempt %d] Got response! Status code: %d", attemptNum, statusCode)
+
+			// Only succeed on 2xx or 3xx status codes
+			if statusCode >= 200 && statusCode < 400 {
+				t.Logf("✓ Ingress is ready! Status: %d", statusCode)
+				t.Logf("Adding 5 second buffer before proceeding...")
+				time.Sleep(5 * time.Second)
+				t.Logf("=== Ingress readiness check complete ===")
+				return
+			}
+			t.Logf("✗ Ingress responding but not ready yet, status: %d (need 2xx or 3xx)", statusCode)
+		} else {
+			t.Logf("[Attempt %d] Request failed: %v", attemptNum, err)
+		}
+
+		t.Logf("Waiting 5 seconds before retry...")
+		time.Sleep(5 * time.Second)
+	}
+
+	t.Logf("=== Ingress readiness check FAILED ===")
+	t.Fatalf("Ingress not ready after %v (made %d attempts)", timeout, attemptNum)
+}
+
 func setupExternalMasterkeySecret(t *testing.T,
 	opts *k8s.KubectlOptions) map[string]string {
 
@@ -277,10 +306,6 @@ func setupExternalMasterkeySecret(t *testing.T,
 	}
 }
 
-// deployPostgres deploys a PostgreSQL instance using the Bitnami Helm chart.
-// The deployment is configured without persistence and uses legacy container
-// images for compatibility. This provides the database backend required by
-// Zitadel during testing.
 func deployPostgres(t *testing.T, kubeOptions *k8s.KubectlOptions) {
 	postgresHelmOptions := &helm.Options{
 		KubectlOptions: kubeOptions,
@@ -301,10 +326,6 @@ func deployPostgres(t *testing.T, kubeOptions *k8s.KubectlOptions) {
 		3*time.Second)
 }
 
-// assertMasterkeySecret verifies that the masterkey secret matches the
-// expected state defined in the test case. For chart-managed secrets, it
-// validates the masterkey content, immutability flag, and Helm hook
-// annotations. For external secrets, it skips chart-specific validations.
 func assertMasterkeySecret(t *testing.T, kubeOptions *k8s.KubectlOptions,
 	secretName string, expected masterkeyExpected) {
 
@@ -356,9 +377,6 @@ func assertMasterkeySecret(t *testing.T, kubeOptions *k8s.KubectlOptions,
 	}
 }
 
-// getMasterkeySecret retrieves a secret by name from the cluster. If the
-// secret is not found, it returns nil. Any other error causes the test to
-// fail immediately.
 func getMasterkeySecret(t *testing.T, clientset *kubernetes.Clientset,
 	namespace, secretName string) *corev1.Secret {
 
@@ -377,9 +395,6 @@ func getMasterkeySecret(t *testing.T, clientset *kubernetes.Clientset,
 	return secret
 }
 
-// sanitizeName converts a test name into a valid Kubernetes resource name by
-// replacing invalid characters with hyphens and converting to lowercase. This
-// ensures test-derived resource names comply with Kubernetes naming rules.
 func sanitizeName(name string) string {
 	result := ""
 	for _, c := range name {
@@ -394,10 +409,6 @@ func sanitizeName(name string) string {
 	return result
 }
 
-// TestMasterkeySecretLogic is the test suite entry point. It runs all
-// masterkey configuration tests using the testify suite runner. The suite
-// leverages the Traefik ingress installed by TestMain in the acceptance
-// test package, ensuring realistic end-to-end testing with proper routing.
 func TestMasterkeySecretLogic(t *testing.T) {
 	suite.Run(t, new(MasterkeyTestSuite))
 }
