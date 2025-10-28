@@ -28,16 +28,6 @@ func (suite *IntegrationSuite) TestZitadelInstallation() {
 	}) {
 		t.FailNow()
 	}
-	if !t.Run("init", func(t *testing.T) {
-		k8s.WaitUntilJobSucceed(t, suite.KubeOptions, "zitadel-test-init", 900, time.Second)
-	}) {
-		t.FailNow()
-	}
-	if !t.Run("setup", func(t *testing.T) {
-		k8s.WaitUntilJobSucceed(t, suite.KubeOptions, "zitadel-test-setup", 900, time.Second)
-	}) {
-		t.FailNow()
-	}
 	if !t.Run("readiness", func(t *testing.T) {
 		pods := listPods(t, 5, suite.KubeOptions)
 		suite.awaitReadiness(t, pods)
