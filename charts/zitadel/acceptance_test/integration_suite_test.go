@@ -148,6 +148,17 @@ func (suite *IntegrationSuite) BeforeTest(_, _ string) {
 	if suite.AfterDBFunc != nil {
 		suite.AfterDBFunc(suite)
 	}
+
+	helm.Install(suite.T(), &helm.Options{
+		KubectlOptions: suite.KubeOptions,
+		ValuesFiles:    suite.ZitadelValues,
+		SetValues: map[string]string{
+			"replicaCount":       "1",
+			"login.replicaCount": "1",
+			"pdb.enabled":        "true",
+		},
+	}, suite.ZitadelChartPath, suite.ZitadelRelease)
+	k8s.WaitUntilServiceAvailable(suite.T(), suite.KubeOptions, suite.ZitadelRelease, 60, 2*time.Second)
 }
 
 // AfterTest runs after each test. It executes the optional afterZITADELFunc
