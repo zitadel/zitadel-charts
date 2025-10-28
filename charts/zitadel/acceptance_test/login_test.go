@@ -12,7 +12,6 @@ import (
 	"time"
 
 	"github.com/chromedp/chromedp"
-	"github.com/hofstadter-io/cinful"
 	"github.com/stretchr/testify/require"
 )
 
@@ -22,6 +21,7 @@ import (
 // and error handling.
 func (s *ConfigurationTest) login(ctx context.Context, t *testing.T) {
 	t.Helper()
+	time.Sleep(30 * time.Second)
 
 	apiUrl, err := url.Parse(s.ApiBaseUrl)
 	require.NoError(t, err, "Failed to parse API Base URL")
@@ -42,10 +42,10 @@ func (s *ConfigurationTest) login(ctx context.Context, t *testing.T) {
 
 	allocCtx, allocCancel := chromedp.NewExecAllocator(ctx, append(
 		chromedp.DefaultExecAllocatorOptions[:],
-		chromedp.Flag("headless", cinful.Info() != nil),
-		chromedp.Flag("remote-debugging-port", "9222"),
+		chromedp.Flag("headless", true),
 		chromedp.Flag("ignore-certificate-errors", true),
 		chromedp.NoSandbox,
+		chromedp.DisableGPU,
 		chromedp.Flag("incognito", true),
 		chromedp.UserDataDir(userDataDir),
 	)...)
@@ -65,8 +65,6 @@ func (s *ConfigurationTest) login(ctx context.Context, t *testing.T) {
 
 	loginCtx, loginCancel := context.WithTimeoutCause(browserCtx, 5*time.Minute, fmt.Errorf("login test timed out after 5 minutes"))
 	defer loginCancel()
-
-	time.Sleep(30 * time.Second)
 
 	t.Logf("Starting login: %s", loginURL.String())
 
