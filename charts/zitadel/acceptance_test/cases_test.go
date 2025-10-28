@@ -1,7 +1,7 @@
 package acceptance_test
 
 import (
-	"fmt"
+	"context"
 	"path/filepath"
 	"testing"
 	"time"
@@ -68,8 +68,6 @@ func TestMachineUser(t *testing.T) {
 	t.Parallel()
 	example := "4-machine-user"
 	workDir, valuesFile, values := readConfig(t, example)
-	cfg := values.Zitadel.ConfigmapConfig
-	saUsername := cfg.FirstInstance.Org.Machine.Machine.Username
 	suite.Run(t, Configure(
 		t,
 		newNamespaceIdentifier(example),
@@ -78,7 +76,10 @@ func TestMachineUser(t *testing.T) {
 		[]string{valuesFile},
 		nil,
 		nil,
-		testAuthenticatedAPI(saUsername, fmt.Sprintf("%s.json", saUsername))),
+		func(cfg *ConfigurationTest) {
+			ctx := context.Background()
+			assertGRPCWorks(ctx, cfg.T(), cfg, "iam-admin")
+		}),
 	)
 }
 

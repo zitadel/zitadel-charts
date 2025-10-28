@@ -44,19 +44,21 @@ func (s *ConfigurationTest) TestZitadelInstallation() {
 	}) {
 		t.FailNow()
 	}
-	if !t.Run("accessibility", func(t *testing.T) {
-		s.checkAccessibility(ctx, t)
-	}) {
-		t.FailNow()
-	}
 	if !t.Run("login", func(t *testing.T) {
 		s.login(ctx, t)
 	}) {
 		t.FailNow()
 	}
+	if !t.Run("grpc", func(t *testing.T) {
+		assertGRPCWorks(ctx, t, s, "iam-admin")
+	}) {
+		t.FailNow()
+	}
 }
 
-// listPods retries until all three start pods are returned from the kubeapi
+// listPods retries until the expected pods are returned from the Kubernetes
+// API. It attempts the specified number of times with a one second delay
+// between attempts.
 func listPods(t *testing.T, try int, kubeOptions *k8s.KubectlOptions) []corev1.Pod {
 	if try == 0 {
 		t.Fatal("no trials left")

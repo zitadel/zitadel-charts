@@ -1,4 +1,3 @@
-// file: charts/zitadel/acceptance_test/config_test.go
 package acceptance_test
 
 import (

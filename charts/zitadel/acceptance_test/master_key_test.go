@@ -217,6 +217,7 @@ func (s *MasterkeyTestSuite) runTestCase(tc testCase) {
 	}
 	cfg.SetT(t)
 	cfg.login(ctx, t)
+	assertGRPCWorks(ctx, t, cfg, "iam-admin")
 }
 
 func waitForIngressReady(t *testing.T, url string, timeout time.Duration) {
