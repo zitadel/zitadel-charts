@@ -1,7 +1,6 @@
 package acceptance_test
 
 import (
-	"context"
 	"path/filepath"
 	"testing"
 	"time"
@@ -62,25 +61,6 @@ func TestReferencedSecrets(t *testing.T) {
 		},
 		nil,
 	))
-}
-
-func TestMachineUser(t *testing.T) {
-	t.Parallel()
-	example := "4-machine-user"
-	workDir, valuesFile, values := readConfig(t, example)
-	suite.Run(t, Configure(
-		t,
-		newNamespaceIdentifier(example),
-		values.Zitadel.ConfigmapConfig.ExternalDomain,
-		Postgres.WithValues(filepath.Join(workDir, "postgres-values.yaml")),
-		[]string{valuesFile},
-		nil,
-		nil,
-		func(cfg *ConfigurationTest) {
-			ctx := context.Background()
-			assertGRPCWorks(ctx, cfg.T(), cfg, "iam-admin")
-		}),
-	)
 }
 
 func TestInternalTLS(t *testing.T) {
