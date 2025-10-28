@@ -19,11 +19,11 @@ import (
 // password change, optional MFA skip, and console verification. Uses a single
 // consolidated loadPage call for the entire flow with appropriate timeouts
 // and error handling.
-func (s *ConfigurationTest) login(ctx context.Context, t *testing.T) {
+func (suite *IntegrationSuite) login(ctx context.Context, t *testing.T) {
 	t.Helper()
 	time.Sleep(30 * time.Second)
 
-	apiUrl, err := url.Parse(s.ApiBaseUrl)
+	apiUrl, err := url.Parse(suite.ApiBaseURL)
 	require.NoError(t, err, "Failed to parse API Base URL")
 
 	loginURL := *apiUrl
@@ -70,7 +70,7 @@ func (s *ConfigurationTest) login(ctx context.Context, t *testing.T) {
 
 	var finalURL string
 
-	loadPage(t, loginCtx, filepath.Join(".login-failures", s.KubeOptions.Namespace), 5*time.Minute,
+	loadPage(t, loginCtx, filepath.Join(".login-failures", suite.KubeOptions.Namespace), 5*time.Minute,
 		chromedp.Navigate(loginURL.String()),
 		chromedp.Sleep(3*time.Second),
 		chromedp.WaitVisible(fmt.Sprintf(`[data-testid='%s']`, "password-text-input"), chromedp.ByQuery),

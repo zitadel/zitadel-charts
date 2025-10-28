@@ -35,7 +35,7 @@ func TestPostgresSecure(t *testing.T) {
 		values.Zitadel.ConfigmapConfig.ExternalDomain,
 		Postgres.WithValues(filepath.Join(workDir, "postgres-values.yaml")),
 		[]string{valuesFile},
-		func(cfg *ConfigurationTest) {
+		func(cfg *IntegrationSuite) {
 			k8s.KubectlApply(t, cfg.KubeOptions, filepath.Join(workDir, "certs-job.yaml"))
 			k8s.WaitUntilJobSucceed(t, cfg.KubeOptions, "create-certs", 120, 3*time.Second)
 		},
@@ -55,7 +55,7 @@ func TestReferencedSecrets(t *testing.T) {
 		Postgres.WithValues(filepath.Join(workDir, "postgres-values.yaml")),
 		[]string{valuesFile},
 		nil,
-		func(cfg *ConfigurationTest) {
+		func(cfg *IntegrationSuite) {
 			k8s.KubectlApply(t, cfg.KubeOptions, filepath.Join(workDir, "zitadel-secrets.yaml"))
 			k8s.KubectlApply(t, cfg.KubeOptions, filepath.Join(workDir, "zitadel-masterkey.yaml"))
 		},

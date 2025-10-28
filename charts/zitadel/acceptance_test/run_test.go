@@ -11,46 +11,46 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-func (s *ConfigurationTest) TestZitadelInstallation() {
+func (suite *IntegrationSuite) TestZitadelInstallation() {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Minute)
 	defer cancel()
-	t := s.T()
+	t := suite.T()
 	if !t.Run("install", func(t *testing.T) {
 		helm.Install(t, &helm.Options{
-			KubectlOptions: s.KubeOptions,
-			ValuesFiles:    s.zitadelValues,
+			KubectlOptions: suite.KubeOptions,
+			ValuesFiles:    suite.ZitadelValues,
 			SetValues: map[string]string{
 				"replicaCount":       "1",
 				"login.replicaCount": "1",
 				"pdb.enabled":        "true",
 			},
-		}, s.zitadelChartPath, s.zitadelRelease)
+		}, suite.ZitadelChartPath, suite.ZitadelRelease)
 	}) {
 		t.FailNow()
 	}
 	if !t.Run("init", func(t *testing.T) {
-		k8s.WaitUntilJobSucceed(t, s.KubeOptions, "zitadel-test-init", 900, time.Second)
+		k8s.WaitUntilJobSucceed(t, suite.KubeOptions, "zitadel-test-init", 900, time.Second)
 	}) {
 		t.FailNow()
 	}
 	if !t.Run("setup", func(t *testing.T) {
-		k8s.WaitUntilJobSucceed(t, s.KubeOptions, "zitadel-test-setup", 900, time.Second)
+		k8s.WaitUntilJobSucceed(t, suite.KubeOptions, "zitadel-test-setup", 900, time.Second)
 	}) {
 		t.FailNow()
 	}
 	if !t.Run("readiness", func(t *testing.T) {
-		pods := listPods(t, 5, s.KubeOptions)
-		s.awaitReadiness(t, pods)
+		pods := listPods(t, 5, suite.KubeOptions)
+		suite.awaitReadiness(t, pods)
 	}) {
 		t.FailNow()
 	}
 	if !t.Run("login", func(t *testing.T) {
-		s.login(ctx, t)
+		suite.login(ctx, t)
 	}) {
 		t.FailNow()
 	}
 	if !t.Run("grpc", func(t *testing.T) {
-		assertGRPCWorks(ctx, t, s, "iam-admin")
+		assertGRPCWorks(ctx, t, suite, "iam-admin")
 	}) {
 		t.FailNow()
 	}

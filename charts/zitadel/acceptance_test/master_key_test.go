@@ -211,9 +211,9 @@ func (s *MasterkeyTestSuite) runTestCase(tc testCase) {
 
 	assertMasterkeySecret(t, kubeOptions, secretName, tc.expected)
 
-	cfg := &ConfigurationTest{
+	cfg := &IntegrationSuite{
 		KubeOptions: kubeOptions,
-		ApiBaseUrl:  apiBaseUrl,
+		ApiBaseURL:  apiBaseUrl,
 	}
 	cfg.SetT(t)
 	cfg.login(ctx, t)

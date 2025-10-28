@@ -22,7 +22,7 @@ import (
 // by retrieving the JWT key from the specified Kubernetes secret and calling
 // an authenticated endpoint. The secret is expected to contain a key named
 // "{secretName}.json" with the JWT key file data.
-func assertGRPCWorks(ctx context.Context, t *testing.T, cfg *ConfigurationTest, secretName string) {
+func assertGRPCWorks(ctx context.Context, t *testing.T, cfg *IntegrationSuite, secretName string) {
 	t.Helper()
 
 	secret := k8s.GetSecret(t, cfg.KubeOptions, secretName)
@@ -45,7 +45,7 @@ func assertGRPCWorks(ctx context.Context, t *testing.T, cfg *ConfigurationTest, 
 // openGRPCConnection creates a GRPC connection to the ZITADEL instance. If
 // key is nil, the connection is unauthenticated. Otherwise, the key should
 // contain JWT key file data for authenticated connections.
-func openGRPCConnection(ctx context.Context, cfg *ConfigurationTest, key []byte) (management.ManagementServiceClient, error) {
+func openGRPCConnection(ctx context.Context, cfg *IntegrationSuite, key []byte) (management.ManagementServiceClient, error) {
 	clientOptions := []client.Option{
 		client.WithGRPCDialOptions(grpc.WithTransportCredentials(credentials.NewTLS(&tls.Config{InsecureSkipVerify: true}))),
 	}
@@ -58,7 +58,7 @@ func openGRPCConnection(ctx context.Context, cfg *ConfigurationTest, key []byte)
 		clientOptions = append(clientOptions, client.WithAuth(client.JWTAuthentication(keyFile, client.ScopeZitadelAPI())))
 	}
 
-	apiBaseUrl, err := url.Parse(cfg.ApiBaseUrl)
+	apiBaseUrl, err := url.Parse(cfg.ApiBaseURL)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse API base URL: %w", err)
 	}
