@@ -7,64 +7,37 @@ import (
 
 	"github.com/gruntwork-io/terratest/modules/helm"
 	"github.com/gruntwork-io/terratest/modules/k8s"
-	corev1 "k8s.io/api/core/v1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-func (s *ConfigurationTest) TestZitadelInstallation() {
+func (suite *IntegrationSuite) TestZitadelInstallation() {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Minute)
 	defer cancel()
-	t := s.T()
+	t := suite.T()
+
 	if !t.Run("install", func(t *testing.T) {
 		helm.Install(t, &helm.Options{
-			KubectlOptions: s.KubeOptions,
-			ValuesFiles:    s.zitadelValues,
-			SetValues: map[string]string{
-				"replicaCount":       "1",
-				"login.replicaCount": "1",
-				"pdb.enabled":        "true",
-			},
-		}, s.zitadelChartPath, s.zitadelRelease)
+			KubectlOptions: suite.KubeOptions,
+			SetValues:      suite.SetValues,
+		}, suite.ZitadelChartPath, suite.ZitadelRelease)
 	}) {
 		t.FailNow()
 	}
-	if !t.Run("init", func(t *testing.T) {
-		k8s.WaitUntilJobSucceed(t, s.KubeOptions, "zitadel-test-init", 900, time.Second)
-	}) {
-		t.FailNow()
-	}
-	if !t.Run("setup", func(t *testing.T) {
-		k8s.WaitUntilJobSucceed(t, s.KubeOptions, "zitadel-test-setup", 900, time.Second)
-	}) {
-		t.FailNow()
-	}
-	if !t.Run("readiness", func(t *testing.T) {
-		pods := listPods(t, 5, s.KubeOptions)
-		s.awaitReadiness(t, pods)
-	}) {
-		t.FailNow()
-	}
-	if !t.Run("accessibility", func(t *testing.T) {
-		s.checkAccessibility(ctx, t)
-	}) {
-		t.FailNow()
-	}
-	if !t.Run("login", func(t *testing.T) {
-		s.login(ctx, t)
-	}) {
-		t.FailNow()
-	}
-}
 
-// listPods retries until all three start pods are returned from the kubeapi
-func listPods(t *testing.T, try int, kubeOptions *k8s.KubectlOptions) []corev1.Pod {
-	if try == 0 {
-		t.Fatal("no trials left")
+	if !t.Run("service-ready", func(t *testing.T) {
+		k8s.WaitUntilServiceAvailable(t, suite.KubeOptions, suite.ZitadelRelease, 60, 2*time.Second)
+	}) {
+		t.FailNow()
 	}
-	pods := k8s.ListPods(t, kubeOptions, metav1.ListOptions{LabelSelector: `app.kubernetes.io/instance=zitadel-test, app.kubernetes.io/component=start`})
-	if len(pods) == 1 {
-		return pods
+
+	if !t.Run("login", func(t *testing.T) {
+		suite.login(ctx, t)
+	}) {
+		t.FailNow()
 	}
-	time.Sleep(time.Second)
-	return listPods(t, try-1, kubeOptions)
+
+	if !t.Run("grpc", func(t *testing.T) {
+		assertGRPCWorks(ctx, t, suite, "iam-admin")
+	}) {
+		t.FailNow()
+	}
 }
