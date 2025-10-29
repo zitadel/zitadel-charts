@@ -9,10 +9,12 @@ metadata:
     {{- toYaml . | nindent 4 }}
   {{- end }}
 spec:
-  {{- if .Values.revisionHistoryLimit }}
-  revisionHistoryLimit: {{ .Values.revisionHistoryLimit }}
+  {{- if .Values.zitadel.revisionHistoryLimit }}
+  revisionHistoryLimit: {{ .Values.zitadel.revisionHistoryLimit }}
   {{- end }}
+  {{- if not .Values.zitadel.autoscaling.enabled }}
   replicas: {{ .Values.replicaCount }}
+  {{- end }}
   selector:
     matchLabels:
       {{- include "zitadel.start.selectorLabels" . | nindent 6 }}
@@ -118,7 +120,7 @@ spec:
           {{- if .Values.livenessProbe.enabled }}
           livenessProbe:
             httpGet:
-              path: /debug/healthz
+              path: {{ include "zitadel.livenessProbePath" . }}
               port: {{ .Values.service.protocol }}-server
 
               {{- if .Values.zitadel.configmapConfig.ExternalDomain }}
@@ -138,7 +140,7 @@ spec:
           {{- if .Values.readinessProbe.enabled }}
           readinessProbe:
             httpGet:
-              path: /debug/ready
+              path: {{ include "zitadel.readinessProbePath" . }}
               port: {{ .Values.service.protocol }}-server
               {{- if .Values.zitadel.configmapConfig.ExternalDomain }}
               httpHeaders:
@@ -157,7 +159,7 @@ spec:
           {{- if .Values.startupProbe.enabled }}
           startupProbe:
             httpGet:
-              path: /debug/ready
+              path: {{ include "zitadel.startupProbePath" . }}
               port: {{ .Values.service.protocol }}-server
               {{- if .Values.zitadel.configmapConfig.ExternalDomain }}
               httpHeaders:
@@ -210,33 +212,32 @@ spec:
           {{- end }}
           resources:
             {{- toYaml .Values.resources | nindent 14 }}
-      {{- if or .Values.zitadel.selfSignedCert.enabled .Values.zitadel.initContainers}}
       initContainers:
+      # The following initContainer is conditional. It is only added if the
+      # PostgreSQL endpoint can be fully determined from the Helm values. This is
+      # necessary to gracefully handle configurations where database credentials are
+      # provided via external secrets (instead of the values file), which would
+      # otherwise cause a template rendering error during `helm install`.
+      {{- $pgEndpoint := include "zitadel.postgresEndpoint" . }}
+      {{- if $pgEndpoint }}
+        # This initContainer acts as a dependency check before the main application
+        # starts. It uses the `wait4x` tool to pause the pod's startup sequence
+        # until the PostgreSQL database is accepting TCP connections. This prevents
+        # the main ZITADEL container from starting and potentially crashing before its
+        # database is available, thus improving deployment reliability.
+        - name: wait-for-postgres
+          image: wait4x/wait4x:3.6
+          command:
+            - wait4x
+            - tcp
+            - {{ $pgEndpoint }}
+            - --timeout
+            - "5m"
+            - --interval
+            - "5s"
+      {{- end }}
       {{- with .Values.zitadel.initContainers }}
         {{- toYaml . | nindent 8 }}
-      {{- end }}
-      {{- if .Values.zitadel.selfSignedCert.enabled }}
-        - name: generate-self-signed-cert
-          image: alpine/openssl
-          env:
-            - name: POD_NAME
-              valueFrom:
-                fieldRef:
-                  fieldPath: metadata.name
-            - name: POD_IP
-              valueFrom:
-                fieldRef:
-                  fieldPath: status.podIP
-          volumeMounts:
-            - name: tls
-              mountPath: "/etc/tls"
-          command:
-            - "/bin/ash"
-            - "-c"
-            - "openssl req -nodes -x509 -sha256 -newkey rsa:4096 -keyout /etc/tls/tls.key -out /etc/tls/tls.crt -days 3560 -subj \"/CN=ZITADEL Chart Demo\" -addext \"subjectAltName = DNS:localhost,DNS:${POD_IP},DNS:${POD_NAME}{{- if .Values.zitadel.configmapConfig.ExternalDomain -}},DNS:{{- .Values.zitadel.configmapConfig.ExternalDomain -}}{{- end -}}{{- if .Values.zitadel.selfSignedCert.additionalDnsName -}},DNS:{{- .Values.zitadel.selfSignedCert.additionalDnsName -}}{{- end -}}\""
-          securityContext:
-            {{- toYaml .Values.securityContext | nindent 12 }}
-      {{- end }}
       {{- end }}
       volumes:
       - name: zitadel-config-yaml
@@ -280,7 +281,8 @@ spec:
       {{- end }}
       {{- if .Values.zitadel.selfSignedCert.enabled }}
       - name: tls
-        emptyDir: {}
+        secret:
+          secretName: {{ include "zitadel.fullname" . }}-self-signed-tls
       {{- end }}
       {{- with .Values.extraVolumes }}
       {{- toYaml . | nindent 6 }}
