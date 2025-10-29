@@ -17,15 +17,12 @@ import (
 
 type hookFunc func(*IntegrationSuite)
 
-// IntegrationSuite is the main test suite for ZITADEL acceptance tests.
-// It manages the lifecycle of test resources including Kubernetes namespaces,
-// database installations, and ZITADEL deployments.
 type IntegrationSuite struct {
 	suite.Suite
 	Log                                                                     *logger.Logger
 	KubeOptions                                                             *k8s.KubectlOptions
 	KubeClient                                                              *kubernetes.Clientset
-	ZitadelValues                                                           []string
+	SetValues                                                               map[string]string
 	DbChart                                                                 databaseChart
 	ApiBaseURL, ZitadelChartPath, ZitadelRelease, DbRepoName, DbReleaseName string
 	BeforeFunc, AfterDBFunc, AfterZITADELFunc                               hookFunc
@@ -55,14 +52,12 @@ func (d *databaseChart) WithValues(valuesFile string) databaseChart {
 	return *d
 }
 
-// Configure creates a new IntegrationSuite instance with the specified
-// configuration. It sets up the Kubernetes client, generates unique resource
-// names, and registers optional hooks for customizing test behavior.
 func Configure(
 	t *testing.T,
 	namespace, externalDomain string,
 	dbChart databaseChart,
-	zitadelValues []string,
+	valuesFile string,
+	setValues map[string]string,
 	before, afterDB, afterZITADEL hookFunc,
 ) *IntegrationSuite {
 	chartPath, err := filepath.Abs("..")
@@ -75,11 +70,24 @@ func Configure(
 	dbReleaseCandidate := "db-" + namespace
 	dbRelease := truncateString(dbReleaseCandidate, helmReleaseMaxLen)
 
+	mergedSetValues := make(map[string]string)
+
+	if valuesFile != "" {
+		fileValues := readValuesAsMap(t, valuesFile)
+		for k, v := range fileValues {
+			mergedSetValues[k] = v
+		}
+	}
+
+	for k, v := range setValues {
+		mergedSetValues[k] = v
+	}
+
 	integrationSuite := &IntegrationSuite{
 		Log:              logger.New(logger.Terratest),
 		KubeOptions:      kubeOptions,
 		KubeClient:       clientset,
-		ZitadelValues:    zitadelValues,
+		SetValues:        mergedSetValues,
 		ZitadelChartPath: chartPath,
 		ZitadelRelease:   "zitadel-test",
 		DbChart:          dbChart,
@@ -94,9 +102,6 @@ func Configure(
 	return integrationSuite
 }
 
-// SetupSuite runs once before all tests in the suite. It adds the database
-// Helm repository to cache the repository index, preventing repeated downloads
-// across test executions. Retries for up to one minute if the operation fails.
 func (suite *IntegrationSuite) SetupSuite() {
 	options := &helm.Options{
 		KubectlOptions: suite.KubeOptions,
@@ -108,9 +113,6 @@ func (suite *IntegrationSuite) SetupSuite() {
 	}, "adding helm repo %s with URL %s failed", suite.DbRepoName, suite.DbChart.repoURL)
 }
 
-// SetupTest runs before each test. It creates the test namespace if it does
-// not already exist. If the namespace already exists, it logs a warning but
-// continues execution to support test recovery scenarios.
 func (suite *IntegrationSuite) SetupTest() {
 	_, err := k8s.GetNamespaceE(suite.T(), suite.KubeOptions, suite.KubeOptions.Namespace)
 
@@ -123,10 +125,6 @@ func (suite *IntegrationSuite) SetupTest() {
 	suite.T().Logf("Namespace %s already exists", suite.KubeOptions.Namespace)
 }
 
-// BeforeTest runs before each test. It executes the optional beforeFunc hook,
-// installs the database Helm chart in the test namespace, and runs the optional
-// afterDBFunc hook. The database chart waits up to 10 minutes for successful
-// deployment before proceeding.
 func (suite *IntegrationSuite) BeforeTest(_, _ string) {
 	if suite.BeforeFunc != nil {
 		suite.BeforeFunc(suite)
@@ -148,22 +146,8 @@ func (suite *IntegrationSuite) BeforeTest(_, _ string) {
 	if suite.AfterDBFunc != nil {
 		suite.AfterDBFunc(suite)
 	}
-
-	helm.Install(suite.T(), &helm.Options{
-		KubectlOptions: suite.KubeOptions,
-		ValuesFiles:    suite.ZitadelValues,
-		SetValues: map[string]string{
-			"replicaCount":       "1",
-			"login.replicaCount": "1",
-			"pdb.enabled":        "true",
-		},
-	}, suite.ZitadelChartPath, suite.ZitadelRelease)
-	k8s.WaitUntilServiceAvailable(suite.T(), suite.KubeOptions, suite.ZitadelRelease, 60, 2*time.Second)
 }
 
-// AfterTest runs after each test. It executes the optional afterZITADELFunc
-// hook if the test passed. This hook is typically used for post-deployment
-// validation such as connectivity checks or smoke tests.
 func (suite *IntegrationSuite) AfterTest(_, _ string) {
 	if suite.AfterZITADELFunc == nil || suite.T().Failed() {
 		return
@@ -171,9 +155,6 @@ func (suite *IntegrationSuite) AfterTest(_, _ string) {
 	suite.AfterZITADELFunc(suite)
 }
 
-// TearDownTest runs after each test. It deletes the test namespace if the
-// test passed, cleaning up all resources created during the test. If the test
-// failed, the namespace is preserved for debugging purposes.
 func (suite *IntegrationSuite) TearDownTest() {
 	if suite.T().Failed() {
 		suite.T().Logf("Test failed - namespace %s preserved for debugging", suite.KubeOptions.Namespace)
