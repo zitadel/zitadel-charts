@@ -5,16 +5,33 @@ zitadel:
   # https://github.com/zitadel/zitadel/blob/main/cmd/defaults.yaml
   configmapConfig:
     ExternalSecure: true
+    ExternalDomain: ""
+    TLS:
+      Enabled: false
+    Database:
+      Postgres:
+        Host: ""
+        Port: 5432
     Machine:
       Identification:
         Hostname:
           Enabled: true
         Webhook:
           Enabled: false
-        # Configures the initial instance created by the ZITADEL setup job. The values
-        # defined here are used to bootstrap the first organization and its users.
+    # Configures the initial instance created by the ZITADEL setup job. The values
+    # defined here are used to bootstrap the first organization and its users.
     FirstInstance:
+      Skip: false
+      # IMPORTANT: The following fields are managed automatically by the Helm chart.
+      # Setting these manually is not supported and will cause the deployment to fail.
+      # The chart automatically generates and manages these paths internally.
+      MachineKeyPath: null
+      PatPath: null
+      LoginClientPatPath: null
       Org:
+        # IMPORTANT: Setting Skip here is not supported. Use FirstInstance.Skip instead.
+        # This field exists for validation purposes only.
+        Skip: null
         # Defines an administrative machine user created with the IAM_OWNER role.
         # This user is intended for initial automation and administrative tasks
         # right after the Helm chart is deployed.
@@ -209,8 +226,8 @@ zitadel:
     #     allowPrivilegeEscalation: false
     #   lifecycle:
     #     postStart:
-    #       exec:
-    #         command: ["/cloud-sql-proxy", "wait"]
+  #       exec:
+  #         command: ["/cloud-sql-proxy", "wait"]
 
 login:
   enabled: true
@@ -255,6 +272,7 @@ login:
   imagePullSecrets: []
   nameOverride: ""
   fullnameOverride: ""
+  annotations: {}
   podAnnotations: {}
   podAdditionalLabels: {}
   # Annotations to add to the configMap
@@ -342,8 +360,8 @@ login:
     # - name: ZITADEL_DATABASE_POSTGRES_HOST
     #   valueFrom:
     #     secretKeyRef:
-    #       name: postgres-pguser-postgres
-    #       key: host
+  #       name: postgres-pguser-postgres
+  #       key: host
   revisionHistoryLimit: 10
 
   # Horizontal Pod Autoscaler configuration for scaling on CPU, memory, or custom metrics.
@@ -428,8 +446,8 @@ env:
   # - name: ZITADEL_DATABASE_POSTGRES_HOST
   #   valueFrom:
   #     secretKeyRef:
-  #       name: postgres-pguser-postgres
-  #       key: host
+#       name: postgres-pguser-postgres
+#       key: host
 
 # Additional environment variables from the given secret name
 # Zitadel can be configured using environment variables from a secret.
@@ -534,8 +552,8 @@ cleanupJob:
     #   cpu: 100m
     #   memory: 128Mi
     # requests:
-    #   cpu: 50m
-    #   memory: 64Mi
+  #   cpu: 50m
+  #   memory: 64Mi
   # Additional annotations to add to cleanup job pods.
   podAnnotations: {}
   # Additional labels to add to cleanup job pods.
@@ -591,6 +609,15 @@ metrics:
     enabled: false
     honorLabels: false
     honorTimestamps: true
+    namespace: null
+    additionalLabels: {}
+    scrapeInterval: null
+    scrapeTimeout: null
+    relabellings: []
+    metricRelabellings: []
+    scheme: null
+    tlsConfig: {}
+    proxyUrl: null
 
 # Pod Disruption Budget configuration for the main ZITADEL deployment.
 # Ensures high availability by limiting the number of pods that can be

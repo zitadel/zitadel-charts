@@ -51,7 +51,7 @@ Common labels
 {{- define "zitadel.labels" -}}
 helm.sh/chart: {{ include "zitadel.chart" . }}
 {{ include "zitadel.commonSelectorLabels" . }}
-app.kubernetes.io/version: {{ (.Values.image.tag | default .Chart.AppVersion | split "@")._0 | quote }}
+app.kubernetes.io/version: {{ index (.Values.image.tag | default .Chart.AppVersion | split "@") "0" | quote }}
 app.kubernetes.io/managed-by: {{ .Release.Service }}
 {{- end }}
 
@@ -61,7 +61,7 @@ Login Labels
 {{- define "login.labels" -}}
 helm.sh/chart: {{ include "zitadel.chart" . }}
 {{ include "login.commonSelectorLabels" . }}
-app.kubernetes.io/version: {{ (.Values.image.tag | default .Chart.AppVersion | split "@")._0 | quote }}
+app.kubernetes.io/version: {{ index (.Values.image.tag | default .Chart.AppVersion | split "@") "0" | quote }}
 app.kubernetes.io/managed-by: {{ .Release.Service }}
 {{ include "componentSelectorLabel" "login" }}
 {{- end }}
@@ -206,29 +206,12 @@ Create the name of the login service account to use
 {{- end }}
 
 {{/*
-Returns true if the full path is defined and the value at the end of the path is not empty
-*/}}
-{{- define "deepCheck" -}}
-  {{- if empty .root -}}
-    {{/* Break early */}}
-  {{- else if eq (len .path) 0 -}}
-    {{- not (empty .root) -}}
-  {{- else -}}
-    {{- $head := index .path 0 -}}
-    {{- $tail := slice .path 1 (len .path) -}}
-    {{- if hasKey .root $head -}}
-        {{- include "deepCheck" (dict "root" (index .root $head) "path" $tail) -}}
-    {{- end -}}
-  {{- end -}}
-{{- end -}}
-
-{{/*
 Returns the database config from the secretConfig or else from the configmapConfig
 */}}
 {{- define "zitadel.dbconfig.json" -}}
-    {{- if include "deepCheck" (dict "root" . "path" (splitList "." "Values.zitadel.secretConfig.Database")) -}}
+    {{- if (((.Values.zitadel).secretConfig).Database) -}}
     {{- .Values.zitadel.secretConfig.Database | toJson -}}
-    {{- else if include "deepCheck" (dict "root" . "path" (splitList "." "Values.zitadel.configmapConfig.Database")) -}}
+    {{- else if (((.Values.zitadel).configmapConfig).Database) -}}
     {{- .Values.zitadel.configmapConfig.Database | toJson -}}
     {{- else -}}
     {{- dict | toJson -}}
@@ -311,7 +294,7 @@ Example outputs:
   - https://my-release-zitadel:8080/debug/ready
 */}}
 {{- define "zitadel.clusterEndpoint" -}}
-{{- if include "deepCheck" (dict "root" .Values "path" (splitList "." "zitadel.configmapConfig.TLS.Enabled")) -}}
+{{- if ((((.Values.zitadel).configmapConfig).TLS).Enabled) -}}
 https://{{ include "zitadel.fullname" . }}:{{ .Values.service.port }}/debug/ready
 {{- else -}}
 http://{{ include "zitadel.fullname" . }}:{{ .Values.service.port }}/debug/ready
