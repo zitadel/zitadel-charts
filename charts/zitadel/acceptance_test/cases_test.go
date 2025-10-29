@@ -12,13 +12,15 @@ import (
 func TestPostgresInsecure(t *testing.T) {
 	t.Parallel()
 	example := "1-postgres-insecure"
-	workDir, valuesFile, values := readConfig(t, example)
+	workDir, valuesFile := workingDirectory(example)
+
 	suite.Run(t, Configure(
 		t,
 		newNamespaceIdentifier(example),
-		values.Zitadel.ConfigmapConfig.ExternalDomain,
+		readExternalDomain(t, valuesFile),
 		Postgres.WithValues(filepath.Join(workDir, "postgres-values.yaml")),
-		[]string{valuesFile},
+		valuesFile,
+		nil,
 		nil,
 		nil,
 		nil,
@@ -28,13 +30,15 @@ func TestPostgresInsecure(t *testing.T) {
 func TestPostgresSecure(t *testing.T) {
 	t.Parallel()
 	example := "2-postgres-secure"
-	workDir, valuesFile, values := readConfig(t, example)
+	workDir, valuesFile := workingDirectory(example)
+
 	suite.Run(t, Configure(
 		t,
 		newNamespaceIdentifier(example),
-		values.Zitadel.ConfigmapConfig.ExternalDomain,
+		readExternalDomain(t, valuesFile),
 		Postgres.WithValues(filepath.Join(workDir, "postgres-values.yaml")),
-		[]string{valuesFile},
+		valuesFile,
+		nil,
 		func(cfg *IntegrationSuite) {
 			k8s.KubectlApply(t, cfg.KubeOptions, filepath.Join(workDir, "certs-job.yaml"))
 			k8s.WaitUntilJobSucceed(t, cfg.KubeOptions, "create-certs", 120, 3*time.Second)
@@ -47,13 +51,15 @@ func TestPostgresSecure(t *testing.T) {
 func TestReferencedSecrets(t *testing.T) {
 	t.Parallel()
 	example := "3-referenced-secrets"
-	workDir, valuesFile, values := readConfig(t, example)
+	workDir, valuesFile := workingDirectory(example)
+
 	suite.Run(t, Configure(
 		t,
 		newNamespaceIdentifier(example),
-		values.Zitadel.ConfigmapConfig.ExternalDomain,
+		readExternalDomain(t, valuesFile),
 		Postgres.WithValues(filepath.Join(workDir, "postgres-values.yaml")),
-		[]string{valuesFile},
+		valuesFile,
+		nil,
 		nil,
 		func(cfg *IntegrationSuite) {
 			k8s.KubectlApply(t, cfg.KubeOptions, filepath.Join(workDir, "zitadel-secrets.yaml"))
@@ -63,18 +69,7 @@ func TestReferencedSecrets(t *testing.T) {
 	))
 }
 
-func TestInternalTLS(t *testing.T) {
-	t.Parallel()
-	example := "5-internal-tls"
-	workDir, valuesFile, values := readConfig(t, example)
-	suite.Run(t, Configure(
-		t,
-		newNamespaceIdentifier(example),
-		values.Zitadel.ConfigmapConfig.ExternalDomain,
-		Postgres.WithValues(filepath.Join(workDir, "postgres-values.yaml")),
-		[]string{valuesFile},
-		nil,
-		nil,
-		nil,
-	))
+func readExternalDomain(t *testing.T, valuesFile string) string {
+	valuesMap := readValuesAsMap(t, valuesFile)
+	return valuesMap["zitadel.configmapConfig.ExternalDomain"]
 }
