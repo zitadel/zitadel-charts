@@ -1,0 +1,73 @@
+zitadel:
+  masterkey: "changeme1234567890123456789012"
+
+  configmapConfig:
+    ExternalDomain: zitadel.127.0.0.1.sslip.io
+    ExternalPort: 443
+    ExternalSecure: true
+
+    TLS:
+      Enabled: false
+
+    Database:
+      Postgres:
+        Host: zitadel-pg-rw.default.svc.cluster.local
+        Port: 5432
+        Database: zitadel
+        MaxOpenConns: 20
+        MaxIdleConns: 10
+        MaxConnLifetime: 30m
+        MaxConnIdleTime: 5m
+        User:
+          Username: zitadel
+          SSL:
+            Mode: disable
+        Admin:
+          Username: zitadel
+          SSL:
+            Mode: disable
+
+  secretConfig:
+    Database:
+      Postgres:
+        User:
+          Password: zitadel-password-change-me
+        Admin:
+          Password: zitadel-password-change-me
+
+replicaCount: 1
+
+ingress:
+  enabled: true
+  className: traefik
+  annotations:
+    traefik.ingress.kubernetes.io/router.entrypoints: websecure
+    traefik.ingress.kubernetes.io/router.tls: "true"
+  hosts:
+    - host: zitadel.127.0.0.1.sslip.io
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - secretName: traefik-default-cert
+      hosts:
+        - zitadel.127.0.0.1.sslip.io
+
+login:
+  enabled: true
+  replicaCount: 1
+  ingress:
+    enabled: true
+    className: traefik
+    annotations:
+      traefik.ingress.kubernetes.io/router.entrypoints: websecure
+      traefik.ingress.kubernetes.io/router.tls: "true"
+    hosts:
+      - host: zitadel.127.0.0.1.sslip.io
+        paths:
+          - path: /ui/v2/login
+            pathType: Prefix
+    tls:
+      - secretName: traefik-default-cert
+        hosts:
+          - zitadel.127.0.0.1.sslip.io

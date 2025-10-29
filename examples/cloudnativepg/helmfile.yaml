@@ -1,0 +1,46 @@
+repositories:
+  - name: traefik
+    url: https://traefik.github.io/charts
+  - name: cnpg
+    url: https://cloudnative-pg.github.io/charts
+  - name: zitadel
+    url: https://charts.zitadel.com
+
+releases:
+  - name: traefik
+    namespace: ingress
+    createNamespace: true
+    chart: traefik/traefik
+    version: 36.3.0
+    values:
+      - traefik-values.yaml
+    wait: true
+    timeout: 300
+
+  - name: cnpg
+    namespace: cnpg-system
+    createNamespace: true
+    chart: cnpg/cloudnative-pg
+    version: 0.22.2
+    wait: true
+    timeout: 300
+
+  - name: postgres-cluster
+    namespace: default
+    chart: ./postgres-cluster
+    needs:
+      - cnpg-system/cnpg
+    wait: true
+    timeout: 600
+
+  - name: zitadel
+    namespace: default
+    chart: zitadel/zitadel
+    version: 9.12.2
+    values:
+      - zitadel-values.yaml
+    needs:
+      - default/postgres-cluster
+      - ingress/traefik
+    wait: true
+    timeout: 600

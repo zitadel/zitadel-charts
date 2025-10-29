@@ -1,0 +1,10 @@
+{{- $cert := genSelfSignedCert "*.127.0.0.1.sslip.io" nil (list "*.127.0.0.1.sslip.io" "zitadel.127.0.0.1.sslip.io" "localhost") 3650 }}
+apiVersion: v1
+kind: Secret
+metadata:
+  name: traefik-default-cert
+  namespace: ingress
+type: kubernetes.io/tls
+data:
+  tls.crt: {{ $cert.Cert | b64enc }}
+  tls.key: {{ $cert.Key | b64enc }}
