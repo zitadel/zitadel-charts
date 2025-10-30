@@ -446,8 +446,8 @@ env:
   # - name: ZITADEL_DATABASE_POSTGRES_HOST
   #   valueFrom:
   #     secretKeyRef:
-#       name: postgres-pguser-postgres
-#       key: host
+  #       name: postgres-pguser-postgres
+  #       key: host
 
 # Additional environment variables from the given secret name
 # Zitadel can be configured using environment variables from a secret.
