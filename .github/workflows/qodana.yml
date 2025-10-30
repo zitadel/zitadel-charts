@@ -31,6 +31,5 @@ jobs:
         with:
           args: --baseline,.qodana/qodana.sarif.json
           push-fixes: true
-          upload-result: true
         env:
           QODANA_TOKEN: ${{ secrets.QODANA_TOKEN }}

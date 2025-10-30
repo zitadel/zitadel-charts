@@ -16,15 +16,9 @@ metadata:
     {{- end }}
 spec:
   ingressClassName: {{ .Values.login.ingress.className }}
-  {{- if .Values.login.ingress.tls }}
+  {{- with .Values.login.ingress.tls }}
   tls:
-    {{- range .Values.login.ingress.tls }}
-    - hosts:
-        {{- range .hosts }}
-        - {{ . | quote }}
-        {{- end }}
-      secretName: {{ .secretName }}
-    {{- end }}
+  {{- toYaml . | nindent 4 }}
   {{- end }}
   rules:
     {{- $values := .Values -}}
