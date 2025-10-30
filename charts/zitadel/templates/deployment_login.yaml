@@ -92,7 +92,7 @@ spec:
           - name: login-config-dotenv
             mountPath: /.env-file/
             readOnly: true
-          {{- if and (((((.Values.zitadel).configmapConfig).FirstInstance).Org).LoginClient) (not (((((.Values.zitadel).configmapConfig).FirstInstance).Org).Skip)) }}
+          {{- if and (((((.Values.zitadel).configmapConfig).FirstInstance).Org).LoginClient) (not (((((.Values.zitadel).configmapConfig).FirstInstance).Skip))) }}
           - name: login-client
             mountPath: /login-client
             readOnly: true
