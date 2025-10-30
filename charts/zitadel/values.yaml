@@ -552,8 +552,8 @@ cleanupJob:
     #   cpu: 100m
     #   memory: 128Mi
     # requests:
-  #   cpu: 50m
-  #   memory: 64Mi
+    #   cpu: 50m
+    #   memory: 64Mi
   # Additional annotations to add to cleanup job pods.
   podAnnotations: {}
   # Additional labels to add to cleanup job pods.
