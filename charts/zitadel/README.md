@@ -110,7 +110,7 @@ Please refer to the docs by Cockroach Labs. The Zitadel tests run against the [o
   If you are using any of the following properties, kindly review the updated names and adjust the values accordingly:
 
   | Old Value                                   | New Value                                    |
-    |---------------------------------------------|----------------------------------------------|
+  |---------------------------------------------|----------------------------------------------|
   | `setupJob.machinekeyWriterImage.repository` | `setupJob.machinekeyWriter.image.repository` |
   | `setupJob.machinekeyWriterImage.tag`        | `setupJob.machinekeyWriter.image.tag`        |
 
@@ -123,7 +123,7 @@ Please refer to the docs by Cockroach Labs. The Zitadel tests run against the [o
   If you use one of the following properties, please check the new names and set the values accordingly:
 
   | Old Value                      | New Value                     |
-    |--------------------------------|-------------------------------|
+  |--------------------------------|-------------------------------|
   | `zitadel.dbSslRootCrt`         | `zitadel.dbSslCaCrt`          | 
   | `zitadel.dbSslRootCrtSecret`   | `zitadel.dbSslCaCrtSecret`    |
   | `zitadel.dbSslClientCrtSecret` | `zitadel.dbSslAdminCrtSecret` |
