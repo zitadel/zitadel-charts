@@ -38,6 +38,11 @@ var (
 			"volumePermissions.image.repository": "bitnamilegacy/os-shell",
 		},
 	}
+	CloudNativePG = databaseChart{
+		repoUrl: "https://cloudnative-pg.github.io/charts",
+		name:    "cloudnative-pg",
+		version: "0.26.0",
+	}
 )
 
 func (d *databaseChart) WithValues(valuesFile string) databaseChart {
