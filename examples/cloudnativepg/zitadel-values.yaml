@@ -1,5 +1,5 @@
 zitadel:
-  masterkey: "changeme123456789012345678901232"
+  masterkey: "REPLACE_WITH_32_CHARACTER_STRING"
 
   configmapConfig:
     ExternalDomain: zitadel.127.0.0.1.sslip.io
