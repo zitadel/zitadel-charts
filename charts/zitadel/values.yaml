@@ -360,8 +360,8 @@ login:
     # - name: ZITADEL_DATABASE_POSTGRES_HOST
     #   valueFrom:
     #     secretKeyRef:
-  #       name: postgres-pguser-postgres
-  #       key: host
+    #       name: postgres-pguser-postgres
+    #       key: host
   revisionHistoryLimit: 10
 
   # Horizontal Pod Autoscaler configuration for scaling on CPU, memory, or custom metrics.
