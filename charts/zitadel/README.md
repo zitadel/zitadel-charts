@@ -17,13 +17,13 @@ By default, the execution order is orchestrated using Helm hooks on installation
 
 ## Install the Chart
 
-The easiest way to deploy a Helm release for Zitadel is by following the [Insecure Postgres Example](examples/1-postgres-insecure/README.md).
+The easiest way to deploy a Helm release for Zitadel is by following the [Insecure Postgres Example](/examples/1-postgres-insecure/README.md).
 For more sofisticated production-ready configurations, follow one of the following examples:
 
-- [Secure Postgres Example](examples/2-postgres-secure/README.md)
-- [Referenced Secrets Example](examples/3-referenced-secrets/README.md)
-- [Machine User Setup Example](examples/4-machine-user/README.md)
-- [Internal TLS Example](examples/5-internal-tls/README.md)
+- [Secure Postgres Example](/examples/2-postgres-secure/README.md)
+- [Referenced Secrets Example](/examples/3-referenced-secrets/README.md)
+- [Machine User Setup Example](/examples/4-machine-user/README.md)
+- [Internal TLS Example](/examples/5-internal-tls/README.md)
 
 All the configurations from the examples above are guaranteed to work, because they are directly used in automatic acceptance tests.
 

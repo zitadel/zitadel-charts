@@ -1,0 +1,48 @@
+zitadel:
+  masterkey: "REPLACE_WITH_32_CHARACTER_STRING"
+
+  configmapConfig:
+    ExternalDomain: zitadel.127.0.0.1.sslip.io
+    ExternalSecure: true
+
+    TLS:
+      Enabled: false
+
+    Database:
+      Postgres:
+        Host: zitadel-pg-rw.default.svc.cluster.local
+        Port: 5432
+        Database: zitadel
+        User:
+          Username: zitadel
+          SSL:
+            Mode: disable
+        Admin:
+          Username: postgres
+          SSL:
+            Mode: disable
+
+ingress:
+  enabled: true
+  className: traefik
+
+login:
+  enabled: true
+  ingress:
+    enabled: true
+    className: traefik
+
+env:
+  - name: ZITADEL_DATABASE_POSTGRES_USER_PASSWORD
+    valueFrom:
+      secretKeyRef:
+        name: zitadel-pg-user
+        key: password
+  - name: ZITADEL_DATABASE_POSTGRES_ADMIN_PASSWORD
+    valueFrom:
+      secretKeyRef:
+        name: zitadel-pg-superuser
+        key: password
+
+initJob:
+  command: "zitadel"

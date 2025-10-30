@@ -92,7 +92,7 @@ spec:
           - name: login-config-dotenv
             mountPath: /.env-file/
             readOnly: true
-          {{- if and (include "deepCheck" (dict "root" .Values "path" (splitList "." "zitadel.configmapConfig.FirstInstance.Org.LoginClient"))) (not (include "deepCheck" (dict "root" .Values "path" (splitList "." "zitadel.configmapConfig.FirstInstance.Skip")))) }}
+          {{- if and (((((.Values.zitadel).configmapConfig).FirstInstance).Org).LoginClient) (not (((((.Values.zitadel).configmapConfig).FirstInstance).Skip))) }}
           - name: login-client
             mountPath: /login-client
             readOnly: true
@@ -134,7 +134,7 @@ spec:
       - name: login-config-dotenv
         configMap:
           name: {{ include "login.configmapName" . }}
-      {{- if and (include "deepCheck" (dict "root" .Values "path" (splitList "." "zitadel.configmapConfig.FirstInstance.Org.LoginClient"))) (not (include "deepCheck" (dict "root" .Values "path" (splitList "." "zitadel.configmapConfig.FirstInstance.Skip")))) }}
+      {{- if and (((((.Values.zitadel).configmapConfig).FirstInstance).Org).LoginClient) (not (((.Values.zitadel).configmapConfig).FirstInstance).Skip) }}
       - name: login-client
         secret:
           defaultMode: 444
