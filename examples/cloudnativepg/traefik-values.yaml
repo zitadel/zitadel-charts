@@ -1,0 +1,37 @@
+logs:
+  general:
+    level: INFO
+
+additionalArguments:
+  - "--serverstransport.insecureskipverify=true"
+
+service:
+  type: NodePort
+
+ports:
+  web:
+    nodePort: 30080
+    redirections:
+      entryPoint:
+        to: websecure
+        scheme: https
+        permanent: true
+  websecure:
+    nodePort: 30443
+    tls:
+      enabled: true
+
+ingressClass:
+  enabled: true
+  isDefaultClass: true
+
+tlsStore:
+  default:
+    defaultCertificate:
+      secretName: traefik-default-cert
+
+providers:
+  kubernetesCRD:
+    enabled: true
+  kubernetesIngress:
+    enabled: true
