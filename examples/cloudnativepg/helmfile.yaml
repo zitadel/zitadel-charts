@@ -21,7 +21,7 @@ releases:
     namespace: cnpg-system
     createNamespace: true
     chart: cnpg/cloudnative-pg
-    version: 0.22.2
+    version: 0.22.1
     wait: true
     timeout: 300
 
