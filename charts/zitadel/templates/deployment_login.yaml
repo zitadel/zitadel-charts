@@ -134,7 +134,7 @@ spec:
       - name: login-config-dotenv
         configMap:
           name: {{ include "login.configmapName" . }}
-      {{- if and (((((.Values.zitadel).configmapConfig).FirstInstance).Org).LoginClient) (not (((((.Values.zitadel).configmapConfig).FirstInstance).Org).Skip)) }}
+      {{- if and (((((.Values.zitadel).configmapConfig).FirstInstance).Org).LoginClient) (not (((.Values.zitadel).configmapConfig).FirstInstance).Skip) }}
       - name: login-client
         secret:
           defaultMode: 444
