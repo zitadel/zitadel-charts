@@ -1,4 +1,4 @@
-#file: noinspection ExcessiveWhitespaceTrimInspection
+#file: noinspection ExcessiveWhitespaceTrimInspection,KubernetesUnknownResourcesInspection
 {{- if and .Values.login.enabled .Values.login.autoscaling.enabled }}
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler

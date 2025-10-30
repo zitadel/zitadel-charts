@@ -1,12 +1,19 @@
-{{- if include "deepCheck" (dict "root" .Values "path" (splitList "." "zitadel.configmapConfig.FirstInstance.MachineKeyPath")) -}}
+{{- $hasMachineKeyPath := ((((((.Values.zitadel).configmapConfig).FirstInstance).MachineKeyPath))) -}}
+{{- if $hasMachineKeyPath -}}
 {{- fail "Specifying .Values.zitadel.configmapConfig.FirstInstance.MachineKeyPath is not supported" -}}
 {{- end -}}
-{{- if include "deepCheck" (dict "root" .Values "path" (splitList "." "zitadel.configmapConfig.FirstInstance.PatPath")) -}}
+{{- $hasPatPath := ((((((.Values.zitadel).configmapConfig).FirstInstance).PatPath))) -}}
+{{- if $hasPatPath -}}
 {{- fail "Specifying .Values.zitadel.configmapConfig.FirstInstance.PatPath is not supported" -}}
 {{- end -}}
-{{- if include "deepCheck" (dict "root" .Values "path" (splitList "." "zitadel.configmapConfig.FirstInstance.LoginClientPatPath")) -}}
+{{- $hasLoginClientPatPath := ((((((.Values.zitadel).configmapConfig).FirstInstance).LoginClientPatPath))) -}}
+{{- if $hasLoginClientPatPath -}}
 {{- fail "Specifying .Values.zitadel.configmapConfig.FirstInstance.LoginClientPatPath is not supported" -}}
 {{- end -}}
+{{- $hasMachine := (((((.Values.zitadel).configmapConfig).FirstInstance).Org).Machine) -}}
+{{- $hasMachinePat := ((((((.Values.zitadel).configmapConfig).FirstInstance).Org).Machine).Pat) -}}
+{{- $hasLoginClient := (((((.Values.zitadel).configmapConfig).FirstInstance).Org).LoginClient) -}}
+{{- $skipFirstInstance := .Values.zitadel.configmapConfig.FirstInstance.Skip -}}
 apiVersion: batch/v1
 kind: Job
 metadata:
@@ -97,7 +104,7 @@ spec:
                   key: masterkey
             - name: ZITADEL_FIRSTINSTANCE_MACHINEKEYPATH
               value: "/machinekey/sa.json"
-            {{- if and (not .Values.zitadel.configmapConfig.FirstInstance.Skip) (include "deepCheck" (dict "root" .Values "path" (splitList "." "zitadel.configmapConfig.FirstInstance.Org.Machine.Pat"))) }}
+            {{- if and (not $skipFirstInstance) $hasMachinePat }}
             - name: ZITADEL_FIRSTINSTANCE_PATPATH
               value: "/machinekey/pat"
             {{- end }}
@@ -146,11 +153,11 @@ spec:
             mountPath: /db-ssl-user-crt
             readOnly: true
           {{- end }}
-          {{- if include "deepCheck" (dict "root" .Values "path" (splitList "." "zitadel.configmapConfig.FirstInstance.Org.Machine")) }}
+          {{- if $hasMachine }}
           - name: machinekey
             mountPath: "/machinekey"
           {{- end}}
-          {{- if include "deepCheck" (dict "root" .Values "path" (splitList "." "zitadel.configmapConfig.FirstInstance.Org.LoginClient")) }}
+          {{- if $hasLoginClient }}
           - name: login-client
             mountPath: "/login-client"
           {{- end}}
@@ -159,7 +166,7 @@ spec:
           {{- end }}
           resources:
             {{- toYaml .Values.setupJob.resources | nindent 12 }}
-        {{- if and (not .Values.zitadel.configmapConfig.FirstInstance.Skip) (include "deepCheck" (dict "root" .Values "path" (splitList "." "zitadel.configmapConfig.FirstInstance.Org.Machine"))) }}
+        {{- if and (not $skipFirstInstance) $hasMachine }}
         - name: "{{ .Chart.Name}}-machinekey"
           securityContext:
             {{- toYaml .Values.securityContext | nindent 14 }}
@@ -200,7 +207,7 @@ spec:
             {{- toYaml .Values.setupJob.resources | nindent 12 }}
           {{- end }}
       {{- end }}
-      {{- if and (not .Values.zitadel.configmapConfig.FirstInstance.Skip) (include "deepCheck" (dict "root" .Values "path" (splitList "." "zitadel.configmapConfig.FirstInstance.Org.Machine.Pat"))) }}
+      {{- if and (not $skipFirstInstance) $hasMachinePat }}
         - name: "{{ .Chart.Name }}-machine-pat"
           securityContext:
             {{- toYaml .Values.securityContext | nindent 14 }}
@@ -241,7 +248,7 @@ spec:
             {{- toYaml .Values.setupJob.resources | nindent 12 }}
           {{- end }}
       {{- end }}
-      {{- if and (not .Values.zitadel.configmapConfig.FirstInstance.Skip) (include "deepCheck" (dict "root" .Values "path" (splitList "." "zitadel.configmapConfig.FirstInstance.Org.LoginClient"))) }}
+      {{- if and (not $skipFirstInstance) $hasLoginClient }}
         - name: "{{ .Chart.Name}}-login-client-pat"
           securityContext:
             {{- toYaml .Values.securityContext | nindent 14 }}
@@ -317,11 +324,11 @@ spec:
           secretName: {{ .Values.zitadel.dbSslUserCrtSecret }}
           defaultMode: 0440
       {{- end }}
-      {{- if include "deepCheck" (dict "root" .Values "path" (splitList "." "zitadel.configmapConfig.FirstInstance.Org.Machine")) }}
+      {{- if $hasMachine }}
       - name: machinekey
         emptyDir: { }
       {{- end }}
-      {{- if include "deepCheck" (dict "root" .Values "path" (splitList "." "zitadel.configmapConfig.FirstInstance.Org.LoginClient")) }}
+      {{- if $hasLoginClient }}
       - name: login-client
         emptyDir: { }
       {{- end }}

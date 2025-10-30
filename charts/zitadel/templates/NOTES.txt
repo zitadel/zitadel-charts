@@ -1,6 +1,6 @@
 Thank you for installing {{ .Chart.Name }}.
 
-{{- if include "deepCheck" (dict "root" .Values "path" (splitList "." "zitadel.configmapConfig.FirstInstance.Org.Machine")) }}
+{{- if (((((.Values.zitadel).configmapConfig).FirstInstance).Org).Machine) }}
 Extract your service account key for authenticating at the ZITADEL API's:
 
   $ kubectl -n {{ .Release.Namespace }} get secret {{ .Values.zitadel.configmapConfig.FirstInstance.Org.Machine.Machine.Username }} -o jsonpath='{ .data.{{ .Values.zitadel.configmapConfig.FirstInstance.Org.Machine.Machine.Username }}\.json }' | base64 -D
