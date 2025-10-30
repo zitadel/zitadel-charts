@@ -226,8 +226,8 @@ zitadel:
     #     allowPrivilegeEscalation: false
     #   lifecycle:
     #     postStart:
-  #       exec:
-  #         command: ["/cloud-sql-proxy", "wait"]
+    #       exec:
+    #         command: ["/cloud-sql-proxy", "wait"]
 
 login:
   enabled: true
