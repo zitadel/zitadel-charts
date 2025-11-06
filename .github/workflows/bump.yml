@@ -1,0 +1,18 @@
+name: Bump Version
+
+on:
+  repository_dispatch:
+    types:
+    - zitadel-released 
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'ZITADEL Tag'
+        required: false
+
+jobs:
+  bump:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Skip Auto Bumping
+      run: echo "Skipping auto bumping for chart version 8.12.0"
