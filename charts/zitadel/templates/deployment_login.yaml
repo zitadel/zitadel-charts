@@ -127,6 +127,8 @@ spec:
             - "5m"
             - --interval
             - "5s"
+          securityContext:
+            {{- toYaml .Values.login.securityContext | nindent 12 }}
       {{- with .Values.login.initContainers }}
         {{- toYaml . | nindent 8 }}
       {{- end }}
