@@ -15,11 +15,11 @@ kubectl wait --for=condition=complete job/create-certs
 
 # Install Postgres
 helm repo add bitnami https://charts.bitnami.com/bitnami
-helm install --wait db bitnami/postgresql --version 12.10.0 --values https://github.com/zitadel/zitadel-charts/blob/main/examples/2-postgres-secure/postgres-values.yaml
+helm install --wait db bitnami/postgresql --version 12.10.0 --values https://raw.githubusercontent.com/zitadel/zitadel-charts/refs/heads/main/examples/2-postgres-secure/postgres-values.yaml
 
 # Install Zitadel
 helm repo add zitadel https://charts.zitadel.com
-helm install my-zitadel zitadel/zitadel --values https://github.com/zitadel/zitadel-charts/blob/main/examples/2-postgres-secure/zitadel-values.yaml
+helm install my-zitadel zitadel/zitadel --values https://raw.githubusercontent.com/zitadel/zitadel-charts/refs/heads/main/examples/2-postgres-secure/zitadel-values.yaml
 ```
 
 When Zitadel is ready, open https://pg-secure.127.0.0.1.sslip.io/ui/console?login_hint=zitadel-admin@zitadel.pg-secure.127.0.0.1.sslip.io in your browser and log in with the password `Password1!`.
