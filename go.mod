@@ -4,16 +4,16 @@ go 1.24.0
 
 require (
 	github.com/chromedp/chromedp v0.14.2
-	github.com/gruntwork-io/terratest v0.52.0
+	github.com/gruntwork-io/terratest v0.53.0
 	github.com/stretchr/testify v1.11.1
 	github.com/zitadel/oidc v1.13.5
 	github.com/zitadel/oidc/v3 v3.45.0
-	github.com/zitadel/zitadel-go/v3 v3.14.0
+	github.com/zitadel/zitadel-go/v3 v3.18.1
 	google.golang.org/grpc v1.76.0
 	gopkg.in/yaml.v3 v3.0.1
-	k8s.io/api v0.34.1
-	k8s.io/apimachinery v0.34.1
-	k8s.io/client-go v0.34.1
+	k8s.io/api v0.34.2
+	k8s.io/apimachinery v0.34.2
+	k8s.io/client-go v0.34.2
 )
 
 require (
