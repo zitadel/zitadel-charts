@@ -37,8 +37,8 @@ spec:
         - name: "{{ .Chart.Name }}-cleanup"
           securityContext:
             {{- toYaml .Values.securityContext | nindent 14 }}
-          image: "alpine/k8s:{{ include "zitadel.kubeVersion" . }}"
-          imagePullPolicy: IfNotPresent
+          image: '{{ if .Values.tools.kubectl.image.registry }}{{ .Values.tools.kubectl.image.registry }}/{{ end }}{{ default "alpine/k8s" .Values.tools.kubectl.image.repository }}:{{ default (include "zitadel.kubeVersion" .) .Values.tools.kubectl.image.tag }}'
+          imagePullPolicy: '{{ default "IfNotPresent" .Values.tools.kubectl.image.pullPolicy }}'
           command:
             - sh
             - -c
