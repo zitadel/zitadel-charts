@@ -709,4 +709,3 @@ tools:
       # Optional list of image pull secrets needed to authenticate to the
       # registry hosting the kubectl image. Leave empty to make no assumptions.
       pullSecrets: []
-
