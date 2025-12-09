@@ -9,7 +9,7 @@ metadata:
     {{- include "login.labels" . | nindent 4 }}
   annotations:
     {{- if eq .Values.login.ingress.controller "aws" }}
-    alb.ingress.kubernetes.io/group.order: '100' # after zitadel
+    alb.ingress.kubernetes.io/group.order: '-2'
     {{- end }}
     {{- with .Values.login.ingress.annotations }}
     {{- toYaml . | nindent 4 }}
