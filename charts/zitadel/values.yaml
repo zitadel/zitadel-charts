@@ -399,6 +399,7 @@ image:
   # Overrides the image tag whose default is the chart appVersion.
   tag: ""
 
+imageRegistry: ""
 imagePullSecrets: []
 nameOverride: ""
 fullnameOverride: ""
@@ -672,9 +673,6 @@ tools:
   # the user when overriding this configuration.
   wait4x:
     image:
-      # Optional registry prefix for the wait4x image. Leave empty to use the
-      # repository as-is without any registry prefix.
-      registry: ""
       # The name of the image repository that contains the wait4x image. This
       # value must be provided by the user when configuring the chart.
       repository: "wait4x/wait4x"
@@ -684,28 +682,18 @@ tools:
       # The pull policy for the wait4x image. If left empty, the chart defaults
       # to the Kubernetes default pull policy for the given tag.
       pullPolicy: ""
-      # Optional list of image pull secrets required to authenticate to the
-      # registry hosting the wait4x image. Leave empty if no authentication is
-      # needed.
-      pullSecrets: []
 
   # Configuration for the kubectl helper image used by certain init containers
   # for lightweight Kubernetes API operations. Jobs continue to use their own
   # dedicated images and are not affected by this configuration.
   kubectl:
     image:
-      # Optional registry prefix for the kubectl image. Leave empty to use the
-      # repository directly without a registry prefix.
-      registry: ""
       # The name of the image repository that contains the kubectl image. This
       # must be provided by the user if the init containers require kubectl.
-      repository: "wait4x/wait4x"
+      repository: "alpine/k8s"
       # The image tag to use for the kubectl image. Leave empty so the user must
       # explicitly define the desired version to ensure environment alignment.
-      tag: "3.6"
+      tag: "1.28.5"
       # The pull policy for the kubectl image. If left empty, Kubernetes applies
       # its default policy depending on whether the tag is mutable or fixed.
       pullPolicy: ""
-      # Optional list of image pull secrets needed to authenticate to the
-      # registry hosting the kubectl image. Leave empty to make no assumptions.
-      pullSecrets: []

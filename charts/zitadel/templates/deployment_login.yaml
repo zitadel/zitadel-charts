@@ -113,7 +113,7 @@ spec:
         # OK status. The `--insecure-skip-tls-verify` flag is included to support
         # environments that use self-signed certificates for internal TLS.
         - name: wait-for-zitadel
-          image: '{{ if .Values.tools.wait4x.image.registry }}{{ .Values.tools.wait4x.image.registry }}/{{ end }}{{ default "wait4x/wait4x" .Values.tools.wait4x.image.repository }}:{{ default "3.6" .Values.tools.wait4x.image.tag }}'
+          image: {{ include "wait4x.image" . }}
           imagePullPolicy: '{{ default "IfNotPresent" .Values.tools.wait4x.image.pullPolicy }}'
           command:
             - wait4x

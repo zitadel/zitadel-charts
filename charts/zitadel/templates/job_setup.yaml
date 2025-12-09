@@ -170,7 +170,7 @@ spec:
         - name: "{{ .Chart.Name}}-machinekey"
           securityContext:
             {{- toYaml .Values.securityContext | nindent 14 }}
-          image: "{{ .Values.setupJob.machinekeyWriter.image.repository }}:{{ .Values.setupJob.machinekeyWriter.image.tag | default (include "zitadel.kubeVersion" .) }}"
+          image: {{ include "zitadel.machinekeyWriter.image" . }}
           command:
             - sh
             - -c
@@ -211,7 +211,7 @@ spec:
         - name: "{{ .Chart.Name }}-machine-pat"
           securityContext:
             {{- toYaml .Values.securityContext | nindent 14 }}
-          image: "{{ .Values.setupJob.machinekeyWriter.image.repository }}:{{ .Values.setupJob.machinekeyWriter.image.tag | default (include "zitadel.kubeVersion" .) }}"
+          image: {{ include "zitadel.machinekeyWriter.image" . }}
           command:
             - sh
             - -c
@@ -252,7 +252,7 @@ spec:
         - name: "{{ .Chart.Name}}-login-client-pat"
           securityContext:
             {{- toYaml .Values.securityContext | nindent 14 }}
-          image: "{{ .Values.setupJob.machinekeyWriter.image.repository }}:{{ .Values.setupJob.machinekeyWriter.image.tag | default (include "zitadel.kubeVersion" .) }}"
+          image: {{ include "zitadel.machinekeyWriter.image" . }}
           command:
             - sh
             - -c

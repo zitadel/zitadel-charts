@@ -226,7 +226,7 @@ spec:
         # the main ZITADEL container from starting and potentially crashing before its
         # database is available, thus improving deployment reliability.
         - name: wait-for-postgres
-          image: '{{ if .Values.tools.wait4x.image.registry }}{{ .Values.tools.wait4x.image.registry }}/{{ end }}{{ default "wait4x/wait4x" .Values.tools.wait4x.image.repository }}:{{ default "3.6" .Values.tools.wait4x.image.tag }}'
+          image: {{ include "wait4x.image" . }}
           imagePullPolicy: '{{ default "IfNotPresent" .Values.tools.wait4x.image.pullPolicy }}'
           command:
             - wait4x
