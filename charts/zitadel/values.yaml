@@ -344,11 +344,17 @@ login:
     runAsNonRoot: true
     runAsUser: 1000
     fsGroup: 1000
+    seccompProfile:
+      type: RuntimeDefault
   securityContext:
     runAsNonRoot: true
     runAsUser: 1000
     readOnlyRootFilesystem: true
     privileged: false
+    allowPrivilegeEscalation: false
+    capabilities:
+      drop:
+        - ALL
   resources: {}
   nodeSelector: {}
   tolerations: []
@@ -433,12 +439,18 @@ podSecurityContext:
   runAsNonRoot: true
   runAsUser: 1000
   fsGroup: 1000
+  seccompProfile:
+    type: RuntimeDefault
 
 securityContext:
   runAsNonRoot: true
   runAsUser: 1000
   readOnlyRootFilesystem: true
   privileged: false
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+      - ALL
 
 # Additional environment variables
 env:
