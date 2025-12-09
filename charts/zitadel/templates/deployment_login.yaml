@@ -65,6 +65,9 @@ spec:
               path: {{ include "login.livenessProbePath" . }}
               port: {{ .Values.login.service.protocol }}-server
               scheme: {{ .Values.login.service.scheme }}
+              httpHeaders:
+                - name: HOST
+                  value: {{ .Values.zitadel.configmapConfig.ExternalDomain }}
             initialDelaySeconds: {{ .Values.login.livenessProbe.initialDelaySeconds }}
             periodSeconds: {{ .Values.login.livenessProbe.periodSeconds }}
             failureThreshold: {{ .Values.login.livenessProbe.failureThreshold }}
@@ -75,6 +78,9 @@ spec:
               path: {{ include "login.readinessProbePath" . }}
               port: {{ .Values.login.service.protocol }}-server
               scheme: {{ .Values.login.service.scheme }}
+              httpHeaders:
+                - name: HOST
+                  value: {{ .Values.zitadel.configmapConfig.ExternalDomain }}
             initialDelaySeconds: {{ .Values.login.readinessProbe.initialDelaySeconds }}
             periodSeconds: {{ .Values.login.readinessProbe.periodSeconds }}
             failureThreshold: {{ .Values.login.readinessProbe.failureThreshold }}
@@ -85,6 +91,9 @@ spec:
               path: {{ include "login.startupProbePath" . }}
               port: {{ .Values.login.service.protocol }}-server
               scheme: {{ .Values.login.service.scheme }}
+              httpHeaders:
+                - name: HOST
+                  value: {{ .Values.zitadel.configmapConfig.ExternalDomain }}
             periodSeconds: {{ .Values.login.startupProbe.periodSeconds }}
             failureThreshold: {{ .Values.login.startupProbe.failureThreshold }}
           {{- end }}
