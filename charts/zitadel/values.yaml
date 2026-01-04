@@ -1,4 +1,15 @@
 # Default values for zitadel.
+
+# Configuration for the wait4x init container image used to check dependencies
+# before starting the main containers. This image is used in both the ZITADEL
+# and Login deployments to wait for PostgreSQL and the ZITADEL API respectively.
+# Using fully qualified image names (with registry prefix) is required for
+# Kubernetes clusters using CRI-O v1.34+ which enforces this format.
+wait4x:
+  image:
+    repository: docker.io/wait4x/wait4x
+    tag: "3.6"
+
 zitadel:
   # The ZITADEL config under configmapConfig is written to a Kubernetes ConfigMap
   # See all defaults here:
@@ -252,6 +263,15 @@ login:
   # ZITADEL_SERVICE_USER_TOKEN_FILE="/login-client/pat"
   # ZITADEL_API_URL="http://{{ include "zitadel.fullname" . }}:{{ .Values.service.port }}"
   # CUSTOM_REQUEST_HEADERS="Host:{{ .Values.zitadel.configmapConfig.ExternalDomain }}"
+  #
+  # IMPORTANT: For ZITADEL v4.7.1+ with stricter origin validation (GHSA-7wfc-4796-gmg5),
+  # you may need to add X-Zitadel-Public-Host to CUSTOM_REQUEST_HEADERS to avoid
+  # "public domain not trusted" errors. See https://github.com/zitadel/zitadel/issues/11163
+  # Example:
+  # customConfigmapConfig: |
+  #   ZITADEL_SERVICE_USER_TOKEN_FILE="/login-client/pat"
+  #   ZITADEL_API_URL="http://zitadel:8080"
+  #   CUSTOM_REQUEST_HEADERS="Host:your.domain.com,X-Zitadel-Public-Host:your.domain.com"
   customConfigmapConfig:
   # To deploy zitadel multiple times in the same namespace, use a loginClientSecretPrefix.
   # To mount it, also change the referenced secretName for the login client to "{loginClientSecretPrefix}login-client"
