@@ -184,6 +184,9 @@ spec:
                 kubectl --namespace={{ .Release.Namespace }} create secret generic {{ .Values.zitadel.configmapConfig.FirstInstance.Org.Machine.Machine.Username }} \
                   --from-file={{ .Values.zitadel.configmapConfig.FirstInstance.Org.Machine.Machine.Username }}.json=/machinekey/sa.json \
                   --dry-run=client --output=yaml | \
+                kubectl annotate --local --filename=- \
+                  helm.sh/resource-policy=keep \
+                  --output=yaml | \
                 kubectl label --local --filename=- \
                   app.kubernetes.io/managed-by=Zitadel \
                   app.kubernetes.io/name={{ include "zitadel.name" . }} \
@@ -225,6 +228,9 @@ spec:
                 kubectl --namespace={{ .Release.Namespace }} create secret generic {{ .Values.zitadel.configmapConfig.FirstInstance.Org.Machine.Machine.Username }}-pat \
                   --from-file=pat=/machinekey/pat \
                   --dry-run=client --output=yaml | \
+                kubectl annotate --local --filename=- \
+                  helm.sh/resource-policy=keep \
+                  --output=yaml | \
                 kubectl label --local --filename=- \
                   app.kubernetes.io/managed-by=Zitadel \
                   app.kubernetes.io/name={{ include "zitadel.name" . }} \
@@ -266,6 +272,9 @@ spec:
                 kubectl --namespace={{ .Release.Namespace }} create secret generic {{ .Values.login.loginClientSecretPrefix }}login-client \
                   --from-file=pat=/login-client/pat \
                   --dry-run=client --output=yaml | \
+                kubectl annotate --local --filename=- \
+                  helm.sh/resource-policy=keep \
+                  --output=yaml | \
                 kubectl label --local --filename=- \
                   app.kubernetes.io/managed-by=Zitadel \
                   app.kubernetes.io/name={{ include "zitadel.name" . }} \
