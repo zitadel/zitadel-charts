@@ -61,11 +61,11 @@ jobs:
       - id: 'setup-chrome'
         uses: browser-actions/setup-chrome@v2
         with:
-          chrome-version: 138
+          chrome-version: 143
 
       - id: 'test'
         name: Run Go Tests
-        run: 'go test -parallel 16 -p 32 ./...'
+        run: 'go test ./...'
 
       - id: 'upload-login-failures'
         name: Upload Login Failures
