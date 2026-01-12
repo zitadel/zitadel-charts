@@ -14,7 +14,7 @@ zitadel:
             Username: zitadel-admin-sa
             Name: Admin
           MachineKey:
-            ExpirationDate: "2026-01-01T00:00:00Z"
+            ExpirationDate: "2029-01-01T00:00:00Z"
             Type: 1
     Database:
       Postgres:
