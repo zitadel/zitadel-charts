@@ -37,7 +37,7 @@ spec:
         - name: "{{ .Chart.Name }}-cleanup"
           securityContext:
             {{- toYaml .Values.securityContext | nindent 14 }}
-          image: {{ include "wait4x.image" . }}
+          image: {{ include "kubectl.image" . }}
           imagePullPolicy: '{{ default "IfNotPresent" .Values.tools.kubectl.image.pullPolicy }}'
           command:
             - sh
