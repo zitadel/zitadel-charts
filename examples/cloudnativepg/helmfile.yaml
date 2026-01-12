@@ -11,7 +11,7 @@ releases:
     namespace: ingress
     createNamespace: true
     chart: traefik/traefik
-    version: 36.3.0
+    version: 38.0.2
     values:
       - traefik-values.yaml
     wait: true
