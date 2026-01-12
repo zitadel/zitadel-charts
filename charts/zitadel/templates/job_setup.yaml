@@ -170,7 +170,8 @@ spec:
         - name: "{{ .Chart.Name}}-machinekey"
           securityContext:
             {{- toYaml .Values.securityContext | nindent 14 }}
-          image: "{{ .Values.setupJob.machinekeyWriter.image.repository }}:{{ .Values.setupJob.machinekeyWriter.image.tag | default (include "zitadel.kubeVersion" .) }}"
+          image: {{ include "kubectl.image" . }}
+          imagePullPolicy: '{{ default "IfNotPresent" .Values.tools.kubectl.image.pullPolicy }}'
           command:
             - sh
             - -c
@@ -214,7 +215,8 @@ spec:
         - name: "{{ .Chart.Name }}-machine-pat"
           securityContext:
             {{- toYaml .Values.securityContext | nindent 14 }}
-          image: "{{ .Values.setupJob.machinekeyWriter.image.repository }}:{{ .Values.setupJob.machinekeyWriter.image.tag | default (include "zitadel.kubeVersion" .) }}"
+          image: {{ include "kubectl.image" . }}
+          imagePullPolicy: '{{ default "IfNotPresent" .Values.tools.kubectl.image.pullPolicy }}'
           command:
             - sh
             - -c
@@ -258,7 +260,8 @@ spec:
         - name: "{{ .Chart.Name}}-login-client-pat"
           securityContext:
             {{- toYaml .Values.securityContext | nindent 14 }}
-          image: "{{ .Values.setupJob.machinekeyWriter.image.repository }}:{{ .Values.setupJob.machinekeyWriter.image.tag | default (include "zitadel.kubeVersion" .) }}"
+          image: {{ include "kubectl.image" . }}
+          imagePullPolicy: '{{ default "IfNotPresent" .Values.tools.kubectl.image.pullPolicy }}'
           command:
             - sh
             - -c

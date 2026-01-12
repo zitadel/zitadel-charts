@@ -399,6 +399,9 @@ image:
   # Overrides the image tag whose default is the chart appVersion.
   tag: ""
 
+# Global container registry override used for tool images (e.g., wait4x, kubectl)
+# when using the new configuration pattern. If left empty, it defaults to "docker.io".
+imageRegistry: ""
 imagePullSecrets: []
 nameOverride: ""
 fullnameOverride: ""
@@ -575,7 +578,7 @@ setupJob:
     - "--init-projections=true"
   machinekeyWriter:
     image:
-      repository: alpine/k8s
+      repository: ""
       tag: ""
     resources: {}
 
@@ -661,3 +664,40 @@ extraManifests: []
   #   stringData:
   #     key: value
   #   type: Opaque
+
+# Configuration for helper tools used by init containers and jobs. These images
+# are used by components such as wait-for-zitadel, wait-for-postgres, and the
+# setup and cleanup jobs. Each tool follows the standard image configuration
+# pattern with registry, repository, tag, pull policy, and pull secrets.
+tools:
+  # Configuration for the wait4x image used for readiness and dependency checks
+  # in init containers. Values are intentionally left empty and should be set by
+  # the user when overriding this configuration.
+  wait4x:
+    image:
+      # The name of the image repository that contains the wait4x image. The
+      # chart automatically prepends the registry (docker.io by default) for
+      # compatibility with CRI-O v1.34+ which enforces fully qualified names.
+      repository: "wait4x/wait4x"
+      # The image tag to use for the wait4x image. Leave empty to require the
+      # user to set a specific version explicitly.
+      tag: "3.6"
+      # The pull policy for the wait4x image. If left empty, the chart defaults
+      # to the Kubernetes default pull policy for the given tag.
+      pullPolicy: ""
+
+  # Configuration for the kubectl helper image used by init containers and jobs
+  # for lightweight Kubernetes API operations. This image is used by the setup
+  # job's machinekey containers and the cleanup job.
+  kubectl:
+    image:
+      # The name of the image repository that contains the kubectl image. The
+      # chart automatically prepends the registry (docker.io by default) for
+      # compatibility with CRI-O v1.34+ which enforces fully qualified names.
+      repository: "alpine/k8s"
+      # The image tag to use for the kubectl image. It should be left empty to
+      # automatically default to the Kubernetes cluster version
+      tag: ""
+      # The pull policy for the kubectl image. If left empty, Kubernetes applies
+      # its default policy depending on whether the tag is mutable or fixed.
+      pullPolicy: ""
