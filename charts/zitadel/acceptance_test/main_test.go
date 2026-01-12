@@ -24,7 +24,7 @@ func TestMain(m *testing.M) {
 		helm.AddRepo(t, &helm.Options{}, "traefik", "https://traefik.github.io/charts")
 		_, filename, _, _ := runtime.Caller(0)
 		traefikOptions := &helm.Options{
-			Version:     "36.3.0",
+			Version:     "38.0.2",
 			ValuesFiles: []string{filepath.Join(filename, "..", "..", "..", "..", "examples", "99-kind-with-traefik", "traefik-values.yaml")},
 			ExtraArgs:   map[string][]string{"upgrade": {"--install", "--wait", "--namespace", "ingress", "--create-namespace"}},
 		}
