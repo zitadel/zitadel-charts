@@ -206,6 +206,54 @@ Create the name of the login service account to use
 {{- end }}
 
 {{/*
+Return the pod security context for Zitadel workloads.
+Prefers zitadel.podSecurityContext; falls back to the chart-wide podSecurityContext.
+*/}}
+{{- define "zitadel.podSecurityContext" -}}
+{{- if .Values.zitadel.podSecurityContext }}
+{{- toYaml .Values.zitadel.podSecurityContext -}}
+{{- else }}
+{{- toYaml (default (dict) .Values.podSecurityContext) -}}
+{{- end }}
+{{- end }}
+
+{{/*
+Return the container security context for Zitadel workloads.
+Prefers zitadel.securityContext; falls back to the chart-wide securityContext.
+*/}}
+{{- define "zitadel.securityContext" -}}
+{{- if .Values.zitadel.securityContext }}
+{{- toYaml .Values.zitadel.securityContext -}}
+{{- else }}
+{{- toYaml (default (dict) .Values.securityContext) -}}
+{{- end }}
+{{- end }}
+
+{{/*
+Return the pod security context for Login workloads.
+Prefers login.podSecurityContext; falls back to the chart-wide podSecurityContext.
+*/}}
+{{- define "login.podSecurityContext" -}}
+{{- if .Values.login.podSecurityContext }}
+{{- toYaml .Values.login.podSecurityContext -}}
+{{- else }}
+{{- toYaml (default (dict) .Values.podSecurityContext) -}}
+{{- end }}
+{{- end }}
+
+{{/*
+Return the container security context for Login workloads.
+Prefers login.securityContext; falls back to the chart-wide securityContext.
+*/}}
+{{- define "login.securityContext" -}}
+{{- if .Values.login.securityContext }}
+{{- toYaml .Values.login.securityContext -}}
+{{- else }}
+{{- toYaml (default (dict) .Values.securityContext) -}}
+{{- end }}
+{{- end }}
+
+{{/*
 Returns the database config from the secretConfig or else from the configmapConfig
 */}}
 {{- define "zitadel.dbconfig.json" -}}
