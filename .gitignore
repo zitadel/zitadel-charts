@@ -2,3 +2,5 @@
 .login-failures
 .go
 .claude
+.cache
+.helm
