@@ -38,7 +38,7 @@ spec:
       {{- end }}
       serviceAccountName: {{ include "login.serviceAccountName" . }}
       securityContext:
-        {{- toYaml .Values.login.podSecurityContext | nindent 8 }}
+        {{- include "login.podSecurityContext" . | nindent 8 }}
       enableServiceLinks: false
       containers:
       {{- if .Values.login.extraContainers }}
@@ -46,7 +46,7 @@ spec:
       {{- end }}
         - name: {{ .Chart.Name }}-login
           securityContext:
-            {{- toYaml .Values.login.securityContext | nindent 14 }}
+            {{- include "login.securityContext" . | nindent 14 }}
           image: "{{ .Values.login.image.repository }}:{{ .Values.login.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.login.image.pullPolicy }}
           env:
@@ -129,7 +129,7 @@ spec:
             - --interval
             - "5s"
           securityContext:
-            {{- toYaml .Values.login.securityContext | nindent 12 }}
+            {{- include "login.securityContext" . | nindent 12 }}
       {{- with .Values.login.initContainers }}
         {{- toYaml . | nindent 8 }}
       {{- end }}

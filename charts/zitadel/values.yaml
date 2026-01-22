@@ -138,6 +138,11 @@ zitadel:
   # Set to 0 to not keep any old ReplicaSets
   revisionHistoryLimit: 10
 
+  # Optional overrides for the pod and container security contexts used by Zitadel pods.
+  # If left empty, the chart-wide podSecurityContext and securityContext defined below are used.
+  podSecurityContext: {}
+  securityContext: {}
+
   # Horizontal Pod Autoscaler configuration for scaling on CPU, memory, or custom metrics.
   # Ref: https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale/
   autoscaling:
@@ -487,28 +492,17 @@ login:
     # The name of the service account to use. If not set and create is true,
     # a name is generated using the fullname template.
     name: ""
-  # Pod-level security context for Login UI pods. These settings apply to all
-  # containers in the pod and control security-related pod specifications.
+  # Optional pod-level security context overrides for Login UI pods. If left
+  # empty, the chart-wide podSecurityContext defined below is used instead.
+  # Use this to customize security settings specifically for the Login UI.
   # Ref: https://kubernetes.io/docs/tasks/configure-pod-container/security-context/
-  podSecurityContext:
-    # Require containers to run as a non-root user.
-    runAsNonRoot: true
-    # User ID to run the container processes. 1000 is a common non-root UID.
-    runAsUser: 1000
-    # Group ID for volume ownership and file creation.
-    fsGroup: 1000
-  # Container-level security context for the Login UI container. These settings
-  # apply specifically to the main container and override pod-level settings.
+  podSecurityContext: {}
+  # Optional container-level security context overrides for the Login UI
+  # container. If left empty, the chart-wide securityContext defined below is
+  # used instead. Use this to customize security settings specifically for the
+  # Login UI container.
   # Ref: https://kubernetes.io/docs/tasks/configure-pod-container/security-context/
-  securityContext:
-    # Require the container to run as a non-root user.
-    runAsNonRoot: true
-    # User ID to run the container process.
-    runAsUser: 1000
-    # Mount the container's root filesystem as read-only for security.
-    readOnlyRootFilesystem: true
-    # Prevent the container from running in privileged mode.
-    privileged: false
+  securityContext: {}
   # CPU and memory resource requests and limits for the Login UI container.
   # Ref: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
   resources: {}
@@ -661,8 +655,9 @@ podAnnotations: {}
 # or pod security policies.
 podAdditionalLabels: {}
 
-# Pod-level security context for ZITADEL pods. These settings apply to all
-# containers in the pod and control security-related pod specifications.
+# Chart-wide pod security context applied to all pods (ZITADEL, Login UI, jobs)
+# by default. Individual components can override these via their own
+# podSecurityContext settings (e.g., login.podSecurityContext).
 # Ref: https://kubernetes.io/docs/tasks/configure-pod-container/security-context/
 podSecurityContext:
   # Require containers to run as a non-root user. This is a security best
@@ -675,9 +670,9 @@ podSecurityContext:
   # mounted volumes will be owned by this group.
   fsGroup: 1000
 
-# Container-level security context for the main ZITADEL container. These
-# settings apply specifically to the main container and can override
-# pod-level settings where applicable.
+# Chart-wide container security context applied to all containers by default.
+# Individual components can override these via their own securityContext
+# settings (e.g., login.securityContext).
 # Ref: https://kubernetes.io/docs/tasks/configure-pod-container/security-context/
 securityContext:
   # Require the container to run as a non-root user.
