@@ -20,8 +20,6 @@ type serviceAccountExpected struct {
 
 	zitadelAnnotations map[string]string
 	loginAnnotations   map[string]string
-	zitadelLabels      map[string]string
-	loginLabels        map[string]string
 }
 
 func TestServiceAccountMatrix(t *testing.T) {
