@@ -206,6 +206,7 @@ func TestPodDisruptionBudgetMatrix(t *testing.T) {
 					"zitadel.configmapConfig.Database.Postgres.Admin.SSL.Mode":  "disable",
 					"ingress.enabled":       "true",
 					"login.ingress.enabled": "true",
+					"image.tag":             support.DigestTag,
 				}
 
 				releaseName := env.MakeRelease("zitadel-test", testCase.name)
@@ -245,6 +246,13 @@ func TestPodDisruptionBudgetMatrix(t *testing.T) {
 						ObjectMeta: metav1.ObjectMeta{
 							Name:        releaseName,
 							Annotations: zitadelAnnotations,
+							Labels: support.ExpectedLabels(
+								releaseName,
+								"zitadel",
+								support.ExpectedVersion,
+								"start",
+								nil,
+							),
 						},
 						Spec: policyv1.PodDisruptionBudgetSpec{
 							MinAvailable:   testCase.expected.zitadelMinAvailable,
@@ -275,6 +283,13 @@ func TestPodDisruptionBudgetMatrix(t *testing.T) {
 						ObjectMeta: metav1.ObjectMeta{
 							Name:        releaseName + "-login",
 							Annotations: loginAnnotations,
+							Labels: support.ExpectedLabels(
+								releaseName,
+								"zitadel-login",
+								support.ExpectedVersion,
+								"login",
+								nil,
+							),
 						},
 						Spec: policyv1.PodDisruptionBudgetSpec{
 							MinAvailable:   testCase.expected.loginMinAvailable,
@@ -310,6 +325,7 @@ func assertPDB(t *testing.T, env *support.Env, expected *policyv1.PodDisruptionB
 	require.NoError(t, err, "failed to get PDB %s", expected.Name)
 	require.Equal(t, expected.Spec, actualPDB.Spec, "PDB spec mismatch for %s", expected.Name)
 	require.Equal(t, expected.Annotations, actualPDB.Annotations, "PDB annotations mismatch for %s", expected.Name)
+	support.AssertLabels(t, actualPDB.Labels, expected.Labels)
 
 	env.Logger.Logf(t, "✓ Verified PDB configuration for %s", expected.Name)
 }

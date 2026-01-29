@@ -165,6 +165,7 @@ func TestServiceAccountMatrix(t *testing.T) {
 					"zitadel.configmapConfig.Database.Postgres.Admin.SSL.Mode":  "disable",
 					"ingress.enabled":       "true",
 					"login.ingress.enabled": "true",
+					"image.tag":             support.DigestTag,
 				}
 
 				releaseName := env.MakeRelease("zitadel-test", testCase.name)
@@ -196,6 +197,12 @@ func TestServiceAccountMatrix(t *testing.T) {
 						ObjectMeta: metav1.ObjectMeta{
 							Name:        releaseName,
 							Annotations: testCase.expected.zitadelAnnotations,
+							Labels: support.ExpectedLabels(
+								releaseName,
+								"zitadel",
+								support.ExpectedVersion,
+								"", nil,
+							),
 						},
 					}
 				}
@@ -207,6 +214,13 @@ func TestServiceAccountMatrix(t *testing.T) {
 						ObjectMeta: metav1.ObjectMeta{
 							Name:        releaseName + "-login",
 							Annotations: testCase.expected.loginAnnotations,
+							Labels: support.ExpectedLabels(
+								releaseName,
+								"zitadel-login",
+								support.ExpectedVersion,
+								"login",
+								nil,
+							),
 						},
 					}
 				}
@@ -230,6 +244,7 @@ func assertServiceAccount(t *testing.T, env *support.Env, expected *corev1.Servi
 
 	require.NoError(t, err, "failed to get ServiceAccount %s", expected.Name)
 	require.Equal(t, expected.Annotations, actualServiceAccount.Annotations, "ServiceAccount annotations mismatch for %s", expected.Name)
+	support.AssertLabels(t, actualServiceAccount.Labels, expected.Labels)
 
 	env.Logger.Logf(t, "✓ Verified ServiceAccount configuration for %s", expected.Name)
 }
