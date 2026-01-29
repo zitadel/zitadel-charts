@@ -51,7 +51,8 @@ Common labels
 {{- define "zitadel.labels" -}}
 helm.sh/chart: {{ include "zitadel.chart" . }}
 {{ include "zitadel.commonSelectorLabels" . }}
-app.kubernetes.io/version: {{ index (.Values.image.tag | default .Chart.AppVersion | split "@") "0" | quote }}
+{{ $tag := default .Chart.AppVersion .Values.image.tag }}
+app.kubernetes.io/version: {{ (splitList "@" $tag | first) | quote }}
 app.kubernetes.io/managed-by: {{ .Release.Service }}
 {{- end }}
 
@@ -61,7 +62,8 @@ Login Labels
 {{- define "login.labels" -}}
 helm.sh/chart: {{ include "zitadel.chart" . }}
 {{ include "login.commonSelectorLabels" . }}
-app.kubernetes.io/version: {{ index (.Values.image.tag | default .Chart.AppVersion | split "@") "0" | quote }}
+{{ $tag := default .Chart.AppVersion .Values.image.tag }}
+app.kubernetes.io/version: {{ (splitList "@" $tag | first) | quote }}
 app.kubernetes.io/managed-by: {{ .Release.Service }}
 {{ include "componentSelectorLabel" "login" }}
 {{- end }}

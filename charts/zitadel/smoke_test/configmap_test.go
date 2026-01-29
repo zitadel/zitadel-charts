@@ -143,6 +143,7 @@ func TestConfigMapMatrix(t *testing.T) {
 					"zitadel.configmapConfig.Database.Postgres.Admin.SSL.Mode":  "disable",
 					"ingress.enabled":       "true",
 					"login.ingress.enabled": "true",
+					"image.tag":             support.DigestTag,
 				}
 
 				releaseName := env.MakeRelease("zitadel-test", testCase.name)
@@ -174,6 +175,13 @@ func TestConfigMapMatrix(t *testing.T) {
 						ObjectMeta: metav1.ObjectMeta{
 							Name:        releaseName + "-config-yaml",
 							Annotations: testCase.expected.zitadelAnnotations,
+							Labels: support.ExpectedLabels(
+								releaseName,
+								"zitadel",
+								support.ExpectedVersion,
+								"",
+								nil,
+							),
 						},
 						Data: testCase.expected.zitadelData,
 					}
@@ -186,6 +194,13 @@ func TestConfigMapMatrix(t *testing.T) {
 						ObjectMeta: metav1.ObjectMeta{
 							Name:        releaseName + "-login-config-dotenv",
 							Annotations: testCase.expected.loginAnnotations,
+							Labels: support.ExpectedLabels(
+								releaseName,
+								"zitadel-login",
+								support.ExpectedVersion,
+								"login",
+								nil,
+							),
 						},
 						Data: testCase.expected.loginData,
 					}
@@ -210,6 +225,7 @@ func assertConfigMap(t *testing.T, env *support.Env, expected *corev1.ConfigMap)
 
 	require.NoError(t, err, "failed to get ConfigMap %s", expected.Name)
 	require.Equal(t, expected.Annotations, actualConfigMap.Annotations, "ConfigMap annotations mismatch for %s", expected.Name)
+	support.AssertLabels(t, actualConfigMap.Labels, expected.Labels)
 
 	for key := range expected.Data {
 		_, exists := actualConfigMap.Data[key]

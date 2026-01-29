@@ -233,6 +233,7 @@ func TestServiceMatrix(t *testing.T) {
 					"zitadel.configmapConfig.Database.Postgres.Admin.SSL.Mode":  "disable",
 					"ingress.enabled":       "true",
 					"login.ingress.enabled": "true",
+					"image.tag":             support.DigestTag,
 				}
 
 				releaseName := env.MakeRelease("zitadel-test", testCase.name)
@@ -271,11 +272,13 @@ func TestServiceMatrix(t *testing.T) {
 
 					zitadelSpec := testCase.expected.zitadelSpec
 					zitadelSpec.Selector["app.kubernetes.io/instance"] = releaseName
+					zitadelLabels := support.ExpectedLabels(releaseName, "zitadel", support.ExpectedVersion, "", nil)
 
 					expectedZitadelService = &corev1.Service{
 						ObjectMeta: metav1.ObjectMeta{
 							Name:        releaseName,
 							Annotations: zitadelAnnotations,
+							Labels:      zitadelLabels,
 						},
 						Spec: zitadelSpec,
 					}
@@ -294,11 +297,13 @@ func TestServiceMatrix(t *testing.T) {
 
 					loginSpec := testCase.expected.loginSpec
 					loginSpec.Selector["app.kubernetes.io/instance"] = releaseName
+					loginLabels := support.ExpectedLabels(releaseName, "zitadel-login", support.ExpectedVersion, "login", nil)
 
 					expectedLoginService = &corev1.Service{
 						ObjectMeta: metav1.ObjectMeta{
 							Name:        releaseName + "-login",
 							Annotations: loginAnnotations,
+							Labels:      loginLabels,
 						},
 						Spec: loginSpec,
 					}
@@ -328,6 +333,7 @@ func assertService(t *testing.T, env *support.Env, expected *corev1.Service) {
 	require.Equal(t, expected.Spec.Ports[0].Port, actualService.Spec.Ports[0].Port, "Service port mismatch for %s", expected.Name)
 	require.Equal(t, expected.Spec.Ports[0].TargetPort, actualService.Spec.Ports[0].TargetPort, "Service targetPort mismatch for %s", expected.Name)
 	require.Equal(t, expected.Annotations, actualService.Annotations, "Service annotations mismatch for %s", expected.Name)
+	support.AssertLabels(t, actualService.Labels, expected.Labels)
 
 	env.Logger.Logf(t, "✓ Verified Service configuration for %s", expected.Name)
 }

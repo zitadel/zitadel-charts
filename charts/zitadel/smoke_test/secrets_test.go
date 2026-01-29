@@ -175,6 +175,7 @@ func TestSecretsMatrix(t *testing.T) {
 					"zitadel.configmapConfig.Database.Postgres.User.SSL.Mode":   "disable",
 					"zitadel.configmapConfig.Database.Postgres.Admin.Username":  "postgres",
 					"zitadel.configmapConfig.Database.Postgres.Admin.SSL.Mode":  "disable",
+					"image.tag": support.DigestTag,
 				}
 
 				releaseName := env.MakeRelease("zitadel-secrets-test", testCase.name)
@@ -197,22 +198,30 @@ func TestSecretsMatrix(t *testing.T) {
 
 				require.NoError(t, helm.UpgradeE(t, helmOptions, chartPath, releaseName))
 
+				assertSecret(t, env, releaseName+"-masterkey", "masterkey", true, support.ExpectedLabels(
+					releaseName,
+					"zitadel",
+					support.ExpectedVersion,
+					"",
+					nil,
+				))
+
 				if testCase.expected.machineKeySecret {
-					assertSecret(t, env, testCase.expected.machineKeyName, testCase.expected.machineKeyContent, true)
+					assertSecret(t, env, testCase.expected.machineKeyName, testCase.expected.machineKeyContent, true, nil)
 				} else if testCase.expected.machineKeyName != "" {
-					assertSecret(t, env, testCase.expected.machineKeyName, "", false)
+					assertSecret(t, env, testCase.expected.machineKeyName, "", false, nil)
 				}
 
 				if testCase.expected.machinePatSecret {
-					assertSecret(t, env, testCase.expected.machinePatName, testCase.expected.machinePatContent, true)
+					assertSecret(t, env, testCase.expected.machinePatName, testCase.expected.machinePatContent, true, nil)
 				} else if testCase.expected.machinePatName != "" {
-					assertSecret(t, env, testCase.expected.machinePatName, "", false)
+					assertSecret(t, env, testCase.expected.machinePatName, "", false, nil)
 				}
 
 				if testCase.expected.loginClientSecret {
-					assertSecret(t, env, testCase.expected.loginClientName, testCase.expected.loginClientContent, true)
+					assertSecret(t, env, testCase.expected.loginClientName, testCase.expected.loginClientContent, true, nil)
 				} else if testCase.expected.loginClientName != "" {
-					assertSecret(t, env, testCase.expected.loginClientName, "", false)
+					assertSecret(t, env, testCase.expected.loginClientName, "", false, nil)
 				}
 			})
 		})
@@ -222,7 +231,7 @@ func TestSecretsMatrix(t *testing.T) {
 // assertSecret verifies secret existence and content based on expectation flags.
 // When shouldExist is true, validates the secret exists with the expected key.
 // When shouldExist is false, validates the secret does not exist.
-func assertSecret(t *testing.T, env *support.Env, secretName, expectedKey string, shouldExist bool) {
+func assertSecret(t *testing.T, env *support.Env, secretName, expectedKey string, shouldExist bool, expectedLabels map[string]string) {
 	secret, err := env.Client.CoreV1().Secrets(env.Kube.Namespace).Get(
 		context.Background(),
 		secretName,
@@ -231,6 +240,9 @@ func assertSecret(t *testing.T, env *support.Env, secretName, expectedKey string
 
 	if shouldExist {
 		require.NoError(t, err, "secret %q should exist", secretName)
+		if expectedLabels != nil {
+			support.AssertLabels(t, secret.Labels, expectedLabels)
+		}
 		require.Contains(t, secret.Data, expectedKey, "secret %q should contain key %q", secretName, expectedKey)
 		require.NotEmpty(t, secret.Data[expectedKey], "secret %q key %q should not be empty", secretName, expectedKey)
 	} else {
