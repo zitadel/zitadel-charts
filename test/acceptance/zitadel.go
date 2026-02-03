@@ -143,7 +143,8 @@ func InstallZitadel(t *testing.T, k *k8s.KubectlOptions, opts ...ZitadelOption) 
 	}
 
 	_, filename, _, _ := runtime.Caller(0)
-	chartPath := filepath.Join(filename, "..", "..")
+	repoRoot := filepath.Join(filepath.Dir(filename), "..", "..")
+	chartPath := filepath.Join(repoRoot, "charts", "zitadel")
 
 	values := map[string]string{
 		"replicaCount":          "1",

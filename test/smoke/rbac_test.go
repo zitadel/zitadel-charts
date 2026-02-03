@@ -1,7 +1,6 @@
 package smoke_test_test
 
 import (
-	"path/filepath"
 	"strings"
 	"testing"
 
@@ -10,14 +9,13 @@ import (
 	rbacv1 "k8s.io/api/rbac/v1"
 	"sigs.k8s.io/yaml"
 
-	"github.com/zitadel/zitadel-charts/charts/zitadel/smoke_test/support"
+	"github.com/zitadel/zitadel-charts/test/smoke/support"
 )
 
 func TestRBACLabels(t *testing.T) {
 	t.Parallel()
 
-	chartPath, err := filepath.Abs("..")
-	require.NoError(t, err)
+	chartPath := support.ChartPath(t)
 
 	options := &helm.Options{
 		SetValues: map[string]string{

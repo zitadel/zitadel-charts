@@ -3,7 +3,6 @@ package smoke_test_test
 import (
 	"context"
 	"fmt"
-	"path/filepath"
 	"testing"
 
 	"github.com/gruntwork-io/terratest/modules/helm"
@@ -12,7 +11,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
 
-	"github.com/zitadel/zitadel-charts/charts/zitadel/smoke_test/support"
+	"github.com/zitadel/zitadel-charts/test/smoke/support"
 )
 
 type serviceExpected struct {
@@ -31,8 +30,7 @@ func TestServiceMatrix(t *testing.T) {
 
 	cluster := support.ConnectCluster(t)
 
-	chartPath, err := filepath.Abs("..")
-	require.NoError(t, err)
+	chartPath := support.ChartPath(t)
 
 	testCases := []struct {
 		name      string

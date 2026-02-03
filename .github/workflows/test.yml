@@ -53,7 +53,7 @@ jobs:
         with:
           node_image: 'kindest/node:${{ matrix.k8s.kindest-image-tag }}'
           version: 'v0.31.0'
-          config: ./charts/zitadel/acceptance_test/kindConfig.yaml
+          config: ./test/acceptance/kindConfig.yaml
 
       - id: 'setup-go'
         uses: actions/setup-go@v6
@@ -76,7 +76,7 @@ jobs:
         with:
           include-hidden-files: true
           name: login-failures-${{ matrix.k8s.version }}
-          path: charts/zitadel/acceptance_test/.login-failures
+          path: test/acceptance/.login-failures
           retention-days: 30
 
       - id: 'zitadel-test-namespaces'

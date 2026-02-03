@@ -10,7 +10,7 @@ import (
 	"github.com/gruntwork-io/terratest/modules/k8s"
 	"github.com/stretchr/testify/require"
 
-	k8shelpers "github.com/zitadel/zitadel-charts/charts/zitadel/acceptance_test/helpers/k8s"
+	k8shelpers "github.com/zitadel/zitadel-charts/test/acceptance/helpers/k8s"
 )
 
 type panicT struct {

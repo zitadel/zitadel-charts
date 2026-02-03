@@ -206,7 +206,7 @@ This renders the chart templates and validates them for correctness without requ
 
 ```bash
 # Create KinD cluster
-kind create cluster --config ./charts/zitadel/acceptance_test/kindConfig.yaml
+kind create cluster --config ./test/acceptance/kindConfig.yaml
 
 # Test the chart
 make test
