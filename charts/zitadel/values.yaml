@@ -1176,6 +1176,20 @@ tools:
       # The pull policy for the wait4x image. If left empty, the chart defaults
       # to the Kubernetes default pull policy for the given tag.
       pullPolicy: ""
+    # CPU and memory resource requests and limits for wait4x init containers.
+    # These resources apply to all init containers using the wait4x tool,
+    # including wait-for-zitadel and wait-for-postgres. Setting equal requests
+    # and limits enables the "Guaranteed" QoS class when combined with resource
+    # settings on the main container.
+    # Ref: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
+    resources: {}
+      # Example for Guaranteed QoS class:
+      # requests:
+      #   cpu: 50m
+      #   memory: 32Mi
+      # limits:
+      #   cpu: 50m
+      #   memory: 32Mi
 
   # Configuration for the kubectl helper image used by init containers and jobs
   # for lightweight Kubernetes API operations. This image is used by the setup
