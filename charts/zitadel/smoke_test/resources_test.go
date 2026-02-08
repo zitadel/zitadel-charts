@@ -30,19 +30,23 @@ func TestWait4xInitContainerResources(t *testing.T) {
 				"image.tag":         support.DigestTag,
 				"login.enabled":     "true",
 				"zitadel.masterkey": "01234567890123456789012345678901",
+				"zitadel.configmapConfig.Database.Postgres.Host": "postgres",
+				"zitadel.configmapConfig.Database.Postgres.Port": "5432",
 			},
 			expectResources: false,
 		},
 		{
 			name: "with-wait4x-resources",
 			setValues: map[string]string{
-				"image.tag":                              support.DigestTag,
-				"login.enabled":                          "true",
-				"zitadel.masterkey":                      "01234567890123456789012345678901",
-				"tools.wait4x.resources.requests.cpu":    "50m",
-				"tools.wait4x.resources.requests.memory": "32Mi",
-				"tools.wait4x.resources.limits.cpu":      "100m",
-				"tools.wait4x.resources.limits.memory":   "64Mi",
+				"image.tag":         support.DigestTag,
+				"login.enabled":     "true",
+				"zitadel.masterkey": "01234567890123456789012345678901",
+				"zitadel.configmapConfig.Database.Postgres.Host": "postgres",
+				"zitadel.configmapConfig.Database.Postgres.Port": "5432",
+				"tools.wait4x.resources.requests.cpu":            "50m",
+				"tools.wait4x.resources.requests.memory":         "32Mi",
+				"tools.wait4x.resources.limits.cpu":              "100m",
+				"tools.wait4x.resources.limits.memory":           "64Mi",
 			},
 			expectResources: true,
 		},
@@ -88,9 +92,7 @@ func TestWait4xInitContainerResources(t *testing.T) {
 				helm.UnmarshalK8SYaml(t, rendered, &deployment)
 
 				initContainer := findInitContainer(deployment.Spec.Template.Spec.InitContainers, "wait-for-postgres")
-				if initContainer == nil {
-					t.Skip("wait-for-postgres init container not present (postgres endpoint not configured)")
-				}
+				require.NotNil(t, initContainer, "wait-for-postgres init container not found")
 
 				if tc.expectResources {
 					require.NotEmpty(t, initContainer.Resources.Requests, "expected resources.requests to be set")
