@@ -238,6 +238,10 @@ spec:
             - "5s"
           securityContext:
             {{- include "zitadel.securityContext" . | nindent 12 }}
+          {{- with .Values.tools.wait4x.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
       {{- end }}
       {{- with .Values.zitadel.initContainers }}
         {{- toYaml . | nindent 8 }}
