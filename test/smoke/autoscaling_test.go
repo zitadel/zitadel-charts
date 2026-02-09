@@ -3,7 +3,6 @@ package smoke_test_test
 import (
 	"context"
 	"fmt"
-	"path/filepath"
 	"testing"
 	"time"
 
@@ -14,7 +13,7 @@ import (
 	autoscalingv2 "k8s.io/api/autoscaling/v2"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	"github.com/zitadel/zitadel-charts/charts/zitadel/smoke_test/support"
+	"github.com/zitadel/zitadel-charts/test/smoke/support"
 )
 
 type hpaExpected struct {
@@ -36,8 +35,7 @@ func TestAutoscalingMatrix(t *testing.T) {
 
 	cluster := support.ConnectCluster(t)
 
-	chartPath, err := filepath.Abs("..")
-	require.NoError(t, err)
+	chartPath := support.ChartPath(t)
 
 	int32Ptr := func(value int32) *int32 { return &value }
 	selectPolicyPtr := func(v autoscalingv2.ScalingPolicySelect) *autoscalingv2.ScalingPolicySelect { return &v }

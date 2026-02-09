@@ -15,8 +15,8 @@ import (
 	"google.golang.org/grpc/health/grpc_health_v1"
 	"google.golang.org/grpc/status"
 
-	grpchelper "github.com/zitadel/zitadel-charts/charts/zitadel/acceptance_test/helpers/grpc"
-	httphelper "github.com/zitadel/zitadel-charts/charts/zitadel/acceptance_test/helpers/http"
+	grpchelper "github.com/zitadel/zitadel-charts/test/acceptance/helpers/grpc"
+	httphelper "github.com/zitadel/zitadel-charts/test/acceptance/helpers/http"
 )
 
 // CheckAccessibility performs comprehensive endpoint accessibility verification

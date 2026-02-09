@@ -3,7 +3,6 @@ package smoke_test_test
 import (
 	"context"
 	"fmt"
-	"path/filepath"
 	"testing"
 
 	"github.com/gruntwork-io/terratest/modules/helm"
@@ -11,7 +10,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	"github.com/zitadel/zitadel-charts/charts/zitadel/smoke_test/support"
+	"github.com/zitadel/zitadel-charts/test/smoke/support"
 )
 
 type configMapExpected struct {
@@ -30,8 +29,7 @@ func TestConfigMapMatrix(t *testing.T) {
 
 	cluster := support.ConnectCluster(t)
 
-	chartPath, err := filepath.Abs("..")
-	require.NoError(t, err)
+	chartPath := support.ChartPath(t)
 
 	testCases := []struct {
 		name      string

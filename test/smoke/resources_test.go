@@ -1,7 +1,6 @@
 package smoke_test_test
 
 import (
-	"path/filepath"
 	"testing"
 
 	"github.com/gruntwork-io/terratest/modules/helm"
@@ -10,14 +9,13 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 
-	"github.com/zitadel/zitadel-charts/charts/zitadel/smoke_test/support"
+	"github.com/zitadel/zitadel-charts/test/smoke/support"
 )
 
 func TestWait4xInitContainerResources(t *testing.T) {
 	t.Parallel()
 
-	chartPath, err := filepath.Abs("..")
-	require.NoError(t, err)
+	chartPath := support.ChartPath(t)
 
 	testCases := []struct {
 		name            string
@@ -27,9 +25,9 @@ func TestWait4xInitContainerResources(t *testing.T) {
 		{
 			name: "default-no-resources",
 			setValues: map[string]string{
-				"image.tag":         support.DigestTag,
-				"login.enabled":     "true",
-				"zitadel.masterkey": "01234567890123456789012345678901",
+				"image.tag":                                      support.DigestTag,
+				"login.enabled":                                  "true",
+				"zitadel.masterkey":                              "01234567890123456789012345678901",
 				"zitadel.configmapConfig.Database.Postgres.Host": "postgres",
 				"zitadel.configmapConfig.Database.Postgres.Port": "5432",
 			},
@@ -38,9 +36,9 @@ func TestWait4xInitContainerResources(t *testing.T) {
 		{
 			name: "with-wait4x-resources",
 			setValues: map[string]string{
-				"image.tag":         support.DigestTag,
-				"login.enabled":     "true",
-				"zitadel.masterkey": "01234567890123456789012345678901",
+				"image.tag":                                      support.DigestTag,
+				"login.enabled":                                  "true",
+				"zitadel.masterkey":                              "01234567890123456789012345678901",
 				"zitadel.configmapConfig.Database.Postgres.Host": "postgres",
 				"zitadel.configmapConfig.Database.Postgres.Port": "5432",
 				"tools.wait4x.resources.requests.cpu":            "50m",

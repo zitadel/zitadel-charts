@@ -1,21 +1,18 @@
 package smoke_test_test
 
 import (
-	"path/filepath"
 	"testing"
 
 	"github.com/gruntwork-io/terratest/modules/helm"
-	"github.com/stretchr/testify/require"
 	appsv1 "k8s.io/api/apps/v1"
 
-	"github.com/zitadel/zitadel-charts/charts/zitadel/smoke_test/support"
+	"github.com/zitadel/zitadel-charts/test/smoke/support"
 )
 
 func TestDeploymentLabels(t *testing.T) {
 	t.Parallel()
 
-	chartPath, err := filepath.Abs("..")
-	require.NoError(t, err)
+	chartPath := support.ChartPath(t)
 
 	options := &helm.Options{
 		SetValues: map[string]string{

@@ -15,8 +15,8 @@ import (
 	"github.com/zitadel/oidc/pkg/oidc"
 	"google.golang.org/protobuf/types/known/emptypb"
 
-	grpchelper "github.com/zitadel/zitadel-charts/charts/zitadel/acceptance_test/helpers/grpc"
-	httphelper "github.com/zitadel/zitadel-charts/charts/zitadel/acceptance_test/helpers/http"
+	grpchelper "github.com/zitadel/zitadel-charts/test/acceptance/helpers/grpc"
+	httphelper "github.com/zitadel/zitadel-charts/test/acceptance/helpers/http"
 )
 
 // CheckAuthenticatedAPI verifies that both HTTP and gRPC authenticated API
@@ -125,4 +125,3 @@ func callAuthenticatedGRPC(ctx context.Context, token, apiBaseURL string) error 
 	}
 	return nil
 }
-
