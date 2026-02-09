@@ -50,13 +50,13 @@ zitadel:
       # -- IMPORTANT: The following fields are managed automatically by the Helm chart.
       # Setting these manually is not supported and will cause the deployment to fail.
       # The chart automatically generates and manages these paths internally.
-      MachineKeyPath: null # @schema type:[null,string]
-      PatPath: null # @schema type:[null,string]
-      LoginClientPatPath: null # @schema type:[null,string]
+      MachineKeyPath: null  # @schema type:[null,string]
+      PatPath: null  # @schema type:[null,string]
+      LoginClientPatPath: null  # @schema type:[null,string]
       Org:
         # -- IMPORTANT: Setting Skip here is not supported. Use FirstInstance.Skip instead.
         # This field exists for validation purposes only.
-        Skip: null # @schema type:[null,boolean]
+        Skip: null  # @schema type:[null,boolean]
         # -- Defines an administrative machine user created with the IAM_OWNER role.
         # This user is intended for initial automation and administrative tasks
         # right after the Helm chart is deployed.
