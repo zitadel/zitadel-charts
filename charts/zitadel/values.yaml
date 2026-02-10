@@ -92,7 +92,8 @@ zitadel:
           Pat:
             ExpirationDate: '2029-01-01T00:00:00Z'
 
-  # Sensitive ZITADEL configuration values written to a Kubernetes Secret instead
+  # @schema type:[null,object]
+  # -- Sensitive ZITADEL configuration values written to a Kubernetes Secret instead
   # of a ConfigMap. Use this for database passwords, API keys, SMTP credentials,
   # and other values that should not be stored in plain text. The secret is
   # mounted alongside the ConfigMap and both are merged by ZITADEL at startup.
@@ -113,6 +114,7 @@ zitadel:
     helm.sh/hook-delete-policy: before-hook-creation
     helm.sh/hook-weight: "0"
 
+  # @schema type:[null,string]
   # -- Name of an existing Kubernetes Secret containing ZITADEL configuration.
   # Use this when you want to manage ZITADEL configuration externally
   # (e.g., via External Secrets Operator, Sealed Secrets, or GitOps). The secret
@@ -338,7 +340,8 @@ login:
     # -- Additional annotations to apply to the Pod Disruption Budget resource
     annotations: {}
 
-  # Custom environment variables for the Login UI ConfigMap. These override the
+  # @schema type:[null,string]
+  # -- Custom environment variables for the Login UI ConfigMap. These override the
   # default values which configure the service user token path, API URL, and
   # custom request headers. Only set this if you need to customize the Login UI
   # behavior beyond the defaults. The defaults are:
@@ -346,6 +349,7 @@ login:
   #   ZITADEL_API_URL="http://<release>-zitadel:<port>"
   #   CUSTOM_REQUEST_HEADERS="Host:<ExternalDomain>"
   customConfigmapConfig:
+  # @schema type:[null,string]
   # -- Prefix for the login client secret name. Use this when deploying multiple
   # ZITADEL instances in the same namespace to avoid secret name collisions.
   # When set, the login client secret will be named "{prefix}login-client".

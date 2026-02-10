@@ -339,7 +339,11 @@
                     }
                 },
                 "customConfigmapConfig": {
-                    "type": "null"
+                    "description": "Custom environment variables for the Login UI ConfigMap. These override the default values which configure the service user token path, API URL, and custom request headers. Only set this if you need to customize the Login UI behavior beyond the defaults. The defaults are: ZITADEL_SERVICE_USER_TOKEN_FILE=\"/login-client/pat\" ZITADEL_API_URL=\"http://\u003crelease\u003e-zitadel:\u003cport\u003e\" CUSTOM_REQUEST_HEADERS=\"Host:\u003cExternalDomain\u003e\"",
+                    "type": [
+                        "null",
+                        "string"
+                    ]
                 },
                 "enabled": {
                     "description": "Enable or disable the Login UI deployment. When disabled, ZITADEL uses its built-in login interface instead of the separate Login UI application.",
@@ -464,7 +468,10 @@
                 },
                 "loginClientSecretPrefix": {
                     "description": "Prefix for the login client secret name. Use this when deploying multiple ZITADEL instances in the same namespace to avoid secret name collisions. When set, the login client secret will be named \"{prefix}login-client\".",
-                    "type": "null"
+                    "type": [
+                        "null",
+                        "string"
+                    ]
                 },
                 "nameOverride": {
                     "description": "Override the \"login\" portion of resource names. Useful when the default naming conflicts with existing resources.",
@@ -1136,7 +1143,10 @@
                 },
                 "configSecretName": {
                     "description": "Name of an existing Kubernetes Secret containing ZITADEL configuration. Use this when you want to manage ZITADEL configuration externally (e.g., via External Secrets Operator, Sealed Secrets, or GitOps). The secret should contain YAML configuration in the same format as configmapConfig.",
-                    "type": "null"
+                    "type": [
+                        "null",
+                        "string"
+                    ]
                 },
                 "configmapConfig": {
                     "description": "ZITADEL runtime configuration written to a Kubernetes ConfigMap. These values are passed directly to the ZITADEL binary and control its behavior. For the complete list of available configuration options, see: https://github.com/zitadel/zitadel/blob/main/cmd/defaults.yaml",
@@ -1414,7 +1424,11 @@
                     "type": "integer"
                 },
                 "secretConfig": {
-                    "type": "null"
+                    "description": "Sensitive ZITADEL configuration values written to a Kubernetes Secret instead of a ConfigMap. Use this for database passwords, API keys, SMTP credentials, and other values that should not be stored in plain text. The secret is mounted alongside the ConfigMap and both are merged by ZITADEL at startup. Structure follows the same format as configmapConfig. See all options: https://github.com/zitadel/zitadel/blob/main/cmd/defaults.yaml Example: secretConfig: Database: Postgres: User: Password: \"my-secure-password\"",
+                    "type": [
+                        "null",
+                        "object"
+                    ]
                 },
                 "secretConfigAnnotations": {
                     "description": "Annotations for the secretConfig Secret. The default Helm hooks ensure the secret is created before the deployment and recreated on upgrades.",
