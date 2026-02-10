@@ -60,6 +60,10 @@ jobs:
         with:
           go-version-file: 'go.mod'
 
+      - id: 'setup-helm-schema'
+        name: Install Helm Schema Plugin
+        run: helm plugin install https://github.com/losisin/helm-values-schema-json.git
+
       - id: 'setup-chrome'
         uses: browser-actions/setup-chrome@v2
         with:
