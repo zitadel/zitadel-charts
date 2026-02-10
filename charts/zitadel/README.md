@@ -2,6 +2,8 @@
 
 # Zitadel
 
+![Version: 9.18.0](https://img.shields.io/badge/Version-9.18.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: v4.2.0](https://img.shields.io/badge/AppVersion-v4.2.0-informational?style=flat-square)
+
 ## A Better Identity and Access Management Solution
 
 Identity infrastructure, simplified for you.
@@ -31,7 +33,7 @@ All the configurations from the examples above are guaranteed to work, because t
 
 The v9 charts default Zitadel and login versions reference [Zitadel v4](https://github.com/zitadel/zitadel/releases/tag/v4.0.0).
 
-### Don’t Switch to the New Login Deployment
+### Don't Switch to the New Login Deployment
 
 Use `login.enabled: false` to omit deploying the new login.
 
@@ -46,16 +48,16 @@ Therefore, the Kubernetes secret has to be created manually before upgrading to 
 
 1. Create a user of type machine
 2. Make the user an instance administrator with role `IAM_LOGIN_CLIENT`
-3. Create a personal access token for the user 
+3. Create a personal access token for the user
 4. Create a secret with that token: `kubectl --namespace <my-namespace> create secret generic login-client --from-file=pat=<my-local-path-to-the-downloaded-pat-file>`
 
 To make the login externally accessible, you need to route traffic with the path prefix `/ui/v2/login` to the login service.
 If you use an ingress controller, you can enable the login ingress with `login.ingress.enabled: true`
 
 > [!CAUTION]
-> Don't Lock Yourself Out of Your Instance  
-> Before you change your Zitadel configuration, we highly recommend you to create a service user with a personal access token (PAT) and the IAM_OWNER role.  
-> In case something breaks, you can use this PAT to revert your changes or fix the configuration so you can use a login UI again.  
+> Don't Lock Yourself Out of Your Instance
+> Before you change your Zitadel configuration, we highly recommend you to create a service user with a personal access token (PAT) and the IAM_OWNER role.
+> In case something breaks, you can use this PAT to revert your changes or fix the configuration so you can login UI again.
 
 To actually use the new login, enable the loginV2 feature on the instance.
 Leave the base URI empty to use the default or explicitly configure it to `/ui/v2/login`.
@@ -124,7 +126,7 @@ Please refer to the docs by Cockroach Labs. The Zitadel tests run against the [o
 
   | Old Value                      | New Value                     |
   |--------------------------------|-------------------------------|
-  | `zitadel.dbSslRootCrt`         | `zitadel.dbSslCaCrt`          | 
+  | `zitadel.dbSslRootCrt`         | `zitadel.dbSslCaCrt`          |
   | `zitadel.dbSslRootCrtSecret`   | `zitadel.dbSslCaCrtSecret`    |
   | `zitadel.dbSslClientCrtSecret` | `zitadel.dbSslAdminCrtSecret` |
   | `-`                            | `zitadel.dbSslUserCrtSecret`  |
@@ -143,6 +145,270 @@ for k8sresourcetype in job configmap secret rolebinding role serviceaccount; do
 done
 ```
 
+## Requirements
+
+Kubernetes: `>= 1.30.0-0`
+
+## Values
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| affinity | object | `{}` |  |
+| annotations | object | `{}` |  |
+| cleanupJob.activeDeadlineSeconds | int | `60` |  |
+| cleanupJob.annotations."helm.sh/hook" | string | `"post-delete"` |  |
+| cleanupJob.annotations."helm.sh/hook-delete-policy" | string | `"hook-succeeded"` |  |
+| cleanupJob.annotations."helm.sh/hook-weight" | string | `"-1"` |  |
+| cleanupJob.backoffLimit | int | `3` |  |
+| cleanupJob.enabled | bool | `true` |  |
+| cleanupJob.podAdditionalLabels | object | `{}` |  |
+| cleanupJob.podAnnotations | object | `{}` |  |
+| cleanupJob.resources | object | `{}` |  |
+| configMap.annotations."helm.sh/hook" | string | `"pre-install,pre-upgrade"` |  |
+| configMap.annotations."helm.sh/hook-delete-policy" | string | `"before-hook-creation"` |  |
+| configMap.annotations."helm.sh/hook-weight" | string | `"0"` |  |
+| env | list | `[]` |  |
+| envVarsSecret | string | `""` |  |
+| extraContainers | list | `[]` |  |
+| extraManifests | list | `[]` |  |
+| extraVolumeMounts | list | `[]` |  |
+| extraVolumes | list | `[]` |  |
+| fullnameOverride | string | `""` |  |
+| image.pullPolicy | string | `"IfNotPresent"` |  |
+| image.repository | string | `"ghcr.io/zitadel/zitadel"` |  |
+| image.tag | string | `""` |  |
+| imagePullSecrets | list | `[]` |  |
+| imageRegistry | string | `""` |  |
+| ingress.annotations."nginx.ingress.kubernetes.io/backend-protocol" | string | `"GRPC"` |  |
+| ingress.className | string | `""` |  |
+| ingress.controller | string | `"generic"` |  |
+| ingress.enabled | bool | `false` |  |
+| ingress.hosts[0].paths[0].path | string | `"/"` |  |
+| ingress.hosts[0].paths[0].pathType | string | `"Prefix"` |  |
+| ingress.tls | list | `[]` |  |
+| initJob.activeDeadlineSeconds | int | `300` |  |
+| initJob.annotations."helm.sh/hook" | string | `"pre-install,pre-upgrade"` |  |
+| initJob.annotations."helm.sh/hook-delete-policy" | string | `"before-hook-creation"` |  |
+| initJob.annotations."helm.sh/hook-weight" | string | `"1"` |  |
+| initJob.backoffLimit | int | `5` |  |
+| initJob.command | string | `""` |  |
+| initJob.enabled | bool | `true` |  |
+| initJob.extraContainers | list | `[]` |  |
+| initJob.initContainers | list | `[]` |  |
+| initJob.podAdditionalLabels | object | `{}` |  |
+| initJob.podAnnotations | object | `{}` |  |
+| initJob.resources | object | `{}` |  |
+| livenessProbe.enabled | bool | `true` |  |
+| livenessProbe.failureThreshold | int | `3` |  |
+| livenessProbe.initialDelaySeconds | int | `0` |  |
+| livenessProbe.periodSeconds | int | `5` |  |
+| login.affinity | object | `{}` |  |
+| login.annotations | object | `{}` |  |
+| login.autoscaling.annotations | object | `{}` |  |
+| login.autoscaling.behavior | object | `{}` |  |
+| login.autoscaling.enabled | bool | `false` |  |
+| login.autoscaling.maxReplicas | int | `10` |  |
+| login.autoscaling.metrics | list | `[]` |  |
+| login.autoscaling.minReplicas | int | `3` |  |
+| login.autoscaling.targetCPU | string | `nil` |  |
+| login.autoscaling.targetMemory | string | `nil` |  |
+| login.configMap.annotations."helm.sh/hook" | string | `"pre-install,pre-upgrade"` |  |
+| login.configMap.annotations."helm.sh/hook-delete-policy" | string | `"before-hook-creation"` |  |
+| login.configMap.annotations."helm.sh/hook-weight" | string | `"0"` |  |
+| login.customConfigmapConfig | string | `nil` |  |
+| login.enabled | bool | `true` |  |
+| login.env | list | `[]` |  |
+| login.extraContainers | list | `[]` |  |
+| login.extraVolumeMounts | list | `[]` |  |
+| login.extraVolumes | list | `[]` |  |
+| login.fullnameOverride | string | `""` |  |
+| login.image.pullPolicy | string | `"IfNotPresent"` |  |
+| login.image.repository | string | `"ghcr.io/zitadel/zitadel-login"` |  |
+| login.image.tag | string | `""` |  |
+| login.imagePullSecrets | list | `[]` |  |
+| login.ingress.annotations | object | `{}` |  |
+| login.ingress.className | string | `""` |  |
+| login.ingress.controller | string | `"generic"` |  |
+| login.ingress.enabled | bool | `false` |  |
+| login.ingress.hosts[0].paths[0].path | string | `"/ui/v2/login"` |  |
+| login.ingress.hosts[0].paths[0].pathType | string | `"Prefix"` |  |
+| login.ingress.tls | list | `[]` |  |
+| login.initContainers | list | `[]` |  |
+| login.livenessProbe.enabled | bool | `true` |  |
+| login.livenessProbe.failureThreshold | int | `3` |  |
+| login.livenessProbe.initialDelaySeconds | int | `0` |  |
+| login.livenessProbe.periodSeconds | int | `5` |  |
+| login.loginClientSecretPrefix | string | `nil` |  |
+| login.nameOverride | string | `""` |  |
+| login.nodeSelector | object | `{}` |  |
+| login.pdb.annotations | object | `{}` |  |
+| login.pdb.enabled | bool | `false` |  |
+| login.pdb.maxUnavailable | string | `nil` |  |
+| login.pdb.minAvailable | string | `nil` |  |
+| login.podAdditionalLabels | object | `{}` |  |
+| login.podAnnotations | object | `{}` |  |
+| login.podSecurityContext | object | `{}` |  |
+| login.readinessProbe.enabled | bool | `true` |  |
+| login.readinessProbe.failureThreshold | int | `3` |  |
+| login.readinessProbe.initialDelaySeconds | int | `0` |  |
+| login.readinessProbe.periodSeconds | int | `5` |  |
+| login.replicaCount | int | `1` |  |
+| login.resources | object | `{}` |  |
+| login.revisionHistoryLimit | int | `10` |  |
+| login.securityContext | object | `{}` |  |
+| login.service.annotations | object | `{}` |  |
+| login.service.appProtocol | string | `"kubernetes.io/http"` |  |
+| login.service.clusterIP | string | `""` |  |
+| login.service.externalTrafficPolicy | string | `""` |  |
+| login.service.labels | object | `{}` |  |
+| login.service.port | int | `3000` |  |
+| login.service.protocol | string | `"http"` |  |
+| login.service.scheme | string | `"HTTP"` |  |
+| login.service.type | string | `"ClusterIP"` |  |
+| login.serviceAccount.annotations."helm.sh/hook" | string | `"pre-install,pre-upgrade"` |  |
+| login.serviceAccount.annotations."helm.sh/hook-delete-policy" | string | `"before-hook-creation"` |  |
+| login.serviceAccount.annotations."helm.sh/hook-weight" | string | `"0"` |  |
+| login.serviceAccount.create | bool | `true` |  |
+| login.serviceAccount.name | string | `""` |  |
+| login.startupProbe.enabled | bool | `false` |  |
+| login.startupProbe.failureThreshold | int | `30` |  |
+| login.startupProbe.periodSeconds | int | `1` |  |
+| login.tolerations | list | `[]` |  |
+| login.topologySpreadConstraints | list | `[]` |  |
+| metrics.enabled | bool | `false` |  |
+| metrics.serviceMonitor.additionalLabels | object | `{}` |  |
+| metrics.serviceMonitor.enabled | bool | `false` |  |
+| metrics.serviceMonitor.honorLabels | bool | `false` |  |
+| metrics.serviceMonitor.honorTimestamps | bool | `true` |  |
+| metrics.serviceMonitor.metricRelabellings | list | `[]` |  |
+| metrics.serviceMonitor.namespace | string | `nil` |  |
+| metrics.serviceMonitor.proxyUrl | string | `nil` |  |
+| metrics.serviceMonitor.relabellings | list | `[]` |  |
+| metrics.serviceMonitor.scheme | string | `nil` |  |
+| metrics.serviceMonitor.scrapeInterval | string | `nil` |  |
+| metrics.serviceMonitor.scrapeTimeout | string | `nil` |  |
+| metrics.serviceMonitor.tlsConfig | object | `{}` |  |
+| nameOverride | string | `""` |  |
+| nodeSelector | object | `{}` |  |
+| pdb.annotations | object | `{}` |  |
+| pdb.enabled | bool | `false` |  |
+| pdb.maxUnavailable | string | `nil` |  |
+| pdb.minAvailable | string | `nil` |  |
+| podAdditionalLabels | object | `{}` |  |
+| podAnnotations | object | `{}` |  |
+| podSecurityContext.fsGroup | int | `1000` |  |
+| podSecurityContext.runAsNonRoot | bool | `true` |  |
+| podSecurityContext.runAsUser | int | `1000` |  |
+| readinessProbe.enabled | bool | `true` |  |
+| readinessProbe.failureThreshold | int | `3` |  |
+| readinessProbe.initialDelaySeconds | int | `0` |  |
+| readinessProbe.periodSeconds | int | `5` |  |
+| replicaCount | int | `1` |  |
+| resources | object | `{}` |  |
+| securityContext.privileged | bool | `false` |  |
+| securityContext.readOnlyRootFilesystem | bool | `true` |  |
+| securityContext.runAsNonRoot | bool | `true` |  |
+| securityContext.runAsUser | int | `1000` |  |
+| service.annotations."traefik.ingress.kubernetes.io/service.serversscheme" | string | `"h2c"` |  |
+| service.appProtocol | string | `"kubernetes.io/h2c"` |  |
+| service.clusterIP | string | `""` |  |
+| service.externalTrafficPolicy | string | `""` |  |
+| service.labels | object | `{}` |  |
+| service.port | int | `8080` |  |
+| service.protocol | string | `"http2"` |  |
+| service.scheme | string | `"HTTP"` |  |
+| service.type | string | `"ClusterIP"` |  |
+| serviceAccount.annotations."helm.sh/hook" | string | `"pre-install,pre-upgrade"` |  |
+| serviceAccount.annotations."helm.sh/hook-delete-policy" | string | `"before-hook-creation"` |  |
+| serviceAccount.annotations."helm.sh/hook-weight" | string | `"0"` |  |
+| serviceAccount.create | bool | `true` |  |
+| serviceAccount.name | string | `""` |  |
+| setupJob.activeDeadlineSeconds | int | `300` |  |
+| setupJob.additionalArgs[0] | string | `"--init-projections=true"` |  |
+| setupJob.annotations."helm.sh/hook" | string | `"pre-install,pre-upgrade"` |  |
+| setupJob.annotations."helm.sh/hook-delete-policy" | string | `"before-hook-creation"` |  |
+| setupJob.annotations."helm.sh/hook-weight" | string | `"2"` |  |
+| setupJob.backoffLimit | int | `5` |  |
+| setupJob.extraContainers | list | `[]` |  |
+| setupJob.initContainers | list | `[]` |  |
+| setupJob.machinekeyWriter.image.repository | string | `""` |  |
+| setupJob.machinekeyWriter.image.tag | string | `""` |  |
+| setupJob.machinekeyWriter.resources | object | `{}` |  |
+| setupJob.podAdditionalLabels | object | `{}` |  |
+| setupJob.podAnnotations | object | `{}` |  |
+| setupJob.resources | object | `{}` |  |
+| startupProbe.enabled | bool | `true` |  |
+| startupProbe.failureThreshold | int | `30` |  |
+| startupProbe.periodSeconds | int | `1` |  |
+| tolerations | list | `[]` |  |
+| tools.kubectl.image.pullPolicy | string | `""` |  |
+| tools.kubectl.image.repository | string | `"alpine/k8s"` |  |
+| tools.kubectl.image.tag | string | `""` |  |
+| tools.wait4x.image.pullPolicy | string | `""` |  |
+| tools.wait4x.image.repository | string | `"wait4x/wait4x"` |  |
+| tools.wait4x.image.tag | string | `"3.6"` |  |
+| tools.wait4x.resources | object | `{}` |  |
+| topologySpreadConstraints | list | `[]` |  |
+| zitadel.autoscaling.annotations | object | `{}` |  |
+| zitadel.autoscaling.behavior | object | `{}` |  |
+| zitadel.autoscaling.enabled | bool | `false` |  |
+| zitadel.autoscaling.maxReplicas | int | `10` |  |
+| zitadel.autoscaling.metrics | list | `[]` |  |
+| zitadel.autoscaling.minReplicas | int | `3` |  |
+| zitadel.autoscaling.targetCPU | string | `nil` |  |
+| zitadel.autoscaling.targetMemory | string | `nil` |  |
+| zitadel.configSecretKey | string | `"config-yaml"` |  |
+| zitadel.configSecretName | string | `nil` |  |
+| zitadel.configmapConfig.Database.Postgres.Host | string | `""` |  |
+| zitadel.configmapConfig.Database.Postgres.Port | int | `5432` |  |
+| zitadel.configmapConfig.ExternalDomain | string | `""` |  |
+| zitadel.configmapConfig.ExternalSecure | bool | `true` |  |
+| zitadel.configmapConfig.FirstInstance.LoginClientPatPath | string | `nil` |  |
+| zitadel.configmapConfig.FirstInstance.MachineKeyPath | string | `nil` |  |
+| zitadel.configmapConfig.FirstInstance.Org.LoginClient.Machine.Name | string | `"Automatically Initialized IAM Login Client"` |  |
+| zitadel.configmapConfig.FirstInstance.Org.LoginClient.Machine.Username | string | `"login-client"` |  |
+| zitadel.configmapConfig.FirstInstance.Org.LoginClient.Pat.ExpirationDate | string | `"2029-01-01T00:00:00Z"` |  |
+| zitadel.configmapConfig.FirstInstance.Org.Machine.Machine.Name | string | `"Automatically Initialized IAM Admin"` |  |
+| zitadel.configmapConfig.FirstInstance.Org.Machine.Machine.Username | string | `"iam-admin"` |  |
+| zitadel.configmapConfig.FirstInstance.Org.Machine.MachineKey.ExpirationDate | string | `"2029-01-01T00:00:00Z"` |  |
+| zitadel.configmapConfig.FirstInstance.Org.Machine.MachineKey.Type | int | `1` |  |
+| zitadel.configmapConfig.FirstInstance.Org.Machine.Pat.ExpirationDate | string | `"2029-01-01T00:00:00Z"` |  |
+| zitadel.configmapConfig.FirstInstance.Org.Skip | string | `nil` |  |
+| zitadel.configmapConfig.FirstInstance.PatPath | string | `nil` |  |
+| zitadel.configmapConfig.FirstInstance.Skip | bool | `false` |  |
+| zitadel.configmapConfig.Machine.Identification.Hostname.Enabled | bool | `true` |  |
+| zitadel.configmapConfig.Machine.Identification.Webhook.Enabled | bool | `false` |  |
+| zitadel.configmapConfig.TLS.Enabled | bool | `false` |  |
+| zitadel.dbSslAdminCrtSecret | string | `""` |  |
+| zitadel.dbSslCaCrt | string | `""` |  |
+| zitadel.dbSslCaCrtAnnotations."helm.sh/hook" | string | `"pre-install,pre-upgrade"` |  |
+| zitadel.dbSslCaCrtAnnotations."helm.sh/hook-delete-policy" | string | `"before-hook-creation"` |  |
+| zitadel.dbSslCaCrtAnnotations."helm.sh/hook-weight" | string | `"0"` |  |
+| zitadel.dbSslCaCrtSecret | string | `""` |  |
+| zitadel.dbSslUserCrtSecret | string | `""` |  |
+| zitadel.debug.annotations."helm.sh/hook" | string | `"pre-install,pre-upgrade"` |  |
+| zitadel.debug.annotations."helm.sh/hook-weight" | string | `"1"` |  |
+| zitadel.debug.enabled | bool | `false` |  |
+| zitadel.debug.extraContainers | list | `[]` |  |
+| zitadel.debug.initContainers | list | `[]` |  |
+| zitadel.extraContainers | list | `[]` |  |
+| zitadel.initContainers | list | `[]` |  |
+| zitadel.masterkey | string | `""` |  |
+| zitadel.masterkeyAnnotations."helm.sh/hook" | string | `"pre-install,pre-upgrade"` |  |
+| zitadel.masterkeyAnnotations."helm.sh/hook-delete-policy" | string | `"before-hook-creation"` |  |
+| zitadel.masterkeyAnnotations."helm.sh/hook-weight" | string | `"0"` |  |
+| zitadel.masterkeySecretName | string | `""` |  |
+| zitadel.podSecurityContext | object | `{}` |  |
+| zitadel.revisionHistoryLimit | int | `10` |  |
+| zitadel.secretConfig | string | `nil` |  |
+| zitadel.secretConfigAnnotations."helm.sh/hook" | string | `"pre-install,pre-upgrade"` |  |
+| zitadel.secretConfigAnnotations."helm.sh/hook-delete-policy" | string | `"before-hook-creation"` |  |
+| zitadel.secretConfigAnnotations."helm.sh/hook-weight" | string | `"0"` |  |
+| zitadel.securityContext | object | `{}` |  |
+| zitadel.selfSignedCert.additionalDnsName | string | `""` |  |
+| zitadel.selfSignedCert.enabled | bool | `false` |  |
+| zitadel.serverSslCrtSecret | string | `""` |  |
+
 ## Troubleshooting
 
 ### Debug Pod
@@ -151,9 +417,9 @@ For troubleshooting, you can deploy a debug pod by setting the `zitadel.debug.en
 You can then use this pod to inspect the Zitadel configuration and run zitadel commands using the zitadel binary.
 For more information, print the debug pods logs using something like the following command:
 
-```bash 
+```bash
 kubectl logs rs/my-zitadel-debug
-``` 
+```
 
 ### migration already started, will check again in 5 seconds
 
