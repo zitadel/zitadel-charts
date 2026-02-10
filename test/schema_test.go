@@ -16,7 +16,8 @@ import (
 func TestSchemaInSync(t *testing.T) {
 	t.Parallel()
 
-	_, file, _, _ := runtime.Caller(0)
+	_, file, _, ok := runtime.Caller(0)
+	require.True(t, ok, "runtime.Caller(0) failed; cannot determine test file path")
 	chartPath := filepath.Join(filepath.Dir(file), "..", "charts", "zitadel")
 	valuesFile := filepath.Join(chartPath, "values.yaml")
 	schemaFile := filepath.Join(chartPath, "values.schema.json")
