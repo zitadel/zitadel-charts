@@ -31,5 +31,5 @@ func TestSchemaInSync(t *testing.T) {
 	generated, err := os.ReadFile(generatedFile)
 	require.NoError(t, err)
 
-	require.Equal(t, string(committed), string(generated), "run: helm schema -f charts/zitadel/values.yaml -o charts/zitadel/values.schema.json --draft 2020 --use-helm-docs")
+	require.JSONEq(t, string(committed), string(generated), "run: helm schema -f charts/zitadel/values.yaml -o charts/zitadel/values.schema.json --draft 2020 --use-helm-docs")
 }
