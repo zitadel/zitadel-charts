@@ -492,7 +492,24 @@ login:
     controller: generic
     # -- (map[string]string) Annotations to apply to the Login UI Ingress resource.
     annotations: {}
-    # -- ([]IngressRule) A list of host rules for the Ingress. The default path targets the login UI.
+    # @schema
+    # type: array
+    # items:
+    #   type: object
+    #   properties:
+    #     paths:
+    #       type: array
+    #       items:
+    #         type: object
+    #         properties:
+    #           path:
+    #             type: string
+    #           pathType:
+    #             type: string
+    #             enum: [Exact, Prefix, ImplementationSpecific]
+    #         required: [pathType]
+    # @schema
+    # -- A list of host rules for the Ingress. The default path targets the login UI.
     hosts:
       - paths:
           - path: /ui/v2/login
@@ -803,7 +820,24 @@ ingress:
   # annotation is for NGINX to correctly handle gRPC traffic.
   annotations:
     nginx.ingress.kubernetes.io/backend-protocol: "GRPC"
-  # -- ([]IngressRule) A list of host rules for the Ingress. Each host can have multiple paths.
+  # @schema
+  # type: array
+  # items:
+  #   type: object
+  #   properties:
+  #     paths:
+  #       type: array
+  #       items:
+  #         type: object
+  #         properties:
+  #           path:
+  #             type: string
+  #           pathType:
+  #             type: string
+  #             enum: [Exact, Prefix, ImplementationSpecific]
+  #         required: [pathType]
+  # @schema
+  # -- A list of host rules for the Ingress. Each host can have multiple paths.
   hosts:
     - paths:
         - path: /

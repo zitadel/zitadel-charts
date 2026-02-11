@@ -6,6 +6,14 @@ test:
 	@echo "Running Go tests..."
 	go test ./...
 
+.PHONY: docgen
+docgen:
+	helm-docs --chart-search-root=charts
+
+.PHONY: schemagen
+schemagen:
+	helm schema -f charts/zitadel/values.yaml -o charts/zitadel/values.schema.json --draft 2020 --use-helm-docs --k8s-schema-version v1.30.0
+
 # Validate Helm chart manifests using kubeconform. This renders the Helm chart
 # templates into Kubernetes YAML manifests and validates them against the K8s
 # API schemas. The masterkey is required for template rendering but is just a

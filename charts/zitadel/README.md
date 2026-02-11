@@ -2,7 +2,7 @@
 
 # Zitadel
 
-![Version: 9.21.0](https://img.shields.io/badge/Version-9.21.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: v4.10.1](https://img.shields.io/badge/AppVersion-v4.10.1-informational?style=flat-square)
+![Version: 9.22.0](https://img.shields.io/badge/Version-9.22.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: v4.10.1](https://img.shields.io/badge/AppVersion-v4.10.1-informational?style=flat-square)
 
 ## A Better Identity and Access Management Solution
 
@@ -179,7 +179,7 @@ Kubernetes: `>= 1.30.0-0`
 | ingress.className | string | `""` | The name of the IngressClass resource to use for this Ingress. Ref: https://kubernetes.io/docs/concepts/services-networking/ingress/#ingress-class |
 | ingress.controller | string | `"generic"` | A chart-specific setting to enable logic for different controllers. Use "aws" to generate AWS ALB-specific annotations and resources. |
 | ingress.enabled | bool | `false` | If true, creates an Ingress resource for the ZITADEL service. |
-| ingress.hosts | []IngressRule | `[{"paths":[{"path":"/","pathType":"Prefix"}]}]` | A list of host rules for the Ingress. Each host can have multiple paths. |
+| ingress.hosts | list | `[{"paths":[{"path":"/","pathType":"Prefix"}]}]` | A list of host rules for the Ingress. Each host can have multiple paths. |
 | ingress.tls | []IngressTLS | `[]` | TLS configuration for the Ingress. This allows you to secure the endpoint with HTTPS by referencing a secret that contains the TLS certificate and key. |
 | initJob.activeDeadlineSeconds | int | `300` | Maximum time in seconds for the init job to complete. The job is terminated if it exceeds this deadline, regardless of backoffLimit. |
 | initJob.annotations | map[string]string | `{"helm.sh/hook":"pre-install,pre-upgrade","helm.sh/hook-delete-policy":"before-hook-creation","helm.sh/hook-weight":"1"}` | Annotations for the init job. The Helm hooks ensure this job runs before the main deployment and is recreated on each upgrade. |
@@ -221,7 +221,7 @@ Kubernetes: `>= 1.30.0-0`
 | login.ingress.className | string | `""` | The name of the IngressClass resource to use for this Ingress. Ref: https://kubernetes.io/docs/concepts/services-networking/ingress/#ingress-class |
 | login.ingress.controller | string | `"generic"` | A chart-specific setting to enable logic for different controllers. Use "aws" to generate AWS ALB-specific annotations. |
 | login.ingress.enabled | bool | `false` | If true, creates an Ingress resource for the Login UI service. |
-| login.ingress.hosts | []IngressRule | `[{"paths":[{"path":"/ui/v2/login","pathType":"Prefix"}]}]` | A list of host rules for the Ingress. The default path targets the login UI. |
+| login.ingress.hosts | list | `[{"paths":[{"path":"/ui/v2/login","pathType":"Prefix"}]}]` | A list of host rules for the Ingress. The default path targets the login UI. |
 | login.ingress.tls | []IngressTLS | `[]` | TLS configuration for the Ingress. Secure the login UI with HTTPS by referencing a secret containing the TLS certificate and key. |
 | login.initContainers | []Container | `[]` | Init containers to run before the Login UI container starts. Useful for waiting on dependencies or performing setup tasks. |
 | login.livenessProbe.enabled | bool | `true` | Enable or disable the liveness probe. |

@@ -169,7 +169,7 @@
                     "type": "boolean"
                 },
                 "hosts": {
-                    "description": "([]IngressRule) A list of host rules for the Ingress. Each host can have multiple paths.",
+                    "description": "A list of host rules for the Ingress. Each host can have multiple paths.",
                     "type": "array",
                     "items": {
                         "type": "object",
@@ -449,7 +449,7 @@
                             "type": "boolean"
                         },
                         "hosts": {
-                            "description": "([]IngressRule) A list of host rules for the Ingress. The default path targets the login UI.",
+                            "description": "A list of host rules for the Ingress. The default path targets the login UI.",
                             "type": "array",
                             "items": {
                                 "type": "object",

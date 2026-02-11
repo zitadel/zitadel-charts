@@ -14,8 +14,7 @@ import (
 )
 
 // TestSchemaInSync verifies values.schema.json matches values.yaml.
-//
-// Regenerate: helm schema -f charts/zitadel/values.yaml -o charts/zitadel/values.schema.json --draft 2020 --use-helm-docs --k8s-schema-version v1.30.0
+// Regenerate with: make schemagen
 func TestSchemaInSync(t *testing.T) {
 	t.Parallel()
 
@@ -43,7 +42,7 @@ func TestSchemaInSync(t *testing.T) {
 	require.NoError(t, err)
 
 	require.JSONEq(t, string(committed), string(generated),
-		"run: helm schema -f charts/zitadel/values.yaml -o charts/zitadel/values.schema.json --draft 2020 --use-helm-docs --k8s-schema-version v1.30.0")
+		"schema out of sync; run: make schemagen")
 }
 
 // TestSchemaFullyTyped ensures all fields in the schema have proper types.
