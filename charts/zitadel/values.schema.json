@@ -4,14 +4,14 @@
     "properties": {
         "affinity": {
             "description": "Affinity rules for pod scheduling. Use for advanced pod placement strategies like co-locating pods on the same node (pod affinity), spreading pods across zones (pod anti-affinity), or preferring certain nodes (node affinity). Ref: https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#affinity-and-anti-affinity",
+            "$ref": "https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/v1.30.0/_definitions.json#/definitions/io.k8s.api.core.v1.Affinity",
             "type": "object"
         },
         "annotations": {
-            "description": "Annotations to add to the ZITADEL Deployment resource. Use this for integration with tools like ArgoCD, Flux, or external monitoring systems.",
+            "description": "(map[string]string) Annotations to add to the ZITADEL Deployment resource. Use this for integration with tools like ArgoCD, Flux, or external monitoring systems.",
             "type": "object"
         },
         "cleanupJob": {
-            "description": "Cleanup Job configuration for removing imperatively created resources on helm uninstall. The setup job creates secrets using kubectl that aren't tracked by Helm's lifecycle, causing them to persist after chart removal. This job runs as a post-delete hook to clean up those orphaned resources.",
             "type": "object",
             "properties": {
                 "activeDeadlineSeconds": {
@@ -19,7 +19,7 @@
                     "type": "integer"
                 },
                 "annotations": {
-                    "description": "Annotations for the cleanup job. The post-delete hook ensures this runs on helm uninstall, and the delete policy removes the job after completion.",
+                    "description": "(map[string]string) Annotations for the cleanup job. The post-delete hook ensures this runs on helm uninstall, and the delete policy removes the job after completion.",
                     "type": "object",
                     "properties": {
                         "helm.sh/hook": {
@@ -42,25 +42,25 @@
                     "type": "boolean"
                 },
                 "podAdditionalLabels": {
-                    "description": "Additional labels to add to cleanup job pods.",
+                    "description": "(map[string]string) Additional labels to add to cleanup job pods.",
                     "type": "object"
                 },
                 "podAnnotations": {
-                    "description": "Additional annotations to add to cleanup job pods.",
+                    "description": "(map[string]string) Additional annotations to add to cleanup job pods.",
                     "type": "object"
                 },
                 "resources": {
                     "description": "Resource limits and requests for the cleanup job container. Keep minimal as this job only runs kubectl delete commands.",
+                    "$ref": "https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/v1.30.0/_definitions.json#/definitions/io.k8s.api.core.v1.ResourceRequirements",
                     "type": "object"
                 }
             }
         },
         "configMap": {
-            "description": "ConfigMap configuration for ZITADEL's runtime configuration.",
             "type": "object",
             "properties": {
                 "annotations": {
-                    "description": "Annotations for the ZITADEL ConfigMap. The default Helm hooks ensure the ConfigMap is created before the deployment and recreated on upgrades to pick up configuration changes.",
+                    "description": "(map[string]string) Annotations for the ZITADEL ConfigMap. The default Helm hooks ensure the ConfigMap is created before the deployment and recreated on upgrades to pick up configuration changes.",
                     "type": "object",
                     "properties": {
                         "helm.sh/hook": {
@@ -77,35 +77,46 @@
             }
         },
         "env": {
-            "description": "Additional environment variables for the ZITADEL container. Use this to pass configuration that isn't available through configmapConfig or secretConfig, or to inject values from other Kubernetes resources like ConfigMaps or Secrets. ZITADEL environment variables follow the pattern ZITADEL_\u003cSECTION\u003e_\u003cKEY\u003e. Ref: https://zitadel.com/docs/self-hosting/manage/configure#configure-by-environment-variables",
-            "type": "array"
+            "description": "([]EnvVar) Additional environment variables for the ZITADEL container. Use this to pass configuration that isn't available through configmapConfig or secretConfig, or to inject values from other Kubernetes resources like ConfigMaps or Secrets. ZITADEL environment variables follow the pattern ZITADEL_\u003cSECTION\u003e_\u003cKEY\u003e. Ref: https://zitadel.com/docs/self-hosting/manage/configure#configure-by-environment-variables",
+            "type": "array",
+            "items": {
+                "$ref": "https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/v1.30.0/_definitions.json#/definitions/io.k8s.api.core.v1.EnvVar"
+            }
         },
         "envVarsSecret": {
             "description": "Name of a Kubernetes Secret containing environment variables to inject into the ZITADEL container. All key-value pairs in the secret will be available as environment variables. This is useful for managing multiple ZITADEL configuration values in a single secret, especially when using external secret management tools like External Secrets Operator or Sealed Secrets. Ref: https://zitadel.com/docs/self-hosting/manage/configure#configure-by-environment-variables",
             "type": "string"
         },
         "extraContainers": {
-            "description": "Sidecar containers to run alongside the main ZITADEL container in the Deployment pod. Use this for logging agents, monitoring sidecars, service meshes, or database proxies (e.g., cloud-sql-proxy for Google Cloud SQL). These containers share the pod's network namespace and can access the same volumes as the main container.",
-            "type": "array"
+            "description": "([]Container) Sidecar containers to run alongside the main ZITADEL container in the Deployment pod. Use this for logging agents, monitoring sidecars, service meshes, or database proxies (e.g., cloud-sql-proxy for Google Cloud SQL). These containers share the pod's network namespace and can access the same volumes as the main container.",
+            "type": "array",
+            "items": {
+                "$ref": "https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/v1.30.0/_definitions.json#/definitions/io.k8s.api.core.v1.Container"
+            }
         },
         "extraManifests": {
-            "description": "Additional Kubernetes manifests to deploy alongside the chart. This allows you to include custom resources without creating a separate chart. Supports Helm templating syntax including .Release, .Values, and template functions. Use this for secrets, configmaps, network policies, or any other resources that ZITADEL depends on.",
+            "description": "([]object) Additional Kubernetes manifests to deploy alongside the chart. This allows you to include custom resources without creating a separate chart. Supports Helm templating syntax including .Release, .Values, and template functions. Use this for secrets, configmaps, network policies, or any other resources that ZITADEL depends on.",
             "type": "array"
         },
         "extraVolumeMounts": {
-            "description": "Additional volume mounts for the main ZITADEL container. Use this to mount volumes defined in extraVolumes into the container filesystem. Common use cases include mounting custom CA certificates, configuration files, or shared data between containers.",
-            "type": "array"
+            "description": "([]VolumeMount) Additional volume mounts for the main ZITADEL container. Use this to mount volumes defined in extraVolumes into the container filesystem. Common use cases include mounting custom CA certificates, configuration files, or shared data between containers.",
+            "type": "array",
+            "items": {
+                "$ref": "https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/v1.30.0/_definitions.json#/definitions/io.k8s.api.core.v1.VolumeMount"
+            }
         },
         "extraVolumes": {
-            "description": "Additional volumes to add to ZITADEL pods. These volumes can be referenced by extraVolumeMounts to make data available to the ZITADEL container or sidecar containers. Supports all Kubernetes volume types: secrets, configMaps, persistentVolumeClaims, emptyDir, hostPath, etc.",
-            "type": "array"
+            "description": "([]Volume) Additional volumes to add to ZITADEL pods. These volumes can be referenced by extraVolumeMounts to make data available to the ZITADEL container or sidecar containers. Supports all Kubernetes volume types: secrets, configMaps, persistentVolumeClaims, emptyDir, hostPath, etc.",
+            "type": "array",
+            "items": {
+                "$ref": "https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/v1.30.0/_definitions.json#/definitions/io.k8s.api.core.v1.Volume"
+            }
         },
         "fullnameOverride": {
             "description": "Completely override the generated resource names (release-name + chart-name). Takes precedence over nameOverride. Use this when you need full control over resource naming, such as when migrating from another chart.",
             "type": "string"
         },
         "image": {
-            "description": "Container image configuration for the main ZITADEL application.",
             "type": "object",
             "properties": {
                 "pullPolicy": {
@@ -123,18 +134,21 @@
             }
         },
         "imagePullSecrets": {
-            "type": "array"
+            "description": "([]LocalObjectReference) References to secrets containing Docker registry credentials for pulling private ZITADEL images. Each entry should be the name of an existing secret of type kubernetes.io/dockerconfigjson. Example: imagePullSecrets: - name: my-registry-secret",
+            "type": "array",
+            "items": {
+                "$ref": "https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/v1.30.0/_definitions.json#/definitions/io.k8s.api.core.v1.LocalObjectReference"
+            }
         },
         "imageRegistry": {
             "description": "Global container registry override for tool images (e.g., wait4x, kubectl). When set, this registry is prepended to tool image repositories for compatibility with CRI-O v1.34+ which enforces fully qualified image names. If left empty, defaults to \"docker.io\".",
             "type": "string"
         },
         "ingress": {
-            "description": "Ingress configuration for exposing the main ZITADEL service. This allows external traffic to reach the ZITADEL API and gRPC endpoints. It can be configured to work with various ingress controllers like NGINX, Traefik, or AWS ALB.",
             "type": "object",
             "properties": {
                 "annotations": {
-                    "description": "A map of annotations to apply to the Ingress resource. The default annotation is for NGINX to correctly handle gRPC traffic.",
+                    "description": "(map[string]string) Annotations to apply to the Ingress resource. The default annotation is for NGINX to correctly handle gRPC traffic.",
                     "type": "object",
                     "properties": {
                         "nginx.ingress.kubernetes.io/backend-protocol": {
@@ -155,7 +169,7 @@
                     "type": "boolean"
                 },
                 "hosts": {
-                    "description": "A list of host rules for the Ingress. Each host can have multiple paths.",
+                    "description": "([]IngressRule) A list of host rules for the Ingress. Each host can have multiple paths.",
                     "type": "array",
                     "items": {
                         "type": "object",
@@ -178,13 +192,15 @@
                     }
                 },
                 "tls": {
-                    "description": "TLS configuration for the Ingress. This allows you to secure the endpoint with HTTPS by referencing a secret that contains the TLS certificate and key.",
-                    "type": "array"
+                    "description": "([]IngressTLS) TLS configuration for the Ingress. This allows you to secure the endpoint with HTTPS by referencing a secret that contains the TLS certificate and key.",
+                    "type": "array",
+                    "items": {
+                        "$ref": "https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/v1.30.0/_definitions.json#/definitions/io.k8s.api.networking.v1.IngressTLS"
+                    }
                 }
             }
         },
         "initJob": {
-            "description": "Init Job configuration for database initialization. This Kubernetes Job runs as a Helm pre-install/pre-upgrade hook to prepare the database before ZITADEL starts. It creates the database schema, user, and grants necessary permissions.",
             "type": "object",
             "properties": {
                 "activeDeadlineSeconds": {
@@ -192,7 +208,7 @@
                     "type": "integer"
                 },
                 "annotations": {
-                    "description": "Annotations for the init job. The Helm hooks ensure this job runs before the main deployment and is recreated on each upgrade.",
+                    "description": "(map[string]string) Annotations for the init job. The Helm hooks ensure this job runs before the main deployment and is recreated on each upgrade.",
                     "type": "object",
                     "properties": {
                         "helm.sh/hook": {
@@ -218,29 +234,35 @@
                     "type": "boolean"
                 },
                 "extraContainers": {
-                    "description": "Sidecar containers to run alongside the init container. Useful for logging, proxies (e.g., cloud-sql-proxy), or other supporting services.",
-                    "type": "array"
+                    "description": "([]Container) Sidecar containers to run alongside the init container. Useful for logging, proxies (e.g., cloud-sql-proxy), or other supporting services.",
+                    "type": "array",
+                    "items": {
+                        "$ref": "https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/v1.30.0/_definitions.json#/definitions/io.k8s.api.core.v1.Container"
+                    }
                 },
                 "initContainers": {
-                    "description": "Init containers to run before the main init container. Useful for waiting on additional dependencies or performing pre-initialization tasks.",
-                    "type": "array"
+                    "description": "([]Container) Init containers to run before the main init container. Useful for waiting on additional dependencies or performing pre-initialization tasks.",
+                    "type": "array",
+                    "items": {
+                        "$ref": "https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/v1.30.0/_definitions.json#/definitions/io.k8s.api.core.v1.Container"
+                    }
                 },
                 "podAdditionalLabels": {
-                    "description": "Additional labels to add to init job pods.",
+                    "description": "(map[string]string) Additional labels to add to init job pods.",
                     "type": "object"
                 },
                 "podAnnotations": {
-                    "description": "Additional annotations to add to init job pods.",
+                    "description": "(map[string]string) Additional annotations to add to init job pods.",
                     "type": "object"
                 },
                 "resources": {
                     "description": "CPU and memory resource requests and limits for the init job container. The init job typically requires minimal resources as it only runs SQL commands against the database.",
+                    "$ref": "https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/v1.30.0/_definitions.json#/definitions/io.k8s.api.core.v1.ResourceRequirements",
                     "type": "object"
                 }
             }
         },
         "livenessProbe": {
-            "description": "Liveness probe configuration for ZITADEL. The liveness probe determines if a container is still running properly. Failed probes cause the container to be restarted, which can help recover from deadlocks or stuck states. Ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/",
             "type": "object",
             "properties": {
                 "enabled": {
@@ -262,27 +284,27 @@
             }
         },
         "login": {
-            "description": "Configuration for the ZITADEL Login UI, a separate Next.js application that provides the user-facing authentication interface. When enabled, it deploys alongside the main ZITADEL service and handles login, registration, and password reset flows.",
             "type": "object",
             "properties": {
                 "affinity": {
                     "description": "Affinity rules for pod scheduling. Use for advanced pod placement strategies like co-locating pods or spreading across zones. Ref: https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#affinity-and-anti-affinity",
+                    "$ref": "https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/v1.30.0/_definitions.json#/definitions/io.k8s.api.core.v1.Affinity",
                     "type": "object"
                 },
                 "annotations": {
-                    "description": "Annotations to add to the Login UI Deployment resource.",
+                    "description": "(map[string]string) Annotations to add to the Login UI Deployment resource.",
                     "type": "object"
                 },
                 "autoscaling": {
-                    "description": "Horizontal Pod Autoscaler configuration for scaling on CPU, memory, or custom metrics. Ref: https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale/",
                     "type": "object",
                     "properties": {
                         "annotations": {
-                            "description": "Optional map of annotations applied to the HPA object.",
+                            "description": "(map[string]string) Annotations applied to the HPA object.",
                             "type": "object"
                         },
                         "behavior": {
                             "description": "Configures the scaling behavior for scaling up and down. Use this to control how quickly the HPA scales pods in response to metric changes. Ref: https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale/#configurable-scaling-behavior",
+                            "$ref": "https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/v1.30.0/_definitions.json#/definitions/io.k8s.api.autoscaling.v2.HorizontalPodAutoscalerBehavior",
                             "type": "object"
                         },
                         "enabled": {
@@ -294,8 +316,11 @@
                             "type": "integer"
                         },
                         "metrics": {
-                            "description": "Advanced scaling based on custom metrics exposed by Zitadel. To use these for scaling, you MUST have a metrics server (e.g., Prometheus) and a metrics adapter (e.g., prometheus-adapter) running in your cluster. Ref: https://github.com/kubernetes-sigs/prometheus-adapter",
-                            "type": "array"
+                            "description": "([]MetricSpec) Advanced scaling based on custom metrics exposed by Zitadel. To use these for scaling, you MUST have a metrics server (e.g., Prometheus) and a metrics adapter (e.g., prometheus-adapter) running in your cluster. Ref: https://github.com/kubernetes-sigs/prometheus-adapter",
+                            "type": "array",
+                            "items": {
+                                "$ref": "https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/v1.30.0/_definitions.json#/definitions/io.k8s.api.autoscaling.v2.MetricSpec"
+                            }
                         },
                         "minReplicas": {
                             "description": "The minimum number of pod replicas.",
@@ -318,11 +343,10 @@
                     }
                 },
                 "configMap": {
-                    "description": "ConfigMap configuration for the Login UI environment variables.",
                     "type": "object",
                     "properties": {
                         "annotations": {
-                            "description": "Annotations for the Login UI ConfigMap. The default hooks ensure the ConfigMap is created before the deployment and recreated on upgrades.",
+                            "description": "(map[string]string) Annotations for the Login UI ConfigMap. The default hooks ensure the ConfigMap is created before the deployment and recreated on upgrades.",
                             "type": "object",
                             "properties": {
                                 "helm.sh/hook": {
@@ -350,27 +374,38 @@
                     "type": "boolean"
                 },
                 "env": {
-                    "description": "Additional environment variables for the Login UI container. Use this to pass configuration that isn't available through customConfigmapConfig.",
-                    "type": "array"
+                    "description": "([]EnvVar) Additional environment variables for the Login UI container. Use this to pass configuration that isn't available through customConfigmapConfig.",
+                    "type": "array",
+                    "items": {
+                        "$ref": "https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/v1.30.0/_definitions.json#/definitions/io.k8s.api.core.v1.EnvVar"
+                    }
                 },
                 "extraContainers": {
-                    "description": "Sidecar containers to run alongside the Login UI container. Useful for logging agents, proxies, or other supporting services.",
-                    "type": "array"
+                    "description": "([]Container) Sidecar containers to run alongside the Login UI container. Useful for logging agents, proxies, or other supporting services.",
+                    "type": "array",
+                    "items": {
+                        "$ref": "https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/v1.30.0/_definitions.json#/definitions/io.k8s.api.core.v1.Container"
+                    }
                 },
                 "extraVolumeMounts": {
-                    "description": "Additional volume mounts for the Login UI container. Use this to mount custom certificates, configuration files, or other data into the container.",
-                    "type": "array"
+                    "description": "([]VolumeMount) Additional volume mounts for the Login UI container. Use this to mount custom certificates, configuration files, or other data into the container.",
+                    "type": "array",
+                    "items": {
+                        "$ref": "https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/v1.30.0/_definitions.json#/definitions/io.k8s.api.core.v1.VolumeMount"
+                    }
                 },
                 "extraVolumes": {
-                    "description": "Additional volumes for the Login UI pod. Define volumes here that are referenced by extraVolumeMounts.",
-                    "type": "array"
+                    "description": "([]Volume) Additional volumes for the Login UI pod. Define volumes here that are referenced by extraVolumeMounts.",
+                    "type": "array",
+                    "items": {
+                        "$ref": "https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/v1.30.0/_definitions.json#/definitions/io.k8s.api.core.v1.Volume"
+                    }
                 },
                 "fullnameOverride": {
                     "description": "Completely override the generated resource names. Takes precedence over nameOverride when set.",
                     "type": "string"
                 },
                 "image": {
-                    "description": "Container image configuration for the Login UI.",
                     "type": "object",
                     "properties": {
                         "pullPolicy": {
@@ -388,15 +423,17 @@
                     }
                 },
                 "imagePullSecrets": {
-                    "description": "References to secrets containing Docker registry credentials for pulling private images. Each entry should be the name of an existing secret.",
-                    "type": "array"
+                    "description": "([]LocalObjectReference) References to secrets containing Docker registry credentials for pulling private images. Each entry should be the name of an existing secret.",
+                    "type": "array",
+                    "items": {
+                        "$ref": "https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/v1.30.0/_definitions.json#/definitions/io.k8s.api.core.v1.LocalObjectReference"
+                    }
                 },
                 "ingress": {
-                    "description": "Ingress configuration for exposing the ZITADEL Login UI service. This makes the web-based login interface accessible from outside the cluster. It can be configured independently of the main ZITADEL service Ingress.",
                     "type": "object",
                     "properties": {
                         "annotations": {
-                            "description": "A map of annotations to apply to the Login UI Ingress resource.",
+                            "description": "(map[string]string) Annotations to apply to the Login UI Ingress resource.",
                             "type": "object"
                         },
                         "className": {
@@ -412,7 +449,7 @@
                             "type": "boolean"
                         },
                         "hosts": {
-                            "description": "A list of host rules for the Ingress. The default path targets the login UI.",
+                            "description": "([]IngressRule) A list of host rules for the Ingress. The default path targets the login UI.",
                             "type": "array",
                             "items": {
                                 "type": "object",
@@ -435,17 +472,22 @@
                             }
                         },
                         "tls": {
-                            "description": "TLS configuration for the Ingress. Secure the login UI with HTTPS by referencing a secret containing the TLS certificate and key.",
-                            "type": "array"
+                            "description": "([]IngressTLS) TLS configuration for the Ingress. Secure the login UI with HTTPS by referencing a secret containing the TLS certificate and key.",
+                            "type": "array",
+                            "items": {
+                                "$ref": "https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/v1.30.0/_definitions.json#/definitions/io.k8s.api.networking.v1.IngressTLS"
+                            }
                         }
                     }
                 },
                 "initContainers": {
-                    "description": "Init containers to run before the Login UI container starts. Useful for waiting on dependencies or performing setup tasks.",
-                    "type": "array"
+                    "description": "([]Container) Init containers to run before the Login UI container starts. Useful for waiting on dependencies or performing setup tasks.",
+                    "type": "array",
+                    "items": {
+                        "$ref": "https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/v1.30.0/_definitions.json#/definitions/io.k8s.api.core.v1.Container"
+                    }
                 },
                 "livenessProbe": {
-                    "description": "Liveness probe configuration. The liveness probe determines if a container is still running. Failed probes cause the container to be restarted.",
                     "type": "object",
                     "properties": {
                         "enabled": {
@@ -478,15 +520,14 @@
                     "type": "string"
                 },
                 "nodeSelector": {
-                    "description": "Node labels for pod assignment. Pods will only be scheduled on nodes with matching labels. Ref: https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/",
+                    "description": "(map[string]string) Node labels for pod assignment. Pods will only be scheduled on nodes with matching labels. Ref: https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/",
                     "type": "object"
                 },
                 "pdb": {
-                    "description": "Pod Disruption Budget configuration for the Login UI deployment. Ensures high availability by limiting the number of pods that can be simultaneously unavailable during voluntary disruptions (e.g., node drains, rolling updates). Either minAvailable or maxUnavailable can be set, but not both. Values can be an integer (e.g., 1) or a percentage (e.g., \"50%\").",
                     "type": "object",
                     "properties": {
                         "annotations": {
-                            "description": "Additional annotations to apply to the Pod Disruption Budget resource",
+                            "description": "(map[string]string) Additional annotations to apply to the Pod Disruption Budget resource.",
                             "type": "object"
                         },
                         "enabled": {
@@ -512,19 +553,19 @@
                     }
                 },
                 "podAdditionalLabels": {
-                    "description": "Additional labels to add to Login UI pods beyond the standard Helm labels. Useful for organizing pods with custom label selectors.",
+                    "description": "(map[string]string) Additional labels to add to Login UI pods beyond the standard Helm labels. Useful for organizing pods with custom label selectors.",
                     "type": "object"
                 },
                 "podAnnotations": {
-                    "description": "Annotations to add to Login UI pods. Useful for integrations like Prometheus scraping, Istio sidecar injection, or Vault agent injection.",
+                    "description": "(map[string]string) Annotations to add to Login UI pods. Useful for integrations like Prometheus scraping, Istio sidecar injection, or Vault agent injection.",
                     "type": "object"
                 },
                 "podSecurityContext": {
                     "description": "Optional pod-level security context overrides for Login UI pods. If left empty, the chart-wide podSecurityContext defined below is used instead. Use this to customize security settings specifically for the Login UI. Ref: https://kubernetes.io/docs/tasks/configure-pod-container/security-context/",
+                    "$ref": "https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/v1.30.0/_definitions.json#/definitions/io.k8s.api.core.v1.PodSecurityContext",
                     "type": "object"
                 },
                 "readinessProbe": {
-                    "description": "Readiness probe configuration. The readiness probe determines when a pod is ready to receive traffic. Failed probes remove the pod from service endpoints.",
                     "type": "object",
                     "properties": {
                         "enabled": {
@@ -551,6 +592,7 @@
                 },
                 "resources": {
                     "description": "CPU and memory resource requests and limits for the Login UI container. Ref: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/",
+                    "$ref": "https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/v1.30.0/_definitions.json#/definitions/io.k8s.api.core.v1.ResourceRequirements",
                     "type": "object"
                 },
                 "revisionHistoryLimit": {
@@ -559,14 +601,14 @@
                 },
                 "securityContext": {
                     "description": "Optional container-level security context overrides for the Login UI container. If left empty, the chart-wide securityContext defined below is used instead. Use this to customize security settings specifically for the Login UI container. Ref: https://kubernetes.io/docs/tasks/configure-pod-container/security-context/",
+                    "$ref": "https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/v1.30.0/_definitions.json#/definitions/io.k8s.api.core.v1.SecurityContext",
                     "type": "object"
                 },
                 "service": {
-                    "description": "Kubernetes Service configuration for the Login UI.",
                     "type": "object",
                     "properties": {
                         "annotations": {
-                            "description": "Annotations to add to the Service resource.",
+                            "description": "(map[string]string) Annotations to add to the Service resource.",
                             "type": "object"
                         },
                         "appProtocol": {
@@ -582,7 +624,7 @@
                             "type": "string"
                         },
                         "labels": {
-                            "description": "Labels to add to the Service resource.",
+                            "description": "(map[string]string) Labels to add to the Service resource.",
                             "type": "object"
                         },
                         "port": {
@@ -604,11 +646,10 @@
                     }
                 },
                 "serviceAccount": {
-                    "description": "ServiceAccount configuration for Login UI pods.",
                     "type": "object",
                     "properties": {
                         "annotations": {
-                            "description": "Annotations for the Login UI service account. The default Helm hooks ensure it exists before pods are created. Add annotations here for cloud provider integrations (e.g., AWS IAM roles, GCP Workload Identity).",
+                            "description": "(map[string]string) Annotations for the Login UI service account. The default Helm hooks ensure it exists before pods are created. Add annotations here for cloud provider integrations (e.g., AWS IAM roles, GCP Workload Identity).",
                             "type": "object",
                             "properties": {
                                 "helm.sh/hook": {
@@ -633,7 +674,6 @@
                     }
                 },
                 "startupProbe": {
-                    "description": "Startup probe configuration. The startup probe runs before liveness and readiness probes, allowing slow-starting containers to initialize.",
                     "type": "object",
                     "properties": {
                         "enabled": {
@@ -651,17 +691,22 @@
                     }
                 },
                 "tolerations": {
-                    "description": "Tolerations allow pods to be scheduled on nodes with matching taints. Ref: https://kubernetes.io/docs/concepts/scheduling-eviction/taint-and-toleration/",
-                    "type": "array"
+                    "description": "([]Toleration) Tolerations allow pods to be scheduled on nodes with matching taints. Ref: https://kubernetes.io/docs/concepts/scheduling-eviction/taint-and-toleration/",
+                    "type": "array",
+                    "items": {
+                        "$ref": "https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/v1.30.0/_definitions.json#/definitions/io.k8s.api.core.v1.Toleration"
+                    }
                 },
                 "topologySpreadConstraints": {
-                    "description": "Topology spread constraints control how pods are distributed across topology domains (e.g., zones, nodes) for high availability. Ref: https://kubernetes.io/docs/concepts/scheduling-eviction/topology-spread-constraints/",
-                    "type": "array"
+                    "description": "([]TopologySpreadConstraint) Topology spread constraints control how pods are distributed across topology domains (e.g., zones, nodes) for high availability. Ref: https://kubernetes.io/docs/concepts/scheduling-eviction/topology-spread-constraints/",
+                    "type": "array",
+                    "items": {
+                        "$ref": "https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/v1.30.0/_definitions.json#/definitions/io.k8s.api.core.v1.TopologySpreadConstraint"
+                    }
                 }
             }
         },
         "metrics": {
-            "description": "Metrics configuration for ZITADEL monitoring. When enabled, ZITADEL exposes Prometheus-compatible metrics at /debug/metrics on the main service port. These metrics include Go runtime statistics, gRPC metrics, and ZITADEL-specific operational metrics like projection event counts.",
             "type": "object",
             "properties": {
                 "enabled": {
@@ -669,11 +714,10 @@
                     "type": "boolean"
                 },
                 "serviceMonitor": {
-                    "description": "ServiceMonitor configuration for Prometheus Operator. A ServiceMonitor is a custom resource that tells Prometheus Operator how to scrape metrics from ZITADEL. Requires the Prometheus Operator to be installed in the cluster. Ref: https://github.com/prometheus-operator/prometheus-operator",
                     "type": "object",
                     "properties": {
                         "additionalLabels": {
-                            "description": "Additional labels to add to the ServiceMonitor. Use this to match Prometheus Operator's serviceMonitorSelector if configured.",
+                            "description": "(map[string]string) Additional labels to add to the ServiceMonitor. Use this to match Prometheus Operator's serviceMonitorSelector if configured.",
                             "type": "object"
                         },
                         "enabled": {
@@ -688,7 +732,7 @@
                             "type": "boolean"
                         },
                         "metricRelabellings": {
-                            "description": "Relabeling rules applied to individual metrics. Use to rename metrics, drop expensive metrics, or modify metric labels.",
+                            "description": "([]RelabelConfig) Relabeling rules applied to individual metrics. Use to rename metrics, drop expensive metrics, or modify metric labels.",
                             "type": "array"
                         },
                         "namespace": {
@@ -706,7 +750,7 @@
                             ]
                         },
                         "relabellings": {
-                            "description": "Relabeling rules applied before ingestion. Use to modify, filter, or drop labels before metrics are stored.",
+                            "description": "([]RelabelConfig) Relabeling rules applied before ingestion. Use to modify, filter, or drop labels before metrics are stored.",
                             "type": "array"
                         },
                         "scheme": {
@@ -743,15 +787,14 @@
             "type": "string"
         },
         "nodeSelector": {
-            "description": "Node labels for pod assignment. Pods will only be scheduled on nodes that have all the specified labels. Use this to target specific node pools (e.g., high-memory nodes, nodes in specific zones). Ref: https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/",
+            "description": "(map[string]string) Node labels for pod assignment. Pods will only be scheduled on nodes that have all the specified labels. Use this to target specific node pools (e.g., high-memory nodes, nodes in specific zones). Ref: https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/",
             "type": "object"
         },
         "pdb": {
-            "description": "Pod Disruption Budget configuration for the main ZITADEL deployment. Ensures high availability by limiting the number of pods that can be simultaneously unavailable during voluntary disruptions (e.g., node drains, rolling updates). Either minAvailable or maxUnavailable can be set, but not both. Values can be an integer (e.g., 1) or a percentage (e.g., \"50%\").",
             "type": "object",
             "properties": {
                 "annotations": {
-                    "description": "Additional annotations to apply to the Pod Disruption Budget resource",
+                    "description": "(map[string]string) Additional annotations to apply to the Pod Disruption Budget resource.",
                     "type": "object"
                 },
                 "enabled": {
@@ -777,14 +820,15 @@
             }
         },
         "podAdditionalLabels": {
-            "description": "Additional labels to add to ZITADEL pods beyond the standard Helm labels. Useful for organizing pods with custom label selectors, network policies, or pod security policies.",
+            "description": "(map[string]string) Additional labels to add to ZITADEL pods beyond the standard Helm labels. Useful for organizing pods with custom label selectors, network policies, or pod security policies.",
             "type": "object"
         },
         "podAnnotations": {
+            "description": "(map[string]string) Annotations to add to ZITADEL pods. Use this for integrations like Prometheus scraping, Istio sidecar injection, Vault agent injection, or any other annotation-based configuration. Example: podAnnotations: prometheus.io/scrape: \"true\" sidecar.istio.io/inject: \"true\"",
             "type": "object"
         },
         "podSecurityContext": {
-            "description": "Chart-wide pod security context applied to all pods (ZITADEL, Login UI, jobs) by default. Individual components can override these via their own podSecurityContext settings (e.g., login.podSecurityContext). Ref: https://kubernetes.io/docs/tasks/configure-pod-container/security-context/",
+            "$ref": "https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/v1.30.0/_definitions.json#/definitions/io.k8s.api.core.v1.PodSecurityContext",
             "type": "object",
             "properties": {
                 "fsGroup": {
@@ -802,7 +846,6 @@
             }
         },
         "readinessProbe": {
-            "description": "Readiness probe configuration for ZITADEL. The readiness probe determines when a pod is ready to receive traffic. Failed probes remove the pod from service endpoints, preventing traffic from being routed to unhealthy pods. Ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/",
             "type": "object",
             "properties": {
                 "enabled": {
@@ -829,10 +872,11 @@
         },
         "resources": {
             "description": "CPU and memory resource requests and limits for the ZITADEL container. Setting appropriate resources ensures predictable performance and prevents resource starvation. Requests affect scheduling; limits enforce caps. Ref: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/",
+            "$ref": "https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/v1.30.0/_definitions.json#/definitions/io.k8s.api.core.v1.ResourceRequirements",
             "type": "object"
         },
         "securityContext": {
-            "description": "Chart-wide container security context applied to all containers by default. Individual components can override these via their own securityContext settings (e.g., login.securityContext). Ref: https://kubernetes.io/docs/tasks/configure-pod-container/security-context/",
+            "$ref": "https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/v1.30.0/_definitions.json#/definitions/io.k8s.api.core.v1.SecurityContext",
             "type": "object",
             "properties": {
                 "privileged": {
@@ -854,11 +898,10 @@
             }
         },
         "service": {
-            "description": "Kubernetes Service configuration for the main ZITADEL application. This service exposes ZITADEL's HTTP/2 API which serves both REST and gRPC traffic.",
             "type": "object",
             "properties": {
                 "annotations": {
-                    "description": "Annotations to add to the Service resource. The default annotation tells Traefik to use HTTP/2 when communicating with ZITADEL backends.",
+                    "description": "(map[string]string) Annotations to add to the Service resource. The default annotation tells Traefik to use HTTP/2 when communicating with ZITADEL backends.",
                     "type": "object",
                     "properties": {
                         "traefik.ingress.kubernetes.io/service.serversscheme": {
@@ -879,7 +922,7 @@
                     "type": "string"
                 },
                 "labels": {
-                    "description": "Labels to add to the Service resource. Use for organizing services or matching service selectors in network policies.",
+                    "description": "(map[string]string) Labels to add to the Service resource. Use for organizing services or matching service selectors in network policies.",
                     "type": "object"
                 },
                 "port": {
@@ -901,11 +944,10 @@
             }
         },
         "serviceAccount": {
-            "description": "ServiceAccount configuration for ZITADEL pods. The service account controls what Kubernetes API permissions the pods have.",
             "type": "object",
             "properties": {
                 "annotations": {
-                    "description": "Annotations to add to the service account. The default Helm hooks ensure the service account exists before pods are created. Add annotations here for cloud provider integrations (e.g., AWS IAM roles, GCP Workload Identity).",
+                    "description": "(map[string]string) Annotations to add to the service account. The default Helm hooks ensure the service account exists before pods are created. Add annotations here for cloud provider integrations (e.g., AWS IAM roles, GCP Workload Identity).",
                     "type": "object",
                     "properties": {
                         "helm.sh/hook": {
@@ -930,7 +972,6 @@
             }
         },
         "setupJob": {
-            "description": "Setup Job configuration for ZITADEL application setup. This Kubernetes Job runs as a Helm pre-install/pre-upgrade hook after the init job to configure ZITADEL itself. It creates the first organization, admin user, machine users, and generates authentication credentials stored as Kubernetes Secrets.",
             "type": "object",
             "properties": {
                 "activeDeadlineSeconds": {
@@ -938,14 +979,14 @@
                     "type": "integer"
                 },
                 "additionalArgs": {
-                    "description": "Additional command-line arguments to pass to the ZITADEL setup command. The default enables projection initialization for better startup performance.",
+                    "description": "([]string) Additional command-line arguments to pass to the ZITADEL setup command. The default enables projection initialization for better startup performance.",
                     "type": "array",
                     "items": {
                         "type": "string"
                     }
                 },
                 "annotations": {
-                    "description": "Annotations for the setup job. The Helm hooks ensure this job runs after the init job (weight \"2\" \u003e \"1\") and before the main deployment.",
+                    "description": "(map[string]string) Annotations for the setup job. The Helm hooks ensure this job runs after the init job (weight \"2\" \u003e \"1\") and before the main deployment.",
                     "type": "object",
                     "properties": {
                         "helm.sh/hook": {
@@ -964,19 +1005,23 @@
                     "type": "integer"
                 },
                 "extraContainers": {
-                    "description": "Sidecar containers to run alongside the setup container. Useful for logging, proxies (e.g., cloud-sql-proxy), or other supporting services.",
-                    "type": "array"
+                    "description": "([]Container) Sidecar containers to run alongside the setup container. Useful for logging, proxies (e.g., cloud-sql-proxy), or other supporting services.",
+                    "type": "array",
+                    "items": {
+                        "$ref": "https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/v1.30.0/_definitions.json#/definitions/io.k8s.api.core.v1.Container"
+                    }
                 },
                 "initContainers": {
-                    "description": "Init containers to run before the main setup container. Useful for waiting on additional dependencies or performing pre-setup tasks.",
-                    "type": "array"
+                    "description": "([]Container) Init containers to run before the main setup container. Useful for waiting on additional dependencies or performing pre-setup tasks.",
+                    "type": "array",
+                    "items": {
+                        "$ref": "https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/v1.30.0/_definitions.json#/definitions/io.k8s.api.core.v1.Container"
+                    }
                 },
                 "machinekeyWriter": {
-                    "description": "Configuration for the sidecar container that writes machine keys and PATs to Kubernetes Secrets. This container runs alongside the setup container and uses kubectl to create secrets from the generated credentials.",
                     "type": "object",
                     "properties": {
                         "image": {
-                            "description": "Image configuration for the machinekey writer container.",
                             "type": "object",
                             "properties": {
                                 "repository": {
@@ -991,26 +1036,27 @@
                         },
                         "resources": {
                             "description": "CPU and memory resource requests and limits for the machinekey writer container. This container only runs kubectl commands and needs minimal resources.",
+                            "$ref": "https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/v1.30.0/_definitions.json#/definitions/io.k8s.api.core.v1.ResourceRequirements",
                             "type": "object"
                         }
                     }
                 },
                 "podAdditionalLabels": {
-                    "description": "Additional labels to add to setup job pods.",
+                    "description": "(map[string]string) Additional labels to add to setup job pods.",
                     "type": "object"
                 },
                 "podAnnotations": {
-                    "description": "Additional annotations to add to setup job pods.",
+                    "description": "(map[string]string) Additional annotations to add to setup job pods.",
                     "type": "object"
                 },
                 "resources": {
                     "description": "CPU and memory resource requests and limits for the setup job container. The setup job performs more work than init, including generating keys and creating initial data.",
+                    "$ref": "https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/v1.30.0/_definitions.json#/definitions/io.k8s.api.core.v1.ResourceRequirements",
                     "type": "object"
                 }
             }
         },
         "startupProbe": {
-            "description": "Startup probe configuration for ZITADEL. The startup probe runs before liveness and readiness probes begin, allowing slow-starting containers to fully initialize. This is especially useful for ZITADEL which may need time to complete database migrations on first start. Ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/",
             "type": "object",
             "properties": {
                 "enabled": {
@@ -1028,15 +1074,16 @@
             }
         },
         "tolerations": {
-            "description": "Tolerations allow pods to be scheduled on nodes with matching taints. Taints are used to repel pods from nodes; tolerations allow exceptions. Ref: https://kubernetes.io/docs/concepts/scheduling-eviction/taint-and-toleration/",
-            "type": "array"
+            "description": "([]Toleration) Tolerations allow pods to be scheduled on nodes with matching taints. Taints are used to repel pods from nodes; tolerations allow exceptions. Ref: https://kubernetes.io/docs/concepts/scheduling-eviction/taint-and-toleration/",
+            "type": "array",
+            "items": {
+                "$ref": "https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/v1.30.0/_definitions.json#/definitions/io.k8s.api.core.v1.Toleration"
+            }
         },
         "tools": {
-            "description": "Configuration for helper tools used by init containers and jobs. These images are used by components such as wait-for-zitadel, wait-for-postgres, and the setup and cleanup jobs. Each tool follows the standard image configuration pattern with registry, repository, tag, pull policy, and pull secrets.",
             "type": "object",
             "properties": {
                 "kubectl": {
-                    "description": "Configuration for the kubectl helper image used by init containers and jobs for lightweight Kubernetes API operations. This image is used by the setup job's machinekey containers and the cleanup job.",
                     "type": "object",
                     "properties": {
                         "image": {
@@ -1059,7 +1106,6 @@
                     }
                 },
                 "wait4x": {
-                    "description": "Configuration for the wait4x image used for readiness and dependency checks in init containers. Values are intentionally left empty and should be set by the user when overriding this configuration.",
                     "type": "object",
                     "properties": {
                         "image": {
@@ -1081,6 +1127,7 @@
                         },
                         "resources": {
                             "description": "CPU and memory resource requests and limits for wait4x init containers. These resources apply to all init containers using the wait4x tool, including wait-for-zitadel and wait-for-postgres. Setting equal requests and limits enables the \"Guaranteed\" QoS class when combined with resource settings on the main container. Ref: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/",
+                            "$ref": "https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/v1.30.0/_definitions.json#/definitions/io.k8s.api.core.v1.ResourceRequirements",
                             "type": "object"
                         }
                     }
@@ -1088,21 +1135,25 @@
             }
         },
         "topologySpreadConstraints": {
-            "description": "Topology spread constraints control how pods are distributed across topology domains (e.g., zones, nodes, regions) for high availability. Unlike affinity, these constraints provide more granular control over pod distribution. Ref: https://kubernetes.io/docs/concepts/scheduling-eviction/topology-spread-constraints/",
-            "type": "array"
+            "description": "([]TopologySpreadConstraint) Topology spread constraints control how pods are distributed across topology domains (e.g., zones, nodes, regions) for high availability. Unlike affinity, these constraints provide more granular control over pod distribution. Ref: https://kubernetes.io/docs/concepts/scheduling-eviction/topology-spread-constraints/",
+            "type": "array",
+            "items": {
+                "$ref": "https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/v1.30.0/_definitions.json#/definitions/io.k8s.api.core.v1.TopologySpreadConstraint"
+            }
         },
         "zitadel": {
             "type": "object",
             "properties": {
                 "autoscaling": {
-                    "description": "Horizontal Pod Autoscaler configuration for scaling on CPU, memory, or custom metrics. Ref: https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale/",
                     "type": "object",
                     "properties": {
                         "annotations": {
-                            "description": "Optional map of annotations applied to the HPA object.",
+                            "description": "(map[string]string) Annotations applied to the HPA object.",
                             "type": "object"
                         },
                         "behavior": {
+                            "description": "Configures the scaling behavior for scaling up and down. See: https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale/#configurable-scaling-behavior",
+                            "$ref": "https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/v1.30.0/_definitions.json#/definitions/io.k8s.api.autoscaling.v2.HorizontalPodAutoscalerBehavior",
                             "type": "object"
                         },
                         "enabled": {
@@ -1114,8 +1165,11 @@
                             "type": "integer"
                         },
                         "metrics": {
-                            "description": "Advanced scaling based on custom metrics exposed by Zitadel. Zitadel exposes standard Go runtime metrics. To use these for scaling, you MUST have a metrics server (e.g., Prometheus) and a metrics adapter (e.g., prometheus-adapter) running in your cluster. Ref: https://github.com/kubernetes-sigs/prometheus-adapter",
-                            "type": "array"
+                            "description": "([]MetricSpec) Advanced scaling based on custom metrics exposed by Zitadel. Zitadel exposes standard Go runtime metrics. To use these for scaling, you MUST have a metrics server (e.g., Prometheus) and a metrics adapter (e.g., prometheus-adapter) running in your cluster. Ref: https://github.com/kubernetes-sigs/prometheus-adapter",
+                            "type": "array",
+                            "items": {
+                                "$ref": "https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/v1.30.0/_definitions.json#/definitions/io.k8s.api.autoscaling.v2.MetricSpec"
+                            }
                         },
                         "minReplicas": {
                             "description": "The minimum number of pod replicas.",
@@ -1153,18 +1207,15 @@
                     "type": "object",
                     "properties": {
                         "Database": {
-                            "description": "Database connection configuration. ZITADEL requires PostgreSQL 14+ or CockroachDB 22+ as its backing database.",
                             "type": "object",
                             "properties": {
                                 "Postgres": {
                                     "type": "object",
                                     "properties": {
                                         "Host": {
-                                            "description": "PostgreSQL server hostname or IP address. Leave empty if providing via configSecretName or environment variables.",
                                             "type": "string"
                                         },
                                         "Port": {
-                                            "description": "PostgreSQL server port number.",
                                             "type": "integer"
                                         }
                                     }
@@ -1172,15 +1223,12 @@
                             }
                         },
                         "ExternalDomain": {
-                            "description": "The domain name used for external access to ZITADEL (e.g., \"auth.example.com\"). This is used for OIDC issuer URLs, redirect URIs, and cookie domains. Must match the domain configured in your ingress or load balancer.",
                             "type": "string"
                         },
                         "ExternalSecure": {
-                            "description": "Whether external connections use HTTPS. Set to true when ZITADEL is behind a TLS-terminating proxy or ingress controller. This affects URL generation for redirects, OIDC discovery, and other external-facing endpoints.",
                             "type": "boolean"
                         },
                         "FirstInstance": {
-                            "description": "Configures the initial instance created by the ZITADEL setup job. The values defined here are used to bootstrap the first organization and its users.",
                             "type": "object",
                             "properties": {
                                 "LoginClientPatPath": {
@@ -1190,7 +1238,6 @@
                                     ]
                                 },
                                 "MachineKeyPath": {
-                                    "description": "IMPORTANT: The following fields are managed automatically by the Helm chart. Setting these manually is not supported and will cause the deployment to fail. The chart automatically generates and manages these paths internally.",
                                     "type": [
                                         "null",
                                         "string"
@@ -1200,7 +1247,6 @@
                                     "type": "object",
                                     "properties": {
                                         "LoginClient": {
-                                            "description": "Defines the internal machine user required by the ZITADEL Login UI. This user communicates with the main ZITADEL API to handle login flows. It is a specialized, internal-use-only account and is not intended for general administrative use. A PAT is generated and stored in a Kubernetes secret named 'login-client'.",
                                             "type": "object",
                                             "properties": {
                                                 "Machine": {
@@ -1215,7 +1261,6 @@
                                                     }
                                                 },
                                                 "Pat": {
-                                                    "description": "The expiration date for the Login UI's Personal Access Token (PAT).",
                                                     "type": "object",
                                                     "properties": {
                                                         "ExpirationDate": {
@@ -1226,7 +1271,6 @@
                                             }
                                         },
                                         "Machine": {
-                                            "description": "Defines an administrative machine user created with the IAM_OWNER role. This user is intended for initial automation and administrative tasks right after the Helm chart is deployed.  By default, a JWT Machine Key is generated and stored in a Kubernetes secret named after the `Username` (e.g., 'iam-admin').  If the `Pat` block below is defined, a Personal Access Token (PAT) is also generated and stored in a separate Kubernetes secret. This secret will be named after the `Username` with a '-pat' suffix (e.g., 'iam-admin-pat').",
                                             "type": "object",
                                             "properties": {
                                                 "Machine": {
@@ -1252,7 +1296,6 @@
                                                     }
                                                 },
                                                 "Pat": {
-                                                    "description": "If this Pat object is present, a PAT will also be created.",
                                                     "type": "object",
                                                     "properties": {
                                                         "ExpirationDate": {
@@ -1263,7 +1306,6 @@
                                             }
                                         },
                                         "Skip": {
-                                            "description": "IMPORTANT: Setting Skip here is not supported. Use FirstInstance.Skip instead. This field exists for validation purposes only.",
                                             "type": [
                                                 "null",
                                                 "boolean"
@@ -1283,14 +1325,12 @@
                             }
                         },
                         "Machine": {
-                            "description": "Machine identification settings for ZITADEL instances in a cluster.",
                             "type": "object",
                             "properties": {
                                 "Identification": {
                                     "type": "object",
                                     "properties": {
                                         "Hostname": {
-                                            "description": "Use the pod hostname for machine identification. Recommended for Kubernetes deployments where each pod has a unique hostname.",
                                             "type": "object",
                                             "properties": {
                                                 "Enabled": {
@@ -1299,7 +1339,6 @@
                                             }
                                         },
                                         "Webhook": {
-                                            "description": "Use a webhook for machine identification. Alternative to hostname-based identification for specialized deployment scenarios.",
                                             "type": "object",
                                             "properties": {
                                                 "Enabled": {
@@ -1312,11 +1351,9 @@
                             }
                         },
                         "TLS": {
-                            "description": "Internal TLS configuration for ZITADEL's HTTP server. When enabled, ZITADEL serves HTTPS directly instead of relying on a proxy for TLS termination.",
                             "type": "object",
                             "properties": {
                                 "Enabled": {
-                                    "description": "Enable HTTPS on ZITADEL's internal server. Requires serverSslCrtSecret or selfSignedCert to be configured with valid certificates.",
                                     "type": "boolean"
                                 }
                             }
@@ -1332,7 +1369,7 @@
                     "type": "string"
                 },
                 "dbSslCaCrtAnnotations": {
-                    "description": "Annotations for the dbSslCaCrt Secret when created from the inline certificate. The default Helm hooks ensure the secret exists before pods start.",
+                    "description": "(map[string]string) Annotations for the dbSslCaCrt Secret when created from the inline certificate. The default Helm hooks ensure the secret exists before pods start.",
                     "type": "object",
                     "properties": {
                         "helm.sh/hook": {
@@ -1355,11 +1392,10 @@
                     "type": "string"
                 },
                 "debug": {
-                    "description": "Debug pod configuration. When enabled, creates a standalone pod with the ZITADEL binary and configuration mounted, useful for troubleshooting and running ad-hoc ZITADEL commands. The pod starts in sleep mode, allowing you to exec into it and run commands interactively.",
                     "type": "object",
                     "properties": {
                         "annotations": {
-                            "description": "Annotations for the debug pod. The Helm hooks ensure it's created during install/upgrade and cleaned up appropriately.",
+                            "description": "(map[string]string) Annotations for the debug pod. The Helm hooks ensure it's created during install/upgrade and cleaned up appropriately.",
                             "type": "object",
                             "properties": {
                                 "helm.sh/hook": {
@@ -1375,29 +1411,41 @@
                             "type": "boolean"
                         },
                         "extraContainers": {
-                            "description": "Sidecar containers to run alongside the debug container.",
-                            "type": "array"
+                            "description": "([]Container) Sidecar containers to run alongside the debug container.",
+                            "type": "array",
+                            "items": {
+                                "$ref": "https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/v1.30.0/_definitions.json#/definitions/io.k8s.api.core.v1.Container"
+                            }
                         },
                         "initContainers": {
-                            "description": "Init containers to run before the debug container starts.",
-                            "type": "array"
+                            "description": "([]Container) Init containers to run before the debug container starts.",
+                            "type": "array",
+                            "items": {
+                                "$ref": "https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/v1.30.0/_definitions.json#/definitions/io.k8s.api.core.v1.Container"
+                            }
                         }
                     }
                 },
                 "extraContainers": {
-                    "description": "Global sidecar containers added to all ZITADEL workloads (Deployment, init job, setup job, and debug pod when enabled). Use this for shared services like database proxies (e.g., cloud-sql-proxy) that all workloads need to connect to the database.",
-                    "type": "array"
+                    "description": "([]Container) Global sidecar containers added to all ZITADEL workloads (Deployment, init job, setup job, and debug pod when enabled). Use this for shared services like database proxies (e.g., cloud-sql-proxy) that all workloads need to connect to the database.",
+                    "type": "array",
+                    "items": {
+                        "$ref": "https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/v1.30.0/_definitions.json#/definitions/io.k8s.api.core.v1.Container"
+                    }
                 },
                 "initContainers": {
-                    "description": "Global init containers added to all ZITADEL workloads (Deployment, init job, setup job, and debug pod when enabled). Use this for shared dependencies like database readiness checks or certificate initialization that all workloads need.",
-                    "type": "array"
+                    "description": "([]Container) Global init containers added to all ZITADEL workloads (Deployment, init job, setup job, and debug pod when enabled). Use this for shared dependencies like database readiness checks or certificate initialization that all workloads need.",
+                    "type": "array",
+                    "items": {
+                        "$ref": "https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/v1.30.0/_definitions.json#/definitions/io.k8s.api.core.v1.Container"
+                    }
                 },
                 "masterkey": {
                     "description": "ZITADEL's masterkey for symmetric encryption of sensitive data like private keys and tokens. Must be exactly 32 characters (256 bits). Generate with: tr -dc A-Za-z0-9 \u003c/dev/urandom | head -c 32 IMPORTANT: Store this value securely. Loss of the masterkey means loss of all encrypted data. Either set this value or use masterkeySecretName.",
                     "type": "string"
                 },
                 "masterkeyAnnotations": {
-                    "description": "Annotations for the masterkey Secret when created from zitadel.masterkey. The default Helm hooks ensure the secret exists before pods start.",
+                    "description": "(map[string]string) Annotations for the masterkey Secret when created from zitadel.masterkey. The default Helm hooks ensure the secret exists before pods start.",
                     "type": "object",
                     "properties": {
                         "helm.sh/hook": {
@@ -1416,7 +1464,8 @@
                     "type": "string"
                 },
                 "podSecurityContext": {
-                    "description": "Optional overrides for the pod and container security contexts used by Zitadel pods. If left empty, the chart-wide podSecurityContext and securityContext defined below are used.",
+                    "description": "Optional overrides for the pod security context used by Zitadel pods. If left empty, the chart-wide podSecurityContext defined below is used.",
+                    "$ref": "https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/v1.30.0/_definitions.json#/definitions/io.k8s.api.core.v1.PodSecurityContext",
                     "type": "object"
                 },
                 "revisionHistoryLimit": {
@@ -1431,7 +1480,7 @@
                     ]
                 },
                 "secretConfigAnnotations": {
-                    "description": "Annotations for the secretConfig Secret. The default Helm hooks ensure the secret is created before the deployment and recreated on upgrades.",
+                    "description": "(map[string]string) Annotations for the secretConfig Secret. The default Helm hooks ensure the secret is created before the deployment and recreated on upgrades.",
                     "type": "object",
                     "properties": {
                         "helm.sh/hook": {
@@ -1446,10 +1495,11 @@
                     }
                 },
                 "securityContext": {
+                    "description": "Optional overrides for the container security context used by Zitadel pods. If left empty, the chart-wide securityContext defined below is used.",
+                    "$ref": "https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/v1.30.0/_definitions.json#/definitions/io.k8s.api.core.v1.SecurityContext",
                     "type": "object"
                 },
                 "selfSignedCert": {
-                    "description": "Generate a self-signed TLS certificate using Helm's native functions. If enabled, this creates a Kubernetes secret containing a self-signed certificate and mounts it to /etc/tls/ in the ZITADEL pod.  This is useful for quick demos or test environments without an ingress controller. It is NOT recommended for production use.  The certificate will be valid for the `ExternalDomain`, `localhost`, and any host specified in `additionalDnsName`. It can't use dynamic values like the Pod IP, which the previous initContainer method did.",
                     "type": "object",
                     "properties": {
                         "additionalDnsName": {
