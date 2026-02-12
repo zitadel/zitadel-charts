@@ -191,10 +191,9 @@ zitadel:
     behavior: {}
 
   # -- (map[string]string) Annotations for the masterkey Secret when created from
-  # zitadel.masterkey. The default Helm hooks ensure the secret exists before pods start.
+  # zitadel.masterkey. The secret is created once on install and is immutable.
   masterkeyAnnotations:
-    helm.sh/hook: pre-install,pre-upgrade
-    helm.sh/hook-delete-policy: before-hook-creation
+    helm.sh/hook: pre-install
     helm.sh/hook-weight: "0"
 
   # -- PEM-encoded CA certificate for verifying the database server's TLS certificate.
