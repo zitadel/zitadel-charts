@@ -2,7 +2,7 @@
 
 # Zitadel
 
-![Version: 9.22.0](https://img.shields.io/badge/Version-9.22.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: v4.10.1](https://img.shields.io/badge/AppVersion-v4.10.1-informational?style=flat-square)
+![Version: 9.23.0](https://img.shields.io/badge/Version-9.23.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: v4.10.1](https://img.shields.io/badge/AppVersion-v4.10.1-informational?style=flat-square)
 
 ## A Better Identity and Access Management Solution
 
@@ -356,7 +356,7 @@ Kubernetes: `>= 1.30.0-0`
 | zitadel.extraContainers | []Container | `[]` | Global sidecar containers added to all ZITADEL workloads (Deployment, init job, setup job, and debug pod when enabled). Use this for shared services like database proxies (e.g., cloud-sql-proxy) that all workloads need to connect to the database. |
 | zitadel.initContainers | []Container | `[]` | Global init containers added to all ZITADEL workloads (Deployment, init job, setup job, and debug pod when enabled). Use this for shared dependencies like database readiness checks or certificate initialization that all workloads need. |
 | zitadel.masterkey | string | `""` | ZITADEL's masterkey for symmetric encryption of sensitive data like private keys and tokens. Must be exactly 32 characters (256 bits). Generate with: tr -dc A-Za-z0-9 </dev/urandom | head -c 32 IMPORTANT: Store this value securely. Loss of the masterkey means loss of all encrypted data. Either set this value or use masterkeySecretName. |
-| zitadel.masterkeyAnnotations | map[string]string | `{"helm.sh/hook":"pre-install,pre-upgrade","helm.sh/hook-delete-policy":"before-hook-creation","helm.sh/hook-weight":"0"}` | Annotations for the masterkey Secret when created from zitadel.masterkey. The default Helm hooks ensure the secret exists before pods start. |
+| zitadel.masterkeyAnnotations | map[string]string | `{"helm.sh/hook":"pre-install","helm.sh/hook-weight":"0"}` | Annotations for the masterkey Secret when created from zitadel.masterkey. The secret is created once on install and is immutable. |
 | zitadel.masterkeySecretName | string | `""` | Name of an existing Kubernetes Secret containing the masterkey at key "masterkey". Use this for production deployments to avoid storing the masterkey in values files. The secret must exist before chart installation. Note: Either zitadel.masterkey or zitadel.masterkeySecretName must be set. |
 | zitadel.podSecurityContext | PodSecurityContext | `{}` | Optional overrides for the pod security context used by Zitadel pods. If left empty, the chart-wide podSecurityContext defined below is used. |
 | zitadel.revisionHistoryLimit | int | `10` | Number of old ReplicaSets to retain for rollback purposes Set to 0 to not keep any old ReplicaSets |
