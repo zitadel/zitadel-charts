@@ -1445,13 +1445,10 @@
                     "type": "string"
                 },
                 "masterkeyAnnotations": {
-                    "description": "(map[string]string) Annotations for the masterkey Secret when created from zitadel.masterkey. The default Helm hooks ensure the secret exists before pods start.",
+                    "description": "(map[string]string) Annotations for the masterkey Secret when created from zitadel.masterkey. The secret is created once on install and is immutable.",
                     "type": "object",
                     "properties": {
                         "helm.sh/hook": {
-                            "type": "string"
-                        },
-                        "helm.sh/hook-delete-policy": {
                             "type": "string"
                         },
                         "helm.sh/hook-weight": {
