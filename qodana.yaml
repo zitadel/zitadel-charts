@@ -1,5 +1,5 @@
 version: '1.0'
-linter: 'jetbrains/qodana-go:2025.2'
+linter: 'jetbrains/qodana-go:2025.3'
 profile:
   path: .qodana/profiles/k8s.yaml
 bootstrap: |
