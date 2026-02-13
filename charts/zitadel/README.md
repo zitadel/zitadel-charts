@@ -366,6 +366,15 @@ Kubernetes: `>= 1.30.0-0`
 | zitadel.selfSignedCert.additionalDnsName | string | `""` |  |
 | zitadel.selfSignedCert.enabled | bool | `false` | Enable generation of a self-signed TLS certificate. |
 | zitadel.serverSslCrtSecret | string | `""` | Name of a Kubernetes Secret containing the TLS certificate for ZITADEL's internal HTTPS server. The secret must contain keys "tls.crt" (certificate) and "tls.key" (private key). Use this when ZITADEL should serve HTTPS directly instead of relying on TLS termination at an ingress controller or load balancer. Requires configmapConfig.TLS.Enabled to be true. |
+| zitadel.systemUser.additionalDnsName | string | `""` | An additional DNS name (SAN) to include in the generated certificate. Example: "my-zitadel.example.com" |
+| zitadel.systemUser.annotations | map[string]string | `{}` | Annotations for the generated system user secret. Only used when cert-manager is not available (Helm-generated secret). Note: Do NOT use helm.sh/hook annotations here as they would cause the secret to be regenerated on every upgrade, breaking existing authentication. |
+| zitadel.systemUser.certManager.issuerRef | string | `nil` | Custom issuer reference for cert-manager. If not set, a self-signed Issuer is automatically created. Use this to reference your own ClusterIssuer or Issuer (e.g., Let's Encrypt, Vault PKI). Example:   issuerRef:     name: letsencrypt-prod     kind: ClusterIssuer |
+| zitadel.systemUser.enabled | bool | `true` | Enable generation of a TLS certificate for system user authentication. When enabled, the chart automatically detects if cert-manager is available: - If cert-manager is installed: creates a Certificate resource - If cert-manager is not installed: generates a self-signed cert using Helm Ignored if secretName is set. |
+| zitadel.systemUser.id | string | `"0"` | The system user ID to use for authentication. Set to "0" by default, which typically represents the system/root user context. |
+| zitadel.systemUser.privateKey.algorithm | string | `"RSA"` | Key algorithm. Must be RSA for ZITADEL JWT signing. |
+| zitadel.systemUser.privateKey.size | int | `2048` | RSA key size in bits. Minimum 2048 recommended. |
+| zitadel.systemUser.secretName | string | `""` | Name of an existing Kubernetes Secret containing the TLS certificate for system user authentication. The secret must be of type kubernetes.io/tls with keys "tls.crt" and "tls.key". Use this to provide certificates from external sources. When set, takes precedence over the `enabled` flag. |
+| zitadel.systemUser.validityDays | int | `3650` | Number of days the generated certificate should be valid. |
 
 ## Troubleshooting
 

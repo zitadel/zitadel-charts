@@ -1511,6 +1511,67 @@
                 "serverSslCrtSecret": {
                     "description": "Name of a Kubernetes Secret containing the TLS certificate for ZITADEL's internal HTTPS server. The secret must contain keys \"tls.crt\" (certificate) and \"tls.key\" (private key). Use this when ZITADEL should serve HTTPS directly instead of relying on TLS termination at an ingress controller or load balancer. Requires configmapConfig.TLS.Enabled to be true.",
                     "type": "string"
+                },
+                "systemUser": {
+                    "type": "object",
+                    "properties": {
+                        "additionalDnsName": {
+                            "description": "An additional DNS name (SAN) to include in the generated certificate. Example: \"my-zitadel.example.com\"",
+                            "type": "string"
+                        },
+                        "annotations": {
+                            "description": "(map[string]string) Annotations for the generated system user secret. Only used when cert-manager is not available (Helm-generated secret). Note: Do NOT use helm.sh/hook annotations here as they would cause the secret to be regenerated on every upgrade, breaking existing authentication.",
+                            "type": "object"
+                        },
+                        "certManager": {
+                            "type": "object",
+                            "properties": {
+                                "issuerRef": {
+                                    "description": "Custom issuer reference for cert-manager. If not set, a self-signed Issuer is automatically created. Use this to reference your own ClusterIssuer or Issuer (e.g., Let's Encrypt, Vault PKI). Example: issuerRef: name: letsencrypt-prod kind: ClusterIssuer",
+                                    "type": [
+                                        "null",
+                                        "object"
+                                    ]
+                                }
+                            }
+                        },
+                        "enabled": {
+                            "description": "Enable generation of a TLS certificate for system user authentication. When enabled, the chart automatically detects if cert-manager is available: - If cert-manager is installed: creates a Certificate resource - If cert-manager is not installed: generates a self-signed cert using Helm Ignored if secretName is set.",
+                            "type": "boolean"
+                        },
+                        "id": {
+                            "description": "The system user ID to use for authentication. Set to \"0\" by default, which typically represents the system/root user context.",
+                            "type": "string"
+                        },
+                        "privateKey": {
+                            "type": "object",
+                            "properties": {
+                                "algorithm": {
+                                    "description": "Key algorithm. Must be RSA for ZITADEL JWT signing.",
+                                    "type": "string",
+                                    "enum": [
+                                        "RSA"
+                                    ]
+                                },
+                                "size": {
+                                    "description": "RSA key size in bits. Minimum 2048 recommended.",
+                                    "type": "integer",
+                                    "enum": [
+                                        2048,
+                                        4096
+                                    ]
+                                }
+                            }
+                        },
+                        "secretName": {
+                            "description": "Name of an existing Kubernetes Secret containing the TLS certificate for system user authentication. The secret must be of type kubernetes.io/tls with keys \"tls.crt\" and \"tls.key\". Use this to provide certificates from external sources. When set, takes precedence over the `enabled` flag.",
+                            "type": "string"
+                        },
+                        "validityDays": {
+                            "description": "Number of days the generated certificate should be valid.",
+                            "type": "integer"
+                        }
+                    }
                 }
             }
         }
