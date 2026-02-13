@@ -253,6 +253,57 @@ zitadel:
     # Example: "my-zitadel.example.com"
     additionalDnsName: ""
 
+  # System user configuration for GRPC API authentication using TLS certificates.
+  # When enabled, a TLS certificate is mounted into both the main ZITADEL container
+  # and the Login UI container for authenticating system users via the GRPC API.
+  #
+  # This feature supports an upcoming ZITADEL capability where GRPC APIs can
+  # authenticate using externally supplied TLS certificates instead of RSA key
+  # pairs. The Login UI uses this certificate to generate JWTs signed with the
+  # private key from the certificate.
+  #
+  # Certificate generation behavior:
+  # - If cert-manager CRDs are detected, creates a Certificate resource
+  # - Otherwise, falls back to Helm's genSelfSignedCert function
+  # - You can also provide your own secret via secretName
+  systemUser:
+    # -- Enable generation of a TLS certificate for system user authentication.
+    # When enabled, the chart automatically detects if cert-manager is available:
+    # - If cert-manager is installed: creates a Certificate resource
+    # - If cert-manager is not installed: generates a self-signed cert using Helm
+    # Ignored if secretName is set.
+    enabled: true
+    # -- Name of an existing Kubernetes Secret containing the TLS certificate
+    # for system user authentication. The secret must be of type kubernetes.io/tls
+    # with keys "tls.crt" and "tls.key". Use this to provide certificates from
+    # external sources. When set, takes precedence over the `enabled` flag.
+    secretName: ""
+    # -- The system user ID to use for authentication. Set to "0" by default,
+    # which typically represents the system/root user context.
+    id: "0"
+    # -- An additional DNS name (SAN) to include in the generated certificate.
+    # Example: "my-zitadel.example.com"
+    additionalDnsName: ""
+    # -- Number of days the generated certificate should be valid.
+    validityDays: 3650
+    # -- (map[string]string) Annotations for the generated system user secret.
+    # Only used when cert-manager is not available (Helm-generated secret).
+    annotations:
+      helm.sh/hook: pre-install,pre-upgrade
+      helm.sh/hook-delete-policy: before-hook-creation
+      helm.sh/hook-weight: "0"
+    # cert-manager specific configuration. Only used when cert-manager is detected.
+    certManager:
+      # @schema type:[null,object]
+      # -- Custom issuer reference for cert-manager. If not set, a self-signed
+      # Issuer is automatically created. Use this to reference your own
+      # ClusterIssuer or Issuer (e.g., Let's Encrypt, Vault PKI).
+      # Example:
+      #   issuerRef:
+      #     name: letsencrypt-prod
+      #     kind: ClusterIssuer
+      issuerRef:
+
   # Debug pod configuration. When enabled, creates a standalone pod with the
   # ZITADEL binary and configuration mounted, useful for troubleshooting and
   # running ad-hoc ZITADEL commands. The pod starts in sleep mode, allowing you
