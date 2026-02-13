@@ -1520,19 +1520,8 @@
                             "type": "string"
                         },
                         "annotations": {
-                            "description": "(map[string]string) Annotations for the generated system user secret. Only used when cert-manager is not available (Helm-generated secret).",
-                            "type": "object",
-                            "properties": {
-                                "helm.sh/hook": {
-                                    "type": "string"
-                                },
-                                "helm.sh/hook-delete-policy": {
-                                    "type": "string"
-                                },
-                                "helm.sh/hook-weight": {
-                                    "type": "string"
-                                }
-                            }
+                            "description": "(map[string]string) Annotations for the generated system user secret. Only used when cert-manager is not available (Helm-generated secret). Note: Do NOT use helm.sh/hook annotations here as they would cause the secret to be regenerated on every upgrade, breaking existing authentication.",
+                            "type": "object"
                         },
                         "certManager": {
                             "type": "object",
@@ -1553,6 +1542,26 @@
                         "id": {
                             "description": "The system user ID to use for authentication. Set to \"0\" by default, which typically represents the system/root user context.",
                             "type": "string"
+                        },
+                        "privateKey": {
+                            "type": "object",
+                            "properties": {
+                                "algorithm": {
+                                    "description": "Key algorithm. Must be RSA for ZITADEL JWT signing.",
+                                    "type": "string",
+                                    "enum": [
+                                        "RSA"
+                                    ]
+                                },
+                                "size": {
+                                    "description": "RSA key size in bits. Minimum 2048 recommended.",
+                                    "type": "integer",
+                                    "enum": [
+                                        2048,
+                                        4096
+                                    ]
+                                }
+                            }
                         },
                         "secretName": {
                             "description": "Name of an existing Kubernetes Secret containing the TLS certificate for system user authentication. The secret must be of type kubernetes.io/tls with keys \"tls.crt\" and \"tls.key\". Use this to provide certificates from external sources. When set, takes precedence over the `enabled` flag.",

@@ -286,12 +286,19 @@ zitadel:
     additionalDnsName: ""
     # -- Number of days the generated certificate should be valid.
     validityDays: 3650
+    # Private key configuration. RSA is required for JWT signing (RS256).
+    privateKey:
+      # @schema enum:[RSA]
+      # -- Key algorithm. Must be RSA for ZITADEL JWT signing.
+      algorithm: RSA
+      # @schema enum:[2048,4096]
+      # -- RSA key size in bits. Minimum 2048 recommended.
+      size: 2048
     # -- (map[string]string) Annotations for the generated system user secret.
     # Only used when cert-manager is not available (Helm-generated secret).
-    annotations:
-      helm.sh/hook: pre-install,pre-upgrade
-      helm.sh/hook-delete-policy: before-hook-creation
-      helm.sh/hook-weight: "0"
+    # Note: Do NOT use helm.sh/hook annotations here as they would cause the
+    # secret to be regenerated on every upgrade, breaking existing authentication.
+    annotations: {}
     # cert-manager specific configuration. Only used when cert-manager is detected.
     certManager:
       # @schema type:[null,object]
