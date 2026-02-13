@@ -1,3 +1,4 @@
+#file: noinspection KubernetesUnknownResourcesInspection
 {{- if .Capabilities.APIVersions.Has "cert-manager.io/v1" }}
 {{- $needsIssuer := false }}
 {{- /* Check if any feature needs a self-signed issuer */ -}}
