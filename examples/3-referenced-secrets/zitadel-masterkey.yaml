@@ -4,6 +4,6 @@ metadata:
   name: existing-zitadel-masterkey
 type: Opaque
 stringData:
-  # Must be exactly 32 ASCII characters. Do NOT use hex or base64 encoding.
+  # Must be exactly 32 bytes. Use printable ASCII characters (alphanumeric).
   # Generate with: tr -dc A-Za-z0-9 </dev/urandom | head -c 32
   masterkey: "x123456789012345678901234567891y"

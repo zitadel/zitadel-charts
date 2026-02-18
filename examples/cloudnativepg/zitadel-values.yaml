@@ -1,7 +1,7 @@
 zitadel:
-  # Must be exactly 32 ASCII characters. Do NOT use hex or base64 encoding.
+  # Must be exactly 32 bytes. Use printable ASCII characters (alphanumeric).
   # Generate with: tr -dc A-Za-z0-9 </dev/urandom | head -c 32
-  masterkey: "REPLACE_WITH_32_ASCII_CHARACTERS"
+  masterkey: "REPLACE_WITH_A_32_BYTE_STRING!"
 
   configmapConfig:
     ExternalDomain: zitadel.127.0.0.1.sslip.io

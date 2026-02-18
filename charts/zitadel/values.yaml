@@ -125,9 +125,9 @@ zitadel:
   configSecretKey: config-yaml
 
   # -- ZITADEL's masterkey for symmetric encryption of sensitive data like
-  # private keys and tokens. Must be exactly 32 ASCII characters (not bytes).
-  # Do NOT use a hex-encoded or base64-encoded key, as these result in 64 or
-  # 44 characters respectively. Use literal characters only.
+  # private keys and tokens. Must be exactly 32 bytes. Using printable ASCII
+  # characters is recommended (alphanumeric). Do NOT use multi-byte Unicode
+  # characters, as the key length is measured in bytes, not characters.
   # Generate with: tr -dc A-Za-z0-9 </dev/urandom | head -c 32
   # IMPORTANT: Store this value securely. Loss of the masterkey means loss of
   # all encrypted data. Either set this value or use masterkeySecretName.
