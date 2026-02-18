@@ -1,5 +1,7 @@
 zitadel:
-  masterkey: "REPLACE_WITH_32_CHARACTER_STRING"
+  # Must be exactly 32 ASCII characters. Do NOT use hex or base64 encoding.
+  # Generate with: tr -dc A-Za-z0-9 </dev/urandom | head -c 32
+  masterkey: "REPLACE_WITH_32_ASCII_CHARACTERS"
 
   configmapConfig:
     ExternalDomain: zitadel.127.0.0.1.sslip.io
