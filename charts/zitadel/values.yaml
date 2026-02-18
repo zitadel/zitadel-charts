@@ -124,7 +124,7 @@ zitadel:
   # configuration YAML. The default "config-yaml" matches the expected format.
   configSecretKey: config-yaml
 
-  # -- Zitadel's masterkey for symmetric encryption of sensitive data like
+  # -- ZITADEL's masterkey for symmetric encryption of sensitive data like
   # private keys and tokens. Must be exactly 32 ASCII characters (not bytes).
   # Do NOT use a hex-encoded or base64-encoded key, as these result in 64 or
   # 44 characters respectively. Use literal characters only.
