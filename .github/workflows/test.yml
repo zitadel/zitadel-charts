@@ -33,7 +33,7 @@ jobs:
     steps:
       - id: 'checkout'
         name: Check The Repo Out
-        uses: 'actions/checkout@v5.0.0'
+        uses: 'actions/checkout@v6.0.2'
         with:
           fetch-depth: 0
 
@@ -49,7 +49,7 @@ jobs:
 
       - id: 'create-kind'
         name: Create Kubernetes Cluster with KinD
-        uses: 'helm/kind-action@v1.12.0'
+        uses: 'helm/kind-action@v1.14.0'
         with:
           node_image: 'kindest/node:${{ matrix.k8s.kindest-image-tag }}'
           version: 'v0.31.0'
@@ -81,7 +81,7 @@ jobs:
 
       - id: 'upload-login-failures'
         name: Upload Login Failures
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         if: failure()
         with:
           include-hidden-files: true
