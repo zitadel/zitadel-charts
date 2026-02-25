@@ -3,6 +3,7 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
   name: {{ include "zitadel.serviceAccountName" . }}
+  namespace: {{ .Release.Namespace }}
   labels:
     {{- include "zitadel.labels" . | nindent 4 }}
   {{- with .Values.serviceAccount.annotations }}
@@ -21,6 +22,7 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
   name: {{ include "zitadel.serviceAccountName" . }}
+  namespace: {{ .Release.Namespace }}
   labels:
     {{- include "zitadel.labels" . | nindent 4 }}
   {{- with .Values.serviceAccount.annotations }}
