@@ -4,6 +4,7 @@ apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
   name: {{ include "zitadel.fullname" . }}
+  namespace: {{ .Release.Namespace }}
   labels:
     {{- include "zitadel.labels" . | nindent 4 }}
   {{- with .Values.zitadel.autoscaling.annotations }}

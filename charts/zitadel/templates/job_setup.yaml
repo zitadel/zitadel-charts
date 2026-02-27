@@ -18,6 +18,7 @@ apiVersion: batch/v1
 kind: Job
 metadata:
   name: "{{ include "zitadel.fullname" . }}-setup"
+  namespace: {{ .Release.Namespace }}
   labels:
     {{- include "zitadel.setup.labels" . | nindent 4 }}
   {{- with .Values.setupJob.annotations }}

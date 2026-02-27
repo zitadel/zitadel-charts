@@ -3,6 +3,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: {{ include "zitadel.login.fullname" . }}
+  namespace: {{ .Release.Namespace }}
   labels:
     {{- include "login.labels" . | nindent 4 }}
   {{- with .Values.login.annotations }}
