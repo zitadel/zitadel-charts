@@ -27,6 +27,7 @@ spec:
           {{- toYaml . | nindent 8 }}
         {{- end }}
         checksum/configmap: {{ include (print $.Template.BasePath "/configmap_login.yaml") . | sha256sum }}
+        checksum/secret-system-user: {{ include (print $.Template.BasePath "/secret_system-user.yaml") . | sha256sum }}
       labels:
         {{- include "login.labels" . | nindent 8 }}
         {{- with .Values.podAdditionalLabels }}
@@ -53,6 +54,12 @@ spec:
           env:
             - name: NEXT_PUBLIC_BASE_PATH
               value: /ui/v2/login
+            {{- if or .Values.zitadel.systemUser.enabled .Values.zitadel.systemUser.secretName }}
+            - name: ZITADEL_SYSTEM_USER_ID
+              value: {{ .Values.zitadel.systemUser.id | quote }}
+            - name: ZITADEL_SYSTEM_USER_KEY_FILE
+              value: /etc/system-user/tls.key
+            {{- end }}
             {{- with .Values.login.env }}
               {{- toYaml . | nindent 12 }}
             {{- end }}
@@ -96,6 +103,11 @@ spec:
           {{- if and (((((.Values.zitadel).configmapConfig).FirstInstance).Org).LoginClient) (not (((((.Values.zitadel).configmapConfig).FirstInstance).Skip))) }}
           - name: login-client
             mountPath: /login-client
+            readOnly: true
+          {{- end }}
+          {{- if or .Values.zitadel.systemUser.enabled .Values.zitadel.systemUser.secretName }}
+          - name: system-user
+            mountPath: /etc/system-user
             readOnly: true
           {{- end }}
           {{- with .Values.login.extraVolumeMounts }}
@@ -147,6 +159,12 @@ spec:
         secret:
           defaultMode: 444
           secretName: {{ .Values.login.loginClientSecretPrefix }}login-client
+      {{- end }}
+      {{- if or .Values.zitadel.systemUser.enabled .Values.zitadel.systemUser.secretName }}
+      - name: system-user
+        secret:
+          secretName: {{ .Values.zitadel.systemUser.secretName | default (printf "%s-system-user" (include "zitadel.fullname" .)) }}
+          defaultMode: 0440
       {{- end }}
       {{- with .Values.login.extraVolumes }}
       {{- toYaml . | nindent 6 }}
