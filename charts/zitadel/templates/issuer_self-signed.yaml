@@ -1,0 +1,21 @@
+#file: noinspection KubernetesUnknownResourcesInspection
+{{- if .Capabilities.APIVersions.Has "cert-manager.io/v1" }}
+{{- $needsIssuer := false }}
+{{- /* Check if any feature needs a self-signed issuer */ -}}
+{{- if and .Values.zitadel.systemUser.enabled (not .Values.zitadel.systemUser.secretName) (not .Values.zitadel.systemUser.certManager.issuerRef) }}
+{{- $needsIssuer = true }}
+{{- end }}
+{{- /* Add more conditions here as new certificate-requiring features are added */ -}}
+{{- if $needsIssuer }}
+# Shared self-signed Issuer for all chart-managed certificates.
+# This single Issuer can be referenced by multiple Certificate resources.
+apiVersion: cert-manager.io/v1
+kind: Issuer
+metadata:
+  name: {{ include "zitadel.fullname" . }}-self-signed
+  labels:
+    {{- include "zitadel.labels" . | nindent 4 }}
+spec:
+  selfSigned: {}
+{{- end }}
+{{- end }}
