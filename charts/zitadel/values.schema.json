@@ -148,13 +148,8 @@
             "type": "object",
             "properties": {
                 "annotations": {
-                    "description": "(map[string]string) Annotations to apply to the Ingress resource. The default annotation is for NGINX to correctly handle gRPC traffic.",
-                    "type": "object",
-                    "properties": {
-                        "nginx.ingress.kubernetes.io/backend-protocol": {
-                            "type": "string"
-                        }
-                    }
+                    "description": "(map[string]string) Annotations to apply to the Ingress resource.",
+                    "type": "object"
                 },
                 "className": {
                     "description": "The name of the IngressClass resource to use for this Ingress. Ref: https://kubernetes.io/docs/concepts/services-networking/ingress/#ingress-class",
