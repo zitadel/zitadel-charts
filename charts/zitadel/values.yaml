@@ -817,10 +817,8 @@ ingress:
   # -- The name of the IngressClass resource to use for this Ingress.
   # Ref: https://kubernetes.io/docs/concepts/services-networking/ingress/#ingress-class
   className: ""
-  # -- (map[string]string) Annotations to apply to the Ingress resource. The default
-  # annotation is for NGINX to correctly handle gRPC traffic.
-  annotations:
-    nginx.ingress.kubernetes.io/backend-protocol: "GRPC"
+  # -- (map[string]string) Annotations to apply to the Ingress resource.
+  annotations: {}
   # @schema
   # type: array
   # items:

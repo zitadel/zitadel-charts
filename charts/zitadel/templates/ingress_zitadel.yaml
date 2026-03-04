@@ -14,6 +14,9 @@ metadata:
     alb.ingress.kubernetes.io/conditions.{{ trunc 63 $fullName }}-grpc: >
       [{"field":"http-header","httpHeaderConfig":{"httpHeaderName":"Content-Type","values":["application/grpc"]}}]
     {{- end }}
+    {{- if eq .Values.ingress.controller "nginx" }}
+    nginx.ingress.kubernetes.io/backend-protocol: GRPC
+    {{- end }}
     {{- with .Values.ingress.annotations }}
     {{- toYaml . | nindent 4 }}
     {{- end }}
