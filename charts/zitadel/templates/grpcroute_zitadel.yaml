@@ -1,0 +1,34 @@
+{{- if .Values.gateway.zitadel.grpcRoute.enabled -}}
+{{- $fullName := include "zitadel.fullname" . -}}
+{{- $svcPort := .Values.service.port -}}
+apiVersion: gateway.networking.k8s.io/v1
+kind: GRPCRoute
+metadata:
+  name: {{ $fullName }}-grpc
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "zitadel.labels" . | nindent 4 }}
+  {{- with .Values.gateway.zitadel.grpcRoute.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  {{- with .Values.gateway.zitadel.grpcRoute.parentRefs }}
+  parentRefs:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  hostnames:
+    {{- if .Values.gateway.zitadel.grpcRoute.hostnames }}
+    {{- toYaml .Values.gateway.zitadel.grpcRoute.hostnames | nindent 4 }}
+    {{- else }}
+    - {{ .Values.zitadel.configmapConfig.ExternalDomain | quote }}
+    {{- end }}
+  rules:
+    {{- if .Values.gateway.zitadel.grpcRoute.rules }}
+    {{- toYaml .Values.gateway.zitadel.grpcRoute.rules | nindent 4 }}
+    {{- else }}
+    - backendRefs:
+        - name: {{ $fullName }}
+          port: {{ $svcPort }}
+    {{- end }}
+{{- end }}

@@ -72,6 +72,9 @@ func TestSchemaFullyTyped(t *testing.T) {
 		"/metrics/serviceMonitor/tlsConfig":          true,
 		"/metrics/serviceMonitor/relabellings":       true,
 		"/metrics/serviceMonitor/metricRelabellings": true,
+		"/gateway/zitadel/httpRoute/rules":           true,
+		"/gateway/zitadel/grpcRoute/rules":           true,
+		"/gateway/login/httpRoute/rules":             true,
 	}
 
 	properties := schema["properties"].(map[string]any)

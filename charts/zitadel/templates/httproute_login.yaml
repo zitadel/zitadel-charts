@@ -1,0 +1,38 @@
+{{- if .Values.gateway.login.httpRoute.enabled -}}
+{{- $fullName := include "zitadel.login.fullname" . -}}
+{{- $svcPort := .Values.login.service.port -}}
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: {{ $fullName }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "login.labels" . | nindent 4 }}
+  {{- with .Values.gateway.login.httpRoute.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  {{- with .Values.gateway.login.httpRoute.parentRefs }}
+  parentRefs:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  hostnames:
+    {{- if .Values.gateway.login.httpRoute.hostnames }}
+    {{- toYaml .Values.gateway.login.httpRoute.hostnames | nindent 4 }}
+    {{- else }}
+    - {{ .Values.zitadel.configmapConfig.ExternalDomain | quote }}
+    {{- end }}
+  rules:
+    {{- if .Values.gateway.login.httpRoute.rules }}
+    {{- toYaml .Values.gateway.login.httpRoute.rules | nindent 4 }}
+    {{- else }}
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /ui/v2/login
+      backendRefs:
+        - name: {{ $fullName }}
+          port: {{ $svcPort }}
+    {{- end }}
+{{- end }}

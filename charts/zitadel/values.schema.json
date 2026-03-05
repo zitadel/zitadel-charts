@@ -200,6 +200,166 @@
                 }
             }
         },
+        "gateway": {
+            "description": "Gateway API configuration for exposing ZITADEL using Kubernetes Gateway API resources (HTTPRoute, GRPCRoute). This is an alternative to the traditional Ingress resources. Use either Ingress or Gateway API, not both. Requires a Gateway API implementation and CRDs installed in the cluster. Ref: https://gateway-api.sigs.k8s.io/",
+            "type": "object",
+            "properties": {
+                "zitadel": {
+                    "type": "object",
+                    "properties": {
+                        "httpRoute": {
+                            "type": "object",
+                            "properties": {
+                                "enabled": {
+                                    "description": "If true, creates an HTTPRoute resource for the ZITADEL service.",
+                                    "type": "boolean"
+                                },
+                                "annotations": {
+                                    "description": "(map[string]string) Annotations to apply to the HTTPRoute resource.",
+                                    "type": "object"
+                                },
+                                "parentRefs": {
+                                    "description": "References to Gateway resources that this route should be attached to. Each entry must include at least a `name` field matching an existing Gateway.",
+                                    "type": "array",
+                                    "items": {
+                                        "type": "object",
+                                        "properties": {
+                                            "name": {
+                                                "type": "string"
+                                            },
+                                            "namespace": {
+                                                "type": "string"
+                                            },
+                                            "sectionName": {
+                                                "type": "string"
+                                            },
+                                            "port": {
+                                                "type": "integer"
+                                            }
+                                        }
+                                    }
+                                },
+                                "hostnames": {
+                                    "description": "([]string) Hostnames for the HTTPRoute. If empty, defaults to zitadel.configmapConfig.ExternalDomain.",
+                                    "type": "array",
+                                    "items": {
+                                        "type": "string"
+                                    }
+                                },
+                                "rules": {
+                                    "description": "([]object) Custom routing rules. If empty, a default catch-all rule routing all traffic to the ZITADEL service is created.",
+                                    "type": "array",
+                                    "items": {
+                                        "type": "object"
+                                    }
+                                }
+                            }
+                        },
+                        "grpcRoute": {
+                            "type": "object",
+                            "properties": {
+                                "enabled": {
+                                    "description": "If true, creates a GRPCRoute resource for the ZITADEL gRPC API.",
+                                    "type": "boolean"
+                                },
+                                "annotations": {
+                                    "description": "(map[string]string) Annotations to apply to the GRPCRoute resource.",
+                                    "type": "object"
+                                },
+                                "parentRefs": {
+                                    "description": "References to Gateway resources that this route should be attached to.",
+                                    "type": "array",
+                                    "items": {
+                                        "type": "object",
+                                        "properties": {
+                                            "name": {
+                                                "type": "string"
+                                            },
+                                            "namespace": {
+                                                "type": "string"
+                                            },
+                                            "sectionName": {
+                                                "type": "string"
+                                            },
+                                            "port": {
+                                                "type": "integer"
+                                            }
+                                        }
+                                    }
+                                },
+                                "hostnames": {
+                                    "description": "([]string) Hostnames for the GRPCRoute. If empty, defaults to zitadel.configmapConfig.ExternalDomain.",
+                                    "type": "array",
+                                    "items": {
+                                        "type": "string"
+                                    }
+                                },
+                                "rules": {
+                                    "description": "([]object) Custom gRPC routing rules. If empty, a default rule routing all gRPC traffic to the ZITADEL service is created.",
+                                    "type": "array",
+                                    "items": {
+                                        "type": "object"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "login": {
+                    "type": "object",
+                    "properties": {
+                        "httpRoute": {
+                            "type": "object",
+                            "properties": {
+                                "enabled": {
+                                    "description": "If true, creates an HTTPRoute resource for the Login UI service.",
+                                    "type": "boolean"
+                                },
+                                "annotations": {
+                                    "description": "(map[string]string) Annotations to apply to the HTTPRoute resource.",
+                                    "type": "object"
+                                },
+                                "parentRefs": {
+                                    "description": "References to Gateway resources that this route should be attached to.",
+                                    "type": "array",
+                                    "items": {
+                                        "type": "object",
+                                        "properties": {
+                                            "name": {
+                                                "type": "string"
+                                            },
+                                            "namespace": {
+                                                "type": "string"
+                                            },
+                                            "sectionName": {
+                                                "type": "string"
+                                            },
+                                            "port": {
+                                                "type": "integer"
+                                            }
+                                        }
+                                    }
+                                },
+                                "hostnames": {
+                                    "description": "([]string) Hostnames for the HTTPRoute. If empty, defaults to zitadel.configmapConfig.ExternalDomain.",
+                                    "type": "array",
+                                    "items": {
+                                        "type": "string"
+                                    }
+                                },
+                                "rules": {
+                                    "description": "([]object) Custom routing rules. If empty, a default rule routing /ui/v2/login traffic to the Login UI service is created.",
+                                    "type": "array",
+                                    "items": {
+                                        "type": "object"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "initJob": {
             "type": "object",
             "properties": {
