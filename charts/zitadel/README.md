@@ -2,7 +2,7 @@
 
 # Zitadel
 
-![Version: 9.23.0](https://img.shields.io/badge/Version-9.23.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: v4.10.1](https://img.shields.io/badge/AppVersion-v4.10.1-informational?style=flat-square)
+![Version: 9.25.0](https://img.shields.io/badge/Version-9.25.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: v4.10.1](https://img.shields.io/badge/AppVersion-v4.10.1-informational?style=flat-square)
 
 ## A Better Identity and Access Management Solution
 
@@ -62,6 +62,18 @@ If you use an ingress controller, you can enable the login ingress with `login.i
 To actually use the new login, enable the loginV2 feature on the instance.
 Leave the base URI empty to use the default or explicitly configure it to `/ui/v2/login`.
 If you enable this feature, the login will be used for every application configured in your Zitadel instance.
+
+### NGINX Ingress: Set `ingress.controller: nginx`
+
+Prior to v9.25.0, the `nginx.ingress.kubernetes.io/backend-protocol: GRPC` annotation was included in the default `ingress.annotations` map, so it was applied regardless of the ingress controller in use.
+Starting with v9.25.0, the annotation is only injected when `ingress.controller` is explicitly set to `nginx`.
+
+If you are using the NGINX ingress controller, add the following to your values before upgrading:
+
+```yaml
+ingress:
+  controller: nginx
+```
 
 ### Other Breaking Changes
 
@@ -175,9 +187,9 @@ Kubernetes: `>= 1.30.0-0`
 | image.tag | string | `""` | Image tag. Defaults to the chart's appVersion if not specified. Use a specific version tag (e.g., "v2.45.0") for production deployments to ensure reproducibility and controlled upgrades. |
 | imagePullSecrets | []LocalObjectReference | `[]` | References to secrets containing Docker registry credentials for pulling private ZITADEL images. Each entry should be the name of an existing secret of type kubernetes.io/dockerconfigjson. Example:   imagePullSecrets:     - name: my-registry-secret |
 | imageRegistry | string | `""` | Global container registry override for tool images (e.g., wait4x, kubectl). When set, this registry is prepended to tool image repositories for compatibility with CRI-O v1.34+ which enforces fully qualified image names. If left empty, defaults to "docker.io". |
-| ingress.annotations | map[string]string | `{"nginx.ingress.kubernetes.io/backend-protocol":"GRPC"}` | Annotations to apply to the Ingress resource. The default annotation is for NGINX to correctly handle gRPC traffic. |
+| ingress.annotations | map[string]string | `{}` | Annotations to apply to the Ingress resource. |
 | ingress.className | string | `""` | The name of the IngressClass resource to use for this Ingress. Ref: https://kubernetes.io/docs/concepts/services-networking/ingress/#ingress-class |
-| ingress.controller | string | `"generic"` | A chart-specific setting to enable logic for different controllers. Use "aws" to generate AWS ALB-specific annotations and resources. |
+| ingress.controller | string | `"generic"` | A chart-specific setting to enable logic for different controllers. Use "aws" to generate AWS ALB-specific annotations and resources. Use "nginx" to inject the nginx.ingress.kubernetes.io/backend-protocol annotation. |
 | ingress.enabled | bool | `false` | If true, creates an Ingress resource for the ZITADEL service. |
 | ingress.hosts | list | `[{"paths":[{"path":"/","pathType":"Prefix"}]}]` | A list of host rules for the Ingress. Each host can have multiple paths. |
 | ingress.tls | []IngressTLS | `[]` | TLS configuration for the Ingress. This allows you to secure the endpoint with HTTPS by referencing a secret that contains the TLS certificate and key. |
