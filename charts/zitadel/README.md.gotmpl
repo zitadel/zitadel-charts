@@ -63,6 +63,18 @@ To actually use the new login, enable the loginV2 feature on the instance.
 Leave the base URI empty to use the default or explicitly configure it to `/ui/v2/login`.
 If you enable this feature, the login will be used for every application configured in your Zitadel instance.
 
+### NGINX Ingress: Set `ingress.controller: nginx` (v9.24.0 → v9.25.0)
+
+Prior to v9.25.0, the `nginx.ingress.kubernetes.io/backend-protocol: GRPC` annotation was included in the default `ingress.annotations` map, so it was applied regardless of the ingress controller in use.
+Starting with v9.25.0, the annotation is only injected when `ingress.controller` is explicitly set to `nginx`.
+
+If you are using the NGINX ingress controller, add the following to your values before upgrading:
+
+```yaml
+ingress:
+  controller: nginx
+```
+
 ### Other Breaking Changes
 
 - Default Traefik and NGINX annotations for internal unencrypted HTTP/2 traffic to the Zitadel pods are added.
