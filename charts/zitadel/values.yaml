@@ -813,6 +813,7 @@ ingress:
   enabled: false
   # -- A chart-specific setting to enable logic for different controllers.
   # Use "aws" to generate AWS ALB-specific annotations and resources.
+  # Use "nginx" to inject the nginx.ingress.kubernetes.io/backend-protocol annotation.
   controller: generic
   # -- The name of the IngressClass resource to use for this Ingress.
   # Ref: https://kubernetes.io/docs/concepts/services-networking/ingress/#ingress-class

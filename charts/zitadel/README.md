@@ -177,7 +177,7 @@ Kubernetes: `>= 1.30.0-0`
 | imageRegistry | string | `""` | Global container registry override for tool images (e.g., wait4x, kubectl). When set, this registry is prepended to tool image repositories for compatibility with CRI-O v1.34+ which enforces fully qualified image names. If left empty, defaults to "docker.io". |
 | ingress.annotations | map[string]string | `{}` | Annotations to apply to the Ingress resource. |
 | ingress.className | string | `""` | The name of the IngressClass resource to use for this Ingress. Ref: https://kubernetes.io/docs/concepts/services-networking/ingress/#ingress-class |
-| ingress.controller | string | `"generic"` | A chart-specific setting to enable logic for different controllers. Use "aws" to generate AWS ALB-specific annotations and resources. |
+| ingress.controller | string | `"generic"` | A chart-specific setting to enable logic for different controllers. Use "aws" to generate AWS ALB-specific annotations and resources. Use "nginx" to inject the nginx.ingress.kubernetes.io/backend-protocol annotation. |
 | ingress.enabled | bool | `false` | If true, creates an Ingress resource for the ZITADEL service. |
 | ingress.hosts | list | `[{"paths":[{"path":"/","pathType":"Prefix"}]}]` | A list of host rules for the Ingress. Each host can have multiple paths. |
 | ingress.tls | []IngressTLS | `[]` | TLS configuration for the Ingress. This allows you to secure the endpoint with HTTPS by referencing a secret that contains the TLS certificate and key. |

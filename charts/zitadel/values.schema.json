@@ -156,7 +156,7 @@
                     "type": "string"
                 },
                 "controller": {
-                    "description": "A chart-specific setting to enable logic for different controllers. Use \"aws\" to generate AWS ALB-specific annotations and resources.",
+                    "description": "A chart-specific setting to enable logic for different controllers. Use \"aws\" to generate AWS ALB-specific annotations and resources. Use \"nginx\" to inject the nginx.ingress.kubernetes.io/backend-protocol annotation.",
                     "type": "string"
                 },
                 "enabled": {
