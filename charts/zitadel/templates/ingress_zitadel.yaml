@@ -8,6 +8,8 @@ metadata:
   namespace: {{ .Release.Namespace }}
   labels:
     {{- include "zitadel.labels" . | nindent 4 }}
+  {{- $hasAnnotations := or (eq .Values.ingress.controller "aws") (eq .Values.ingress.controller "nginx") (gt (len .Values.ingress.annotations) 0) }}
+  {{- if $hasAnnotations }}
   annotations:
     {{- if eq .Values.ingress.controller "aws" }}
     alb.ingress.kubernetes.io/group.order: '-1' # to not conflict with zitadel-login
@@ -20,6 +22,7 @@ metadata:
     {{- with .Values.ingress.annotations }}
     {{- toYaml . | nindent 4 }}
     {{- end }}
+  {{- end }}
 spec:
   ingressClassName: {{ .Values.ingress.className }}
   {{- with .Values.ingress.tls }}
