@@ -23,6 +23,7 @@ on any Kubernetes cluster. No separate installs. One `helm install`.
 ## Steps
 
 ```bash
+mkdir zitadel-helm && cd zitadel-helm &&
 curl -fsSLO https://raw.githubusercontent.com/zitadel/zitadel-charts/main/examples/0-quickstart/quickstart-values.yaml
 ```
 
