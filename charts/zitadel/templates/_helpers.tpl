@@ -522,3 +522,31 @@ is identical to the previous direct toYaml rendering.
 {{- .Values.zitadel.configmapConfig | toYaml -}}
 {{- end -}}
 {{- end -}}
+
+{{/*
+Return the effective ingress className for the ZITADEL API ingress.
+When the bundled Traefik subchart is enabled and no explicit className is set,
+defaults to "traefik". User-supplied ingress.className always takes priority.
+*/}}
+{{- define "zitadel.ingressClassName" -}}
+{{- if .Values.ingress.className -}}
+{{- .Values.ingress.className -}}
+{{- else if .Values.traefik.enabled -}}
+traefik
+{{- end -}}
+{{- end -}}
+
+{{/*
+Return the effective ingress className for the ZITADEL Login ingress.
+When the bundled Traefik subchart is enabled and no explicit className is set,
+defaults to "traefik". User-supplied login.ingress.className always takes priority.
+*/}}
+{{- define "zitadel.login.ingressClassName" -}}
+{{- if .Values.login.ingress.className -}}
+{{- .Values.login.ingress.className -}}
+{{- else if .Values.traefik.enabled -}}
+traefik
+{{- else -}}
+{{- .Values.login.ingress.className -}}
+{{- end -}}
+{{- end -}}

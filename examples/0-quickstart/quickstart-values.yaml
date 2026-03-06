@@ -1,6 +1,6 @@
-# Quickstart values — full stack with bundled PostgreSQL.
-# Uses postgresql.enabled=true to deploy an in-cluster Postgres and automatically
-# wire the database connection. All passwords are intentional dev placeholders.
+# Quickstart values — full stack with bundled PostgreSQL + Traefik.
+# Uses postgresql.enabled=true and traefik.enabled=true to deploy a fully
+# self-contained stack. All passwords are intentional dev placeholders.
 # DO NOT use these values for any non-local deployment.
 
 # Deploy PostgreSQL as a subchart. The chart auto-populates the ZITADEL
@@ -16,14 +16,29 @@ postgresql:
     persistence:
       enabled: false
 
+# Deploy Traefik as a subchart. The chart automatically sets ingress.className
+# to "traefik" for both the API and Login ingresses.
+# isDefaultClass: false ensures the bundled Traefik only handles ZITADEL's
+# Ingresses and does not conflict with any existing ingress controller.
+traefik:
+  enabled: true
+  ingressClass:
+    isDefaultClass: false
+  # Restrict to release namespace on shared clusters (replace "default"):
+  # providers:
+  #   kubernetesIngress:
+  #     namespaces: ["default"]
+  #   kubernetesCRD:
+  #     namespaces: ["default"]
+
 zitadel:
   # Dev-only masterkey — generate a real one before any non-local deployment:
   # tr -dc A-Za-z0-9 </dev/urandom | head -c 32
   masterkey: "MasterkeyNeedsToHave32Characters"
 
   configmapConfig:
-    ExternalDomain: localhost
-    ExternalPort: 8080
+    ExternalDomain: localhost   # replace with your domain or IP
+    ExternalPort: 80            # Traefik LoadBalancer port
     ExternalSecure: false
     TLS:
       Enabled: false
@@ -35,11 +50,12 @@ zitadel:
           Password: "Password1!"
           PasswordChangeRequired: false
 
+# ingress.className is automatically set to "traefik" when traefik.enabled=true.
+# Override it here if you want to use a different ingress controller.
 ingress:
   enabled: true
-  className: traefik   # replace with your ingress controller (nginx, alb, …)
   hosts:
-    - host: localhost  # replace with your domain or IP
+    - host: localhost
       paths:
         - path: /
           pathType: Prefix
@@ -47,9 +63,8 @@ ingress:
 login:
   ingress:
     enabled: true
-    className: traefik   # must match ingress.className above
     hosts:
-      - host: localhost  # must match ingress host above
+      - host: localhost
         paths:
           - path: /ui/v2/login
             pathType: Prefix

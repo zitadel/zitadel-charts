@@ -1,7 +1,7 @@
 # Quickstart — Full Stack in One Command
 
-Deploy ZITADEL with a bundled PostgreSQL database on any Kubernetes cluster.
-No separate database install. No manual secret wiring. One `helm install`.
+Deploy ZITADEL with a bundled PostgreSQL database and Traefik ingress controller
+on any Kubernetes cluster. No separate installs. One `helm install`.
 
 > [!WARNING]
 > This configuration is for **local development and evaluation only**.
@@ -10,15 +10,15 @@ No separate database install. No manual secret wiring. One `helm install`.
 
 ## Prerequisites
 
-- A Kubernetes cluster (1.30+) with an ingress controller
+- A Kubernetes cluster (1.30+)
 - [kubectl](https://kubernetes.io/docs/tasks/tools/)
 - [Helm](https://helm.sh/docs/intro/install/) 3.x or 4.x
 
-> **No cluster yet?** [k3d](https://k3d.io/) is a quick local option — it runs k3s in Docker
-> and includes Traefik as the ingress controller:
+> **No cluster yet?** [k3d](https://k3d.io/) is a quick local option — it runs k3s in Docker:
 > ```bash
 > k3d cluster create zitadel --port "8080:80@loadbalancer"
 > ```
+> With k3d, replace `ExternalPort: 80` with `ExternalPort: 8080` in the values file.
 
 ## Steps
 
@@ -27,6 +27,7 @@ No separate database install. No manual secret wiring. One `helm install`.
 ```bash
 helm repo add zitadel https://charts.zitadel.com
 helm repo add bitnami https://charts.bitnami.com/bitnami
+helm repo add traefik https://traefik.github.io/charts
 helm repo update
 
 helm install zitadel zitadel/zitadel \
@@ -34,30 +35,31 @@ helm install zitadel zitadel/zitadel \
   --wait
 ```
 
-That's it. Visit [http://localhost:8080/ui/console](http://localhost:8080/ui/console) and log in
+That's it. Visit [http://localhost/ui/console](http://localhost/ui/console) and log in
 with username `zitadel-admin@zitadel.localhost` and password `Password1!`.
-
-> Adjust `ExternalDomain`, `ExternalPort`, and `ingress.className` in `quickstart-values.yaml`
-> to match your cluster's domain/IP and ingress controller.
 
 ## What just deployed?
 
 ```
-<your ingress controller> → ZITADEL API (Go) + ZITADEL Login (Next.js) → PostgreSQL
+Traefik (bundled) → ZITADEL API (Go) + ZITADEL Login (Next.js) → PostgreSQL (bundled)
 ```
 
-All three components are managed by a single Helm release. You can inspect them:
+All components are managed by a single Helm release:
 
 ```bash
 kubectl get pods
 helm status zitadel
 ```
 
+The bundled Traefik uses `isDefaultClass: false`, so it only handles ZITADEL's own
+Ingresses and does not conflict with any existing ingress controller in the cluster.
+
 ## What's next?
 
 | Goal | How |
 |------|-----|
 | Bring your own database | Set `postgresql.enabled: false` and configure `zitadel.configmapConfig.Database` |
-| Bring your own ingress controller | Set `ingress.className` to your controller (e.g., `nginx`) |
+| Bring your own ingress controller | Set `traefik.enabled: false` and set `ingress.className` |
+| Restrict Traefik to this namespace | Set `traefik.providers.kubernetesIngress.namespaces: ["<ns>"]` |
 | Add Redis caching | Configure `zitadel.configmapConfig.Caches` |
 | Go to production | Follow the [Production Checklist](https://zitadel.com/docs/self-hosting/manage/productionchecklist) |
