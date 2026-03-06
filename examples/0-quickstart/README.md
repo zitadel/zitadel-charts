@@ -16,9 +16,9 @@ on any Kubernetes cluster. No separate installs. One `helm install`.
 
 > **No cluster yet?** [k3d](https://k3d.io/) is a quick local option — it runs k3s in Docker:
 > ```bash
-> k3d cluster create zitadel --port "8080:80@loadbalancer"
+> k3d cluster create zitadel --port "80:80@loadbalancer"
 > ```
-> The default values already use `ExternalPort: 8080` so it works with k3d out of the box.
+> The default values work with k3d out of the box.
 
 ## Steps
 
@@ -35,7 +35,7 @@ helm repo update &&
 helm upgrade --install zitadel zitadel/zitadel --values quickstart-values.yaml --wait
 ```
 
-That's it. Visit [http://localhost:8080/ui/console](http://localhost:8080/ui/console) and log in
+That's it. Visit [http://localhost/ui/console](http://localhost/ui/console) and log in
 with username `zitadel-admin@zitadel.localhost` and password `Password1!`.
 
 ## What just deployed?
