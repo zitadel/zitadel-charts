@@ -484,3 +484,41 @@ Uses fully qualified image names for CRI-O v1.34+ compatibility.
 {{- $tag := .Values.tools.wait4x.image.tag | default "3.6" -}}
 {{- printf "%s/%s:%s" $registry $repo $tag -}}
 {{- end -}}
+
+{{/*
+Auto-generate ZITADEL database configuration from the bundled PostgreSQL subchart.
+Only used when postgresql.enabled=true. User-supplied configmapConfig.Database values
+take priority over these auto-generated values via zitadel.mergedConfigmapConfig.
+*/}}
+{{- define "zitadel.postgresqlAutoConfig" -}}
+Database:
+  Postgres:
+    Host: {{ printf "%s-postgresql" .Release.Name }}
+    Port: 5432
+    Database: {{ .Values.postgresql.auth.database }}
+    User:
+      Username: {{ .Values.postgresql.auth.username }}
+      Password: {{ .Values.postgresql.auth.password }}
+      SSL:
+        Mode: disable
+    Admin:
+      Username: postgres
+      Password: {{ .Values.postgresql.auth.postgresPassword }}
+      SSL:
+        Mode: disable
+{{- end -}}
+
+{{/*
+Build the effective configmap config. When postgresql.enabled=true, the auto-derived
+database connection block is merged as a base and user-supplied configmapConfig values
+are applied on top (user values always win). When postgresql is disabled, the behavior
+is identical to the previous direct toYaml rendering.
+*/}}
+{{- define "zitadel.mergedConfigmapConfig" -}}
+{{- if .Values.postgresql.enabled -}}
+{{- $autoConfig := include "zitadel.postgresqlAutoConfig" . | fromYaml -}}
+{{- mergeOverwrite $autoConfig .Values.zitadel.configmapConfig | toYaml -}}
+{{- else -}}
+{{- .Values.zitadel.configmapConfig | toYaml -}}
+{{- end -}}
+{{- end -}}

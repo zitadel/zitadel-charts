@@ -1,0 +1,55 @@
+# Quickstart values — full stack with bundled PostgreSQL.
+# Uses postgresql.enabled=true to deploy an in-cluster Postgres and automatically
+# wire the database connection. All passwords are intentional dev placeholders.
+# DO NOT use these values for any non-local deployment.
+
+# Deploy PostgreSQL as a subchart. The chart auto-populates the ZITADEL
+# database host, port, credentials, and SSL mode from the values below.
+postgresql:
+  enabled: true
+  auth:
+    database: zitadel
+    username: zitadel
+    password: zitadel
+    postgresPassword: zitadel
+  primary:
+    persistence:
+      enabled: false
+
+zitadel:
+  # Dev-only masterkey — generate a real one before any non-local deployment:
+  # tr -dc A-Za-z0-9 </dev/urandom | head -c 32
+  masterkey: "MasterkeyNeedsToHave32Characters"
+
+  configmapConfig:
+    ExternalDomain: localhost
+    ExternalPort: 8080
+    ExternalSecure: false
+    TLS:
+      Enabled: false
+    FirstInstance:
+      Org:
+        Human:
+          UserName: zitadel-admin
+          Email: zitadel-admin@zitadel.localhost
+          Password: "Password1!"
+          PasswordChangeRequired: false
+
+ingress:
+  enabled: true
+  className: traefik
+  hosts:
+    - host: localhost
+      paths:
+        - path: /
+          pathType: Prefix
+
+login:
+  ingress:
+    enabled: true
+    className: traefik
+    hosts:
+      - host: localhost
+        paths:
+          - path: /ui/v2/login
+            pathType: Prefix

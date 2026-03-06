@@ -22,3 +22,8 @@ maintainers:
   - name: zitadel
     email: support@zitadel.com
     url: https://zitadel.com
+dependencies:
+  - name: postgresql
+    version: "15.x.x"
+    repository: "https://charts.bitnami.com/bitnami"
+    condition: postgresql.enabled
