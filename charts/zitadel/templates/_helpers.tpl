@@ -513,11 +513,21 @@ Build the effective configmap config. When postgresql.enabled=true, the auto-der
 database connection block is merged as a base and user-supplied configmapConfig values
 are applied on top (user values always win). When postgresql is disabled, the behavior
 is identical to the previous direct toYaml rendering.
+
+The default values.yaml ships with Database.Postgres.Host: "" as documentation. To
+prevent that empty default from overriding the auto-derived host, we strip the
+Database key from the user config when the host is empty (i.e. not explicitly set).
+An explicitly-set non-empty host is always respected and takes full precedence.
 */}}
 {{- define "zitadel.mergedConfigmapConfig" -}}
 {{- if .Values.postgresql.enabled -}}
 {{- $autoConfig := include "zitadel.postgresqlAutoConfig" . | fromYaml -}}
-{{- mergeOverwrite $autoConfig .Values.zitadel.configmapConfig | toYaml -}}
+{{- $userConfig := deepCopy .Values.zitadel.configmapConfig -}}
+{{- $userHost := dig "Database" "Postgres" "Host" "" $userConfig -}}
+{{- if not $userHost -}}
+{{- $_ := unset $userConfig "Database" -}}
+{{- end -}}
+{{- mergeOverwrite $autoConfig $userConfig | toYaml -}}
 {{- else -}}
 {{- .Values.zitadel.configmapConfig | toYaml -}}
 {{- end -}}
