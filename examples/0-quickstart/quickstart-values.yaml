@@ -37,9 +37,9 @@ zitadel:
 
 ingress:
   enabled: true
-  className: traefik
+  className: traefik   # replace with your ingress controller (nginx, alb, …)
   hosts:
-    - host: localhost
+    - host: localhost  # replace with your domain or IP
       paths:
         - path: /
           pathType: Prefix
@@ -47,9 +47,9 @@ ingress:
 login:
   ingress:
     enabled: true
-    className: traefik
+    className: traefik   # must match ingress.className above
     hosts:
-      - host: localhost
+      - host: localhost  # must match ingress host above
         paths:
           - path: /ui/v2/login
             pathType: Prefix
