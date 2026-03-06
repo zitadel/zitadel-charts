@@ -57,7 +57,7 @@ zitadel:
           Password: "Password1!"
           PasswordChangeRequired: false
 
-# ingress.className is automatically set to "traefik" when traefik.enabled=true.
+# ingress.className is automatically set to "<release>-traefik" when traefik.enabled=true.
 # Override it here if you want to use a different ingress controller.
 ingress:
   enabled: true
