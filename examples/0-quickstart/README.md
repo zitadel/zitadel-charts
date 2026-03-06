@@ -22,17 +22,16 @@ on any Kubernetes cluster. No separate installs. One `helm install`.
 
 ## Steps
 
-### Install the full stack
+```bash
+curl -fsSLO https://raw.githubusercontent.com/zitadel/zitadel-charts/main/examples/0-quickstart/quickstart-values.yaml
+```
 
 ```bash
-helm repo add zitadel https://charts.zitadel.com
-helm repo add bitnami https://charts.bitnami.com/bitnami
-helm repo add traefik https://traefik.github.io/charts
-helm repo update
-
-helm install zitadel zitadel/zitadel \
-  --values https://raw.githubusercontent.com/zitadel/zitadel-charts/main/examples/0-quickstart/quickstart-values.yaml \
-  --wait
+helm repo add zitadel https://charts.zitadel.com &&
+helm repo add bitnami https://charts.bitnami.com/bitnami &&
+helm repo add traefik https://traefik.github.io/charts &&
+helm repo update &&
+helm install zitadel zitadel/zitadel --values quickstart-values.yaml --wait
 ```
 
 That's it. Visit [http://localhost/ui/console](http://localhost/ui/console) and log in
