@@ -45,7 +45,7 @@ zitadel:
 
   configmapConfig:
     ExternalDomain: localhost   # replace with your domain or IP
-    ExternalPort: 80            # Traefik LoadBalancer port
+    ExternalPort: 8080          # Traefik LoadBalancer port
     ExternalSecure: false
     TLS:
       Enabled: false
