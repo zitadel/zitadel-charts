@@ -31,6 +31,9 @@ traefik:
   enabled: true
   ingressClass:
     isDefaultClass: false
+  ports:
+    web:
+      exposedPort: 8080   # expose on 8080 to match Docker Compose default
   # Restrict to release namespace on shared clusters (replace "default"):
   # providers:
   #   kubernetesIngress:
@@ -45,7 +48,7 @@ zitadel:
 
   configmapConfig:
     ExternalDomain: localhost   # replace with your domain or IP
-    ExternalPort: 80            # Traefik LoadBalancer port
+    ExternalPort: 8080          # matches Traefik's exposedPort above
     ExternalSecure: false
     TLS:
       Enabled: false
