@@ -49,8 +49,19 @@ spec:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
       enableServiceLinks: false
       restartPolicy: Never
-      {{- if or .Values.zitadel.initContainers .Values.setupJob.initContainers }}
+      {{- if or .Values.postgresql.enabled .Values.zitadel.initContainers .Values.setupJob.initContainers }}
       initContainers:
+      {{- if .Values.postgresql.enabled }}
+        - name: wait-for-postgresql
+          image: busybox:1.37
+          command:
+            - sh
+            - -c
+            - |
+              until nc -z {{ printf "%s-postgresql" .Release.Name }} 5432; do
+                echo "waiting for postgresql..."; sleep 2
+              done
+      {{- end }}
       {{- with .Values.zitadel.initContainers }}
         {{- toYaml . | nindent 8 }}
       {{- end }}
