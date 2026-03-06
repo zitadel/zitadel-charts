@@ -536,27 +536,26 @@ An explicitly-set non-empty host is always respected and takes full precedence.
 {{/*
 Return the effective ingress className for the ZITADEL API ingress.
 When the bundled Traefik subchart is enabled and no explicit className is set,
-defaults to "traefik". User-supplied ingress.className always takes priority.
+defaults to "<release>-traefik" (the IngressClass name the Traefik chart creates).
+User-supplied ingress.className always takes priority.
 */}}
 {{- define "zitadel.ingressClassName" -}}
 {{- if .Values.ingress.className -}}
 {{- .Values.ingress.className -}}
 {{- else if .Values.traefik.enabled -}}
-traefik
+{{- printf "%s-traefik" .Release.Name -}}
 {{- end -}}
 {{- end -}}
 
 {{/*
 Return the effective ingress className for the ZITADEL Login ingress.
 When the bundled Traefik subchart is enabled and no explicit className is set,
-defaults to "traefik". User-supplied login.ingress.className always takes priority.
+defaults to "<release>-traefik". User-supplied login.ingress.className always takes priority.
 */}}
 {{- define "zitadel.login.ingressClassName" -}}
 {{- if .Values.login.ingress.className -}}
 {{- .Values.login.ingress.className -}}
 {{- else if .Values.traefik.enabled -}}
-traefik
-{{- else -}}
-{{- .Values.login.ingress.className -}}
+{{- printf "%s-traefik" .Release.Name -}}
 {{- end -}}
 {{- end -}}
