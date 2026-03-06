@@ -7,6 +7,13 @@
 # database host, port, credentials, and SSL mode from the values below.
 postgresql:
   enabled: true
+  # Make postgresql resources pre-install hooks so they are created BEFORE the
+  # init/setup jobs (which run at hook weights 1 and 2). This solves the ordering
+  # problem: without this, subcharts deploy as regular resources (after all hooks),
+  # so the init job would fire before postgresql exists.
+  commonAnnotations:
+    helm.sh/hook: pre-install,pre-upgrade
+    helm.sh/hook-weight: "-1"
   auth:
     database: zitadel
     username: zitadel

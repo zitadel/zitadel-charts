@@ -24,7 +24,7 @@ maintainers:
     url: https://zitadel.com
 dependencies:
   - name: postgresql
-    version: "15.x.x"
+    version: ">=16.0.0"
     repository: "https://charts.bitnami.com/bitnami"
     condition: postgresql.enabled
   - name: traefik
