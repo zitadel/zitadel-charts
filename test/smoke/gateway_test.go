@@ -59,7 +59,7 @@ func TestGatewayGRPCRouteLabels(t *testing.T) {
 			"image.tag":                              support.DigestTag,
 			"gateway.grpcRoute.enabled":              "true",
 			"gateway.grpcRoute.parentRefs[0].name":   "my-gateway",
-			"gateway.grpcRoute.hosts[0].host":        "zitadel.example.local",
+			"gateway.grpcRoute.hosts[0]":             "zitadel.example.local",
 			"zitadel.configmapConfig.ExternalDomain": "zitadel.example.local",
 			"zitadel.masterkey":                      "01234567890123456789012345678901",
 		},
@@ -166,10 +166,10 @@ func TestGatewayHTTPRouteCustomHosts(t *testing.T) {
 			"gateway.httpRoute.parentRefs[0].name":   "my-gw",
 			"gateway.httpRoute.hosts[0].host":        "custom.example.com",
 			"gateway.httpRoute.hosts[0].paths[0].path":     "/",
-			"gateway.httpRoute.hosts[0].paths[0].pathType": "Prefix",
+			"gateway.httpRoute.hosts[0].paths[0].pathType": "PathPrefix",
 			"gateway.httpRoute.hosts[1].host":              "other.example.com",
 			"gateway.httpRoute.hosts[1].paths[0].path":     "/",
-			"gateway.httpRoute.hosts[1].paths[0].pathType": "Prefix",
+			"gateway.httpRoute.hosts[1].paths[0].pathType": "PathPrefix",
 			"zitadel.configmapConfig.ExternalDomain":       "default.example.com",
 			"zitadel.masterkey":                            "01234567890123456789012345678901",
 		},
@@ -255,7 +255,7 @@ func TestGatewayHTTPRouteDefaultPaths(t *testing.T) {
 		rendered := helm.RenderTemplate(t, options, chartPath, "gateway-default-paths",
 			[]string{"templates/httproute_zitadel.yaml"})
 		require.Contains(t, rendered, "value: /")
-		require.Contains(t, rendered, "type: Prefix")
+		require.Contains(t, rendered, "type: PathPrefix")
 	})
 
 	t.Run("login default path is /ui/v2/login", func(t *testing.T) {
@@ -273,7 +273,7 @@ func TestGatewayHTTPRouteDefaultPaths(t *testing.T) {
 		rendered := helm.RenderTemplate(t, options, chartPath, "gateway-default-paths",
 			[]string{"templates/httproute_login.yaml"})
 		require.Contains(t, rendered, "value: /ui/v2/login")
-		require.Contains(t, rendered, "type: Prefix")
+		require.Contains(t, rendered, "type: PathPrefix")
 	})
 }
 

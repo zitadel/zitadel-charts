@@ -23,12 +23,14 @@ spec:
     {{- toYaml . | nindent 4 }}
   {{- end }}
   hostnames:
+    {{- if .Values.gateway.grpcRoute.hosts }}
     {{- range .Values.gateway.grpcRoute.hosts }}
-    - {{ .host | default $externalDomain | quote }}
+    - {{ . | quote }}
+    {{- end }}
+    {{- else }}
+    - {{ $externalDomain | quote }}
     {{- end }}
   rules:
-    {{- range .Values.gateway.grpcRoute.hosts }}
-    {{- range .paths }}
     - backendRefs:
         - name: {{ $fullName }}
           port: {{ $svcPort }}
@@ -36,6 +38,4 @@ spec:
       filters:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-    {{- end }}
-    {{- end }}
 {{- end }}

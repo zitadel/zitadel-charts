@@ -135,27 +135,8 @@
                             "type": "array"
                         },
                         "hosts": {
-                            "description": "A list of host rules for the GRPCRoute. Each host can have multiple paths.",
-                            "type": "array",
-                            "items": {
-                                "type": "object",
-                                "properties": {
-                                    "paths": {
-                                        "type": "array",
-                                        "items": {
-                                            "type": "object",
-                                            "properties": {
-                                                "path": {
-                                                    "type": "string"
-                                                },
-                                                "pathType": {
-                                                    "type": "string"
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
+                            "description": "Hostnames for the GRPCRoute. If empty, defaults to ExternalDomain.",
+                            "type": "array"
                         },
                         "labels": {
                             "description": "(map[string]string) Additional labels to apply to the GRPCRoute resource.",

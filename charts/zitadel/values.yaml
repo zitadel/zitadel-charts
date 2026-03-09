@@ -563,14 +563,14 @@ login:
       #             type: string
       #           pathType:
       #             type: string
-      #             enum: [Exact, Prefix, ImplementationSpecific]
+      #             enum: [Exact, PathPrefix, RegularExpression]
       #         required: [pathType]
       # @schema
       # -- A list of host rules for the HTTPRoute. The default path targets the login UI.
       hosts:
         - paths:
             - path: /ui/v2/login
-              pathType: Prefix
+              pathType: PathPrefix
       # @schema
       # type: array
       # items:
@@ -969,14 +969,14 @@ gateway:
     #             type: string
     #           pathType:
     #             type: string
-    #             enum: [Exact, Prefix, ImplementationSpecific]
+    #             enum: [Exact, PathPrefix, RegularExpression]
     #         required: [pathType]
     # @schema
     # -- A list of host rules for the HTTPRoute. Each host can have multiple paths.
     hosts:
       - paths:
           - path: /
-            pathType: Prefix
+            pathType: PathPrefix
     # @schema
     # type: array
     # items:
@@ -1029,25 +1029,10 @@ gateway:
     # @schema
     # type: array
     # items:
-    #   type: object
-    #   properties:
-    #     paths:
-    #       type: array
-    #       items:
-    #         type: object
-    #         properties:
-    #           path:
-    #             type: string
-    #           pathType:
-    #             type: string
-    #             enum: [Exact, Prefix, ImplementationSpecific]
-    #         required: [pathType]
+    #   type: string
     # @schema
-    # -- A list of host rules for the GRPCRoute. Each host can have multiple paths.
-    hosts:
-      - paths:
-          - path: /
-            pathType: Prefix
+    # -- Hostnames for the GRPCRoute. If empty, defaults to ExternalDomain.
+    hosts: []
     # @schema
     # type: array
     # items:

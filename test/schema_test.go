@@ -76,6 +76,7 @@ func TestSchemaFullyTyped(t *testing.T) {
 		"/gateway/httpRoute/filters":                 true,
 		"/gateway/httpRoute/timeouts":                true,
 		"/gateway/grpcRoute/parentRefs":              true,
+		"/gateway/grpcRoute/hosts":                   true,
 		"/gateway/grpcRoute/filters":                 true,
 		"/login/gateway/httpRoute/parentRefs":        true,
 		"/login/gateway/httpRoute/filters":           true,

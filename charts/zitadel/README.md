@@ -2,7 +2,7 @@
 
 # Zitadel
 
-![Version: 9.25.0](https://img.shields.io/badge/Version-9.25.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: v4.10.1](https://img.shields.io/badge/AppVersion-v4.10.1-informational?style=flat-square)
+![Version: 9.26.0](https://img.shields.io/badge/Version-9.26.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: v4.10.1](https://img.shields.io/badge/AppVersion-v4.10.1-informational?style=flat-square)
 
 ## A Better Identity and Access Management Solution
 
@@ -185,13 +185,13 @@ Kubernetes: `>= 1.30.0-0`
 | gateway.grpcRoute.annotations | map[string]string | `{}` | Annotations to apply to the GRPCRoute resource. |
 | gateway.grpcRoute.enabled | bool | `false` | If true, creates a GRPCRoute resource for the ZITADEL gRPC API. |
 | gateway.grpcRoute.filters | []GRPCRouteFilter | `[]` | Filters to apply to all rules. These define processing steps for gRPC requests, such as header modification or mirroring. Ref: https://gateway-api.sigs.k8s.io/reference/spec/#gateway.networking.k8s.io/v1.GRPCRouteFilter |
-| gateway.grpcRoute.hosts | list | `[{"paths":[{"path":"/","pathType":"Prefix"}]}]` | A list of host rules for the GRPCRoute. Each host can have multiple paths. |
+| gateway.grpcRoute.hosts | list | `[]` | Hostnames for the GRPCRoute. If empty, defaults to ExternalDomain. |
 | gateway.grpcRoute.labels | map[string]string | `{}` | Additional labels to apply to the GRPCRoute resource. |
 | gateway.grpcRoute.parentRefs | list | `[]` | References to Gateway resources that this route should be attached to. Example:   parentRefs:     - name: my-gateway |
 | gateway.httpRoute.annotations | map[string]string | `{}` | Annotations to apply to the HTTPRoute resource. |
 | gateway.httpRoute.enabled | bool | `false` | If true, creates an HTTPRoute resource for the ZITADEL service. |
 | gateway.httpRoute.filters | []HTTPRouteFilter | `[]` | Filters to apply to all rules. These define processing steps for requests, such as header modification or URL rewrites. Ref: https://gateway-api.sigs.k8s.io/reference/spec/#gateway.networking.k8s.io/v1.HTTPRouteFilter |
-| gateway.httpRoute.hosts | list | `[{"paths":[{"path":"/","pathType":"Prefix"}]}]` | A list of host rules for the HTTPRoute. Each host can have multiple paths. |
+| gateway.httpRoute.hosts | list | `[{"paths":[{"path":"/","pathType":"PathPrefix"}]}]` | A list of host rules for the HTTPRoute. Each host can have multiple paths. |
 | gateway.httpRoute.labels | map[string]string | `{}` | Additional labels to apply to the HTTPRoute resource. |
 | gateway.httpRoute.parentRefs | list | `[]` | References to Gateway resources that this route should be attached to. Each entry must include at least a `name` field matching an existing Gateway. Example:   parentRefs:     - name: my-gateway       sectionName: https |
 | gateway.httpRoute.timeouts | HTTPRouteTimeouts | `{}` | Timeouts for HTTP requests routed via this HTTPRoute. Ref: https://gateway-api.sigs.k8s.io/reference/spec/#gateway.networking.k8s.io/v1.HTTPRouteTimeouts |
@@ -241,7 +241,7 @@ Kubernetes: `>= 1.30.0-0`
 | login.gateway.httpRoute.annotations | map[string]string | `{}` | Annotations to apply to the HTTPRoute resource. |
 | login.gateway.httpRoute.enabled | bool | `false` | If true, creates an HTTPRoute resource for the Login UI service. |
 | login.gateway.httpRoute.filters | []HTTPRouteFilter | `[]` | Filters to apply to all rules. These define processing steps for requests, such as header modification or URL rewrites. Ref: https://gateway-api.sigs.k8s.io/reference/spec/#gateway.networking.k8s.io/v1.HTTPRouteFilter |
-| login.gateway.httpRoute.hosts | list | `[{"paths":[{"path":"/ui/v2/login","pathType":"Prefix"}]}]` | A list of host rules for the HTTPRoute. The default path targets the login UI. |
+| login.gateway.httpRoute.hosts | list | `[{"paths":[{"path":"/ui/v2/login","pathType":"PathPrefix"}]}]` | A list of host rules for the HTTPRoute. The default path targets the login UI. |
 | login.gateway.httpRoute.labels | map[string]string | `{}` | Additional labels to apply to the HTTPRoute resource. |
 | login.gateway.httpRoute.parentRefs | list | `[]` | References to Gateway resources that this route should be attached to. Example:   parentRefs:     - name: my-gateway |
 | login.gateway.httpRoute.timeouts | HTTPRouteTimeouts | `{}` | Timeouts for HTTP requests routed via this HTTPRoute. Ref: https://gateway-api.sigs.k8s.io/reference/spec/#gateway.networking.k8s.io/v1.HTTPRouteTimeouts |
