@@ -51,7 +51,8 @@ Common labels
 {{- define "zitadel.labels" -}}
 helm.sh/chart: {{ include "zitadel.chart" . }}
 {{ include "zitadel.commonSelectorLabels" . }}
-app.kubernetes.io/version: {{ (.Values.image.tag | default .Chart.AppVersion | split "@")._0 | quote }}
+{{- $tag := default .Chart.AppVersion .Values.image.tag }}
+app.kubernetes.io/version: {{ (splitList "@" $tag | first) | quote }}
 app.kubernetes.io/managed-by: {{ .Release.Service }}
 {{- end }}
 
@@ -61,8 +62,10 @@ Login Labels
 {{- define "login.labels" -}}
 helm.sh/chart: {{ include "zitadel.chart" . }}
 {{ include "login.commonSelectorLabels" . }}
-app.kubernetes.io/version: {{ (.Values.image.tag | default .Chart.AppVersion | split "@")._0 | quote }}
+{{- $tag := default .Chart.AppVersion .Values.image.tag }}
+app.kubernetes.io/version: {{ (splitList "@" $tag | first) | quote }}
 app.kubernetes.io/managed-by: {{ .Release.Service }}
+{{ include "componentSelectorLabel" "login" }}
 {{- end }}
 
 {{/*
@@ -82,6 +85,14 @@ Setup component labels
 {{- end }}
 
 {{/*
+Cleanup component labels
+*/}}
+{{- define "zitadel.cleanup.labels" -}}
+{{ include "zitadel.labels" . }}
+{{ include "componentSelectorLabel" "cleanup" }}
+{{- end }}
+
+{{/*
 Start component labels
 */}}
 {{- define "zitadel.start.labels" -}}
@@ -98,11 +109,10 @@ Debug component labels
 {{- end }}
 
 {{/*
-Login component labels
+Zitadel service labels
 */}}
-{{- define "zitadel.login.labels" -}}
-{{ include "login.labels" . }}
-{{ include "componentSelectorLabel" "login" }}
+{{- define "zitadel.service.labels" -}}
+{{ include "zitadel.labels" . }}
 {{- end }}
 
 {{/*
@@ -163,11 +173,17 @@ Debug component selector labels
 {{/*
 Login component selector labels
 */}}
-{{- define "zitadel.login.selectorLabels" -}}
+{{- define "login.selectorLabels" -}}
 {{ include "login.commonSelectorLabels" . }}
 {{ include "componentSelectorLabel" "login" }}
 {{- end }}
 
+{{/*
+Zitadel Service Selector labels
+*/}}
+{{- define "zitadel.service.selectorLabels" -}}
+{{ include "zitadel.commonSelectorLabels" . }}
+{{- end }}
 
 {{/*
 Create the name of the zitadel service account to use
@@ -192,29 +208,60 @@ Create the name of the login service account to use
 {{- end }}
 
 {{/*
-Returns true if the full path is defined and the value at the end of the path is not empty
+Return the pod security context for Zitadel workloads.
+Prefers zitadel.podSecurityContext; falls back to the chart-wide podSecurityContext.
 */}}
-{{- define "deepCheck" -}}
-  {{- if empty .root -}}
-    {{/* Break early */}}
-  {{- else if eq (len .path) 0 -}}
-    {{- not (empty .root) -}}
-  {{- else -}}
-    {{- $head := index .path 0 -}}
-    {{- $tail := slice .path 1 (len .path) -}}
-    {{- if hasKey .root $head -}}
-        {{- include "deepCheck" (dict "root" (index .root $head) "path" $tail) -}}
-    {{- end -}}
-  {{- end -}}
-{{- end -}}
+{{- define "zitadel.podSecurityContext" -}}
+{{- if .Values.zitadel.podSecurityContext }}
+{{- toYaml .Values.zitadel.podSecurityContext -}}
+{{- else }}
+{{- toYaml (default (dict) .Values.podSecurityContext) -}}
+{{- end }}
+{{- end }}
+
+{{/*
+Return the container security context for Zitadel workloads.
+Prefers zitadel.securityContext; falls back to the chart-wide securityContext.
+*/}}
+{{- define "zitadel.securityContext" -}}
+{{- if .Values.zitadel.securityContext }}
+{{- toYaml .Values.zitadel.securityContext -}}
+{{- else }}
+{{- toYaml (default (dict) .Values.securityContext) -}}
+{{- end }}
+{{- end }}
+
+{{/*
+Return the pod security context for Login workloads.
+Prefers login.podSecurityContext; falls back to the chart-wide podSecurityContext.
+*/}}
+{{- define "login.podSecurityContext" -}}
+{{- if .Values.login.podSecurityContext }}
+{{- toYaml .Values.login.podSecurityContext -}}
+{{- else }}
+{{- toYaml (default (dict) .Values.podSecurityContext) -}}
+{{- end }}
+{{- end }}
+
+{{/*
+Return the container security context for Login workloads.
+Prefers login.securityContext; falls back to the chart-wide securityContext.
+*/}}
+{{- define "login.securityContext" -}}
+{{- if .Values.login.securityContext }}
+{{- toYaml .Values.login.securityContext -}}
+{{- else }}
+{{- toYaml (default (dict) .Values.securityContext) -}}
+{{- end }}
+{{- end }}
 
 {{/*
 Returns the database config from the secretConfig or else from the configmapConfig
 */}}
 {{- define "zitadel.dbconfig.json" -}}
-    {{- if include "deepCheck" (dict "root" . "path" (splitList "." "Values.zitadel.secretConfig.Database")) -}}
+    {{- if (((.Values.zitadel).secretConfig).Database) -}}
     {{- .Values.zitadel.secretConfig.Database | toJson -}}
-    {{- else if include "deepCheck" (dict "root" . "path" (splitList "." "Values.zitadel.configmapConfig.Database")) -}}
+    {{- else if (((.Values.zitadel).configmapConfig).Database) -}}
     {{- .Values.zitadel.configmapConfig.Database | toJson -}}
     {{- else -}}
     {{- dict | toJson -}}
@@ -283,4 +330,157 @@ Database SSL CA certificate Secret name
 {{- else -}}
 {{ include "zitadel.fullname" . }}-db-ssl-ca-crt
 {{- end -}}
+{{- end -}}
+
+{{/*
+Returns the internal cluster endpoint URL for ZITADEL health checks.
+This is used by wait4x and other internal pod-to-pod communication.
+The URL scheme (http/https) is determined by the TLS configuration:
+- If zitadel.configmapConfig.TLS.Enabled is true, uses https://
+- Otherwise, uses http://
+The URL format is: <scheme>://<service-name>:<port>/debug/ready
+Example outputs:
+  - http://my-release-zitadel:8080/debug/ready
+  - https://my-release-zitadel:8080/debug/ready
+*/}}
+{{- define "zitadel.clusterEndpoint" -}}
+{{- if ((((.Values.zitadel).configmapConfig).TLS).Enabled) -}}
+https://{{ include "zitadel.fullname" . }}:{{ .Values.service.port }}/debug/ready
+{{- else -}}
+http://{{ include "zitadel.fullname" . }}:{{ .Values.service.port }}/debug/ready
+{{- end -}}
+{{- end -}}
+
+
+{{/*
+Returns the PostgreSQL TCP endpoint for wait4x health checks.
+Extracts the database host and port from ZITADEL configuration.
+Format: tcp://<host>:<port>
+Example: tcp://db-postgresql:5432
+*/}}
+{{- define "zitadel.postgresEndpoint" -}}
+{{- if .Values.zitadel -}}
+  {{- if .Values.zitadel.configmapConfig -}}
+    {{- if .Values.zitadel.configmapConfig.Database -}}
+      {{- with .Values.zitadel.configmapConfig.Database.Postgres -}}
+        {{- if .Host }}
+          {{- .Host }}:{{ .Port | default 5432 }}
+        {{- end -}}
+      {{- end -}}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
+This helper template takes the Kubernetes cluster's version string, which
+can be complex (e.g., "v1.28.5+k3s1"), and returns a sanitized, clean
+version string in the "MAJOR.MINOR.PATCH" format. This is crucial for
+creating valid container image tags that won't fail on Kubernetes
+distributions with non-standard versioning schemes.
+
+Its logic first uses the `semver` function to parse the full version
+string, intelligently separating the core version numbers from extra
+suffixes. The `printf` function then rebuilds the string using only the
+major, minor, and patch components, guaranteeing a clean and valid output.
+*/}}
+{{- define "zitadel.kubeVersion" -}}
+{{- $version := semver .Capabilities.KubeVersion.Version -}}
+{{- printf "%d.%d.%d" $version.Major $version.Minor $version.Patch -}}
+{{- end -}}
+
+{{/*
+Returns the path for the ZITADEL login liveness probe. This endpoint
+checks the basic health of the login user interface service, ensuring it is
+running and responsive without verifying deeper dependencies.
+*/}}
+{{- define "login.livenessProbePath" -}}
+/ui/v2/login/healthy
+{{- end -}}
+
+{{/*
+Returns the path for the ZITADEL login readiness probe. This endpoint
+performs a more thorough check to verify that the service is fully ready to
+accept user traffic and can connect to its required backend dependencies.
+*/}}
+{{- define "login.readinessProbePath" -}}
+/ui/v2/login/security
+{{- end -}}
+
+{{/*
+Returns the path for the ZITADEL login startup probe. It uses the same
+thorough check as the readiness probe to ensure the application is fully
+initialized before its other probes (liveness, readiness) take over.
+*/}}
+{{- define "login.startupProbePath" -}}
+/ui/v2/login/security
+{{- end -}}
+
+{{/*
+Returns the path for the ZITADEL liveness probe. This endpoint provides a
+basic health check, confirming that the main ZITADEL process is running and
+able to respond to requests.
+*/}}
+{{- define "zitadel.livenessProbePath" -}}
+/debug/healthz
+{{- end -}}
+
+{{/*
+Returns the path for the ZITADEL readiness probe. This is a more detailed
+check that verifies the service is not only running but has also
+successfully connected to its database and is ready to serve traffic.
+*/}}
+{{- define "zitadel.readinessProbePath" -}}
+/debug/ready
+{{- end -}}
+
+{{/*
+Returns the path for the ZITADEL startup probe. It uses the same readiness
+check to allow the container sufficient time to complete its lengthy
+initialization, especially connecting to the database, before other probes begin.
+*/}}
+{{- define "zitadel.startupProbePath" -}}
+/debug/ready
+{{- end -}}
+
+{{/*
+Return the image for the machinekeyWriter (Standardized kubectl image).
+Backward Compatibility Logic:
+1. IF the legacy "setupJob.machinekeyWriter.image.repository" is set, use it (Legacy Mode).
+2. ELSE use the new "tools.kubectl.image" with Global Registry support (New Mode).
+*/}}
+{{- define "kubectl.image" -}}
+{{- /* Safely check if the legacy value exists without crashing on nil pointers */ -}}
+{{- $legacyRepo := "" -}}
+{{- if .Values.setupJob -}}
+  {{- if .Values.setupJob.machinekeyWriter -}}
+    {{- if .Values.setupJob.machinekeyWriter.image -}}
+      {{- $legacyRepo = .Values.setupJob.machinekeyWriter.image.repository -}}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
+
+{{- if $legacyRepo -}}
+  {{- /* 1. Legacy Mode: Use specific config, ignore global registry */ -}}
+  {{- $tag := .Values.setupJob.machinekeyWriter.image.tag | default (include "zitadel.kubeVersion" .) -}}
+  {{- printf "%s:%s" $legacyRepo $tag -}}
+{{- else -}}
+  {{- /* 2. New Mode: Use tools.kubectl with Global Registry */ -}}
+  {{- /* Uses fully qualified image names for CRI-O v1.34+ compatibility */ -}}
+  {{- $registry := .Values.imageRegistry | default "docker.io" -}}
+  {{- $repo := .Values.tools.kubectl.image.repository | default "alpine/k8s" -}}
+  {{- $tag := .Values.tools.kubectl.image.tag | default (include "zitadel.kubeVersion" .) -}}
+  {{- printf "%s/%s:%s" $registry $repo $tag -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
+Return the image for the wait4x tool.
+Uses fully qualified image names for CRI-O v1.34+ compatibility.
+*/}}
+{{- define "wait4x.image" -}}
+{{- $registry := .Values.imageRegistry | default "docker.io" -}}
+{{- $repo := .Values.tools.wait4x.image.repository | default "wait4x/wait4x" -}}
+{{- $tag := .Values.tools.wait4x.image.tag | default "3.6" -}}
+{{- printf "%s/%s:%s" $registry $repo $tag -}}
 {{- end -}}

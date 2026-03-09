@@ -1,0 +1,362 @@
+{{- $hasMachineKeyPath := ((((((.Values.zitadel).configmapConfig).FirstInstance).MachineKeyPath))) -}}
+{{- if $hasMachineKeyPath -}}
+{{- fail "Specifying .Values.zitadel.configmapConfig.FirstInstance.MachineKeyPath is not supported" -}}
+{{- end -}}
+{{- $hasPatPath := ((((((.Values.zitadel).configmapConfig).FirstInstance).PatPath))) -}}
+{{- if $hasPatPath -}}
+{{- fail "Specifying .Values.zitadel.configmapConfig.FirstInstance.PatPath is not supported" -}}
+{{- end -}}
+{{- $hasLoginClientPatPath := ((((((.Values.zitadel).configmapConfig).FirstInstance).LoginClientPatPath))) -}}
+{{- if $hasLoginClientPatPath -}}
+{{- fail "Specifying .Values.zitadel.configmapConfig.FirstInstance.LoginClientPatPath is not supported" -}}
+{{- end -}}
+{{- $hasMachine := (((((.Values.zitadel).configmapConfig).FirstInstance).Org).Machine) -}}
+{{- $hasMachinePat := ((((((.Values.zitadel).configmapConfig).FirstInstance).Org).Machine).Pat) -}}
+{{- $hasLoginClient := (((((.Values.zitadel).configmapConfig).FirstInstance).Org).LoginClient) -}}
+{{- $skipFirstInstance := .Values.zitadel.configmapConfig.FirstInstance.Skip -}}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: "{{ include "zitadel.fullname" . }}-setup"
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "zitadel.setup.labels" . | nindent 4 }}
+  {{- with .Values.setupJob.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  backoffLimit: {{ .Values.setupJob.backoffLimit }}
+  activeDeadlineSeconds: {{ .Values.setupJob.activeDeadlineSeconds }}
+  template:
+    metadata:
+      labels:
+        {{- include "zitadel.setup.labels" . | nindent 8 }}
+        {{- with .Values.setupJob.podAdditionalLabels }}
+          {{- toYaml . | nindent 8 }}
+        {{- end }}
+      {{- with .Values.setupJob.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "zitadel.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      enableServiceLinks: false
+      restartPolicy: Never
+      {{- if or .Values.zitadel.initContainers .Values.setupJob.initContainers }}
+      initContainers:
+      {{- with .Values.zitadel.initContainers }}
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.setupJob.initContainers }}
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- end }}
+      containers:
+      {{- if .Values.zitadel.extraContainers }}
+        {{- toYaml .Values.zitadel.extraContainers | nindent 8 }}
+      {{- end }}
+      {{- if .Values.setupJob.extraContainers }}
+        {{- toYaml .Values.setupJob.extraContainers | nindent 8 }}
+      {{- end }}
+        - name: "{{ .Chart.Name }}-setup"
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 14 }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          args:
+            - setup
+            - --masterkeyFromEnv
+            - --config
+            - /config/zitadel-config-yaml
+            - --steps
+            - /config/zitadel-config-yaml
+            {{- if .Values.zitadel.secretConfig }}
+            - --config
+            - /zitadel-secrets-yaml/zitadel-secrets-yaml
+            - --steps
+            - /zitadel-secrets-yaml/zitadel-secrets-yaml
+            {{- end }}
+            {{- if and .Values.zitadel.configSecretName .Values.zitadel.configSecretKey }}
+            - --config
+            - /zitadel-secret-config-yaml/{{ .Values.zitadel.configSecretKey }}
+            - --steps
+            - /zitadel-secret-config-yaml/{{ .Values.zitadel.configSecretKey }}
+            {{- end }}
+            {{- if .Values.setupJob.additionalArgs }}
+            {{- toYaml .Values.setupJob.additionalArgs | nindent 12 }}
+            {{- end }}
+          env:
+            - name: POD_IP
+              valueFrom:
+                fieldRef:
+                  apiVersion: v1
+                  fieldPath: status.podIP
+            - name: ZITADEL_MASTERKEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "zitadel.masterkeySecretName" . }}
+                  key: masterkey
+            - name: ZITADEL_FIRSTINSTANCE_MACHINEKEYPATH
+              value: "/machinekey/sa.json"
+            {{- if and (not $skipFirstInstance) $hasMachinePat }}
+            - name: ZITADEL_FIRSTINSTANCE_PATPATH
+              value: "/machinekey/pat"
+            {{- end }}
+            - name: ZITADEL_FIRSTINSTANCE_LOGINCLIENTPATPATH
+              value: "/login-client/pat"
+            {{- $dbEnv := get (include "zitadel.dbkey.json" . | fromJson) "env" }}
+            {{- if (or .Values.zitadel.dbSslCaCrt .Values.zitadel.dbSslCaCrtSecret) }}
+            - name: ZITADEL_DATABASE_{{ $dbEnv }}_USER_SSL_ROOTCERT
+              value: /db-ssl-ca-crt/ca.crt
+            {{- end }}
+            {{- if .Values.zitadel.dbSslUserCrtSecret }}
+            - name: ZITADEL_DATABASE_{{ $dbEnv }}_USER_SSL_CERT
+              value: /db-ssl-user-crt/tls.crt
+            - name: ZITADEL_DATABASE_{{ $dbEnv }}_USER_SSL_KEY
+              value: /db-ssl-user-crt/tls.key
+            {{- end}}
+            {{- with .Values.env }}
+              {{- toYaml . | nindent 12 }}
+            {{- end }}
+          {{- if .Values.envVarsSecret }}
+          envFrom:
+            - secretRef:
+                name: {{ .Values.envVarsSecret }}
+          {{- end }}
+          volumeMounts:
+          - name: zitadel-config-yaml
+            mountPath: /config
+            readOnly: true
+          {{- if .Values.zitadel.secretConfig }}
+          - name: zitadel-secrets-yaml
+            mountPath: /zitadel-secrets-yaml
+            readOnly: true
+          {{- end }}
+          {{- if .Values.zitadel.configSecretName }}
+          - name: zitadel-secret-config-yaml
+            mountPath: /zitadel-secret-config-yaml
+            readOnly: true
+          {{- end }}
+          {{- if (or .Values.zitadel.dbSslCaCrt .Values.zitadel.dbSslCaCrtSecret) }}
+          - name: db-ssl-ca-crt
+            mountPath: /db-ssl-ca-crt
+            readOnly: true
+          {{- end }}
+          {{- if .Values.zitadel.dbSslUserCrtSecret }}
+          - name: db-ssl-user-crt
+            mountPath: /db-ssl-user-crt
+            readOnly: true
+          {{- end }}
+          {{- if $hasMachine }}
+          - name: machinekey
+            mountPath: "/machinekey"
+          {{- end}}
+          {{- if $hasLoginClient }}
+          - name: login-client
+            mountPath: "/login-client"
+          {{- end}}
+          {{- with .Values.extraVolumeMounts }}
+          {{- toYaml . | nindent 10 }}
+          {{- end }}
+          resources:
+            {{- toYaml .Values.setupJob.resources | nindent 12 }}
+        {{- if and (not $skipFirstInstance) $hasMachine }}
+        - name: "{{ .Chart.Name}}-machinekey"
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 14 }}
+          image: {{ include "kubectl.image" . }}
+          imagePullPolicy: '{{ default "IfNotPresent" .Values.tools.kubectl.image.pullPolicy }}'
+          command:
+            - sh
+            - -c
+            - |
+              until [ ! -z $(kubectl --namespace={{ .Release.Namespace }} get pod ${POD_NAME} --output=jsonpath="{.status.containerStatuses[?(@.name=='{{ .Chart.Name }}-setup')].state.terminated}") ]; do
+                echo 'waiting for {{ .Chart.Name }}-setup container to terminate';
+                sleep 5;
+              done &&
+              echo '{{ .Chart.Name }}-setup container terminated' &&
+              if [ -f /machinekey/sa.json ]; then
+                kubectl --namespace={{ .Release.Namespace }} create secret generic {{ .Values.zitadel.configmapConfig.FirstInstance.Org.Machine.Machine.Username }} \
+                  --from-file={{ .Values.zitadel.configmapConfig.FirstInstance.Org.Machine.Machine.Username }}.json=/machinekey/sa.json \
+                  --dry-run=client --output=yaml | \
+                kubectl annotate --local --filename=- \
+                  helm.sh/resource-policy=keep \
+                  --output=yaml | \
+                kubectl label --local --filename=- \
+                  app.kubernetes.io/managed-by=Zitadel \
+                  app.kubernetes.io/name={{ include "zitadel.name" . }} \
+                  app.kubernetes.io/instance={{ .Release.Name }} \
+                  --output=yaml | \
+                kubectl apply --filename=-;
+              fi;
+          env:
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+          volumeMounts:
+            - name: machinekey
+              mountPath: "/machinekey"
+              readOnly: true
+          resources:
+          {{- if .Values.setupJob.machinekeyWriter.resources }}
+            {{- toYaml .Values.setupJob.machinekeyWriter.resources | nindent 12 }}
+          {{- else }}
+            {{- toYaml .Values.setupJob.resources | nindent 12 }}
+          {{- end }}
+      {{- end }}
+      {{- if and (not $skipFirstInstance) $hasMachinePat }}
+        - name: "{{ .Chart.Name }}-machine-pat"
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 14 }}
+          image: {{ include "kubectl.image" . }}
+          imagePullPolicy: '{{ default "IfNotPresent" .Values.tools.kubectl.image.pullPolicy }}'
+          command:
+            - sh
+            - -c
+            - |
+              until [ ! -z $(kubectl --namespace={{ .Release.Namespace }} get pod ${POD_NAME} --output=jsonpath="{.status.containerStatuses[?(@.name=='{{ .Chart.Name }}-setup')].state.terminated}") ]; do
+                echo 'waiting for {{ .Chart.Name }}-setup container to terminate';
+                sleep 5;
+              done &&
+              echo '{{ .Chart.Name }}-setup container terminated' &&
+              if [ -f /machinekey/pat ]; then
+                kubectl --namespace={{ .Release.Namespace }} create secret generic {{ .Values.zitadel.configmapConfig.FirstInstance.Org.Machine.Machine.Username }}-pat \
+                  --from-file=pat=/machinekey/pat \
+                  --dry-run=client --output=yaml | \
+                kubectl annotate --local --filename=- \
+                  helm.sh/resource-policy=keep \
+                  --output=yaml | \
+                kubectl label --local --filename=- \
+                  app.kubernetes.io/managed-by=Zitadel \
+                  app.kubernetes.io/name={{ include "zitadel.name" . }} \
+                  app.kubernetes.io/instance={{ .Release.Name }} \
+                  --output=yaml | \
+                kubectl apply --filename=-;
+              fi;
+          env:
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+          volumeMounts:
+            - name: machinekey
+              mountPath: "/machinekey"
+              readOnly: true
+          resources:
+          {{- if .Values.setupJob.machinekeyWriter.resources }}
+            {{- toYaml .Values.setupJob.machinekeyWriter.resources | nindent 12 }}
+          {{- else }}
+            {{- toYaml .Values.setupJob.resources | nindent 12 }}
+          {{- end }}
+      {{- end }}
+      {{- if and (not $skipFirstInstance) $hasLoginClient }}
+        - name: "{{ .Chart.Name}}-login-client-pat"
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 14 }}
+          image: {{ include "kubectl.image" . }}
+          imagePullPolicy: '{{ default "IfNotPresent" .Values.tools.kubectl.image.pullPolicy }}'
+          command:
+            - sh
+            - -c
+            - |
+              until [ ! -z $(kubectl --namespace={{ .Release.Namespace }} get pod ${POD_NAME} --output=jsonpath="{.status.containerStatuses[?(@.name=='{{ .Chart.Name }}-setup')].state.terminated}") ]; do
+                echo 'waiting for {{ .Chart.Name }}-setup container to terminate';
+                sleep 5;
+              done &&
+              echo '{{ .Chart.Name }}-setup container terminated' &&
+              if [ -f /login-client/pat ]; then
+                kubectl --namespace={{ .Release.Namespace }} create secret generic {{ .Values.login.loginClientSecretPrefix }}login-client \
+                  --from-file=pat=/login-client/pat \
+                  --dry-run=client --output=yaml | \
+                kubectl annotate --local --filename=- \
+                  helm.sh/resource-policy=keep \
+                  --output=yaml | \
+                kubectl label --local --filename=- \
+                  app.kubernetes.io/managed-by=Zitadel \
+                  app.kubernetes.io/name={{ include "zitadel.name" . }} \
+                  app.kubernetes.io/instance={{ .Release.Name }} \
+                  --output=yaml | \
+                kubectl apply --filename=-;
+              fi;
+          env:
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+          volumeMounts:
+            - name: login-client
+              mountPath: "/login-client"
+              readOnly: true
+          resources:
+          {{- if .Values.setupJob.machinekeyWriter.resources }}
+            {{- toYaml .Values.setupJob.machinekeyWriter.resources | nindent 12 }}
+          {{- else }}
+            {{- toYaml .Values.setupJob.resources | nindent 12 }}
+          {{- end }}
+      {{- end }}
+      volumes:
+      - name: zitadel-config-yaml
+        configMap:
+          name: {{ include "zitadel.configmapName" . }}
+          defaultMode: 0440
+      {{- if .Values.zitadel.secretConfig }}
+      - name: zitadel-secrets-yaml
+        secret:
+          secretName: {{ include "zitadel.secretName" . }}
+          defaultMode: 0440
+      {{- end }}
+      {{- if .Values.zitadel.configSecretName }}
+      - name: zitadel-secret-config-yaml
+        secret:
+          secretName: {{ .Values.zitadel.configSecretName }}
+          defaultMode: 0440
+      {{- end }}
+      {{- if .Values.zitadel.dbSslCaCrt }}
+      - name: db-ssl-ca-crt
+        secret:
+          secretName: {{ include "zitadel.dbSslCaCrtSecretName" . }}
+          defaultMode: 0440
+      {{- end }}
+      {{- if .Values.zitadel.dbSslCaCrtSecret }}
+      - name: db-ssl-ca-crt
+        secret:
+          secretName: {{ .Values.zitadel.dbSslCaCrtSecret }}
+          defaultMode: 0440
+      {{- end }}
+      {{- if .Values.zitadel.dbSslUserCrtSecret }}
+      - name: db-ssl-user-crt
+        secret:
+          secretName: {{ .Values.zitadel.dbSslUserCrtSecret }}
+          defaultMode: 0440
+      {{- end }}
+      {{- if $hasMachine }}
+      - name: machinekey
+        emptyDir: { }
+      {{- end }}
+      {{- if $hasLoginClient }}
+      - name: login-client
+        emptyDir: { }
+      {{- end }}
+      {{- with .Values.extraVolumes }}
+      {{- toYaml . | nindent 6 }}
+      {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

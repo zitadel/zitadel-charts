@@ -1,0 +1,27 @@
+{{- if .Values.pdb.enabled }}
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ include "zitadel.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "zitadel.start.labels" . | nindent 4 }}
+  {{- with .Values.pdb.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  # test if both are set and if so return error
+  {{- if and .Values.pdb.minAvailable .Values.pdb.maxUnavailable }}
+  {{- fail "You can only set either minAvailable or maxUnavailable" }}
+  {{- end }}
+  {{- if .Values.pdb.minAvailable }}
+  minAvailable: {{ .Values.pdb.minAvailable }}
+  {{- end }}
+  {{- if .Values.pdb.maxUnavailable }}
+  maxUnavailable: {{ .Values.pdb.maxUnavailable }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "zitadel.start.selectorLabels" . | nindent 6 }}
+{{- end }}
