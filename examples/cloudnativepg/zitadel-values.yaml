@@ -1,0 +1,50 @@
+zitadel:
+  # Must be exactly 32 bytes. Use printable ASCII characters (alphanumeric).
+  # Generate with: tr -dc A-Za-z0-9 </dev/urandom | head -c 32
+  masterkey: "x123456789012345678901234567891y"
+
+  configmapConfig:
+    ExternalDomain: zitadel.127.0.0.1.sslip.io
+    ExternalSecure: true
+
+    TLS:
+      Enabled: false
+
+    Database:
+      Postgres:
+        Host: zitadel-pg-rw.default.svc.cluster.local
+        Port: 5432
+        Database: zitadel
+        User:
+          Username: zitadel
+          SSL:
+            Mode: disable
+        Admin:
+          Username: postgres
+          SSL:
+            Mode: disable
+
+ingress:
+  enabled: true
+  className: traefik
+
+login:
+  enabled: true
+  ingress:
+    enabled: true
+    className: traefik
+
+env:
+  - name: ZITADEL_DATABASE_POSTGRES_USER_PASSWORD
+    valueFrom:
+      secretKeyRef:
+        name: zitadel-pg-user
+        key: password
+  - name: ZITADEL_DATABASE_POSTGRES_ADMIN_PASSWORD
+    valueFrom:
+      secretKeyRef:
+        name: zitadel-pg-superuser
+        key: password
+
+initJob:
+  command: "zitadel"

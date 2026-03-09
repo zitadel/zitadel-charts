@@ -1,11 +1,10 @@
+#file: noinspection KubernetesUnknownResourcesInspection
 {{- if and .Values.metrics.enabled .Values.metrics.serviceMonitor.enabled }}
 apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:
   name: {{ include "zitadel.fullname" . }}
-  {{- if .Values.metrics.serviceMonitor.namespace }}
-  namespace: {{ .Values.metrics.serviceMonitor.namespace }}
-  {{- end }}
+  namespace: {{ .Values.metrics.serviceMonitor.namespace | default .Release.Namespace }}
   labels:
     {{- include "zitadel.start.labels" . | nindent 4 }}
     {{- if .Values.metrics.serviceMonitor.additionalLabels }}
@@ -47,5 +46,5 @@ spec:
     - "{{ $.Release.Namespace }}"
   selector:
     matchLabels:
-    {{- include "zitadel.start.selectorLabels" . | nindent 6 }}
+    {{- include "zitadel.service.selectorLabels" . | nindent 6 }}
 {{- end }}

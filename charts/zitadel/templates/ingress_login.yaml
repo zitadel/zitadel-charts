@@ -5,23 +5,21 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: {{ $fullName }}
+  namespace: {{ .Release.Namespace }}
   labels:
     {{- include "login.labels" . | nindent 4 }}
-  {{- with .Values.login.ingress.annotations }}
   annotations:
-    {{- toYaml . | nindent 4 }}
-  {{- end }}
-spec:
-  ingressClassName: {{ .Values.ingress.className }}
-  {{- if .Values.login.ingress.tls }}
-  tls:
-    {{- range .Values.login.ingress.tls }}
-    - hosts:
-        {{- range .hosts }}
-        - {{ . | quote }}
-        {{- end }}
-      secretName: {{ .secretName }}
+    {{- if eq .Values.login.ingress.controller "aws" }}
+    alb.ingress.kubernetes.io/group.order: '-2'
     {{- end }}
+    {{- with .Values.login.ingress.annotations }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  ingressClassName: {{ .Values.login.ingress.className }}
+  {{- with .Values.login.ingress.tls }}
+  tls:
+  {{- toYaml . | nindent 4 }}
   {{- end }}
   rules:
     {{- $values := .Values -}}

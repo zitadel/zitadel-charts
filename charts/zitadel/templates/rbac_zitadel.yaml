@@ -1,8 +1,9 @@
-{{- if or (include "deepCheck" (dict "root" .Values "path" (splitList "." "zitadel.configmapConfig.FirstInstance.Org.LoginClient"))) (include "deepCheck" (dict "root" .Values "path" (splitList "." "zitadel.configmapConfig.FirstInstance.Org.Machine"))) }}
+{{- if or (((((.Values.zitadel).configmapConfig).FirstInstance).Org).LoginClient) (((((.Values.zitadel).configmapConfig).FirstInstance).Org).Machine) }}
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
   name: {{ include "zitadel.serviceAccountName" . }}
+  namespace: {{ .Release.Namespace }}
   labels:
     {{- include "zitadel.labels" . | nindent 4 }}
   {{- with .Values.serviceAccount.annotations }}
@@ -12,7 +13,7 @@ metadata:
 rules:
   - apiGroups: [ "" ]
     resources: [ "secrets" ]
-    verbs: [ "get", "create" ]
+    verbs: [ "get", "create", "list", "delete" ]
   - apiGroups: [ "" ]
     resources: [ "pods" ]
     verbs: [ "get" ]
@@ -21,6 +22,7 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
   name: {{ include "zitadel.serviceAccountName" . }}
+  namespace: {{ .Release.Namespace }}
   labels:
     {{- include "zitadel.labels" . | nindent 4 }}
   {{- with .Values.serviceAccount.annotations }}
