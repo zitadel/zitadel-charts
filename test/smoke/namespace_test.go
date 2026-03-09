@@ -24,6 +24,7 @@ func TestNamespaceFieldExplicitlySet(t *testing.T) {
 			"ingress.enabled":                              "true",
 			"ingress.controller":                           "aws",
 			"zitadel.masterkey":                            "01234567890123456789012345678901",
+			"zitadel.configmapConfig.ExternalDomain":       "example.com",
 			"pdb.enabled":                                  "true",
 			"zitadel.autoscaling.enabled":                  "true",
 			"login.autoscaling.enabled":                    "true",

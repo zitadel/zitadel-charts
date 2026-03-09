@@ -25,7 +25,11 @@ spec:
   {{- end }}
   hostnames:
     {{- range .Values.gateway.httpRoute.hosts }}
-    - {{ .host | default $externalDomain | quote }}
+    {{- $hostname := .host | default $externalDomain }}
+    {{- if not $hostname }}
+    {{- fail "gateway.httpRoute.hosts[].host or zitadel.configmapConfig.ExternalDomain must be set" }}
+    {{- end }}
+    - {{ $hostname | quote }}
     {{- end }}
   rules:
     {{- range .Values.gateway.httpRoute.hosts }}
