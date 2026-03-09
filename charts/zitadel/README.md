@@ -462,11 +462,18 @@ This renders the chart templates and validates them for correctness without requ
 
 ### Test the chart:
 
-Tests use [testcontainers](https://testcontainers.com/) to spin up a disposable k3s cluster in Docker automatically. No manual cluster creation is needed.
+```bash
+# Create KinD cluster
+kind create cluster --config ./test/acceptance/kindConfig.yaml
+
+# Test the chart
+make test
+```
+
+Watch the Kubernetes pods if you want to see progress.
 
 ```bash
-# Test the chart (requires Docker)
-make test
+kubectl get pods --all-namespaces --watch
 
 # Or if you have the watch binary installed
 watch -n .1 "kubectl get pods --all-namespaces"
