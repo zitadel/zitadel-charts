@@ -527,7 +527,7 @@ login:
       # -- ([]HTTPRouteFilter) Filters to apply to all rules. These define processing
       # steps for requests, such as header modification or URL rewrites.
       # Ref: https://gateway-api.sigs.k8s.io/reference/spec/#gateway.networking.k8s.io/v1.HTTPRouteFilter
-      filters: []  # @schema item: object
+      filters: []  # @schema item: object; itemProperties: {"type": {"type": "string"}}
       # -- (HTTPRouteTimeouts) Timeouts for HTTP requests routed via this HTTPRoute.
       # Ref: https://gateway-api.sigs.k8s.io/reference/spec/#gateway.networking.k8s.io/v1.HTTPRouteTimeouts
       timeouts: {}  # @schema additionalProperties: {"type": "string"}
@@ -873,7 +873,7 @@ gateway:
     # -- ([]HTTPRouteFilter) Filters to apply to all rules. These define processing
     # steps for requests, such as header modification or URL rewrites.
     # Ref: https://gateway-api.sigs.k8s.io/reference/spec/#gateway.networking.k8s.io/v1.HTTPRouteFilter
-    filters: []  # @schema item: object
+    filters: []  # @schema item: object; itemProperties: {"type": {"type": "string"}}
     # -- (HTTPRouteTimeouts) Timeouts for HTTP requests routed via this HTTPRoute.
     # Ref: https://gateway-api.sigs.k8s.io/reference/spec/#gateway.networking.k8s.io/v1.HTTPRouteTimeouts
     timeouts: {}  # @schema additionalProperties: {"type": "string"}
@@ -897,7 +897,7 @@ gateway:
     # -- ([]GRPCRouteFilter) Filters to apply to all rules. These define processing
     # steps for gRPC requests, such as header modification or mirroring.
     # Ref: https://gateway-api.sigs.k8s.io/reference/spec/#gateway.networking.k8s.io/v1.GRPCRouteFilter
-    filters: []  # @schema item: object
+    filters: []  # @schema item: object; itemProperties: {"type": {"type": "string"}}
 
 # @schema $ref: $k8s/_definitions.json#/definitions/io.k8s.api.core.v1.ResourceRequirements
 # -- (ResourceRequirements) CPU and memory resource requests and limits for the ZITADEL container.

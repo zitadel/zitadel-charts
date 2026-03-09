@@ -134,7 +134,12 @@
                             "description": "([]GRPCRouteFilter) Filters to apply to all rules. These define processing steps for gRPC requests, such as header modification or mirroring. Ref: https://gateway-api.sigs.k8s.io/reference/spec/#gateway.networking.k8s.io/v1.GRPCRouteFilter",
                             "type": "array",
                             "items": {
-                                "type": "object"
+                                "type": "object",
+                                "properties": {
+                                    "type": {
+                                        "type": "string"
+                                    }
+                                }
                             }
                         },
                         "hosts": {
@@ -186,7 +191,12 @@
                             "description": "([]HTTPRouteFilter) Filters to apply to all rules. These define processing steps for requests, such as header modification or URL rewrites. Ref: https://gateway-api.sigs.k8s.io/reference/spec/#gateway.networking.k8s.io/v1.HTTPRouteFilter",
                             "type": "array",
                             "items": {
-                                "type": "object"
+                                "type": "object",
+                                "properties": {
+                                    "type": {
+                                        "type": "string"
+                                    }
+                                }
                             }
                         },
                         "hostnames": {
@@ -549,7 +559,12 @@
                                     "description": "([]HTTPRouteFilter) Filters to apply to all rules. These define processing steps for requests, such as header modification or URL rewrites. Ref: https://gateway-api.sigs.k8s.io/reference/spec/#gateway.networking.k8s.io/v1.HTTPRouteFilter",
                                     "type": "array",
                                     "items": {
-                                        "type": "object"
+                                        "type": "object",
+                                        "properties": {
+                                            "type": {
+                                                "type": "string"
+                                            }
+                                        }
                                     }
                                 },
                                 "hostnames": {
