@@ -189,27 +189,11 @@
                                 "type": "object"
                             }
                         },
-                        "hosts": {
-                            "description": "A list of host rules for the HTTPRoute. Each host can have multiple paths.",
+                        "hostnames": {
+                            "description": "Hostnames for the HTTPRoute. If empty, defaults to ExternalDomain.",
                             "type": "array",
                             "items": {
-                                "type": "object",
-                                "properties": {
-                                    "paths": {
-                                        "type": "array",
-                                        "items": {
-                                            "type": "object",
-                                            "properties": {
-                                                "path": {
-                                                    "type": "string"
-                                                },
-                                                "pathType": {
-                                                    "type": "string"
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
+                                "type": "string"
                             }
                         },
                         "labels": {
@@ -232,6 +216,21 @@
                                         "type": "integer"
                                     },
                                     "sectionName": {
+                                        "type": "string"
+                                    }
+                                }
+                            }
+                        },
+                        "paths": {
+                            "description": "Path matching rules for the HTTPRoute. Each entry generates a separate rule.",
+                            "type": "array",
+                            "items": {
+                                "type": "object",
+                                "properties": {
+                                    "path": {
+                                        "type": "string"
+                                    },
+                                    "pathType": {
                                         "type": "string"
                                     }
                                 }
@@ -553,27 +552,11 @@
                                         "type": "object"
                                     }
                                 },
-                                "hosts": {
-                                    "description": "A list of host rules for the HTTPRoute. The default path targets the login UI.",
+                                "hostnames": {
+                                    "description": "Hostnames for the HTTPRoute. If empty, defaults to ExternalDomain.",
                                     "type": "array",
                                     "items": {
-                                        "type": "object",
-                                        "properties": {
-                                            "paths": {
-                                                "type": "array",
-                                                "items": {
-                                                    "type": "object",
-                                                    "properties": {
-                                                        "path": {
-                                                            "type": "string"
-                                                        },
-                                                        "pathType": {
-                                                            "type": "string"
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                        }
+                                        "type": "string"
                                     }
                                 },
                                 "labels": {
@@ -596,6 +579,21 @@
                                                 "type": "integer"
                                             },
                                             "sectionName": {
+                                                "type": "string"
+                                            }
+                                        }
+                                    }
+                                },
+                                "paths": {
+                                    "description": "Path matching rules for the HTTPRoute. Each entry generates a separate rule.",
+                                    "type": "array",
+                                    "items": {
+                                        "type": "object",
+                                        "properties": {
+                                            "path": {
+                                                "type": "string"
+                                            },
+                                            "pathType": {
                                                 "type": "string"
                                             }
                                         }

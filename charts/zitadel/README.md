@@ -191,9 +191,10 @@ Kubernetes: `>= 1.30.0-0`
 | gateway.httpRoute.annotations | map[string]string | `{}` | Annotations to apply to the HTTPRoute resource. |
 | gateway.httpRoute.enabled | bool | `false` | If true, creates an HTTPRoute resource for the ZITADEL service. |
 | gateway.httpRoute.filters | []HTTPRouteFilter | `[]` | Filters to apply to all rules. These define processing steps for requests, such as header modification or URL rewrites. Ref: https://gateway-api.sigs.k8s.io/reference/spec/#gateway.networking.k8s.io/v1.HTTPRouteFilter |
-| gateway.httpRoute.hosts | list | `[{"paths":[{"path":"/","pathType":"PathPrefix"}]}]` | A list of host rules for the HTTPRoute. Each host can have multiple paths. |
+| gateway.httpRoute.hostnames | list | `[]` | Hostnames for the HTTPRoute. If empty, defaults to ExternalDomain. |
 | gateway.httpRoute.labels | map[string]string | `{}` | Additional labels to apply to the HTTPRoute resource. |
 | gateway.httpRoute.parentRefs | list | `[]` | References to Gateway resources that this route should be attached to. Each entry must include at least a `name` field matching an existing Gateway. Example:   parentRefs:     - name: my-gateway       sectionName: https |
+| gateway.httpRoute.paths | list | `[{"path":"/","pathType":"PathPrefix"}]` | Path matching rules for the HTTPRoute. Each entry generates a separate rule. |
 | gateway.httpRoute.timeouts | HTTPRouteTimeouts | `{}` | Timeouts for HTTP requests routed via this HTTPRoute. Ref: https://gateway-api.sigs.k8s.io/reference/spec/#gateway.networking.k8s.io/v1.HTTPRouteTimeouts |
 | image.pullPolicy | string | `"IfNotPresent"` | Image pull policy. Use "Always" for mutable tags like "latest", or "IfNotPresent" for immutable version tags to reduce network traffic. |
 | image.repository | string | `"ghcr.io/zitadel/zitadel"` | Docker image repository for ZITADEL. The default uses GitHub Container Registry. Change this if using a private registry or mirror. |
@@ -241,9 +242,10 @@ Kubernetes: `>= 1.30.0-0`
 | login.gateway.httpRoute.annotations | map[string]string | `{}` | Annotations to apply to the HTTPRoute resource. |
 | login.gateway.httpRoute.enabled | bool | `false` | If true, creates an HTTPRoute resource for the Login UI service. |
 | login.gateway.httpRoute.filters | []HTTPRouteFilter | `[]` | Filters to apply to all rules. These define processing steps for requests, such as header modification or URL rewrites. Ref: https://gateway-api.sigs.k8s.io/reference/spec/#gateway.networking.k8s.io/v1.HTTPRouteFilter |
-| login.gateway.httpRoute.hosts | list | `[{"paths":[{"path":"/ui/v2/login","pathType":"PathPrefix"}]}]` | A list of host rules for the HTTPRoute. The default path targets the login UI. |
+| login.gateway.httpRoute.hostnames | list | `[]` | Hostnames for the HTTPRoute. If empty, defaults to ExternalDomain. |
 | login.gateway.httpRoute.labels | map[string]string | `{}` | Additional labels to apply to the HTTPRoute resource. |
 | login.gateway.httpRoute.parentRefs | list | `[]` | References to Gateway resources that this route should be attached to. Example:   parentRefs:     - name: my-gateway |
+| login.gateway.httpRoute.paths | list | `[{"path":"/ui/v2/login","pathType":"PathPrefix"}]` | Path matching rules for the HTTPRoute. Each entry generates a separate rule. |
 | login.gateway.httpRoute.timeouts | HTTPRouteTimeouts | `{}` | Timeouts for HTTP requests routed via this HTTPRoute. Ref: https://gateway-api.sigs.k8s.io/reference/spec/#gateway.networking.k8s.io/v1.HTTPRouteTimeouts |
 | login.image.pullPolicy | string | `"IfNotPresent"` | Image pull policy. Use "Always" for mutable tags like "latest", or "IfNotPresent" for immutable tags. |
 | login.image.repository | string | `"ghcr.io/zitadel/zitadel-login"` | Docker image repository for the Login UI. |

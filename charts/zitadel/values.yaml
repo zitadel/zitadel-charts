@@ -518,11 +518,12 @@ login:
       #   parentRefs:
       #     - name: my-gateway
       parentRefs: []  # @schema item: object; itemProperties: {"name": {"type": "string"}, "namespace": {"type": "string"}, "sectionName": {"type": "string"}, "port": {"type": "integer"}}
-      # -- A list of host rules for the HTTPRoute. The default path targets the login UI.
-      hosts:
-        - paths:
-            - path: /ui/v2/login
-              pathType: PathPrefix
+      # -- Hostnames for the HTTPRoute. If empty, defaults to ExternalDomain.
+      hostnames: []  # @schema item: string
+      # -- Path matching rules for the HTTPRoute. Each entry generates a separate rule.
+      paths:
+        - path: /ui/v2/login
+          pathType: PathPrefix
       # -- ([]HTTPRouteFilter) Filters to apply to all rules. These define processing
       # steps for requests, such as header modification or URL rewrites.
       # Ref: https://gateway-api.sigs.k8s.io/reference/spec/#gateway.networking.k8s.io/v1.HTTPRouteFilter
@@ -863,11 +864,12 @@ gateway:
     #     - name: my-gateway
     #       sectionName: https
     parentRefs: []  # @schema item: object; itemProperties: {"name": {"type": "string"}, "namespace": {"type": "string"}, "sectionName": {"type": "string"}, "port": {"type": "integer"}}
-    # -- A list of host rules for the HTTPRoute. Each host can have multiple paths.
-    hosts:
-      - paths:
-          - path: /
-            pathType: PathPrefix
+    # -- Hostnames for the HTTPRoute. If empty, defaults to ExternalDomain.
+    hostnames: []  # @schema item: string
+    # -- Path matching rules for the HTTPRoute. Each entry generates a separate rule.
+    paths:
+      - path: /
+        pathType: PathPrefix
     # -- ([]HTTPRouteFilter) Filters to apply to all rules. These define processing
     # steps for requests, such as header modification or URL rewrites.
     # Ref: https://gateway-api.sigs.k8s.io/reference/spec/#gateway.networking.k8s.io/v1.HTTPRouteFilter

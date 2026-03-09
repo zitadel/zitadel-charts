@@ -23,17 +23,18 @@ spec:
   parentRefs:
     {{- toYaml . | nindent 4 }}
   {{- end }}
+  {{- if or .Values.login.gateway.httpRoute.hostnames $externalDomain }}
   hostnames:
-    {{- range .Values.login.gateway.httpRoute.hosts }}
-    {{- $hostname := .host | default $externalDomain }}
-    {{- if not $hostname }}
-    {{- fail "login.gateway.httpRoute.hosts[].host or zitadel.configmapConfig.ExternalDomain must be set" }}
+    {{- if .Values.login.gateway.httpRoute.hostnames }}
+    {{- range .Values.login.gateway.httpRoute.hostnames }}
+    - {{ . | quote }}
     {{- end }}
-    - {{ $hostname | quote }}
+    {{- else }}
+    - {{ $externalDomain | quote }}
     {{- end }}
+  {{- end }}
   rules:
-    {{- range .Values.login.gateway.httpRoute.hosts }}
-    {{- range .paths }}
+    {{- range .Values.login.gateway.httpRoute.paths }}
     - matches:
         - path:
             type: {{ .pathType }}
@@ -49,6 +50,5 @@ spec:
       timeouts:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-    {{- end }}
     {{- end }}
 {{- end }}
