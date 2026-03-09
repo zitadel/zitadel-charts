@@ -204,7 +204,7 @@ func TestGatewayHTTPRouteAnnotations(t *testing.T) {
 		{
 			name:                "no annotations when none specified",
 			setJsonValues:       map[string]string{},
-			expectedAnnotations: map[string]string{},
+			expectedAnnotations: nil,
 		},
 	}
 
@@ -224,9 +224,13 @@ func TestGatewayHTTPRouteAnnotations(t *testing.T) {
 			rendered := helm.RenderTemplate(t, options, chartPath, releaseName,
 				[]string{"templates/httproute_zitadel.yaml"})
 
-			for key, value := range tc.expectedAnnotations {
-				assert.Contains(t, rendered, key)
-				assert.Contains(t, rendered, value)
+			if tc.expectedAnnotations == nil {
+				assert.NotContains(t, rendered, "annotations:")
+			} else {
+				for key, value := range tc.expectedAnnotations {
+					assert.Contains(t, rendered, key)
+					assert.Contains(t, rendered, value)
+				}
 			}
 		})
 	}
@@ -250,7 +254,7 @@ func TestGatewayHTTPRouteDefaultPaths(t *testing.T) {
 
 		rendered := helm.RenderTemplate(t, options, chartPath, "gateway-default-paths",
 			[]string{"templates/httproute_zitadel.yaml"})
-		require.Contains(t, rendered, "value: /")
+		require.Contains(t, rendered, `value: "/"`)
 		require.Contains(t, rendered, "type: PathPrefix")
 	})
 
@@ -268,7 +272,7 @@ func TestGatewayHTTPRouteDefaultPaths(t *testing.T) {
 
 		rendered := helm.RenderTemplate(t, options, chartPath, "gateway-default-paths",
 			[]string{"templates/httproute_login.yaml"})
-		require.Contains(t, rendered, "value: /ui/v2/login")
+		require.Contains(t, rendered, `value: "/ui/v2/login"`)
 		require.Contains(t, rendered, "type: PathPrefix")
 	})
 }

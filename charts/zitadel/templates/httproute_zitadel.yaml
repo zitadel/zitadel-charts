@@ -37,8 +37,8 @@ spec:
     {{- range .Values.gateway.httpRoute.paths }}
     - matches:
         - path:
-            type: {{ .pathType }}
-            value: {{ .path }}
+            type: {{ default "PathPrefix" .pathType }}
+            value: {{ .path | quote }}
       backendRefs:
         - name: {{ $fullName }}
           port: {{ $svcPort }}

@@ -843,8 +843,8 @@ ingress:
   tls: []
 
 # Gateway API configuration for exposing ZITADEL using Kubernetes Gateway API
-# resources (HTTPRoute, GRPCRoute). This is an alternative to the traditional
-# Ingress resources above. Use either Ingress or Gateway API, not both.
+# resources (HTTPRoute, GRPCRoute). This can be used alongside or instead of
+# the traditional Ingress resources above.
 # Requires a Gateway API implementation (e.g., Envoy Gateway, Istio, Cilium,
 # NGINX Gateway Fabric) and Gateway API CRDs installed in the cluster.
 # Ref: https://gateway-api.sigs.k8s.io/
