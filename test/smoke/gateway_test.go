@@ -95,13 +95,13 @@ func TestGatewayHTTPRouteLoginLabels(t *testing.T) {
 
 	options := &helm.Options{
 		SetValues: map[string]string{
-			"image.tag":                                   support.DigestTag,
-			"login.enabled":                               "true",
-			"login.gateway.httpRoute.enabled":              "true",
-			"login.gateway.httpRoute.parentRefs[0].name":   "my-gateway",
-			"login.gateway.httpRoute.hostnames[0]":          "zitadel.example.local",
-			"zitadel.configmapConfig.ExternalDomain":       "zitadel.example.local",
-			"zitadel.masterkey":                            "01234567890123456789012345678901",
+			"image.tag":                       support.DigestTag,
+			"login.enabled":                   "true",
+			"login.gateway.httpRoute.enabled": "true",
+			"login.gateway.httpRoute.parentRefs[0].name": "my-gateway",
+			"login.gateway.httpRoute.hostnames[0]":       "zitadel.example.local",
+			"zitadel.configmapConfig.ExternalDomain":     "zitadel.example.local",
+			"zitadel.masterkey":                          "01234567890123456789012345678901",
 		},
 	}
 
@@ -166,8 +166,8 @@ func TestGatewayHTTPRouteCustomHosts(t *testing.T) {
 			"gateway.httpRoute.parentRefs[0].name":   "my-gw",
 			"gateway.httpRoute.hostnames[0]":         "custom.example.com",
 			"gateway.httpRoute.hostnames[1]":         "other.example.com",
-			"zitadel.configmapConfig.ExternalDomain":       "default.example.com",
-			"zitadel.masterkey":                            "01234567890123456789012345678901",
+			"zitadel.configmapConfig.ExternalDomain": "default.example.com",
+			"zitadel.masterkey":                      "01234567890123456789012345678901",
 		},
 	}
 
@@ -261,12 +261,12 @@ func TestGatewayHTTPRouteDefaultPaths(t *testing.T) {
 	t.Run("login default path is /ui/v2/login", func(t *testing.T) {
 		options := &helm.Options{
 			SetValues: map[string]string{
-				"image.tag":                                  support.DigestTag,
-				"login.enabled":                              "true",
-				"login.gateway.httpRoute.enabled":             "true",
-				"login.gateway.httpRoute.parentRefs[0].name":  "my-gw",
-				"zitadel.configmapConfig.ExternalDomain":      "zitadel.example.local",
-				"zitadel.masterkey":                           "01234567890123456789012345678901",
+				"image.tag":                       support.DigestTag,
+				"login.enabled":                   "true",
+				"login.gateway.httpRoute.enabled": "true",
+				"login.gateway.httpRoute.parentRefs[0].name": "my-gw",
+				"zitadel.configmapConfig.ExternalDomain":     "zitadel.example.local",
+				"zitadel.masterkey":                          "01234567890123456789012345678901",
 			},
 		}
 
@@ -284,14 +284,14 @@ func TestGatewayHTTPRouteParentRefs(t *testing.T) {
 
 	options := &helm.Options{
 		SetValues: map[string]string{
-			"image.tag":                                      support.DigestTag,
-			"gateway.httpRoute.enabled":                      "true",
-			"gateway.httpRoute.parentRefs[0].name":           "my-gateway",
-			"gateway.httpRoute.parentRefs[0].namespace":      "gateway-ns",
-			"gateway.httpRoute.parentRefs[0].sectionName":    "https",
-			"gateway.httpRoute.parentRefs[0].port":           "443",
-			"zitadel.configmapConfig.ExternalDomain":         "zitadel.example.local",
-			"zitadel.masterkey":                              "01234567890123456789012345678901",
+			"image.tag":                                   support.DigestTag,
+			"gateway.httpRoute.enabled":                   "true",
+			"gateway.httpRoute.parentRefs[0].name":        "my-gateway",
+			"gateway.httpRoute.parentRefs[0].namespace":   "gateway-ns",
+			"gateway.httpRoute.parentRefs[0].sectionName": "https",
+			"gateway.httpRoute.parentRefs[0].port":        "443",
+			"zitadel.configmapConfig.ExternalDomain":      "zitadel.example.local",
+			"zitadel.masterkey":                           "01234567890123456789012345678901",
 		},
 	}
 
@@ -339,13 +339,13 @@ func TestGatewayHTTPRouteTimeouts(t *testing.T) {
 
 	options := &helm.Options{
 		SetValues: map[string]string{
-			"image.tag":                              support.DigestTag,
-			"gateway.httpRoute.enabled":              "true",
-			"gateway.httpRoute.parentRefs[0].name":   "my-gw",
-			"gateway.httpRoute.timeouts.request":     "30s",
+			"image.tag":                                 support.DigestTag,
+			"gateway.httpRoute.enabled":                 "true",
+			"gateway.httpRoute.parentRefs[0].name":      "my-gw",
+			"gateway.httpRoute.timeouts.request":        "30s",
 			"gateway.httpRoute.timeouts.backendRequest": "20s",
-			"zitadel.configmapConfig.ExternalDomain": "zitadel.example.local",
-			"zitadel.masterkey":                      "01234567890123456789012345678901",
+			"zitadel.configmapConfig.ExternalDomain":    "zitadel.example.local",
+			"zitadel.masterkey":                         "01234567890123456789012345678901",
 		},
 	}
 
