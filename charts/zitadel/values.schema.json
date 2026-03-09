@@ -241,7 +241,12 @@
                                         "type": "string"
                                     },
                                     "pathType": {
-                                        "type": "string"
+                                        "type": "string",
+                                        "enum": [
+                                            "Exact",
+                                            "PathPrefix",
+                                            "RegularExpression"
+                                        ]
                                     }
                                 }
                             }
@@ -609,7 +614,12 @@
                                                 "type": "string"
                                             },
                                             "pathType": {
-                                                "type": "string"
+                                                "type": "string",
+                                                "enum": [
+                                                    "Exact",
+                                                    "PathPrefix",
+                                                    "RegularExpression"
+                                                ]
                                             }
                                         }
                                     }
