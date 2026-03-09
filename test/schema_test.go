@@ -72,15 +72,9 @@ func TestSchemaFullyTyped(t *testing.T) {
 		"/metrics/serviceMonitor/tlsConfig":          true,
 		"/metrics/serviceMonitor/relabellings":       true,
 		"/metrics/serviceMonitor/metricRelabellings": true,
-		"/gateway/httpRoute/parentRefs":              true,
-		"/gateway/httpRoute/filters":                 true,
-		"/gateway/httpRoute/timeouts":                true,
-		"/gateway/grpcRoute/parentRefs":              true,
-		"/gateway/grpcRoute/hosts":                   true,
-		"/gateway/grpcRoute/filters":                 true,
-		"/login/gateway/httpRoute/parentRefs":        true,
-		"/login/gateway/httpRoute/filters":           true,
-		"/login/gateway/httpRoute/timeouts":          true,
+		"/gateway/httpRoute/filters":       true,
+		"/gateway/grpcRoute/filters":       true,
+		"/login/gateway/httpRoute/filters": true,
 	}
 
 	properties := schema["properties"].(map[string]any)
@@ -140,6 +134,9 @@ func TestSchemaFullyTyped(t *testing.T) {
 
 			case "object":
 				if strings.Contains(desc, "(map[string]string)") {
+					continue
+				}
+				if _, hasAdditional := propMap["additionalProperties"]; hasAdditional {
 					continue
 				}
 				if nested, ok := propMap["properties"].(map[string]any); ok {
