@@ -517,7 +517,7 @@ login:
       # Example:
       #   parentRefs:
       #     - name: my-gateway
-      parentRefs: [] # @schema item: object; itemProperties: {"name": {"type": "string"}, "namespace": {"type": "string"}, "sectionName": {"type": "string"}, "port": {"type": "integer"}}
+      parentRefs: []  # @schema item: object; itemProperties: {"name": {"type": "string"}, "namespace": {"type": "string"}, "sectionName": {"type": "string"}, "port": {"type": "integer"}}
       # -- A list of host rules for the HTTPRoute. The default path targets the login UI.
       hosts:
         - paths:
@@ -526,10 +526,10 @@ login:
       # -- ([]HTTPRouteFilter) Filters to apply to all rules. These define processing
       # steps for requests, such as header modification or URL rewrites.
       # Ref: https://gateway-api.sigs.k8s.io/reference/spec/#gateway.networking.k8s.io/v1.HTTPRouteFilter
-      filters: [] # @schema item: object
+      filters: []  # @schema item: object
       # -- (HTTPRouteTimeouts) Timeouts for HTTP requests routed via this HTTPRoute.
       # Ref: https://gateway-api.sigs.k8s.io/reference/spec/#gateway.networking.k8s.io/v1.HTTPRouteTimeouts
-      timeouts: {} # @schema additionalProperties: {"type": "string"}
+      timeouts: {}  # @schema additionalProperties: {"type": "string"}
   # ServiceAccount configuration for Login UI pods.
   serviceAccount:
     # -- Whether to create a dedicated service account for the Login UI. Set to
@@ -862,7 +862,7 @@ gateway:
     #   parentRefs:
     #     - name: my-gateway
     #       sectionName: https
-    parentRefs: [] # @schema item: object; itemProperties: {"name": {"type": "string"}, "namespace": {"type": "string"}, "sectionName": {"type": "string"}, "port": {"type": "integer"}}
+    parentRefs: []  # @schema item: object; itemProperties: {"name": {"type": "string"}, "namespace": {"type": "string"}, "sectionName": {"type": "string"}, "port": {"type": "integer"}}
     # -- A list of host rules for the HTTPRoute. Each host can have multiple paths.
     hosts:
       - paths:
@@ -871,10 +871,10 @@ gateway:
     # -- ([]HTTPRouteFilter) Filters to apply to all rules. These define processing
     # steps for requests, such as header modification or URL rewrites.
     # Ref: https://gateway-api.sigs.k8s.io/reference/spec/#gateway.networking.k8s.io/v1.HTTPRouteFilter
-    filters: [] # @schema item: object
+    filters: []  # @schema item: object
     # -- (HTTPRouteTimeouts) Timeouts for HTTP requests routed via this HTTPRoute.
     # Ref: https://gateway-api.sigs.k8s.io/reference/spec/#gateway.networking.k8s.io/v1.HTTPRouteTimeouts
-    timeouts: {} # @schema additionalProperties: {"type": "string"}
+    timeouts: {}  # @schema additionalProperties: {"type": "string"}
   # GRPCRoute configuration for ZITADEL gRPC API traffic.
   # Note: GRPCRoute is GA in Gateway API v1.2.0+. Ensure your Gateway
   # implementation supports GRPCRoute before enabling this.
@@ -889,13 +889,13 @@ gateway:
     # Example:
     #   parentRefs:
     #     - name: my-gateway
-    parentRefs: [] # @schema item: object; itemProperties: {"name": {"type": "string"}, "namespace": {"type": "string"}, "sectionName": {"type": "string"}, "port": {"type": "integer"}}
+    parentRefs: []  # @schema item: object; itemProperties: {"name": {"type": "string"}, "namespace": {"type": "string"}, "sectionName": {"type": "string"}, "port": {"type": "integer"}}
     # -- Hostnames for the GRPCRoute. If empty, defaults to ExternalDomain.
-    hosts: [] # @schema item: string
+    hosts: []  # @schema item: string
     # -- ([]GRPCRouteFilter) Filters to apply to all rules. These define processing
     # steps for gRPC requests, such as header modification or mirroring.
     # Ref: https://gateway-api.sigs.k8s.io/reference/spec/#gateway.networking.k8s.io/v1.GRPCRouteFilter
-    filters: [] # @schema item: object
+    filters: []  # @schema item: object
 
 # @schema $ref: $k8s/_definitions.json#/definitions/io.k8s.api.core.v1.ResourceRequirements
 # -- (ResourceRequirements) CPU and memory resource requests and limits for the ZITADEL container.
