@@ -182,6 +182,19 @@ Kubernetes: `>= 1.30.0-0`
 | extraVolumeMounts | []VolumeMount | `[]` | Additional volume mounts for the main ZITADEL container. Use this to mount volumes defined in extraVolumes into the container filesystem. Common use cases include mounting custom CA certificates, configuration files, or shared data between containers. |
 | extraVolumes | []Volume | `[]` | Additional volumes to add to ZITADEL pods. These volumes can be referenced by extraVolumeMounts to make data available to the ZITADEL container or sidecar containers. Supports all Kubernetes volume types: secrets, configMaps, persistentVolumeClaims, emptyDir, hostPath, etc. |
 | fullnameOverride | string | `""` | Completely override the generated resource names (release-name + chart-name). Takes precedence over nameOverride. Use this when you need full control over resource naming, such as when migrating from another chart. |
+| gateway.grpcRoute.annotations | map[string]string | `{}` | Annotations to apply to the GRPCRoute resource. |
+| gateway.grpcRoute.enabled | bool | `false` | If true, creates a GRPCRoute resource for the ZITADEL gRPC API. |
+| gateway.grpcRoute.filters | []GRPCRouteFilter | `[]` | Filters to apply to all rules. These define processing steps for gRPC requests, such as header modification or mirroring. Ref: https://gateway-api.sigs.k8s.io/reference/spec/#gateway.networking.k8s.io/v1.GRPCRouteFilter |
+| gateway.grpcRoute.hosts | list | `[{"paths":[{"path":"/","pathType":"Prefix"}]}]` | A list of host rules for the GRPCRoute. Each host can have multiple paths. |
+| gateway.grpcRoute.labels | map[string]string | `{}` | Additional labels to apply to the GRPCRoute resource. |
+| gateway.grpcRoute.parentRefs | list | `[]` | References to Gateway resources that this route should be attached to. Example:   parentRefs:     - name: my-gateway |
+| gateway.httpRoute.annotations | map[string]string | `{}` | Annotations to apply to the HTTPRoute resource. |
+| gateway.httpRoute.enabled | bool | `false` | If true, creates an HTTPRoute resource for the ZITADEL service. |
+| gateway.httpRoute.filters | []HTTPRouteFilter | `[]` | Filters to apply to all rules. These define processing steps for requests, such as header modification or URL rewrites. Ref: https://gateway-api.sigs.k8s.io/reference/spec/#gateway.networking.k8s.io/v1.HTTPRouteFilter |
+| gateway.httpRoute.hosts | list | `[{"paths":[{"path":"/","pathType":"Prefix"}]}]` | A list of host rules for the HTTPRoute. Each host can have multiple paths. |
+| gateway.httpRoute.labels | map[string]string | `{}` | Additional labels to apply to the HTTPRoute resource. |
+| gateway.httpRoute.parentRefs | list | `[]` | References to Gateway resources that this route should be attached to. Each entry must include at least a `name` field matching an existing Gateway. Example:   parentRefs:     - name: my-gateway       sectionName: https |
+| gateway.httpRoute.timeouts | HTTPRouteTimeouts | `{}` | Timeouts for HTTP requests routed via this HTTPRoute. Ref: https://gateway-api.sigs.k8s.io/reference/spec/#gateway.networking.k8s.io/v1.HTTPRouteTimeouts |
 | image.pullPolicy | string | `"IfNotPresent"` | Image pull policy. Use "Always" for mutable tags like "latest", or "IfNotPresent" for immutable version tags to reduce network traffic. |
 | image.repository | string | `"ghcr.io/zitadel/zitadel"` | Docker image repository for ZITADEL. The default uses GitHub Container Registry. Change this if using a private registry or mirror. |
 | image.tag | string | `""` | Image tag. Defaults to the chart's appVersion if not specified. Use a specific version tag (e.g., "v2.45.0") for production deployments to ensure reproducibility and controlled upgrades. |
@@ -225,6 +238,13 @@ Kubernetes: `>= 1.30.0-0`
 | login.extraVolumeMounts | []VolumeMount | `[]` | Additional volume mounts for the Login UI container. Use this to mount custom certificates, configuration files, or other data into the container. |
 | login.extraVolumes | []Volume | `[]` | Additional volumes for the Login UI pod. Define volumes here that are referenced by extraVolumeMounts. |
 | login.fullnameOverride | string | `""` | Completely override the generated resource names. Takes precedence over nameOverride when set. |
+| login.gateway.httpRoute.annotations | map[string]string | `{}` | Annotations to apply to the HTTPRoute resource. |
+| login.gateway.httpRoute.enabled | bool | `false` | If true, creates an HTTPRoute resource for the Login UI service. |
+| login.gateway.httpRoute.filters | []HTTPRouteFilter | `[]` | Filters to apply to all rules. These define processing steps for requests, such as header modification or URL rewrites. Ref: https://gateway-api.sigs.k8s.io/reference/spec/#gateway.networking.k8s.io/v1.HTTPRouteFilter |
+| login.gateway.httpRoute.hosts | list | `[{"paths":[{"path":"/ui/v2/login","pathType":"Prefix"}]}]` | A list of host rules for the HTTPRoute. The default path targets the login UI. |
+| login.gateway.httpRoute.labels | map[string]string | `{}` | Additional labels to apply to the HTTPRoute resource. |
+| login.gateway.httpRoute.parentRefs | list | `[]` | References to Gateway resources that this route should be attached to. Example:   parentRefs:     - name: my-gateway |
+| login.gateway.httpRoute.timeouts | HTTPRouteTimeouts | `{}` | Timeouts for HTTP requests routed via this HTTPRoute. Ref: https://gateway-api.sigs.k8s.io/reference/spec/#gateway.networking.k8s.io/v1.HTTPRouteTimeouts |
 | login.image.pullPolicy | string | `"IfNotPresent"` | Image pull policy. Use "Always" for mutable tags like "latest", or "IfNotPresent" for immutable tags. |
 | login.image.repository | string | `"ghcr.io/zitadel/zitadel-login"` | Docker image repository for the Login UI. |
 | login.image.tag | string | `""` | Image tag. Defaults to the chart's appVersion if not specified. Use a specific version tag for production deployments to ensure reproducibility. |
@@ -440,18 +460,11 @@ This renders the chart templates and validates them for correctness without requ
 
 ### Test the chart:
 
-```bash
-# Create KinD cluster
-kind create cluster --config ./test/acceptance/kindConfig.yaml
+Tests use [testcontainers](https://testcontainers.com/) to spin up a disposable k3s cluster in Docker automatically. No manual cluster creation is needed.
 
-# Test the chart
+```bash
+# Test the chart (requires Docker)
 make test
-```
-
-Watch the Kubernetes pods if you want to see progress.
-
-```bash
-kubectl get pods --all-namespaces --watch
 
 # Or if you have the watch binary installed
 watch -n .1 "kubectl get pods --all-namespaces"

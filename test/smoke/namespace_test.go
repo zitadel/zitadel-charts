@@ -27,12 +27,12 @@ func TestNamespaceFieldExplicitlySet(t *testing.T) {
 			"pdb.enabled":                                  "true",
 			"zitadel.autoscaling.enabled":                  "true",
 			"login.autoscaling.enabled":                    "true",
-			"gateway.zitadel.httpRoute.enabled":            "true",
-			"gateway.zitadel.httpRoute.parentRefs[0].name": "test-gw",
-			"gateway.zitadel.grpcRoute.enabled":            "true",
-			"gateway.zitadel.grpcRoute.parentRefs[0].name": "test-gw",
-			"gateway.login.httpRoute.enabled":              "true",
-			"gateway.login.httpRoute.parentRefs[0].name":   "test-gw",
+			"gateway.httpRoute.enabled":                    "true",
+			"gateway.httpRoute.parentRefs[0].name":         "test-gw",
+			"gateway.grpcRoute.enabled":                    "true",
+			"gateway.grpcRoute.parentRefs[0].name":         "test-gw",
+			"login.gateway.httpRoute.enabled":              "true",
+			"login.gateway.httpRoute.parentRefs[0].name":   "test-gw",
 		},
 	}
 

@@ -1,6 +1,9 @@
-{{- if .Values.gateway.zitadel.httpRoute.enabled -}}
+{{- if .Values.gateway.httpRoute.enabled -}}
 {{- $fullName := include "zitadel.fullname" . -}}
 {{- $svcPort := .Values.service.port -}}
+{{- $externalDomain := .Values.zitadel.configmapConfig.ExternalDomain -}}
+{{- $filters := .Values.gateway.httpRoute.filters -}}
+{{- $timeouts := .Values.gateway.httpRoute.timeouts -}}
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:
@@ -8,27 +11,40 @@ metadata:
   namespace: {{ .Release.Namespace }}
   labels:
     {{- include "zitadel.labels" . | nindent 4 }}
-  {{- with .Values.gateway.zitadel.httpRoute.annotations }}
+    {{- with .Values.gateway.httpRoute.labels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+  {{- with .Values.gateway.httpRoute.annotations }}
   annotations:
     {{- toYaml . | nindent 4 }}
   {{- end }}
 spec:
-  {{- with .Values.gateway.zitadel.httpRoute.parentRefs }}
+  {{- with .Values.gateway.httpRoute.parentRefs }}
   parentRefs:
     {{- toYaml . | nindent 4 }}
   {{- end }}
   hostnames:
-    {{- if .Values.gateway.zitadel.httpRoute.hostnames }}
-    {{- toYaml .Values.gateway.zitadel.httpRoute.hostnames | nindent 4 }}
-    {{- else }}
-    - {{ .Values.zitadel.configmapConfig.ExternalDomain | quote }}
+    {{- range .Values.gateway.httpRoute.hosts }}
+    - {{ .host | default $externalDomain | quote }}
     {{- end }}
   rules:
-    {{- if .Values.gateway.zitadel.httpRoute.rules }}
-    {{- toYaml .Values.gateway.zitadel.httpRoute.rules | nindent 4 }}
-    {{- else }}
-    - backendRefs:
+    {{- range .Values.gateway.httpRoute.hosts }}
+    {{- range .paths }}
+    - matches:
+        - path:
+            type: {{ .pathType }}
+            value: {{ .path }}
+      backendRefs:
         - name: {{ $fullName }}
           port: {{ $svcPort }}
+      {{- with $filters }}
+      filters:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with $timeouts }}
+      timeouts:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    {{- end }}
     {{- end }}
 {{- end }}

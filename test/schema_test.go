@@ -72,9 +72,14 @@ func TestSchemaFullyTyped(t *testing.T) {
 		"/metrics/serviceMonitor/tlsConfig":          true,
 		"/metrics/serviceMonitor/relabellings":       true,
 		"/metrics/serviceMonitor/metricRelabellings": true,
-		"/gateway/zitadel/httpRoute/rules":           true,
-		"/gateway/zitadel/grpcRoute/rules":           true,
-		"/gateway/login/httpRoute/rules":             true,
+		"/gateway/httpRoute/parentRefs":              true,
+		"/gateway/httpRoute/filters":                 true,
+		"/gateway/httpRoute/timeouts":                true,
+		"/gateway/grpcRoute/parentRefs":              true,
+		"/gateway/grpcRoute/filters":                 true,
+		"/login/gateway/httpRoute/parentRefs":        true,
+		"/login/gateway/httpRoute/filters":           true,
+		"/login/gateway/httpRoute/timeouts":          true,
 	}
 
 	properties := schema["properties"].(map[string]any)

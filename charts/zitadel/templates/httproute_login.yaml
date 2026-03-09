@@ -1,6 +1,9 @@
-{{- if .Values.gateway.login.httpRoute.enabled -}}
+{{- if .Values.login.gateway.httpRoute.enabled -}}
 {{- $fullName := include "zitadel.login.fullname" . -}}
 {{- $svcPort := .Values.login.service.port -}}
+{{- $externalDomain := .Values.zitadel.configmapConfig.ExternalDomain -}}
+{{- $filters := .Values.login.gateway.httpRoute.filters -}}
+{{- $timeouts := .Values.login.gateway.httpRoute.timeouts -}}
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:
@@ -8,31 +11,40 @@ metadata:
   namespace: {{ .Release.Namespace }}
   labels:
     {{- include "login.labels" . | nindent 4 }}
-  {{- with .Values.gateway.login.httpRoute.annotations }}
+    {{- with .Values.login.gateway.httpRoute.labels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+  {{- with .Values.login.gateway.httpRoute.annotations }}
   annotations:
     {{- toYaml . | nindent 4 }}
   {{- end }}
 spec:
-  {{- with .Values.gateway.login.httpRoute.parentRefs }}
+  {{- with .Values.login.gateway.httpRoute.parentRefs }}
   parentRefs:
     {{- toYaml . | nindent 4 }}
   {{- end }}
   hostnames:
-    {{- if .Values.gateway.login.httpRoute.hostnames }}
-    {{- toYaml .Values.gateway.login.httpRoute.hostnames | nindent 4 }}
-    {{- else }}
-    - {{ .Values.zitadel.configmapConfig.ExternalDomain | quote }}
+    {{- range .Values.login.gateway.httpRoute.hosts }}
+    - {{ .host | default $externalDomain | quote }}
     {{- end }}
   rules:
-    {{- if .Values.gateway.login.httpRoute.rules }}
-    {{- toYaml .Values.gateway.login.httpRoute.rules | nindent 4 }}
-    {{- else }}
+    {{- range .Values.login.gateway.httpRoute.hosts }}
+    {{- range .paths }}
     - matches:
         - path:
-            type: PathPrefix
-            value: /ui/v2/login
+            type: {{ .pathType }}
+            value: {{ .path }}
       backendRefs:
         - name: {{ $fullName }}
           port: {{ $svcPort }}
+      {{- with $filters }}
+      filters:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with $timeouts }}
+      timeouts:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    {{- end }}
     {{- end }}
 {{- end }}

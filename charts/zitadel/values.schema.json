@@ -116,6 +116,111 @@
             "description": "Completely override the generated resource names (release-name + chart-name). Takes precedence over nameOverride. Use this when you need full control over resource naming, such as when migrating from another chart.",
             "type": "string"
         },
+        "gateway": {
+            "type": "object",
+            "properties": {
+                "grpcRoute": {
+                    "type": "object",
+                    "properties": {
+                        "annotations": {
+                            "description": "(map[string]string) Annotations to apply to the GRPCRoute resource.",
+                            "type": "object"
+                        },
+                        "enabled": {
+                            "description": "If true, creates a GRPCRoute resource for the ZITADEL gRPC API.",
+                            "type": "boolean"
+                        },
+                        "filters": {
+                            "description": "([]GRPCRouteFilter) Filters to apply to all rules. These define processing steps for gRPC requests, such as header modification or mirroring. Ref: https://gateway-api.sigs.k8s.io/reference/spec/#gateway.networking.k8s.io/v1.GRPCRouteFilter",
+                            "type": "array"
+                        },
+                        "hosts": {
+                            "description": "A list of host rules for the GRPCRoute. Each host can have multiple paths.",
+                            "type": "array",
+                            "items": {
+                                "type": "object",
+                                "properties": {
+                                    "paths": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "object",
+                                            "properties": {
+                                                "path": {
+                                                    "type": "string"
+                                                },
+                                                "pathType": {
+                                                    "type": "string"
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        "labels": {
+                            "description": "(map[string]string) Additional labels to apply to the GRPCRoute resource.",
+                            "type": "object"
+                        },
+                        "parentRefs": {
+                            "description": "References to Gateway resources that this route should be attached to. Example: parentRefs: - name: my-gateway",
+                            "type": "array"
+                        }
+                    }
+                },
+                "httpRoute": {
+                    "type": "object",
+                    "properties": {
+                        "annotations": {
+                            "description": "(map[string]string) Annotations to apply to the HTTPRoute resource.",
+                            "type": "object"
+                        },
+                        "enabled": {
+                            "description": "If true, creates an HTTPRoute resource for the ZITADEL service.",
+                            "type": "boolean"
+                        },
+                        "filters": {
+                            "description": "([]HTTPRouteFilter) Filters to apply to all rules. These define processing steps for requests, such as header modification or URL rewrites. Ref: https://gateway-api.sigs.k8s.io/reference/spec/#gateway.networking.k8s.io/v1.HTTPRouteFilter",
+                            "type": "array"
+                        },
+                        "hosts": {
+                            "description": "A list of host rules for the HTTPRoute. Each host can have multiple paths.",
+                            "type": "array",
+                            "items": {
+                                "type": "object",
+                                "properties": {
+                                    "paths": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "object",
+                                            "properties": {
+                                                "path": {
+                                                    "type": "string"
+                                                },
+                                                "pathType": {
+                                                    "type": "string"
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        "labels": {
+                            "description": "(map[string]string) Additional labels to apply to the HTTPRoute resource.",
+                            "type": "object"
+                        },
+                        "parentRefs": {
+                            "description": "References to Gateway resources that this route should be attached to. Each entry must include at least a `name` field matching an existing Gateway. Example: parentRefs: - name: my-gateway sectionName: https",
+                            "type": "array"
+                        },
+                        "timeouts": {
+                            "description": "Timeouts for HTTP requests routed via this HTTPRoute. Ref: https://gateway-api.sigs.k8s.io/reference/spec/#gateway.networking.k8s.io/v1.HTTPRouteTimeouts",
+                            "type": "object"
+                        }
+                    }
+                }
+            }
+        },
         "image": {
             "type": "object",
             "properties": {
@@ -191,166 +296,6 @@
                     "type": "array",
                     "items": {
                         "$ref": "https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/v1.30.0/_definitions.json#/definitions/io.k8s.api.networking.v1.IngressTLS"
-                    }
-                }
-            }
-        },
-        "gateway": {
-            "description": "Gateway API configuration for exposing ZITADEL using Kubernetes Gateway API resources (HTTPRoute, GRPCRoute). This is an alternative to the traditional Ingress resources. Use either Ingress or Gateway API, not both. Requires a Gateway API implementation and CRDs installed in the cluster. Ref: https://gateway-api.sigs.k8s.io/",
-            "type": "object",
-            "properties": {
-                "zitadel": {
-                    "type": "object",
-                    "properties": {
-                        "httpRoute": {
-                            "type": "object",
-                            "properties": {
-                                "enabled": {
-                                    "description": "If true, creates an HTTPRoute resource for the ZITADEL service.",
-                                    "type": "boolean"
-                                },
-                                "annotations": {
-                                    "description": "(map[string]string) Annotations to apply to the HTTPRoute resource.",
-                                    "type": "object"
-                                },
-                                "parentRefs": {
-                                    "description": "References to Gateway resources that this route should be attached to. Each entry must include at least a `name` field matching an existing Gateway.",
-                                    "type": "array",
-                                    "items": {
-                                        "type": "object",
-                                        "properties": {
-                                            "name": {
-                                                "type": "string"
-                                            },
-                                            "namespace": {
-                                                "type": "string"
-                                            },
-                                            "sectionName": {
-                                                "type": "string"
-                                            },
-                                            "port": {
-                                                "type": "integer"
-                                            }
-                                        }
-                                    }
-                                },
-                                "hostnames": {
-                                    "description": "([]string) Hostnames for the HTTPRoute. If empty, defaults to zitadel.configmapConfig.ExternalDomain.",
-                                    "type": "array",
-                                    "items": {
-                                        "type": "string"
-                                    }
-                                },
-                                "rules": {
-                                    "description": "([]object) Custom routing rules. If empty, a default catch-all rule routing all traffic to the ZITADEL service is created.",
-                                    "type": "array",
-                                    "items": {
-                                        "type": "object"
-                                    }
-                                }
-                            }
-                        },
-                        "grpcRoute": {
-                            "type": "object",
-                            "properties": {
-                                "enabled": {
-                                    "description": "If true, creates a GRPCRoute resource for the ZITADEL gRPC API.",
-                                    "type": "boolean"
-                                },
-                                "annotations": {
-                                    "description": "(map[string]string) Annotations to apply to the GRPCRoute resource.",
-                                    "type": "object"
-                                },
-                                "parentRefs": {
-                                    "description": "References to Gateway resources that this route should be attached to.",
-                                    "type": "array",
-                                    "items": {
-                                        "type": "object",
-                                        "properties": {
-                                            "name": {
-                                                "type": "string"
-                                            },
-                                            "namespace": {
-                                                "type": "string"
-                                            },
-                                            "sectionName": {
-                                                "type": "string"
-                                            },
-                                            "port": {
-                                                "type": "integer"
-                                            }
-                                        }
-                                    }
-                                },
-                                "hostnames": {
-                                    "description": "([]string) Hostnames for the GRPCRoute. If empty, defaults to zitadel.configmapConfig.ExternalDomain.",
-                                    "type": "array",
-                                    "items": {
-                                        "type": "string"
-                                    }
-                                },
-                                "rules": {
-                                    "description": "([]object) Custom gRPC routing rules. If empty, a default rule routing all gRPC traffic to the ZITADEL service is created.",
-                                    "type": "array",
-                                    "items": {
-                                        "type": "object"
-                                    }
-                                }
-                            }
-                        }
-                    }
-                },
-                "login": {
-                    "type": "object",
-                    "properties": {
-                        "httpRoute": {
-                            "type": "object",
-                            "properties": {
-                                "enabled": {
-                                    "description": "If true, creates an HTTPRoute resource for the Login UI service.",
-                                    "type": "boolean"
-                                },
-                                "annotations": {
-                                    "description": "(map[string]string) Annotations to apply to the HTTPRoute resource.",
-                                    "type": "object"
-                                },
-                                "parentRefs": {
-                                    "description": "References to Gateway resources that this route should be attached to.",
-                                    "type": "array",
-                                    "items": {
-                                        "type": "object",
-                                        "properties": {
-                                            "name": {
-                                                "type": "string"
-                                            },
-                                            "namespace": {
-                                                "type": "string"
-                                            },
-                                            "sectionName": {
-                                                "type": "string"
-                                            },
-                                            "port": {
-                                                "type": "integer"
-                                            }
-                                        }
-                                    }
-                                },
-                                "hostnames": {
-                                    "description": "([]string) Hostnames for the HTTPRoute. If empty, defaults to zitadel.configmapConfig.ExternalDomain.",
-                                    "type": "array",
-                                    "items": {
-                                        "type": "string"
-                                    }
-                                },
-                                "rules": {
-                                    "description": "([]object) Custom routing rules. If empty, a default rule routing /ui/v2/login traffic to the Login UI service is created.",
-                                    "type": "array",
-                                    "items": {
-                                        "type": "object"
-                                    }
-                                }
-                            }
-                        }
                     }
                 }
             }
@@ -559,6 +504,63 @@
                 "fullnameOverride": {
                     "description": "Completely override the generated resource names. Takes precedence over nameOverride when set.",
                     "type": "string"
+                },
+                "gateway": {
+                    "type": "object",
+                    "properties": {
+                        "httpRoute": {
+                            "type": "object",
+                            "properties": {
+                                "annotations": {
+                                    "description": "(map[string]string) Annotations to apply to the HTTPRoute resource.",
+                                    "type": "object"
+                                },
+                                "enabled": {
+                                    "description": "If true, creates an HTTPRoute resource for the Login UI service.",
+                                    "type": "boolean"
+                                },
+                                "filters": {
+                                    "description": "([]HTTPRouteFilter) Filters to apply to all rules. These define processing steps for requests, such as header modification or URL rewrites. Ref: https://gateway-api.sigs.k8s.io/reference/spec/#gateway.networking.k8s.io/v1.HTTPRouteFilter",
+                                    "type": "array"
+                                },
+                                "hosts": {
+                                    "description": "A list of host rules for the HTTPRoute. The default path targets the login UI.",
+                                    "type": "array",
+                                    "items": {
+                                        "type": "object",
+                                        "properties": {
+                                            "paths": {
+                                                "type": "array",
+                                                "items": {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "path": {
+                                                            "type": "string"
+                                                        },
+                                                        "pathType": {
+                                                            "type": "string"
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                },
+                                "labels": {
+                                    "description": "(map[string]string) Additional labels to apply to the HTTPRoute resource.",
+                                    "type": "object"
+                                },
+                                "parentRefs": {
+                                    "description": "References to Gateway resources that this route should be attached to. Example: parentRefs: - name: my-gateway",
+                                    "type": "array"
+                                },
+                                "timeouts": {
+                                    "description": "Timeouts for HTTP requests routed via this HTTPRoute. Ref: https://gateway-api.sigs.k8s.io/reference/spec/#gateway.networking.k8s.io/v1.HTTPRouteTimeouts",
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
                 },
                 "image": {
                     "type": "object",
