@@ -486,6 +486,20 @@ Uses fully qualified image names for CRI-O v1.34+ compatibility.
 {{- end -}}
 
 {{/*
+Return the PostgreSQL service hostname for the bundled subchart.
+Respects fullnameOverride and nameOverride on the postgresql dependency.
+*/}}
+{{- define "zitadel.postgresqlHost" -}}
+{{- if .Values.postgresql.fullnameOverride -}}
+{{- .Values.postgresql.fullnameOverride -}}
+{{- else if .Values.postgresql.nameOverride -}}
+{{- printf "%s-%s" .Release.Name .Values.postgresql.nameOverride -}}
+{{- else -}}
+{{- printf "%s-postgresql" .Release.Name -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
 Auto-generate ZITADEL database configuration from the bundled PostgreSQL subchart.
 Only used when postgresql.enabled=true. User-supplied configmapConfig.Database values
 take priority over these auto-generated values via zitadel.mergedConfigmapConfig.
@@ -493,7 +507,7 @@ take priority over these auto-generated values via zitadel.mergedConfigmapConfig
 {{- define "zitadel.postgresqlAutoConfig" -}}
 Database:
   Postgres:
-    Host: {{ printf "%s-postgresql" .Release.Name }}
+    Host: {{ include "zitadel.postgresqlHost" . }}
     Port: 5432
     Database: {{ .Values.postgresql.auth.database }}
     User:

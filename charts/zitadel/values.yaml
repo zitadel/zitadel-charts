@@ -1340,6 +1340,17 @@ tools:
       #   cpu: 50m
       #   memory: 32Mi
 
+  # Configuration for the busybox image used by the wait-for-postgresql initContainer.
+  # Override when running in air-gapped or restricted-registry environments.
+  busybox:
+    image:
+      # -- The image repository for busybox.
+      repository: "busybox"
+      # -- The busybox image tag.
+      tag: "1.37"
+      # -- Image pull policy. Defaults to the Kubernetes default for the given tag.
+      pullPolicy: ""
+
   # Configuration for the kubectl helper image used by init containers and jobs
   # for lightweight Kubernetes API operations. This image is used by the setup
   # job's machinekey containers and the cleanup job.

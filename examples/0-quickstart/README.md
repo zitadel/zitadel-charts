@@ -29,7 +29,6 @@ curl -fsSLO https://raw.githubusercontent.com/zitadel/zitadel-charts/main/exampl
 
 ```bash
 helm repo add zitadel https://charts.zitadel.com &&
-helm repo add bitnami https://charts.bitnami.com/bitnami &&
 helm repo update &&
 helm upgrade --install zitadel zitadel/zitadel --values quickstart-values.yaml --wait
 ```

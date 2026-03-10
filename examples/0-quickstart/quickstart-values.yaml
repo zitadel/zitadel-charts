@@ -12,7 +12,7 @@ postgresql:
   # problem: without this, subcharts deploy as regular resources (after all hooks),
   # so the init job would fire before postgresql exists.
   commonAnnotations:
-    helm.sh/hook: pre-install,pre-upgrade
+    helm.sh/hook: pre-install
     helm.sh/hook-weight: "-1"
   auth:
     database: zitadel

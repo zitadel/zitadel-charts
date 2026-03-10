@@ -53,13 +53,17 @@ spec:
       initContainers:
       {{- if .Values.postgresql.enabled }}
         - name: wait-for-postgresql
-          image: busybox:1.37
+          image: {{ .Values.tools.busybox.image.repository }}:{{ .Values.tools.busybox.image.tag }}
           command:
             - sh
             - -c
             - |
-              until nc -z {{ printf "%s-postgresql" .Release.Name }} 5432; do
-                echo "waiting for postgresql..."; sleep 2
+              TIMEOUT=300; elapsed=0
+              until nc -z {{ include "zitadel.postgresqlHost" . }} 5432; do
+                if [ "$elapsed" -ge "$TIMEOUT" ]; then
+                  echo "ERROR: timed out waiting for postgresql after ${TIMEOUT}s"; exit 1
+                fi
+                echo "waiting for postgresql... (${elapsed}s elapsed)"; sleep 2; elapsed=$((elapsed + 2))
               done
       {{- end }}
       {{- with .Values.zitadel.initContainers }}
