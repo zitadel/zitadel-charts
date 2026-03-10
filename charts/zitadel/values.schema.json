@@ -1075,6 +1075,50 @@
                 }
             }
         },
+        "postgresql": {
+            "type": "object",
+            "properties": {
+                "auth": {
+                    "type": "object",
+                    "properties": {
+                        "database": {
+                            "description": "Database name to create for ZITADEL.",
+                            "type": "string"
+                        },
+                        "password": {
+                            "description": "Password for the ZITADEL application user. Change this for anything beyond a local quickstart.",
+                            "type": "string"
+                        },
+                        "postgresPassword": {
+                            "description": "Password for the PostgreSQL superuser (postgres). Change this for anything beyond a local quickstart.",
+                            "type": "string"
+                        },
+                        "username": {
+                            "description": "Username for the ZITADEL application user.",
+                            "type": "string"
+                        }
+                    }
+                },
+                "enabled": {
+                    "description": "Deploy a PostgreSQL instance as a subchart. Enables one-command full-stack install.",
+                    "type": "boolean"
+                },
+                "primary": {
+                    "type": "object",
+                    "properties": {
+                        "persistence": {
+                            "type": "object",
+                            "properties": {
+                                "enabled": {
+                                    "description": "Enable persistent storage for PostgreSQL data. Set to true if you want data to survive pod restarts.",
+                                    "type": "boolean"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "readinessProbe": {
             "type": "object",
             "properties": {
@@ -1313,6 +1357,28 @@
         "tools": {
             "type": "object",
             "properties": {
+                "busybox": {
+                    "type": "object",
+                    "properties": {
+                        "image": {
+                            "type": "object",
+                            "properties": {
+                                "pullPolicy": {
+                                    "description": "Image pull policy. Defaults to the Kubernetes default for the given tag.",
+                                    "type": "string"
+                                },
+                                "repository": {
+                                    "description": "The image repository for busybox.",
+                                    "type": "string"
+                                },
+                                "tag": {
+                                    "description": "The busybox image tag.",
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    }
+                },
                 "kubectl": {
                     "type": "object",
                     "properties": {
