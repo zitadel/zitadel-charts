@@ -1397,4 +1397,3 @@ postgresql:
       # -- Enable persistent storage for PostgreSQL data.
       # Set to true if you want data to survive pod restarts.
       enabled: false
-
