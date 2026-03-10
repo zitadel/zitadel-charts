@@ -1,64 +1,61 @@
 package smoke_test_test
 
 import (
-	"strings"
 	"testing"
 
-	"github.com/gruntwork-io/terratest/modules/helm"
-	"github.com/stretchr/testify/require"
-	rbacv1 "k8s.io/api/rbac/v1"
-	"sigs.k8s.io/yaml"
-
-	"github.com/zitadel/zitadel-charts/test/smoke/support"
+	"github.com/zitadel/zitadel-charts/test/assert"
+	setup "github.com/zitadel/zitadel-charts/test/smoke/support"
+	"github.com/zitadel/zitadel-charts/test/support"
 )
 
 func TestRBACLabels(t *testing.T) {
 	t.Parallel()
 
-	chartPath := support.ChartPath(t)
+	cluster := support.ConnectCluster(t)
+	chartPath := setup.ChartPath(t)
 
-	options := &helm.Options{
-		SetValues: map[string]string{
-			"image.tag":         support.DigestTag,
-			"zitadel.masterkey": "01234567890123456789012345678901",
+	testCases := []struct {
+		name    string
+		role    *assert.RoleAssertion
+		binding *assert.RoleBindingAssertion
+	}{
+		{
+			name: "labels",
+			role: &assert.RoleAssertion{
+				ObjectMeta: assert.ObjectMetaAssertion{
+					Labels: assert.Some(map[string]string{
+						"app.kubernetes.io/name":       "zitadel",
+						"app.kubernetes.io/version":    "v4.10.1",
+						"app.kubernetes.io/managed-by": "Helm",
+					}),
+				},
+			},
+			binding: &assert.RoleBindingAssertion{
+				ObjectMeta: assert.ObjectMetaAssertion{
+					Labels: assert.Some(map[string]string{
+						"app.kubernetes.io/name":       "zitadel",
+						"app.kubernetes.io/version":    "v4.10.1",
+						"app.kubernetes.io/managed-by": "Helm",
+					}),
+				},
+			},
 		},
 	}
 
-	releaseName := "rbac-labels"
+	for _, tc := range testCases {
+		tc := tc
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+			support.WithNamespace(t, cluster, func(env *support.Env) {
+				releaseName := setup.InstallZitadel(t, env, chartPath, tc.name, nil)
 
-	rendered := helm.RenderTemplate(t, options, chartPath, releaseName, []string{"templates/rbac_zitadel.yaml"})
-	docs := strings.Split(rendered, "---")
-
-	expectedLabels := support.ExpectedLabels(releaseName, "zitadel", support.ExpectedVersion, "", nil)
-
-	foundRole := false
-	foundRoleBinding := false
-
-	for _, doc := range docs {
-		doc = strings.TrimSpace(doc)
-		if doc == "" {
-			continue
-		}
-
-		var typeMeta struct {
-			Kind string `json:"kind"`
-		}
-		require.NoError(t, yaml.Unmarshal([]byte(doc), &typeMeta))
-
-		switch typeMeta.Kind {
-		case "Role":
-			var role rbacv1.Role
-			require.NoError(t, yaml.Unmarshal([]byte(doc), &role))
-			support.AssertLabels(t, role.Labels, expectedLabels)
-			foundRole = true
-		case "RoleBinding":
-			var roleBinding rbacv1.RoleBinding
-			require.NoError(t, yaml.Unmarshal([]byte(doc), &roleBinding))
-			support.AssertLabels(t, roleBinding.Labels, expectedLabels)
-			foundRoleBinding = true
-		}
+				if tc.role != nil {
+					assert.AssertPartial(t, env.GetRole(t, releaseName), *tc.role, releaseName+" Role")
+				}
+				if tc.binding != nil {
+					assert.AssertPartial(t, env.GetRoleBinding(t, releaseName), *tc.binding, releaseName+" RoleBinding")
+				}
+			})
+		})
 	}
-
-	require.True(t, foundRole, "expected Role to be rendered")
-	require.True(t, foundRoleBinding, "expected RoleBinding to be rendered")
 }

@@ -1,40 +1,26 @@
 package smoke_test_test
 
 import (
-	"context"
-	"fmt"
 	"testing"
 
-	"github.com/gruntwork-io/terratest/modules/helm"
-	"github.com/stretchr/testify/require"
-	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	"github.com/zitadel/zitadel-charts/test/smoke/support"
+	"github.com/zitadel/zitadel-charts/test/assert"
+	setup "github.com/zitadel/zitadel-charts/test/smoke/support"
+	"github.com/zitadel/zitadel-charts/test/support"
 )
-
-type securityContextsExpected struct {
-	zitadelPodSecurityContext *corev1.PodSecurityContext
-	zitadelSecurityContext    *corev1.SecurityContext
-	loginPodSecurityContext   *corev1.PodSecurityContext
-	loginSecurityContext      *corev1.SecurityContext
-}
 
 func TestSecurityContexts(t *testing.T) {
 	t.Parallel()
 
 	cluster := support.ConnectCluster(t)
-
-	chartPath := support.ChartPath(t)
-
-	int64Ptr := func(value int64) *int64 { return &value }
-	boolPtr := func(value bool) *bool { return &value }
+	chartPath := setup.ChartPath(t)
 
 	testCases := []struct {
 		name      string
 		setValues map[string]string
-		expected  securityContextsExpected
+		zitadel   assert.DeploymentAssertion
+		login     assert.DeploymentAssertion
 	}{
 		{
 			name: "defaults-use-global",
@@ -42,32 +28,74 @@ func TestSecurityContexts(t *testing.T) {
 				"login.enabled":         "true",
 				"login.ingress.enabled": "true",
 			},
-			expected: securityContextsExpected{
-				zitadelPodSecurityContext: &corev1.PodSecurityContext{
-					RunAsNonRoot: boolPtr(true),
-					RunAsUser:    int64Ptr(1000),
-					FSGroup:      int64Ptr(1000),
+			zitadel: assert.DeploymentAssertion{
+				Spec: assert.DeploymentSpecAssertion{
+					Template: assert.PodTemplateSpecAssertion{
+						Spec: assert.PodSpecAssertion{
+							SecurityContext: assert.PodSecurityContextAssertion{
+								RunAsNonRoot: assert.SomePtr(true),
+								RunAsUser:    assert.SomePtr(int64(1000)),
+								FSGroup:      assert.SomePtr(int64(1000)),
+							},
+							InitContainers: assert.Some([]assert.ContainerAssertion{
+								{
+									Name: assert.Some("wait-for-postgres"),
+									SecurityContext: assert.SecurityContextAssertion{
+										RunAsNonRoot:           assert.SomePtr(true),
+										RunAsUser:              assert.SomePtr(int64(1000)),
+										ReadOnlyRootFilesystem: assert.SomePtr(true),
+										Privileged:             assert.SomePtr(false),
+									},
+								},
+							}),
+							Containers: assert.Some([]assert.ContainerAssertion{
+								{
+									Name: assert.Some("zitadel"),
+									SecurityContext: assert.SecurityContextAssertion{
+										RunAsNonRoot:           assert.SomePtr(true),
+										RunAsUser:              assert.SomePtr(int64(1000)),
+										ReadOnlyRootFilesystem: assert.SomePtr(true),
+										Privileged:             assert.SomePtr(false),
+									},
+								},
+							}),
+						},
+					},
 				},
-				zitadelSecurityContext: &corev1.SecurityContext{
-					RunAsNonRoot:             boolPtr(true),
-					RunAsUser:                int64Ptr(1000),
-					ReadOnlyRootFilesystem:   boolPtr(true),
-					Privileged:               boolPtr(false),
-					AllowPrivilegeEscalation: nil,
-					Capabilities:             nil,
-				},
-				loginPodSecurityContext: &corev1.PodSecurityContext{
-					RunAsNonRoot: boolPtr(true),
-					RunAsUser:    int64Ptr(1000),
-					FSGroup:      int64Ptr(1000),
-				},
-				loginSecurityContext: &corev1.SecurityContext{
-					RunAsNonRoot:             boolPtr(true),
-					RunAsUser:                int64Ptr(1000),
-					ReadOnlyRootFilesystem:   boolPtr(true),
-					Privileged:               boolPtr(false),
-					AllowPrivilegeEscalation: nil,
-					Capabilities:             nil,
+			},
+			login: assert.DeploymentAssertion{
+				Spec: assert.DeploymentSpecAssertion{
+					Template: assert.PodTemplateSpecAssertion{
+						Spec: assert.PodSpecAssertion{
+							SecurityContext: assert.PodSecurityContextAssertion{
+								RunAsNonRoot: assert.SomePtr(true),
+								RunAsUser:    assert.SomePtr(int64(1000)),
+								FSGroup:      assert.SomePtr(int64(1000)),
+							},
+							InitContainers: assert.Some([]assert.ContainerAssertion{
+								{
+									Name: assert.Some("wait-for-zitadel"),
+									SecurityContext: assert.SecurityContextAssertion{
+										RunAsNonRoot:           assert.SomePtr(true),
+										RunAsUser:              assert.SomePtr(int64(1000)),
+										ReadOnlyRootFilesystem: assert.SomePtr(true),
+										Privileged:             assert.SomePtr(false),
+									},
+								},
+							}),
+							Containers: assert.Some([]assert.ContainerAssertion{
+								{
+									Name: assert.Some("zitadel-login"),
+									SecurityContext: assert.SecurityContextAssertion{
+										RunAsNonRoot:           assert.SomePtr(true),
+										RunAsUser:              assert.SomePtr(int64(1000)),
+										ReadOnlyRootFilesystem: assert.SomePtr(true),
+										Privileged:             assert.SomePtr(false),
+									},
+								},
+							}),
+						},
+					},
 				},
 			},
 		},
@@ -98,145 +126,111 @@ func TestSecurityContexts(t *testing.T) {
 				"login.securityContext.allowPrivilegeEscalation":   "false",
 				"login.securityContext.capabilities.drop[0]":       "NET_RAW",
 			},
-			expected: securityContextsExpected{
-				zitadelPodSecurityContext: &corev1.PodSecurityContext{
-					RunAsNonRoot: boolPtr(true),
-					RunAsUser:    int64Ptr(2000),
-					FSGroup:      int64Ptr(2000),
-					SeccompProfile: &corev1.SeccompProfile{
-						Type: corev1.SeccompProfileTypeRuntimeDefault,
+			zitadel: assert.DeploymentAssertion{
+				Spec: assert.DeploymentSpecAssertion{
+					Template: assert.PodTemplateSpecAssertion{
+						Spec: assert.PodSpecAssertion{
+							SecurityContext: assert.PodSecurityContextAssertion{
+								RunAsNonRoot: assert.SomePtr(true),
+								RunAsUser:    assert.SomePtr(int64(2000)),
+								FSGroup:      assert.SomePtr(int64(2000)),
+								SeccompProfile: assert.SeccompProfileAssertion{
+									Type: assert.Some(corev1.SeccompProfileTypeRuntimeDefault),
+								},
+							},
+							InitContainers: assert.Some([]assert.ContainerAssertion{
+								{
+									Name: assert.Some("wait-for-postgres"),
+									SecurityContext: assert.SecurityContextAssertion{
+										RunAsNonRoot:             assert.SomePtr(true),
+										RunAsUser:                assert.SomePtr(int64(2000)),
+										ReadOnlyRootFilesystem:   assert.SomePtr(true),
+										Privileged:               assert.SomePtr(false),
+										AllowPrivilegeEscalation: assert.SomePtr(false),
+										Capabilities: assert.CapabilitiesAssertion{
+											Drop: assert.Some([]corev1.Capability{"ALL"}),
+										},
+									},
+								},
+							}),
+							Containers: assert.Some([]assert.ContainerAssertion{
+								{
+									Name: assert.Some("zitadel"),
+									SecurityContext: assert.SecurityContextAssertion{
+										RunAsNonRoot:             assert.SomePtr(true),
+										RunAsUser:                assert.SomePtr(int64(2000)),
+										ReadOnlyRootFilesystem:   assert.SomePtr(true),
+										Privileged:               assert.SomePtr(false),
+										AllowPrivilegeEscalation: assert.SomePtr(false),
+										Capabilities: assert.CapabilitiesAssertion{
+											Drop: assert.Some([]corev1.Capability{"ALL"}),
+										},
+									},
+								},
+							}),
+						},
 					},
 				},
-				zitadelSecurityContext: &corev1.SecurityContext{
-					RunAsNonRoot:             boolPtr(true),
-					RunAsUser:                int64Ptr(2000),
-					ReadOnlyRootFilesystem:   boolPtr(true),
-					Privileged:               boolPtr(false),
-					AllowPrivilegeEscalation: boolPtr(false),
-					Capabilities: &corev1.Capabilities{
-						Drop: []corev1.Capability{"ALL"},
-					},
-				},
-				loginPodSecurityContext: &corev1.PodSecurityContext{
-					RunAsNonRoot: boolPtr(true),
-					RunAsUser:    int64Ptr(3000),
-					FSGroup:      int64Ptr(3000),
-					SeccompProfile: &corev1.SeccompProfile{
-						Type: corev1.SeccompProfileTypeRuntimeDefault,
-					},
-				},
-				loginSecurityContext: &corev1.SecurityContext{
-					RunAsNonRoot:             boolPtr(true),
-					RunAsUser:                int64Ptr(3000),
-					ReadOnlyRootFilesystem:   boolPtr(true),
-					Privileged:               boolPtr(false),
-					AllowPrivilegeEscalation: boolPtr(false),
-					Capabilities: &corev1.Capabilities{
-						Drop: []corev1.Capability{"NET_RAW"},
+			},
+			login: assert.DeploymentAssertion{
+				Spec: assert.DeploymentSpecAssertion{
+					Template: assert.PodTemplateSpecAssertion{
+						Spec: assert.PodSpecAssertion{
+							SecurityContext: assert.PodSecurityContextAssertion{
+								RunAsNonRoot: assert.SomePtr(true),
+								RunAsUser:    assert.SomePtr(int64(3000)),
+								FSGroup:      assert.SomePtr(int64(3000)),
+								SeccompProfile: assert.SeccompProfileAssertion{
+									Type: assert.Some(corev1.SeccompProfileTypeRuntimeDefault),
+								},
+							},
+							InitContainers: assert.Some([]assert.ContainerAssertion{
+								{
+									Name: assert.Some("wait-for-zitadel"),
+									SecurityContext: assert.SecurityContextAssertion{
+										RunAsNonRoot:             assert.SomePtr(true),
+										RunAsUser:                assert.SomePtr(int64(3000)),
+										ReadOnlyRootFilesystem:   assert.SomePtr(true),
+										Privileged:               assert.SomePtr(false),
+										AllowPrivilegeEscalation: assert.SomePtr(false),
+										Capabilities: assert.CapabilitiesAssertion{
+											Drop: assert.Some([]corev1.Capability{"NET_RAW"}),
+										},
+									},
+								},
+							}),
+							Containers: assert.Some([]assert.ContainerAssertion{
+								{
+									Name: assert.Some("zitadel-login"),
+									SecurityContext: assert.SecurityContextAssertion{
+										RunAsNonRoot:             assert.SomePtr(true),
+										RunAsUser:                assert.SomePtr(int64(3000)),
+										ReadOnlyRootFilesystem:   assert.SomePtr(true),
+										Privileged:               assert.SomePtr(false),
+										AllowPrivilegeEscalation: assert.SomePtr(false),
+										Capabilities: assert.CapabilitiesAssertion{
+											Drop: assert.Some([]corev1.Capability{"NET_RAW"}),
+										},
+									},
+								},
+							}),
+						},
 					},
 				},
 			},
 		},
 	}
 
-	for _, testCase := range testCases {
-		testCase := testCase
-		t.Run(testCase.name, func(t *testing.T) {
+	for _, tc := range testCases {
+		tc := tc
+		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 			support.WithNamespace(t, cluster, func(env *support.Env) {
-				env.Logger.Logf(t, "namespace %q created; installing PostgreSQL…", env.Namespace)
-				support.WithPostgres(t, env)
+				releaseName := setup.InstallZitadel(t, env, chartPath, tc.name, tc.setValues)
 
-				uniqueDomain := fmt.Sprintf("%s.test.local", env.Namespace)
-				commonSetValues := map[string]string{
-					"zitadel.masterkey":                                         "x123456789012345678901234567891y",
-					"zitadel.configmapConfig.ExternalDomain":                    uniqueDomain,
-					"zitadel.configmapConfig.ExternalPort":                      "443",
-					"zitadel.configmapConfig.TLS.Enabled":                       "false",
-					"zitadel.configmapConfig.Database.Postgres.Host":            "db-postgresql",
-					"zitadel.configmapConfig.Database.Postgres.Port":            "5432",
-					"zitadel.configmapConfig.Database.Postgres.Database":        "zitadel",
-					"zitadel.configmapConfig.Database.Postgres.MaxOpenConns":    "20",
-					"zitadel.configmapConfig.Database.Postgres.MaxIdleConns":    "10",
-					"zitadel.configmapConfig.Database.Postgres.MaxConnLifetime": "30m",
-					"zitadel.configmapConfig.Database.Postgres.MaxConnIdleTime": "5m",
-					"zitadel.configmapConfig.Database.Postgres.User.Username":   "postgres",
-					"zitadel.configmapConfig.Database.Postgres.User.SSL.Mode":   "disable",
-					"zitadel.configmapConfig.Database.Postgres.Admin.Username":  "postgres",
-					"zitadel.configmapConfig.Database.Postgres.Admin.SSL.Mode":  "disable",
-					"ingress.enabled":       "true",
-					"login.ingress.enabled": "true",
-				}
-
-				releaseName := env.MakeRelease("zitadel-test", testCase.name)
-
-				mergedSetValues := make(map[string]string)
-				for key, value := range commonSetValues {
-					mergedSetValues[key] = value
-				}
-				for key, value := range testCase.setValues {
-					mergedSetValues[key] = value
-				}
-
-				helmOptions := &helm.Options{
-					KubectlOptions: env.Kube,
-					SetValues:      mergedSetValues,
-					ExtraArgs: map[string][]string{
-						"upgrade": {"--install", "--wait", "--timeout", "30m"},
-					},
-				}
-
-				if err := helm.UpgradeE(t, helmOptions, chartPath, releaseName); err != nil {
-					dumpSetupAndInitJobLogs(t, env, releaseName)
-					require.NoError(t, err)
-				}
-
-				ctx := context.Background()
-
-				zitadelDeployment, err := env.Client.
-					AppsV1().
-					Deployments(env.Kube.Namespace).
-					Get(ctx, releaseName, metav1.GetOptions{})
-				require.NoError(t, err, "failed to get zitadel deployment")
-				assertDeploymentSecurity(t, zitadelDeployment, testCase.expected.zitadelPodSecurityContext, testCase.expected.zitadelSecurityContext, "zitadel")
-
-				loginDeployment, err := env.Client.
-					AppsV1().
-					Deployments(env.Kube.Namespace).
-					Get(ctx, releaseName+"-login", metav1.GetOptions{})
-				require.NoError(t, err, "failed to get login deployment")
-				assertDeploymentSecurity(t, loginDeployment, testCase.expected.loginPodSecurityContext, testCase.expected.loginSecurityContext, "zitadel-login")
+				assert.AssertPartial(t, env.GetDeployment(t, releaseName), tc.zitadel, "zitadel deployment")
+				assert.AssertPartial(t, env.GetDeployment(t, releaseName+"-login"), tc.login, "login deployment")
 			})
 		})
 	}
-}
-
-func assertDeploymentSecurity(t *testing.T, deployment *appsv1.Deployment, expectedPodSC *corev1.PodSecurityContext, expectedContainerSC *corev1.SecurityContext, containerName string) {
-	t.Helper()
-
-	require.NotNil(t, deployment.Spec.Template.Spec.SecurityContext, "pod securityContext missing for deployment %s", deployment.Name)
-	require.Equal(t, expectedPodSC, deployment.Spec.Template.Spec.SecurityContext, "pod securityContext mismatch for deployment %s", deployment.Name)
-
-	container := findContainer(deployment.Spec.Template.Spec.Containers, containerName)
-	require.NotNil(t, container, "container %s not found in deployment %s", containerName, deployment.Name)
-	require.NotNil(t, container.SecurityContext, "container securityContext missing for %s", containerName)
-	require.Equal(t, expectedContainerSC, container.SecurityContext, "container securityContext mismatch for %s", containerName)
-
-	for _, c := range deployment.Spec.Template.Spec.InitContainers {
-		require.NotNil(t, c.SecurityContext, "init container securityContext missing for %s in deployment %s", c.Name, deployment.Name)
-		require.Equal(t, expectedContainerSC, c.SecurityContext, "init container securityContext mismatch for %s in deployment %s", c.Name, deployment.Name)
-	}
-	for _, c := range deployment.Spec.Template.Spec.Containers {
-		require.NotNil(t, c.SecurityContext, "container securityContext missing for %s in deployment %s", c.Name, deployment.Name)
-		require.Equal(t, expectedContainerSC, c.SecurityContext, "container securityContext mismatch for %s in deployment %s", c.Name, deployment.Name)
-	}
-}
-
-func findContainer(containers []corev1.Container, name string) *corev1.Container {
-	for i := range containers {
-		if containers[i].Name == name {
-			return &containers[i]
-		}
-	}
-	return nil
 }
