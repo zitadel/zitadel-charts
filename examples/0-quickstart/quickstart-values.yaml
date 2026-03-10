@@ -1,6 +1,6 @@
-# Quickstart values — full stack with bundled PostgreSQL + Traefik.
-# Uses postgresql.enabled=true and traefik.enabled=true to deploy a fully
-# self-contained stack. All passwords are intentional dev placeholders.
+# Quickstart values — full stack with bundled PostgreSQL.
+# Uses postgresql.enabled=true to deploy a fully self-contained stack.
+# All passwords are intentional dev placeholders.
 # DO NOT use these values for any non-local deployment.
 
 # Deploy PostgreSQL as a subchart. The chart auto-populates the ZITADEL
@@ -23,24 +23,6 @@ postgresql:
     persistence:
       enabled: false
 
-# Deploy Traefik as a subchart. The chart automatically sets ingress.className
-# to "traefik" for both the API and Login ingresses.
-# isDefaultClass: false ensures the bundled Traefik only handles ZITADEL's
-# Ingresses and does not conflict with any existing ingress controller.
-traefik:
-  enabled: true
-  ingressClass:
-    isDefaultClass: false
-  ports:
-    web:
-      exposedPort: 8080   # expose on 8080 to match Docker Compose default
-  # Restrict to release namespace on shared clusters (replace "default"):
-  # providers:
-  #   kubernetesIngress:
-  #     namespaces: ["default"]
-  #   kubernetesCRD:
-  #     namespaces: ["default"]
-
 zitadel:
   # Dev-only masterkey — generate a real one before any non-local deployment:
   # tr -dc A-Za-z0-9 </dev/urandom | head -c 32
@@ -48,7 +30,7 @@ zitadel:
 
   configmapConfig:
     ExternalDomain: localhost   # replace with your domain or IP
-    ExternalPort: 8080          # matches Traefik's exposedPort above
+    ExternalPort: 80            # replace with the port your ingress controller listens on
     ExternalSecure: false
     TLS:
       Enabled: false
@@ -60,8 +42,7 @@ zitadel:
           Password: "Password1!"
           PasswordChangeRequired: false
 
-# ingress.className is automatically set to "<release>-traefik" when traefik.enabled=true.
-# Override it here if you want to use a different ingress controller.
+# Set ingress.className to the IngressClass of your ingress controller (e.g., "nginx", "traefik").
 ingress:
   enabled: true
   hosts:

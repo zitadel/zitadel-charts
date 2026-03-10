@@ -1,9 +1,6 @@
 dependencies:
 - name: postgresql
   repository: https://charts.bitnami.com/bitnami
-  version: 18.5.2
-- name: traefik
-  repository: https://traefik.github.io/charts
-  version: 39.0.4
-digest: sha256:55ee7584181a19d523631ed7127aa656457aab08c75aa8aba649b14dbf48ae97
-generated: "2026-03-05T17:21:23.46119-08:00"
+  version: 18.5.5
+digest: sha256:82b528c4d42fec85223e086dd209019777450575a2c5978d99a2cb12d4a4423f
+generated: "2026-03-10T09:23:25.065121999-07:00"

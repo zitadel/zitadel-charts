@@ -27,7 +27,3 @@ dependencies:
     version: ">=16.0.0"
     repository: "https://charts.bitnami.com/bitnami"
     condition: postgresql.enabled
-  - name: traefik
-    version: ">=30.0.0"
-    repository: "https://traefik.github.io/charts"
-    condition: traefik.enabled
