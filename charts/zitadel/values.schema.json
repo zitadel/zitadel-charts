@@ -116,6 +116,152 @@
             "description": "Completely override the generated resource names (release-name + chart-name). Takes precedence over nameOverride. Use this when you need full control over resource naming, such as when migrating from another chart.",
             "type": "string"
         },
+        "gateway": {
+            "type": "object",
+            "properties": {
+                "grpcRoute": {
+                    "type": "object",
+                    "properties": {
+                        "annotations": {
+                            "description": "(map[string]string) Annotations to apply to the GRPCRoute resource.",
+                            "type": "object"
+                        },
+                        "enabled": {
+                            "description": "If true, creates a GRPCRoute resource for the ZITADEL gRPC API.",
+                            "type": "boolean"
+                        },
+                        "filters": {
+                            "description": "([]GRPCRouteFilter) Filters to apply to all rules. These define processing steps for gRPC requests, such as header modification or mirroring. Ref: https://gateway-api.sigs.k8s.io/reference/spec/#gateway.networking.k8s.io/v1.GRPCRouteFilter",
+                            "type": "array",
+                            "items": {
+                                "type": "object",
+                                "properties": {
+                                    "type": {
+                                        "type": "string"
+                                    }
+                                }
+                            }
+                        },
+                        "hostnames": {
+                            "description": "Hostnames for the GRPCRoute. If empty, defaults to ExternalDomain.",
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        },
+                        "labels": {
+                            "description": "(map[string]string) Additional labels to apply to the GRPCRoute resource.",
+                            "type": "object"
+                        },
+                        "parentRefs": {
+                            "description": "References to Gateway resources that this route should be attached to. Example: parentRefs: - name: my-gateway",
+                            "type": "array",
+                            "items": {
+                                "type": "object",
+                                "properties": {
+                                    "name": {
+                                        "type": "string"
+                                    },
+                                    "namespace": {
+                                        "type": "string"
+                                    },
+                                    "port": {
+                                        "type": "integer"
+                                    },
+                                    "sectionName": {
+                                        "type": "string"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "httpRoute": {
+                    "type": "object",
+                    "properties": {
+                        "annotations": {
+                            "description": "(map[string]string) Annotations to apply to the HTTPRoute resource.",
+                            "type": "object"
+                        },
+                        "enabled": {
+                            "description": "If true, creates an HTTPRoute resource for the ZITADEL service.",
+                            "type": "boolean"
+                        },
+                        "filters": {
+                            "description": "([]HTTPRouteFilter) Filters to apply to all rules. These define processing steps for requests, such as header modification or URL rewrites. Ref: https://gateway-api.sigs.k8s.io/reference/spec/#gateway.networking.k8s.io/v1.HTTPRouteFilter",
+                            "type": "array",
+                            "items": {
+                                "type": "object",
+                                "properties": {
+                                    "type": {
+                                        "type": "string"
+                                    }
+                                }
+                            }
+                        },
+                        "hostnames": {
+                            "description": "Hostnames for the HTTPRoute. If empty, defaults to ExternalDomain.",
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        },
+                        "labels": {
+                            "description": "(map[string]string) Additional labels to apply to the HTTPRoute resource.",
+                            "type": "object"
+                        },
+                        "parentRefs": {
+                            "description": "References to Gateway resources that this route should be attached to. Each entry must include at least a `name` field matching an existing Gateway. Example: parentRefs: - name: my-gateway sectionName: https",
+                            "type": "array",
+                            "items": {
+                                "type": "object",
+                                "properties": {
+                                    "name": {
+                                        "type": "string"
+                                    },
+                                    "namespace": {
+                                        "type": "string"
+                                    },
+                                    "port": {
+                                        "type": "integer"
+                                    },
+                                    "sectionName": {
+                                        "type": "string"
+                                    }
+                                }
+                            }
+                        },
+                        "paths": {
+                            "description": "Path matching rules for the HTTPRoute. Each entry generates a separate rule.",
+                            "type": "array",
+                            "items": {
+                                "type": "object",
+                                "properties": {
+                                    "path": {
+                                        "type": "string"
+                                    },
+                                    "pathType": {
+                                        "type": "string",
+                                        "enum": [
+                                            "Exact",
+                                            "PathPrefix",
+                                            "RegularExpression"
+                                        ]
+                                    }
+                                }
+                            }
+                        },
+                        "timeouts": {
+                            "description": "Timeouts for HTTP requests routed via this HTTPRoute. Ref: https://gateway-api.sigs.k8s.io/reference/spec/#gateway.networking.k8s.io/v1.HTTPRouteTimeouts",
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "image": {
             "type": "object",
             "properties": {
@@ -399,6 +545,95 @@
                 "fullnameOverride": {
                     "description": "Completely override the generated resource names. Takes precedence over nameOverride when set.",
                     "type": "string"
+                },
+                "gateway": {
+                    "type": "object",
+                    "properties": {
+                        "httpRoute": {
+                            "type": "object",
+                            "properties": {
+                                "annotations": {
+                                    "description": "(map[string]string) Annotations to apply to the HTTPRoute resource.",
+                                    "type": "object"
+                                },
+                                "enabled": {
+                                    "description": "If true, creates an HTTPRoute resource for the Login UI service.",
+                                    "type": "boolean"
+                                },
+                                "filters": {
+                                    "description": "([]HTTPRouteFilter) Filters to apply to all rules. These define processing steps for requests, such as header modification or URL rewrites. Ref: https://gateway-api.sigs.k8s.io/reference/spec/#gateway.networking.k8s.io/v1.HTTPRouteFilter",
+                                    "type": "array",
+                                    "items": {
+                                        "type": "object",
+                                        "properties": {
+                                            "type": {
+                                                "type": "string"
+                                            }
+                                        }
+                                    }
+                                },
+                                "hostnames": {
+                                    "description": "Hostnames for the HTTPRoute. If empty, defaults to ExternalDomain.",
+                                    "type": "array",
+                                    "items": {
+                                        "type": "string"
+                                    }
+                                },
+                                "labels": {
+                                    "description": "(map[string]string) Additional labels to apply to the HTTPRoute resource.",
+                                    "type": "object"
+                                },
+                                "parentRefs": {
+                                    "description": "References to Gateway resources that this route should be attached to. Example: parentRefs: - name: my-gateway",
+                                    "type": "array",
+                                    "items": {
+                                        "type": "object",
+                                        "properties": {
+                                            "name": {
+                                                "type": "string"
+                                            },
+                                            "namespace": {
+                                                "type": "string"
+                                            },
+                                            "port": {
+                                                "type": "integer"
+                                            },
+                                            "sectionName": {
+                                                "type": "string"
+                                            }
+                                        }
+                                    }
+                                },
+                                "paths": {
+                                    "description": "Path matching rules for the HTTPRoute. Each entry generates a separate rule.",
+                                    "type": "array",
+                                    "items": {
+                                        "type": "object",
+                                        "properties": {
+                                            "path": {
+                                                "type": "string"
+                                            },
+                                            "pathType": {
+                                                "type": "string",
+                                                "enum": [
+                                                    "Exact",
+                                                    "PathPrefix",
+                                                    "RegularExpression"
+                                                ]
+                                            }
+                                        }
+                                    }
+                                },
+                                "timeouts": {
+                                    "description": "Timeouts for HTTP requests routed via this HTTPRoute. Ref: https://gateway-api.sigs.k8s.io/reference/spec/#gateway.networking.k8s.io/v1.HTTPRouteTimeouts",
+                                    "type": "object",
+                                    "additionalProperties": {
+                                        "type": "string"
+                                    }
+                                }
+                            }
+                        }
+                    }
                 },
                 "image": {
                     "type": "object",

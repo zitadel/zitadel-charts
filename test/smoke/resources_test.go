@@ -25,9 +25,9 @@ func TestWait4xInitContainerResources(t *testing.T) {
 		{
 			name: "default-no-resources",
 			setValues: map[string]string{
-				"image.tag":                                      support.DigestTag,
-				"login.enabled":                                  "true",
-				"zitadel.masterkey":                              "01234567890123456789012345678901",
+				"image.tag":         support.DigestTag,
+				"login.enabled":     "true",
+				"zitadel.masterkey": "01234567890123456789012345678901",
 				"zitadel.configmapConfig.Database.Postgres.Host": "postgres",
 				"zitadel.configmapConfig.Database.Postgres.Port": "5432",
 			},
@@ -36,9 +36,9 @@ func TestWait4xInitContainerResources(t *testing.T) {
 		{
 			name: "with-wait4x-resources",
 			setValues: map[string]string{
-				"image.tag":                                      support.DigestTag,
-				"login.enabled":                                  "true",
-				"zitadel.masterkey":                              "01234567890123456789012345678901",
+				"image.tag":         support.DigestTag,
+				"login.enabled":     "true",
+				"zitadel.masterkey": "01234567890123456789012345678901",
 				"zitadel.configmapConfig.Database.Postgres.Host": "postgres",
 				"zitadel.configmapConfig.Database.Postgres.Port": "5432",
 				"tools.wait4x.resources.requests.cpu":            "50m",

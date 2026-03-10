@@ -1,0 +1,58 @@
+{{- if .Values.gateway.httpRoute.enabled -}}
+{{- $fullName := include "zitadel.fullname" . -}}
+{{- $svcPort := .Values.service.port -}}
+{{- $externalDomain := .Values.zitadel.configmapConfig.ExternalDomain -}}
+{{- $filters := .Values.gateway.httpRoute.filters -}}
+{{- $timeouts := .Values.gateway.httpRoute.timeouts -}}
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: {{ $fullName }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "zitadel.labels" . | nindent 4 }}
+    {{- with .Values.gateway.httpRoute.labels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+  {{- with .Values.gateway.httpRoute.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  {{- with .Values.gateway.httpRoute.parentRefs }}
+  parentRefs:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  {{- if or .Values.gateway.httpRoute.hostnames $externalDomain }}
+  hostnames:
+    {{- if .Values.gateway.httpRoute.hostnames }}
+    {{- range .Values.gateway.httpRoute.hostnames }}
+    - {{ . | quote }}
+    {{- end }}
+    {{- else }}
+    - {{ $externalDomain | quote }}
+    {{- end }}
+  {{- end }}
+  {{- if .Values.gateway.httpRoute.paths }}
+  rules:
+    {{- range .Values.gateway.httpRoute.paths }}
+    - matches:
+        - path:
+            type: {{ default "PathPrefix" .pathType }}
+            value: {{ .path | quote }}
+      backendRefs:
+        - name: {{ $fullName }}
+          port: {{ $svcPort }}
+      {{- with $filters }}
+      filters:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with $timeouts }}
+      timeouts:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    {{- end }}
+  {{- else }}
+  {{- fail "gateway.httpRoute.paths must not be empty when gateway.httpRoute is enabled" }}
+  {{- end }}
+{{- end }}

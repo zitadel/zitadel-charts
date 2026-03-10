@@ -493,23 +493,6 @@ login:
     controller: generic
     # -- (map[string]string) Annotations to apply to the Login UI Ingress resource.
     annotations: {}
-    # @schema
-    # type: array
-    # items:
-    #   type: object
-    #   properties:
-    #     paths:
-    #       type: array
-    #       items:
-    #         type: object
-    #         properties:
-    #           path:
-    #             type: string
-    #           pathType:
-    #             type: string
-    #             enum: [Exact, Prefix, ImplementationSpecific]
-    #         required: [pathType]
-    # @schema
     # -- A list of host rules for the Ingress. The default path targets the login UI.
     hosts:
       - paths:
@@ -519,6 +502,35 @@ login:
     # -- ([]IngressTLS) TLS configuration for the Ingress. Secure the login UI with HTTPS by
     # referencing a secret containing the TLS certificate and key.
     tls: []
+  # Gateway API configuration for exposing the Login UI using Kubernetes Gateway API.
+  # This is an alternative to the traditional Ingress resource above.
+  gateway:
+    # HTTPRoute configuration for the Login UI.
+    httpRoute:
+      # -- If true, creates an HTTPRoute resource for the Login UI service.
+      enabled: false
+      # -- (map[string]string) Annotations to apply to the HTTPRoute resource.
+      annotations: {}
+      # -- (map[string]string) Additional labels to apply to the HTTPRoute resource.
+      labels: {}
+      # -- References to Gateway resources that this route should be attached to.
+      # Example:
+      #   parentRefs:
+      #     - name: my-gateway
+      parentRefs: []  # @schema item: object; itemProperties: {"name": {"type": "string"}, "namespace": {"type": "string"}, "sectionName": {"type": "string"}, "port": {"type": "integer"}}
+      # -- Hostnames for the HTTPRoute. If empty, defaults to ExternalDomain.
+      hostnames: []  # @schema item: string
+      # -- Path matching rules for the HTTPRoute. Each entry generates a separate rule.
+      paths:
+        - path: /ui/v2/login
+          pathType: PathPrefix  # @schema enum: [Exact, PathPrefix, RegularExpression]
+      # -- ([]HTTPRouteFilter) Filters to apply to all rules. These define processing
+      # steps for requests, such as header modification or URL rewrites.
+      # Ref: https://gateway-api.sigs.k8s.io/reference/spec/#gateway.networking.k8s.io/v1.HTTPRouteFilter
+      filters: []  # @schema item: object; itemProperties: {"type": {"type": "string"}}
+      # -- (HTTPRouteTimeouts) Timeouts for HTTP requests routed via this HTTPRoute.
+      # Ref: https://gateway-api.sigs.k8s.io/reference/spec/#gateway.networking.k8s.io/v1.HTTPRouteTimeouts
+      timeouts: {}  # @schema additionalProperties: {"type": "string"}
   # ServiceAccount configuration for Login UI pods.
   serviceAccount:
     # -- Whether to create a dedicated service account for the Login UI. Set to
@@ -820,23 +832,6 @@ ingress:
   className: ""
   # -- (map[string]string) Annotations to apply to the Ingress resource.
   annotations: {}
-  # @schema
-  # type: array
-  # items:
-  #   type: object
-  #   properties:
-  #     paths:
-  #       type: array
-  #       items:
-  #         type: object
-  #         properties:
-  #           path:
-  #             type: string
-  #           pathType:
-  #             type: string
-  #             enum: [Exact, Prefix, ImplementationSpecific]
-  #         required: [pathType]
-  # @schema
   # -- A list of host rules for the Ingress. Each host can have multiple paths.
   hosts:
     - paths:
@@ -846,6 +841,63 @@ ingress:
   # -- ([]IngressTLS) TLS configuration for the Ingress. This allows you to secure the endpoint
   # with HTTPS by referencing a secret that contains the TLS certificate and key.
   tls: []
+
+# Gateway API configuration for exposing ZITADEL using Kubernetes Gateway API
+# resources (HTTPRoute, GRPCRoute). This can be used alongside or instead of
+# the traditional Ingress resources above.
+# Requires a Gateway API implementation (e.g., Envoy Gateway, Istio, Cilium,
+# NGINX Gateway Fabric) and Gateway API CRDs installed in the cluster.
+# Ref: https://gateway-api.sigs.k8s.io/
+gateway:
+  # HTTPRoute configuration for ZITADEL HTTP API traffic.
+  httpRoute:
+    # -- If true, creates an HTTPRoute resource for the ZITADEL service.
+    enabled: false
+    # -- (map[string]string) Annotations to apply to the HTTPRoute resource.
+    annotations: {}
+    # -- (map[string]string) Additional labels to apply to the HTTPRoute resource.
+    labels: {}
+    # -- References to Gateway resources that this route should be attached to.
+    # Each entry must include at least a `name` field matching an existing Gateway.
+    # Example:
+    #   parentRefs:
+    #     - name: my-gateway
+    #       sectionName: https
+    parentRefs: []  # @schema item: object; itemProperties: {"name": {"type": "string"}, "namespace": {"type": "string"}, "sectionName": {"type": "string"}, "port": {"type": "integer"}}
+    # -- Hostnames for the HTTPRoute. If empty, defaults to ExternalDomain.
+    hostnames: []  # @schema item: string
+    # -- Path matching rules for the HTTPRoute. Each entry generates a separate rule.
+    paths:
+      - path: /
+        pathType: PathPrefix  # @schema enum: [Exact, PathPrefix, RegularExpression]
+    # -- ([]HTTPRouteFilter) Filters to apply to all rules. These define processing
+    # steps for requests, such as header modification or URL rewrites.
+    # Ref: https://gateway-api.sigs.k8s.io/reference/spec/#gateway.networking.k8s.io/v1.HTTPRouteFilter
+    filters: []  # @schema item: object; itemProperties: {"type": {"type": "string"}}
+    # -- (HTTPRouteTimeouts) Timeouts for HTTP requests routed via this HTTPRoute.
+    # Ref: https://gateway-api.sigs.k8s.io/reference/spec/#gateway.networking.k8s.io/v1.HTTPRouteTimeouts
+    timeouts: {}  # @schema additionalProperties: {"type": "string"}
+  # GRPCRoute configuration for ZITADEL gRPC API traffic.
+  # Note: GRPCRoute is GA in Gateway API v1.2.0+. Ensure your Gateway
+  # implementation supports GRPCRoute before enabling this.
+  grpcRoute:
+    # -- If true, creates a GRPCRoute resource for the ZITADEL gRPC API.
+    enabled: false
+    # -- (map[string]string) Annotations to apply to the GRPCRoute resource.
+    annotations: {}
+    # -- (map[string]string) Additional labels to apply to the GRPCRoute resource.
+    labels: {}
+    # -- References to Gateway resources that this route should be attached to.
+    # Example:
+    #   parentRefs:
+    #     - name: my-gateway
+    parentRefs: []  # @schema item: object; itemProperties: {"name": {"type": "string"}, "namespace": {"type": "string"}, "sectionName": {"type": "string"}, "port": {"type": "integer"}}
+    # -- Hostnames for the GRPCRoute. If empty, defaults to ExternalDomain.
+    hostnames: []  # @schema item: string
+    # -- ([]GRPCRouteFilter) Filters to apply to all rules. These define processing
+    # steps for gRPC requests, such as header modification or mirroring.
+    # Ref: https://gateway-api.sigs.k8s.io/reference/spec/#gateway.networking.k8s.io/v1.GRPCRouteFilter
+    filters: []  # @schema item: object; itemProperties: {"type": {"type": "string"}}
 
 # @schema $ref: $k8s/_definitions.json#/definitions/io.k8s.api.core.v1.ResourceRequirements
 # -- (ResourceRequirements) CPU and memory resource requests and limits for the ZITADEL container.
