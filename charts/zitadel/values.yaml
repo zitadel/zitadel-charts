@@ -893,7 +893,7 @@ gateway:
     #     - name: my-gateway
     parentRefs: []  # @schema item: object; itemProperties: {"name": {"type": "string"}, "namespace": {"type": "string"}, "sectionName": {"type": "string"}, "port": {"type": "integer"}}
     # -- Hostnames for the GRPCRoute. If empty, defaults to ExternalDomain.
-    hosts: []  # @schema item: string
+    hostnames: []  # @schema item: string
     # -- ([]GRPCRouteFilter) Filters to apply to all rules. These define processing
     # steps for gRPC requests, such as header modification or mirroring.
     # Ref: https://gateway-api.sigs.k8s.io/reference/spec/#gateway.networking.k8s.io/v1.GRPCRouteFilter

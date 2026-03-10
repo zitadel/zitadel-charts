@@ -22,10 +22,10 @@ spec:
   parentRefs:
     {{- toYaml . | nindent 4 }}
   {{- end }}
-  {{- if or .Values.gateway.grpcRoute.hosts $externalDomain }}
+  {{- if or .Values.gateway.grpcRoute.hostnames $externalDomain }}
   hostnames:
-    {{- if .Values.gateway.grpcRoute.hosts }}
-    {{- range .Values.gateway.grpcRoute.hosts }}
+    {{- if .Values.gateway.grpcRoute.hostnames }}
+    {{- range .Values.gateway.grpcRoute.hostnames }}
     - {{ . | quote }}
     {{- end }}
     {{- else }}

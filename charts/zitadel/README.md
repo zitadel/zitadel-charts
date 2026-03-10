@@ -185,7 +185,7 @@ Kubernetes: `>= 1.30.0-0`
 | gateway.grpcRoute.annotations | map[string]string | `{}` | Annotations to apply to the GRPCRoute resource. |
 | gateway.grpcRoute.enabled | bool | `false` | If true, creates a GRPCRoute resource for the ZITADEL gRPC API. |
 | gateway.grpcRoute.filters | []GRPCRouteFilter | `[]` | Filters to apply to all rules. These define processing steps for gRPC requests, such as header modification or mirroring. Ref: https://gateway-api.sigs.k8s.io/reference/spec/#gateway.networking.k8s.io/v1.GRPCRouteFilter |
-| gateway.grpcRoute.hosts | list | `[]` | Hostnames for the GRPCRoute. If empty, defaults to ExternalDomain. |
+| gateway.grpcRoute.hostnames | list | `[]` | Hostnames for the GRPCRoute. If empty, defaults to ExternalDomain. |
 | gateway.grpcRoute.labels | map[string]string | `{}` | Additional labels to apply to the GRPCRoute resource. |
 | gateway.grpcRoute.parentRefs | list | `[]` | References to Gateway resources that this route should be attached to. Example:   parentRefs:     - name: my-gateway |
 | gateway.httpRoute.annotations | map[string]string | `{}` | Annotations to apply to the HTTPRoute resource. |

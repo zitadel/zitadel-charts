@@ -142,7 +142,7 @@
                                 }
                             }
                         },
-                        "hosts": {
+                        "hostnames": {
                             "description": "Hostnames for the GRPCRoute. If empty, defaults to ExternalDomain.",
                             "type": "array",
                             "items": {

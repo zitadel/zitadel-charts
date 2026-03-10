@@ -59,7 +59,7 @@ func TestGatewayGRPCRouteLabels(t *testing.T) {
 			"image.tag":                              support.DigestTag,
 			"gateway.grpcRoute.enabled":              "true",
 			"gateway.grpcRoute.parentRefs[0].name":   "my-gateway",
-			"gateway.grpcRoute.hosts[0]":             "zitadel.example.local",
+			"gateway.grpcRoute.hostnames[0]":         "zitadel.example.local",
 			"zitadel.configmapConfig.ExternalDomain": "zitadel.example.local",
 			"zitadel.masterkey":                      "01234567890123456789012345678901",
 		},
@@ -274,6 +274,53 @@ func TestGatewayHTTPRouteDefaultPaths(t *testing.T) {
 			[]string{"templates/httproute_login.yaml"})
 		require.Contains(t, rendered, `value: "/ui/v2/login"`)
 		require.Contains(t, rendered, "type: PathPrefix")
+	})
+}
+
+func TestGatewayHTTPRouteEmptyPathsFails(t *testing.T) {
+	t.Parallel()
+
+	chartPath := support.ChartPath(t)
+
+	t.Run("zitadel empty paths fails", func(t *testing.T) {
+		options := &helm.Options{
+			SetValues: map[string]string{
+				"image.tag":                              support.DigestTag,
+				"gateway.httpRoute.enabled":              "true",
+				"gateway.httpRoute.parentRefs[0].name":   "my-gw",
+				"zitadel.configmapConfig.ExternalDomain": "zitadel.example.local",
+				"zitadel.masterkey":                      "01234567890123456789012345678901",
+			},
+			SetJsonValues: map[string]string{
+				"gateway.httpRoute.paths": "[]",
+			},
+		}
+
+		_, err := helm.RenderTemplateE(t, options, chartPath, "gateway-empty-paths",
+			[]string{"templates/httproute_zitadel.yaml"})
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "gateway.httpRoute.paths must not be empty")
+	})
+
+	t.Run("login empty paths fails", func(t *testing.T) {
+		options := &helm.Options{
+			SetValues: map[string]string{
+				"image.tag":                       support.DigestTag,
+				"login.enabled":                   "true",
+				"login.gateway.httpRoute.enabled": "true",
+				"login.gateway.httpRoute.parentRefs[0].name": "my-gw",
+				"zitadel.configmapConfig.ExternalDomain":     "zitadel.example.local",
+				"zitadel.masterkey":                          "01234567890123456789012345678901",
+			},
+			SetJsonValues: map[string]string{
+				"login.gateway.httpRoute.paths": "[]",
+			},
+		}
+
+		_, err := helm.RenderTemplateE(t, options, chartPath, "gateway-empty-paths",
+			[]string{"templates/httproute_login.yaml"})
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "login.gateway.httpRoute.paths must not be empty")
 	})
 }
 

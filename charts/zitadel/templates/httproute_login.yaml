@@ -33,6 +33,7 @@ spec:
     - {{ $externalDomain | quote }}
     {{- end }}
   {{- end }}
+  {{- if .Values.login.gateway.httpRoute.paths }}
   rules:
     {{- range .Values.login.gateway.httpRoute.paths }}
     - matches:
@@ -51,4 +52,7 @@ spec:
         {{- toYaml . | nindent 8 }}
       {{- end }}
     {{- end }}
+  {{- else }}
+  {{- fail "login.gateway.httpRoute.paths must not be empty when login.gateway.httpRoute is enabled" }}
+  {{- end }}
 {{- end }}
