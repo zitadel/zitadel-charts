@@ -1,7 +1,7 @@
 # Quickstart — Full Stack in One Command
 
 Deploy ZITADEL with a bundled PostgreSQL database on any Kubernetes cluster.
-No separate database install. One `helm install`.
+No separate database install. One `helm install`, as long as your cluster already has an ingress controller.
 
 > [!WARNING]
 > This configuration is for **local development and evaluation only**.
@@ -11,6 +11,7 @@ No separate database install. One `helm install`.
 ## Prerequisites
 
 - A Kubernetes cluster (1.30+)
+- An ingress controller (e.g. Traefik, NGINX)
 - [kubectl](https://kubernetes.io/docs/tasks/tools/)
 - [Helm](https://helm.sh/docs/intro/install/) 3.x or 4.x
 
@@ -26,6 +27,24 @@ No separate database install. One `helm install`.
 mkdir zitadel-helm && cd zitadel-helm &&
 curl -fsSLO https://raw.githubusercontent.com/zitadel/zitadel-charts/main/examples/0-quickstart/quickstart-values.yaml
 ```
+
+Edit `quickstart-values.yaml` before installing. For a local k3d or k3s cluster, these values usually work as-is:
+
+```yaml
+zitadel:
+  configmapConfig:
+    ExternalDomain: localhost
+    ExternalPort: 80
+
+ingress:
+  className: traefik
+
+login:
+  ingress:
+    className: traefik
+```
+
+If you are using a different ingress controller, replace both `className` values with that controller's IngressClass name.
 
 ```bash
 helm repo add zitadel https://charts.zitadel.com &&
@@ -49,14 +68,14 @@ kubectl get pods
 helm status zitadel
 ```
 
-Set `ingress.className` in the values file to the IngressClass of your ingress controller
-(e.g., `nginx`, `traefik`).
+Set both `ingress.className` and `login.ingress.className` in the values file to the
+IngressClass of your ingress controller (e.g., `nginx`, `traefik`).
 
 ## What's next?
 
 | Goal | How |
 |------|-----|
 | Bring your own database | Set `postgresql.enabled: false` and configure `zitadel.configmapConfig.Database` |
-| Configure ingress controller | Set `ingress.className` to your controller's IngressClass |
+| Configure ingress controller | Set both `ingress.className` and `login.ingress.className` to your controller's IngressClass |
 | Add Redis caching | Configure `zitadel.configmapConfig.Caches` |
 | Go to production | Follow the [Production Checklist](https://zitadel.com/docs/self-hosting/manage/productionchecklist) |
