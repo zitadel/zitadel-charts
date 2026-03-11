@@ -2,8 +2,8 @@ apiVersion: v2
 name: zitadel
 description: A Helm chart for ZITADEL
 type: application
-appVersion: v4.10.1
-version: 9.26.0
+appVersion: v4.12.1
+version: 9.27.0
 kubeVersion: '>= 1.30.0-0'
 home: https://zitadel.com
 sources:
@@ -22,3 +22,8 @@ maintainers:
   - name: zitadel
     email: support@zitadel.com
     url: https://zitadel.com
+dependencies:
+  - name: postgresql
+    version: ">=16.0.0"
+    repository: "https://charts.bitnami.com/bitnami"
+    condition: postgresql.enabled

@@ -2,7 +2,7 @@
 
 # Zitadel
 
-![Version: 9.26.0](https://img.shields.io/badge/Version-9.26.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: v4.10.1](https://img.shields.io/badge/AppVersion-v4.10.1-informational?style=flat-square)
+![Version: 9.27.0](https://img.shields.io/badge/Version-9.27.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: v4.12.1](https://img.shields.io/badge/AppVersion-v4.12.1-informational?style=flat-square)
 
 ## A Better Identity and Access Management Solution
 
@@ -160,6 +160,10 @@ done
 ## Requirements
 
 Kubernetes: `>= 1.30.0-0`
+
+| Repository | Name | Version |
+|------------|------|---------|
+| https://charts.bitnami.com/bitnami | postgresql | >=16.0.0 |
 
 ## Values
 
@@ -321,6 +325,12 @@ Kubernetes: `>= 1.30.0-0`
 | podSecurityContext.fsGroup | int | `1000` | Group ID for volume ownership and file creation. Files created in mounted volumes will be owned by this group. |
 | podSecurityContext.runAsNonRoot | bool | `true` | Require containers to run as a non-root user. This is a security best practice that prevents privilege escalation attacks. |
 | podSecurityContext.runAsUser | int | `1000` | User ID to run the container processes. 1000 is a common non-root UID that matches the ZITADEL container's default user. |
+| postgresql.auth.database | string | `"zitadel"` | Database name to create for ZITADEL. |
+| postgresql.auth.password | string | `"zitadel"` | Password for the ZITADEL application user. Change this for anything beyond a local quickstart. |
+| postgresql.auth.postgresPassword | string | `"zitadel"` | Password for the PostgreSQL superuser (postgres). Change this for anything beyond a local quickstart. |
+| postgresql.auth.username | string | `"zitadel"` | Username for the ZITADEL application user. |
+| postgresql.enabled | bool | `false` | Deploy a PostgreSQL instance as a subchart. Enables one-command full-stack install. |
+| postgresql.primary.persistence.enabled | bool | `false` | Enable persistent storage for PostgreSQL data. Set to true if you want data to survive pod restarts. |
 | readinessProbe.enabled | bool | `true` | Enable or disable the readiness probe. |
 | readinessProbe.failureThreshold | int | `3` | Number of consecutive failures before marking the pod as not ready. |
 | readinessProbe.initialDelaySeconds | int | `0` | Seconds to wait before starting readiness checks after container start. Set higher if ZITADEL needs time to initialize before accepting traffic. |
@@ -359,6 +369,9 @@ Kubernetes: `>= 1.30.0-0`
 | startupProbe.failureThreshold | int | `30` | Number of consecutive failures before marking startup as failed and restarting the container. With periodSeconds=1 and failureThreshold=30, the container has 30 seconds to start. |
 | startupProbe.periodSeconds | int | `1` | How often (in seconds) to perform the startup check. |
 | tolerations | []Toleration | `[]` | Tolerations allow pods to be scheduled on nodes with matching taints. Taints are used to repel pods from nodes; tolerations allow exceptions. Ref: https://kubernetes.io/docs/concepts/scheduling-eviction/taint-and-toleration/ |
+| tools.busybox.image.pullPolicy | string | `""` | Image pull policy. Defaults to the Kubernetes default for the given tag. |
+| tools.busybox.image.repository | string | `"busybox"` | The image repository for busybox. |
+| tools.busybox.image.tag | string | `"1.37"` | The busybox image tag. |
 | tools.kubectl.image.pullPolicy | string | `""` | The pull policy for the kubectl image. If left empty, Kubernetes applies its default policy depending on whether the tag is mutable or fixed. |
 | tools.kubectl.image.repository | string | `"alpine/k8s"` | The name of the image repository that contains the kubectl image. The chart automatically prepends the registry (docker.io by default) for compatibility with CRI-O v1.34+ which enforces fully qualified names. |
 | tools.kubectl.image.tag | string | `""` | The image tag to use for the kubectl image. It should be left empty to automatically default to the Kubernetes cluster version |

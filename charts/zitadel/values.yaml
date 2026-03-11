@@ -1340,6 +1340,17 @@ tools:
       #   cpu: 50m
       #   memory: 32Mi
 
+  # Configuration for the busybox image used by the wait-for-postgresql initContainer.
+  # Override when running in air-gapped or restricted-registry environments.
+  busybox:
+    image:
+      # -- The image repository for busybox.
+      repository: "busybox"
+      # -- The busybox image tag.
+      tag: "1.37"
+      # -- Image pull policy. Defaults to the Kubernetes default for the given tag.
+      pullPolicy: ""
+
   # Configuration for the kubectl helper image used by init containers and jobs
   # for lightweight Kubernetes API operations. This image is used by the setup
   # job's machinekey containers and the cleanup job.
@@ -1355,3 +1366,34 @@ tools:
       # -- The pull policy for the kubectl image. If left empty, Kubernetes applies
       # its default policy depending on whether the tag is mutable or fixed.
       pullPolicy: ""
+
+# Optional in-cluster PostgreSQL deployment using the Bitnami PostgreSQL subchart.
+# Set postgresql.enabled=true to deploy a single-node PostgreSQL instance alongside
+# ZITADEL. The chart automatically wires the database host, port, name, and credentials
+# into the ZITADEL configuration — user-supplied configmapConfig.Database values always
+# take priority over the auto-derived ones.
+#
+# WARNING: This is intended for quickstart and development use only.
+# For production, use a managed PostgreSQL service or a dedicated PostgreSQL operator
+# and configure the connection via zitadel.configmapConfig.Database or
+# zitadel.configSecretName.
+# See: https://artifacthub.io/packages/helm/bitnami/postgresql
+postgresql:
+  # -- Deploy a PostgreSQL instance as a subchart. Enables one-command full-stack install.
+  enabled: false
+  auth:
+    # -- Database name to create for ZITADEL.
+    database: zitadel
+    # -- Username for the ZITADEL application user.
+    username: zitadel
+    # -- Password for the ZITADEL application user.
+    # Change this for anything beyond a local quickstart.
+    password: zitadel
+    # -- Password for the PostgreSQL superuser (postgres).
+    # Change this for anything beyond a local quickstart.
+    postgresPassword: zitadel
+  primary:
+    persistence:
+      # -- Enable persistent storage for PostgreSQL data.
+      # Set to true if you want data to survive pod restarts.
+      enabled: false

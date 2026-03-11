@@ -484,3 +484,83 @@ Uses fully qualified image names for CRI-O v1.34+ compatibility.
 {{- $tag := .Values.tools.wait4x.image.tag | default "3.6" -}}
 {{- printf "%s/%s:%s" $registry $repo $tag -}}
 {{- end -}}
+
+{{/*
+Return the PostgreSQL service hostname for the bundled subchart.
+Respects fullnameOverride and nameOverride on the postgresql dependency.
+*/}}
+{{- define "zitadel.postgresqlHost" -}}
+{{- if .Values.postgresql.fullnameOverride -}}
+{{- .Values.postgresql.fullnameOverride -}}
+{{- else if .Values.postgresql.nameOverride -}}
+{{- printf "%s-%s" .Release.Name .Values.postgresql.nameOverride -}}
+{{- else -}}
+{{- printf "%s-postgresql" .Release.Name -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
+Auto-generate ZITADEL database configuration from the bundled PostgreSQL subchart.
+Only used when postgresql.enabled=true. User-supplied configmapConfig.Database values
+take priority over these auto-generated values via zitadel.mergedConfigmapConfig.
+*/}}
+{{- define "zitadel.postgresqlAutoConfig" -}}
+Database:
+  Postgres:
+    Host: {{ include "zitadel.postgresqlHost" . }}
+    Port: 5432
+    Database: {{ .Values.postgresql.auth.database }}
+    User:
+      Username: {{ .Values.postgresql.auth.username }}
+      Password: {{ .Values.postgresql.auth.password }}
+      SSL:
+        Mode: disable
+    Admin:
+      Username: postgres
+      Password: {{ .Values.postgresql.auth.postgresPassword }}
+      SSL:
+        Mode: disable
+{{- end -}}
+
+{{/*
+Build the effective configmap config. When postgresql.enabled=true, the auto-derived
+database connection block is merged as a base and user-supplied configmapConfig values
+are applied on top (user values always win). When postgresql is disabled, the behavior
+is identical to the previous direct toYaml rendering.
+
+The default values.yaml ships with Database.Postgres.Host: "" as documentation. To
+prevent that empty default from overriding the auto-derived host, we strip the
+Database key from the user config when the host is empty (i.e. not explicitly set).
+An explicitly-set non-empty host is always respected and takes full precedence.
+*/}}
+{{- define "zitadel.mergedConfigmapConfig" -}}
+{{- if .Values.postgresql.enabled -}}
+{{- $autoConfig := include "zitadel.postgresqlAutoConfig" . | fromYaml -}}
+{{- $userConfig := deepCopy .Values.zitadel.configmapConfig -}}
+{{- $userHost := dig "Database" "Postgres" "Host" "" $userConfig -}}
+{{- if not $userHost -}}
+{{- $_ := unset $userConfig "Database" -}}
+{{- end -}}
+{{- mergeOverwrite $autoConfig $userConfig | toYaml -}}
+{{- else -}}
+{{- .Values.zitadel.configmapConfig | toYaml -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
+Return the effective ingress className for the ZITADEL API ingress.
+*/}}
+{{- define "zitadel.ingressClassName" -}}
+{{- if .Values.ingress.className -}}
+{{- .Values.ingress.className -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
+Return the effective ingress className for the ZITADEL Login ingress.
+*/}}
+{{- define "zitadel.login.ingressClassName" -}}
+{{- if .Values.login.ingress.className -}}
+{{- .Values.login.ingress.className -}}
+{{- end -}}
+{{- end -}}
