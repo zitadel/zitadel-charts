@@ -3,6 +3,8 @@ package support
 import (
 	"context"
 	"fmt"
+	"path/filepath"
+	"runtime"
 	"testing"
 
 	"github.com/gruntwork-io/terratest/modules/helm"
@@ -18,8 +20,11 @@ import (
 // configuration. It handles: WithPostgres, commonSetValues, MakeRelease,
 // mergedSetValues, helm.Options, helm.UpgradeE, and log dumping on failure.
 // Returns the generated release name.
-func InstallZitadel(t *testing.T, env *support.Env, chartPath, testName string, setValues map[string]string) string {
+func InstallZitadel(t *testing.T, env *support.Env, testName string, setValues map[string]string) string {
 	t.Helper()
+
+	_, filename, _, _ := runtime.Caller(0)
+	chartPath := filepath.Join(filepath.Dir(filename), "..", "..", "..", "charts", "zitadel")
 
 	env.Logger.Logf(t, "namespace %q created; installing PostgreSQL…", env.Namespace)
 	WithPostgres(t, env)

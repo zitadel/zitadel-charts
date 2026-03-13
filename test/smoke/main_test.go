@@ -14,7 +14,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/testcontainers/testcontainers-go/modules/k3s"
+	"github.com/zitadel/zitadel-charts/test/internal/testcluster"
 )
 
 // k3sStartupTimeout is the maximum time allowed for the K3s container to start
@@ -26,55 +26,19 @@ func TestMain(m *testing.M) {
 	os.Exit(run(m))
 }
 
-// run starts a K3s cluster, extracts its kubeconfig into a temporary file, sets
-// the KUBECONFIG environment variable so that all tests discover it, executes
-// the test suite, and tears everything down. It returns the exit code from
-// m.Run for use with os.Exit.
+// run starts a K3s cluster, sets up the KUBECONFIG environment variable,
+// executes the test suite, and tears everything down. It returns the exit
+// code from m.Run for use with os.Exit.
 func run(m *testing.M) int {
 	ctx, cancel := context.WithTimeout(context.Background(), k3sStartupTimeout)
 	defer cancel()
 
-	container, err := k3s.Run(ctx, "rancher/k3s:v1.31.6-k3s1")
+	cluster, err := testcluster.Start(ctx)
 	if err != nil {
-		log.Printf("failed to start K3s container: %v", err)
+		log.Printf("failed to start K3s cluster: %v", err)
 		return 1
 	}
-	defer func() {
-		if err := container.Terminate(context.Background()); err != nil {
-			log.Printf("failed to terminate K3s container: %v", err)
-		}
-	}()
-
-	kubeconfig, err := container.GetKubeConfig(ctx)
-	if err != nil {
-		log.Printf("failed to get kubeconfig from K3s: %v", err)
-		return 1
-	}
-
-	kubeconfigFile, err := os.CreateTemp("", "k3s-kubeconfig-*.yaml")
-	if err != nil {
-		log.Printf("failed to create kubeconfig temp file: %v", err)
-		return 1
-	}
-	defer func() {
-		if err := os.Remove(kubeconfigFile.Name()); err != nil {
-			log.Printf("failed to remove kubeconfig temp file: %v", err)
-		}
-	}()
-
-	if _, err := kubeconfigFile.Write(kubeconfig); err != nil {
-		log.Printf("failed to write kubeconfig: %v", err)
-		return 1
-	}
-	if err := kubeconfigFile.Close(); err != nil {
-		log.Printf("failed to close kubeconfig file: %v", err)
-		return 1
-	}
-
-	if err := os.Setenv("KUBECONFIG", kubeconfigFile.Name()); err != nil {
-		log.Printf("failed to set KUBECONFIG: %v", err)
-		return 1
-	}
+	defer cluster.Cleanup()
 
 	return m.Run()
 }

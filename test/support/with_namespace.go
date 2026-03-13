@@ -1,6 +1,7 @@
 package support
 
 import (
+	"context"
 	"regexp"
 	"strings"
 	"testing"
@@ -8,35 +9,32 @@ import (
 	"github.com/gruntwork-io/terratest/modules/k8s"
 	"github.com/gruntwork-io/terratest/modules/logger"
 	"github.com/gruntwork-io/terratest/modules/random"
+	"github.com/stretchr/testify/require"
+
+	"github.com/zitadel/zitadel-charts/test/internal/testcluster"
 )
 
-// WithNamespace creates a unique ephemeral namespace for a test using the
-// provided shared cluster connection. The namespace is automatically deleted
-// when the test finishes via t.Cleanup. A logger is injected into the Env
-// for consistent test output formatting.
-func WithNamespace(testing *testing.T, cluster *Cluster, fn func(*Env)) {
-	testing.Helper()
+// WithNamespace creates a unique ephemeral namespace for a test, initializes
+// a Kubernetes client and logger, and passes the resulting Env to the callback.
+// The namespace is automatically cleaned up when the test finishes.
+func WithNamespace(t *testing.T, fn func(*Env)) {
+	t.Helper()
 
-	namespace := "e2e-" + strings.ToLower(random.UniqueId())
-	kubectlOptions := k8s.NewKubectlOptions(cluster.ConfigPath, cluster.ContextName, namespace)
+	testcluster.WithNamespace(t, func(_ context.Context, k *k8s.KubectlOptions) {
+		client, err := k8s.GetKubernetesClientFromOptionsE(t, k)
+		require.NoError(t, err)
 
-	k8s.CreateNamespace(testing, kubectlOptions, namespace)
-	testing.Cleanup(func() {
-		_ = k8s.DeleteNamespaceE(testing, kubectlOptions, namespace)
+		env := &Env{
+			Namespace: k.Namespace,
+			Kube:      k,
+			Client:    client,
+			Logger:    logger.New(logger.Terratest),
+		}
+		fn(env)
 	})
-
-	env := &Env{
-		Namespace: namespace,
-		Kube:      kubectlOptions,
-		Client:    cluster.Client,
-		Logger:    logger.New(logger.Terratest),
-	}
-	fn(env)
 }
 
-var (
-	helmNameRegex = regexp.MustCompile(`[^a-z0-9\-]`)
-)
+var helmNameRegex = regexp.MustCompile(`[^a-z0-9\-]`)
 
 // MakeRelease generates a Helm-compatible release name by combining the base
 // name, suffix, and a random unique identifier. The result is normalized to

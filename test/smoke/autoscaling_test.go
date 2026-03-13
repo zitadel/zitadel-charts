@@ -3,7 +3,6 @@ package smoke_test_test
 import (
 	"testing"
 
-	"github.com/stretchr/testify/require"
 	autoscalingv2 "k8s.io/api/autoscaling/v2"
 	corev1 "k8s.io/api/core/v1"
 
@@ -15,16 +14,13 @@ import (
 func TestAutoscalingMatrix(t *testing.T) {
 	t.Parallel()
 
-	cluster := support.ConnectCluster(t)
-	chartPath := setup.ChartPath(t)
-
 	testCases := []struct {
-		name            string
-		setValues       map[string]string
-		zitadel         *assert.HorizontalPodAutoscalerAssertion
-		login           *assert.HorizontalPodAutoscalerAssertion
-		zitadelReplicas *int32
-		loginReplicas   *int32
+		name              string
+		setValues         map[string]string
+		zitadel           *assert.HorizontalPodAutoscalerAssertion
+		login             *assert.HorizontalPodAutoscalerAssertion
+		zitadelDeployment *assert.DeploymentAssertion
+		loginDeployment   *assert.DeploymentAssertion
 	}{
 		{
 			name: "both-enabled-cpu-only",
@@ -115,7 +111,11 @@ func TestAutoscalingMatrix(t *testing.T) {
 					}),
 				},
 			},
-			loginReplicas: assert.Ptr(int32(2)),
+			loginDeployment: &assert.DeploymentAssertion{
+				Spec: assert.DeploymentSpecAssertion{
+					Replicas: assert.SomePtr(int32(2)),
+				},
+			},
 		},
 		{
 			name: "both-enabled-with-annotations-and-behavior",
@@ -232,8 +232,16 @@ func TestAutoscalingMatrix(t *testing.T) {
 				"login.autoscaling.enabled": "false",
 				"login.replicaCount":        "2",
 			},
-			zitadelReplicas: assert.Ptr(int32(2)),
-			loginReplicas:   assert.Ptr(int32(2)),
+			zitadelDeployment: &assert.DeploymentAssertion{
+				Spec: assert.DeploymentSpecAssertion{
+					Replicas: assert.SomePtr(int32(2)),
+				},
+			},
+			loginDeployment: &assert.DeploymentAssertion{
+				Spec: assert.DeploymentSpecAssertion{
+					Replicas: assert.SomePtr(int32(2)),
+				},
+			},
 		},
 	}
 
@@ -241,23 +249,19 @@ func TestAutoscalingMatrix(t *testing.T) {
 		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
-			support.WithNamespace(t, cluster, func(env *support.Env) {
-				releaseName := setup.InstallZitadel(t, env, chartPath, tc.name, tc.setValues)
+			support.WithNamespace(t, func(env *support.Env) {
+				releaseName := setup.InstallZitadel(t, env, tc.name, tc.setValues)
 
 				if tc.zitadel != nil {
-					assert.AssertPartial(t, env.GetHPA(t, releaseName), *tc.zitadel, releaseName)
-				} else if tc.zitadelReplicas != nil {
-					zitadelDeployment := env.GetDeployment(t, releaseName)
-					require.NotNil(t, zitadelDeployment.Spec.Replicas)
-					require.Equal(t, *tc.zitadelReplicas, *zitadelDeployment.Spec.Replicas)
+					env.AssertPartial(t, releaseName, *tc.zitadel)
+				} else if tc.zitadelDeployment != nil {
+					env.AssertPartial(t, releaseName, *tc.zitadelDeployment)
 				}
 
 				if tc.login != nil {
-					assert.AssertPartial(t, env.GetHPA(t, releaseName+"-login"), *tc.login, releaseName+"-login")
-				} else if tc.loginReplicas != nil {
-					loginDeployment := env.GetDeployment(t, releaseName+"-login")
-					require.NotNil(t, loginDeployment.Spec.Replicas)
-					require.Equal(t, *tc.loginReplicas, *loginDeployment.Spec.Replicas)
+					env.AssertPartial(t, releaseName+"-login", *tc.login)
+				} else if tc.loginDeployment != nil {
+					env.AssertPartial(t, releaseName+"-login", *tc.loginDeployment)
 				}
 			})
 		})

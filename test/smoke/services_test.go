@@ -14,9 +14,6 @@ import (
 func TestServiceMatrix(t *testing.T) {
 	t.Parallel()
 
-	cluster := support.ConnectCluster(t)
-	chartPath := setup.ChartPath(t)
-
 	testCases := []struct {
 		name      string
 		setValues map[string]string
@@ -176,14 +173,14 @@ func TestServiceMatrix(t *testing.T) {
 		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
-			support.WithNamespace(t, cluster, func(env *support.Env) {
-				releaseName := setup.InstallZitadel(t, env, chartPath, tc.name, tc.setValues)
+			support.WithNamespace(t, func(env *support.Env) {
+				releaseName := setup.InstallZitadel(t, env, tc.name, tc.setValues)
 
 				if tc.zitadel != nil {
-					assert.AssertPartial(t, env.GetService(t, releaseName), *tc.zitadel, releaseName)
+					env.AssertPartial(t, releaseName, *tc.zitadel)
 				}
 				if tc.login != nil {
-					assert.AssertPartial(t, env.GetService(t, releaseName+"-login"), *tc.login, releaseName+"-login")
+					env.AssertPartial(t, releaseName+"-login", *tc.login)
 				}
 			})
 		})

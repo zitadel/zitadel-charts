@@ -1,0 +1,28 @@
+#file: noinspection KubernetesUnknownResourcesInspection
+apiVersion: helm.cattle.io/v1
+kind: HelmChartConfig
+metadata:
+  name: traefik
+  namespace: kube-system
+spec:
+  valuesContent: |-
+    logs:
+      general:
+        level: DEBUG
+    additionalArguments:
+      - "--serverstransport.insecureskipverify=true"
+    service:
+      type: NodePort
+    ports:
+      web:
+        nodePort: 30080
+        redirections:
+          entryPoint:
+            to: websecure
+            scheme: https
+            permanent: true
+      websecure:
+        nodePort: 30443
+    ingressClass:
+      enabled: true
+      isDefaultClass: true

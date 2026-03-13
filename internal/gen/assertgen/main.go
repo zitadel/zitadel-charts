@@ -210,8 +210,11 @@ func main() {
 
 	// Emit Opt[T] and Some[T]
 	f.Comment("Opt wraps an optional value for assertion comparison.")
+	f.Comment("Val holds a concrete expected value; Matcher holds a gomega matcher.")
+	f.Comment("If Matcher is set it takes precedence over Val.")
 	f.Type().Id("Opt").Types(Id("T").Any()).Struct(
 		Id("Val").Op("*").Id("T"),
+		Id("Matcher").Qual("github.com/onsi/gomega/types", "GomegaMatcher"),
 	)
 	f.Line()
 
@@ -219,6 +222,14 @@ func main() {
 	f.Func().Id("Some").Types(Id("T").Any()).Params(Id("v").Id("T")).Id("Opt").Types(Id("T")).Block(
 		Return(Id("Opt").Types(Id("T")).Values(Dict{
 			Id("Val"): Op("&").Id("v"),
+		})),
+	)
+	f.Line()
+
+	f.Comment("Matching creates an Opt that uses a gomega matcher instead of exact comparison.")
+	f.Func().Id("Matching").Types(Id("T").Any()).Params(Id("m").Qual("github.com/onsi/gomega/types", "GomegaMatcher")).Id("Opt").Types(Id("T")).Block(
+		Return(Id("Opt").Types(Id("T")).Values(Dict{
+			Id("Matcher"): Id("m"),
 		})),
 	)
 	f.Line()
@@ -323,7 +334,20 @@ func doAssertPartial(t *testing.T, actualVal reflect.Value, assertionVal reflect
 			continue
 		}
 
-		// Must be Opt[T] — check if Val is nil (skip) or set (compare)
+		// Must be Opt[T] — check Matcher first, then Val
+		matcherField := fieldVal.FieldByName("Matcher")
+		if matcherField.IsValid() && !matcherField.IsNil() {
+			matcher := matcherField.Interface().(gomegaTypes.GomegaMatcher)
+			success, err := matcher.Match(actualField.Interface())
+			require.NoError(t, err,
+				append([]any{fmt.Sprintf("field %q: matcher error", fieldInfo.Name)}, msgAndArgs...)...)
+			if !success {
+				require.Fail(t, matcher.FailureMessage(actualField.Interface()),
+					append([]any{fmt.Sprintf("field %q", fieldInfo.Name)}, msgAndArgs...)...)
+			}
+			continue
+		}
+
 		valField := fieldVal.FieldByName("Val")
 		if !valField.IsValid() {
 			panic(fmt.Sprintf("assertPartial: field %q of type %v is neither Assertable nor Opt[T]", fieldInfo.Name, fieldVal.Type()))
@@ -390,7 +414,8 @@ func doAssertPartial(t *testing.T, actualVal reflect.Value, assertionVal reflect
 	"reflect"
 	"testing"
 
-	"github.com/stretchr/testify/require"`,
+	"github.com/stretchr/testify/require"
+	gomegaTypes "github.com/onsi/gomega/types"`,
 		1,
 	)
 

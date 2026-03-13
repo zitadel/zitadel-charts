@@ -7,6 +7,8 @@ import (
 	"reflect"
 	"testing"
 
+	gomegaTypes "github.com/onsi/gomega/types"
+	types "github.com/onsi/gomega/types"
 	"github.com/stretchr/testify/require"
 	v1 "k8s.io/api/apps/v1"
 	v2 "k8s.io/api/autoscaling/v2"
@@ -18,20 +20,28 @@ import (
 	resource "k8s.io/apimachinery/pkg/api/resource"
 	v16 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	runtime "k8s.io/apimachinery/pkg/runtime"
-	types "k8s.io/apimachinery/pkg/types"
+	types1 "k8s.io/apimachinery/pkg/types"
 	intstr "k8s.io/apimachinery/pkg/util/intstr"
 	watch "k8s.io/apimachinery/pkg/watch"
 	"time"
 )
 
 // Opt wraps an optional value for assertion comparison.
+// Val holds a concrete expected value; Matcher holds a gomega matcher.
+// If Matcher is set it takes precedence over Val.
 type Opt[T any] struct {
-	Val *T
+	Val     *T
+	Matcher types.GomegaMatcher
 }
 
 // Some creates an Opt with a set value.
 func Some[T any](v T) Opt[T] {
 	return Opt[T]{Val: &v}
+}
+
+// Matching creates an Opt that uses a gomega matcher instead of exact comparison.
+func Matching[T any](m types.GomegaMatcher) Opt[T] {
+	return Opt[T]{Matcher: m}
 }
 
 // Assertable is a marker interface implemented by all assertion structs.
@@ -539,8 +549,8 @@ func (_ SuccessPolicyRuleAssertion) isAssertable() {}
 
 // UncountedTerminatedPodsAssertion is the assertion struct for UncountedTerminatedPods.
 type UncountedTerminatedPodsAssertion struct {
-	Succeeded Opt[[]types.UID]
-	Failed    Opt[[]types.UID]
+	Succeeded Opt[[]types1.UID]
+	Failed    Opt[[]types1.UID]
 }
 
 func (_ UncountedTerminatedPodsAssertion) isAssertable() {}
@@ -766,7 +776,7 @@ func (_ ConfigMapKeySelectorAssertion) isAssertable() {}
 type ConfigMapNodeConfigSourceAssertion struct {
 	Namespace        Opt[string]
 	Name             Opt[string]
-	UID              Opt[types.UID]
+	UID              Opt[types1.UID]
 	ResourceVersion  Opt[string]
 	KubeletConfigKey Opt[string]
 }
@@ -1575,7 +1585,7 @@ type ObjectReferenceAssertion struct {
 	Kind            Opt[string]
 	Namespace       Opt[string]
 	Name            Opt[string]
-	UID             Opt[types.UID]
+	UID             Opt[types1.UID]
 	APIVersion      Opt[string]
 	ResourceVersion Opt[string]
 	FieldPath       Opt[string]
@@ -1983,7 +1993,7 @@ func (_ PortworxVolumeSourceAssertion) isAssertable() {}
 
 // CorePreconditionsAssertion is the assertion struct for Preconditions.
 type CorePreconditionsAssertion struct {
-	UID Opt[*types.UID]
+	UID Opt[*types1.UID]
 }
 
 func (_ CorePreconditionsAssertion) isAssertable() {}
@@ -3402,7 +3412,7 @@ type ObjectMetaAssertion struct {
 	GenerateName               Opt[string]
 	Namespace                  Opt[string]
 	SelfLink                   Opt[string]
-	UID                        Opt[types.UID]
+	UID                        Opt[types1.UID]
 	ResourceVersion            Opt[string]
 	Generation                 Opt[int64]
 	CreationTimestamp          TimeAssertion
@@ -3422,7 +3432,7 @@ type OwnerReferenceAssertion struct {
 	APIVersion         Opt[string]
 	Kind               Opt[string]
 	Name               Opt[string]
-	UID                Opt[types.UID]
+	UID                Opt[types1.UID]
 	Controller         Opt[*bool]
 	BlockOwnerDeletion Opt[*bool]
 }
@@ -3455,7 +3465,7 @@ func (_ PatchOptionsAssertion) isAssertable() {}
 
 // MetaPreconditionsAssertion is the assertion struct for Preconditions.
 type MetaPreconditionsAssertion struct {
-	UID             Opt[*types.UID]
+	UID             Opt[*types1.UID]
 	ResourceVersion Opt[*string]
 }
 
@@ -3498,7 +3508,7 @@ type StatusDetailsAssertion struct {
 	Name              Opt[string]
 	Group             Opt[string]
 	Kind              Opt[string]
-	UID               Opt[types.UID]
+	UID               Opt[types1.UID]
 	Causes            Opt[[]StatusCauseAssertion]
 	RetryAfterSeconds Opt[int32]
 }
@@ -3663,7 +3673,20 @@ func doAssertPartial(t *testing.T, actualVal reflect.Value, assertionVal reflect
 			continue
 		}
 
-		// Must be Opt[T] — check if Val is nil (skip) or set (compare)
+		// Must be Opt[T] — check Matcher first, then Val
+		matcherField := fieldVal.FieldByName("Matcher")
+		if matcherField.IsValid() && !matcherField.IsNil() {
+			matcher := matcherField.Interface().(gomegaTypes.GomegaMatcher)
+			success, err := matcher.Match(actualField.Interface())
+			require.NoError(t, err,
+				append([]any{fmt.Sprintf("field %q: matcher error", fieldInfo.Name)}, msgAndArgs...)...)
+			if !success {
+				require.Fail(t, matcher.FailureMessage(actualField.Interface()),
+					append([]any{fmt.Sprintf("field %q", fieldInfo.Name)}, msgAndArgs...)...)
+			}
+			continue
+		}
+
 		valField := fieldVal.FieldByName("Val")
 		if !valField.IsValid() {
 			panic(fmt.Sprintf("assertPartial: field %q of type %v is neither Assertable nor Opt[T]", fieldInfo.Name, fieldVal.Type()))
