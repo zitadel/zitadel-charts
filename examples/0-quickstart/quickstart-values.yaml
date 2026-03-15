@@ -1,0 +1,65 @@
+# Quickstart values — full stack with bundled PostgreSQL.
+# Uses postgresql.enabled=true to deploy a fully self-contained stack.
+# All passwords are intentional dev placeholders.
+# DO NOT use these values for any non-local deployment.
+
+# Deploy PostgreSQL as a subchart. The chart auto-populates the ZITADEL
+# database host, port, credentials, and SSL mode from the values below.
+postgresql:
+  enabled: true
+  # Make postgresql resources pre-install hooks so they are created BEFORE the
+  # init/setup jobs (which run at hook weights 1 and 2). This solves the ordering
+  # problem: without this, subcharts deploy as regular resources (after all hooks),
+  # so the init job would fire before postgresql exists.
+  commonAnnotations:
+    helm.sh/hook: pre-install
+    helm.sh/hook-weight: "-1"
+  auth:
+    database: zitadel
+    username: zitadel
+    password: zitadel
+    postgresPassword: zitadel
+  primary:
+    persistence:
+      enabled: false
+
+zitadel:
+  # Dev-only masterkey — generate a real one before any non-local deployment:
+  # tr -dc A-Za-z0-9 </dev/urandom | head -c 32
+  masterkey: "MasterkeyNeedsToHave32Characters"
+
+  configmapConfig:
+    ExternalDomain: localhost   # replace with your domain or IP
+    ExternalPort: 80            # replace with the port your ingress controller listens on
+    ExternalSecure: false
+    TLS:
+      Enabled: false
+    FirstInstance:
+      Org:
+        Human:
+          UserName: zitadel-admin
+          Email: zitadel-admin@zitadel.localhost
+          Password: "Password1!"
+          PasswordChangeRequired: false
+
+# Set both ingress.className and login.ingress.className to the IngressClass of
+# your ingress controller (e.g., "nginx", "traefik").
+# For k3d or k3s, this is typically "traefik".
+ingress:
+  enabled: true
+  # className: traefik
+  hosts:
+    - host: localhost
+      paths:
+        - path: /
+          pathType: Prefix
+
+login:
+  ingress:
+    enabled: true
+    # className: traefik
+    hosts:
+      - host: localhost
+        paths:
+          - path: /ui/v2/login
+            pathType: Prefix

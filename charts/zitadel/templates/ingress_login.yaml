@@ -16,7 +16,7 @@ metadata:
     {{- toYaml . | nindent 4 }}
     {{- end }}
 spec:
-  ingressClassName: {{ .Values.login.ingress.className }}
+  ingressClassName: {{ include "zitadel.login.ingressClassName" . }}
   {{- with .Values.login.ingress.tls }}
   tls:
   {{- toYaml . | nindent 4 }}

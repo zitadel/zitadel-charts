@@ -24,7 +24,7 @@ metadata:
     {{- end }}
   {{- end }}
 spec:
-  ingressClassName: {{ .Values.ingress.className }}
+  ingressClassName: {{ include "zitadel.ingressClassName" . }}
   {{- with .Values.ingress.tls }}
   tls:
     {{- toYaml . | nindent 4 }}
