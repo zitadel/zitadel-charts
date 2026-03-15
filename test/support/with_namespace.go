@@ -21,11 +21,12 @@ import (
 func WithNamespace(t *testing.T, fn func(*Env)) {
 	t.Helper()
 
-	testcluster.WithNamespace(t, func(_ context.Context, k *k8s.KubectlOptions) {
+	testcluster.WithNamespace(t, func(ctx context.Context, k *k8s.KubectlOptions) {
 		client, err := k8s.GetKubernetesClientFromOptionsE(t, k)
 		require.NoError(t, err)
 
 		env := &Env{
+			Ctx:       ctx,
 			Namespace: k.Namespace,
 			Kube:      k,
 			Client:    client,

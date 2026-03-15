@@ -1,7 +1,6 @@
 package support
 
 import (
-	"context"
 	"fmt"
 	"path/filepath"
 	"runtime"
@@ -120,7 +119,7 @@ func dumpSetupAndInitJobLogs(t *testing.T, env *support.Env, releaseName string)
 
 func listPodsE(t *testing.T, env *support.Env, labelSelector string) []corev1.Pod {
 	podList, err := env.Client.CoreV1().Pods(env.Kube.Namespace).List(
-		context.Background(),
+		env.Ctx,
 		metav1.ListOptions{LabelSelector: labelSelector},
 	)
 	if err != nil {

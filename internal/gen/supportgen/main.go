@@ -408,7 +408,7 @@ func getClientExpr(r resource) *Statement {
 		chain = chain.Dot(r.Plural).Call()
 	}
 	chain = chain.Dot("Get").Call(
-		Qual("context", "Background").Call(),
+		Id("env").Dot("Ctx"),
 		Id("name"),
 		Qual("k8s.io/apimachinery/pkg/apis/meta/v1", "GetOptions").Values(),
 	)
