@@ -3,6 +3,7 @@ linter: 'jetbrains/qodana-go:2025.3'
 profile:
   path: .qodana/profiles/k8s.yaml
 bootstrap: |
+  export GOTOOLCHAIN=auto
   go mod download
   go mod tidy
 plugins:
