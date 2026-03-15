@@ -16,7 +16,8 @@ import (
 
 // WithNamespace creates a unique ephemeral namespace for a test, initializes
 // a Kubernetes client and logger, and passes the resulting Env to the callback.
-// The namespace is automatically cleaned up when the test finishes.
+// The namespace is cleaned up when the test finishes unless the test failed,
+// in which case it is preserved for debugging.
 func WithNamespace(t *testing.T, fn func(*Env)) {
 	t.Helper()
 
