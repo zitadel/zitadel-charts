@@ -7,7 +7,6 @@ import (
 	"reflect"
 	"testing"
 
-	gomegaTypes "github.com/onsi/gomega/types"
 	types "github.com/onsi/gomega/types"
 	"github.com/stretchr/testify/require"
 	v1 "k8s.io/api/apps/v1"
@@ -3676,7 +3675,7 @@ func doAssertPartial(t *testing.T, actualVal reflect.Value, assertionVal reflect
 		// Must be Opt[T] — check Matcher first, then Val
 		matcherField := fieldVal.FieldByName("Matcher")
 		if matcherField.IsValid() && !matcherField.IsNil() {
-			matcher := matcherField.Interface().(gomegaTypes.GomegaMatcher)
+			matcher := matcherField.Interface().(types.GomegaMatcher)
 			success, err := matcher.Match(actualField.Interface())
 			require.NoError(t, err,
 				append([]any{fmt.Sprintf("field %q: matcher error", fieldInfo.Name)}, msgAndArgs...)...)
