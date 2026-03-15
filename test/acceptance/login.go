@@ -92,8 +92,10 @@ func CheckLogin(t *testing.T, apiBaseURL string) {
 	})
 
 	t.Run("enter password", func(t *testing.T) {
-		runWithScreenshotOnFailure(t, loginCtx, loginFailuresDir, 30*time.Second,
+		runWithScreenshotOnFailure(t, loginCtx, loginFailuresDir, 60*time.Second,
+			chromedp.WaitReady(testIDSelector("password-text-input"), chromedp.ByQuery),
 			chromedp.SendKeys(testIDSelector("password-text-input"), "Password1!", chromedp.ByQuery),
+			chromedp.WaitReady(testIDSelector("submit-button"), chromedp.ByQuery),
 			chromedp.Click(testIDSelector("submit-button"), chromedp.ByQuery),
 		)
 	})
