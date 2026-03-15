@@ -3731,7 +3731,7 @@ func doAssertPartial(t *testing.T, actualVal reflect.Value, assertionVal reflect
 		}
 
 		if !expectedVal.CanInterface() || !actualField.CanInterface() {
-			require.True(t, reflect.DeepEqual(expectedVal.Interface(), actualField.Interface()),
+			require.True(t, reflect.DeepEqual(expectedVal, actualField),
 				append([]any{fmt.Sprintf("field %q mismatch\nexpected: %v\nactual:   %v", fieldInfo.Name, expectedVal, actualField)}, msgAndArgs...)...)
 			continue
 		}
