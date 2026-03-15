@@ -22,7 +22,7 @@ func TestRBACLabels(t *testing.T) {
 				ObjectMeta: assert.ObjectMetaAssertion{
 					Labels: assert.Some(map[string]string{
 						"app.kubernetes.io/name":       "zitadel",
-						"app.kubernetes.io/version":    "v4.10.1",
+						"app.kubernetes.io/version":    "v4.12.1",
 						"app.kubernetes.io/managed-by": "Helm",
 					}),
 				},
@@ -31,7 +31,7 @@ func TestRBACLabels(t *testing.T) {
 				ObjectMeta: assert.ObjectMetaAssertion{
 					Labels: assert.Some(map[string]string{
 						"app.kubernetes.io/name":       "zitadel",
-						"app.kubernetes.io/version":    "v4.10.1",
+						"app.kubernetes.io/version":    "v4.12.1",
 						"app.kubernetes.io/managed-by": "Helm",
 					}),
 				},
