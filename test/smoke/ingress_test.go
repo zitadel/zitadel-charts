@@ -3,6 +3,7 @@ package smoke_test_test
 import (
 	"testing"
 
+	"github.com/onsi/gomega"
 	"github.com/zitadel/zitadel-charts/test/assert"
 	setup "github.com/zitadel/zitadel-charts/test/smoke/support"
 	"github.com/zitadel/zitadel-charts/test/support"
@@ -74,7 +75,13 @@ func TestIngressMatrix(t *testing.T) {
 				"ingress.hosts[0].paths[0].path":     "/",
 				"ingress.hosts[0].paths[0].pathType": "Prefix",
 			},
-			zitadel: &assert.IngressAssertion{},
+			zitadel: &assert.IngressAssertion{
+				ObjectMeta: assert.ObjectMetaAssertion{
+					Annotations: assert.Matching[map[string]string](
+						gomega.Not(gomega.HaveKey("nginx.ingress.kubernetes.io/backend-protocol")),
+					),
+				},
+			},
 		},
 	}
 
