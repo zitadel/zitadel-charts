@@ -10,23 +10,33 @@ import (
 	"github.com/zitadel/zitadel-charts/test/smoke/support"
 )
 
+var gatewayBaseValues = map[string]string{
+	"zitadel.configmapConfig.ExternalDomain": "zitadel.example.local",
+	"zitadel.masterkey":                      "01234567890123456789012345678901",
+}
+
+func gatewayOptions(extra map[string]string) *helm.Options {
+	merged := make(map[string]string, len(gatewayBaseValues)+len(extra))
+	for k, v := range gatewayBaseValues {
+		merged[k] = v
+	}
+	for k, v := range extra {
+		merged[k] = v
+	}
+	return &helm.Options{SetValues: merged}
+}
+
 func TestGatewayHTTPRouteLabels(t *testing.T) {
 	t.Parallel()
 
 	chartPath := support.ChartPath(t)
-
-	options := &helm.Options{
-		SetValues: map[string]string{
-			"image.tag":                              support.DigestTag,
-			"gateway.httpRoute.enabled":              "true",
-			"gateway.httpRoute.parentRefs[0].name":   "my-gateway",
-			"gateway.httpRoute.hostnames[0]":         "zitadel.example.local",
-			"zitadel.configmapConfig.ExternalDomain": "zitadel.example.local",
-			"zitadel.masterkey":                      "01234567890123456789012345678901",
-		},
-	}
-
 	releaseName := "gateway-httproute-labels"
+
+	options := gatewayOptions(map[string]string{
+		"gateway.httpRoute.enabled":            "true",
+		"gateway.httpRoute.parentRefs[0].name": "my-gateway",
+		"gateway.httpRoute.hostnames[0]":       "zitadel.example.local",
+	})
 
 	rendered := helm.RenderTemplate(t, options, chartPath, releaseName, []string{"templates/httproute_zitadel.yaml"})
 
@@ -34,16 +44,11 @@ func TestGatewayHTTPRouteLabels(t *testing.T) {
 	helm.UnmarshalK8SYaml(t, rendered, &route)
 
 	metadata := route["metadata"].(map[string]interface{})
-	labels := make(map[string]string)
-	for k, v := range metadata["labels"].(map[string]interface{}) {
-		labels[k] = v.(string)
-	}
-	support.AssertLabels(
-		t,
-		labels,
-		support.ExpectedLabels(releaseName, "zitadel", support.ExpectedVersion, "", nil),
-	)
+	labels := metadata["labels"].(map[string]interface{})
 
+	assert.Equal(t, "zitadel", labels["app.kubernetes.io/name"])
+	assert.Equal(t, releaseName, labels["app.kubernetes.io/instance"])
+	assert.Equal(t, "Helm", labels["app.kubernetes.io/managed-by"])
 	assert.Equal(t, "HTTPRoute", route["kind"])
 	assert.Equal(t, releaseName+"-zitadel", metadata["name"])
 	assert.Contains(t, metadata, "namespace")
@@ -53,19 +58,13 @@ func TestGatewayGRPCRouteLabels(t *testing.T) {
 	t.Parallel()
 
 	chartPath := support.ChartPath(t)
-
-	options := &helm.Options{
-		SetValues: map[string]string{
-			"image.tag":                              support.DigestTag,
-			"gateway.grpcRoute.enabled":              "true",
-			"gateway.grpcRoute.parentRefs[0].name":   "my-gateway",
-			"gateway.grpcRoute.hostnames[0]":         "zitadel.example.local",
-			"zitadel.configmapConfig.ExternalDomain": "zitadel.example.local",
-			"zitadel.masterkey":                      "01234567890123456789012345678901",
-		},
-	}
-
 	releaseName := "gateway-grpcroute-labels"
+
+	options := gatewayOptions(map[string]string{
+		"gateway.grpcRoute.enabled":            "true",
+		"gateway.grpcRoute.parentRefs[0].name": "my-gateway",
+		"gateway.grpcRoute.hostnames[0]":       "zitadel.example.local",
+	})
 
 	rendered := helm.RenderTemplate(t, options, chartPath, releaseName, []string{"templates/grpcroute_zitadel.yaml"})
 
@@ -73,16 +72,11 @@ func TestGatewayGRPCRouteLabels(t *testing.T) {
 	helm.UnmarshalK8SYaml(t, rendered, &route)
 
 	metadata := route["metadata"].(map[string]interface{})
-	labels := make(map[string]string)
-	for k, v := range metadata["labels"].(map[string]interface{}) {
-		labels[k] = v.(string)
-	}
-	support.AssertLabels(
-		t,
-		labels,
-		support.ExpectedLabels(releaseName, "zitadel", support.ExpectedVersion, "", nil),
-	)
+	labels := metadata["labels"].(map[string]interface{})
 
+	assert.Equal(t, "zitadel", labels["app.kubernetes.io/name"])
+	assert.Equal(t, releaseName, labels["app.kubernetes.io/instance"])
+	assert.Equal(t, "Helm", labels["app.kubernetes.io/managed-by"])
 	assert.Equal(t, "GRPCRoute", route["kind"])
 	assert.Equal(t, releaseName+"-zitadel-grpc", metadata["name"])
 	assert.Contains(t, metadata, "namespace")
@@ -92,20 +86,14 @@ func TestGatewayHTTPRouteLoginLabels(t *testing.T) {
 	t.Parallel()
 
 	chartPath := support.ChartPath(t)
-
-	options := &helm.Options{
-		SetValues: map[string]string{
-			"image.tag":                       support.DigestTag,
-			"login.enabled":                   "true",
-			"login.gateway.httpRoute.enabled": "true",
-			"login.gateway.httpRoute.parentRefs[0].name": "my-gateway",
-			"login.gateway.httpRoute.hostnames[0]":       "zitadel.example.local",
-			"zitadel.configmapConfig.ExternalDomain":     "zitadel.example.local",
-			"zitadel.masterkey":                          "01234567890123456789012345678901",
-		},
-	}
-
 	releaseName := "gateway-login-httproute"
+
+	options := gatewayOptions(map[string]string{
+		"login.enabled":                               "true",
+		"login.gateway.httpRoute.enabled":              "true",
+		"login.gateway.httpRoute.parentRefs[0].name":   "my-gateway",
+		"login.gateway.httpRoute.hostnames[0]":         "zitadel.example.local",
+	})
 
 	rendered := helm.RenderTemplate(t, options, chartPath, releaseName, []string{"templates/httproute_login.yaml"})
 
@@ -113,16 +101,12 @@ func TestGatewayHTTPRouteLoginLabels(t *testing.T) {
 	helm.UnmarshalK8SYaml(t, rendered, &route)
 
 	metadata := route["metadata"].(map[string]interface{})
-	labels := make(map[string]string)
-	for k, v := range metadata["labels"].(map[string]interface{}) {
-		labels[k] = v.(string)
-	}
-	support.AssertLabels(
-		t,
-		labels,
-		support.ExpectedLabels(releaseName, "zitadel-login", support.ExpectedVersion, "login", nil),
-	)
+	labels := metadata["labels"].(map[string]interface{})
 
+	assert.Equal(t, "zitadel-login", labels["app.kubernetes.io/name"])
+	assert.Equal(t, releaseName, labels["app.kubernetes.io/instance"])
+	assert.Equal(t, "Helm", labels["app.kubernetes.io/managed-by"])
+	assert.Equal(t, "login", labels["app.kubernetes.io/component"])
 	assert.Equal(t, "HTTPRoute", route["kind"])
 	assert.Contains(t, metadata, "namespace")
 }
@@ -131,15 +115,8 @@ func TestGatewayRoutesDisabledByDefault(t *testing.T) {
 	t.Parallel()
 
 	chartPath := support.ChartPath(t)
-
-	options := &helm.Options{
-		SetValues: map[string]string{
-			"image.tag":         support.DigestTag,
-			"zitadel.masterkey": "01234567890123456789012345678901",
-		},
-	}
-
 	releaseName := "gateway-disabled"
+	options := gatewayOptions(nil)
 
 	_, err := helm.RenderTemplateE(t, options, chartPath, releaseName,
 		[]string{"templates/httproute_zitadel.yaml"})
@@ -158,20 +135,15 @@ func TestGatewayHTTPRouteCustomHosts(t *testing.T) {
 	t.Parallel()
 
 	chartPath := support.ChartPath(t)
-
-	options := &helm.Options{
-		SetValues: map[string]string{
-			"image.tag":                              support.DigestTag,
-			"gateway.httpRoute.enabled":              "true",
-			"gateway.httpRoute.parentRefs[0].name":   "my-gw",
-			"gateway.httpRoute.hostnames[0]":         "custom.example.com",
-			"gateway.httpRoute.hostnames[1]":         "other.example.com",
-			"zitadel.configmapConfig.ExternalDomain": "default.example.com",
-			"zitadel.masterkey":                      "01234567890123456789012345678901",
-		},
-	}
-
 	releaseName := "gateway-custom-hosts"
+
+	options := gatewayOptions(map[string]string{
+		"gateway.httpRoute.enabled":              "true",
+		"gateway.httpRoute.parentRefs[0].name":   "my-gw",
+		"gateway.httpRoute.hostnames[0]":         "custom.example.com",
+		"gateway.httpRoute.hostnames[1]":         "other.example.com",
+		"zitadel.configmapConfig.ExternalDomain": "default.example.com",
+	})
 
 	rendered := helm.RenderTemplate(t, options, chartPath, releaseName,
 		[]string{"templates/httproute_zitadel.yaml"})
@@ -211,16 +183,12 @@ func TestGatewayHTTPRouteAnnotations(t *testing.T) {
 	for _, tc := range testCases {
 		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
-			options := &helm.Options{
-				SetValues: map[string]string{
-					"image.tag":                              support.DigestTag,
-					"gateway.httpRoute.enabled":              "true",
-					"gateway.httpRoute.parentRefs[0].name":   "my-gw",
-					"zitadel.configmapConfig.ExternalDomain": "zitadel.example.local",
-					"zitadel.masterkey":                      "01234567890123456789012345678901",
-				},
-				SetJsonValues: tc.setJsonValues,
-			}
+			options := gatewayOptions(map[string]string{
+				"gateway.httpRoute.enabled":            "true",
+				"gateway.httpRoute.parentRefs[0].name": "my-gw",
+			})
+			options.SetJsonValues = tc.setJsonValues
+
 			rendered := helm.RenderTemplate(t, options, chartPath, releaseName,
 				[]string{"templates/httproute_zitadel.yaml"})
 
@@ -242,15 +210,10 @@ func TestGatewayHTTPRouteDefaultPaths(t *testing.T) {
 	chartPath := support.ChartPath(t)
 
 	t.Run("zitadel default path is /", func(t *testing.T) {
-		options := &helm.Options{
-			SetValues: map[string]string{
-				"image.tag":                              support.DigestTag,
-				"gateway.httpRoute.enabled":              "true",
-				"gateway.httpRoute.parentRefs[0].name":   "my-gw",
-				"zitadel.configmapConfig.ExternalDomain": "zitadel.example.local",
-				"zitadel.masterkey":                      "01234567890123456789012345678901",
-			},
-		}
+		options := gatewayOptions(map[string]string{
+			"gateway.httpRoute.enabled":            "true",
+			"gateway.httpRoute.parentRefs[0].name": "my-gw",
+		})
 
 		rendered := helm.RenderTemplate(t, options, chartPath, "gateway-default-paths",
 			[]string{"templates/httproute_zitadel.yaml"})
@@ -259,16 +222,11 @@ func TestGatewayHTTPRouteDefaultPaths(t *testing.T) {
 	})
 
 	t.Run("login default path is /ui/v2/login", func(t *testing.T) {
-		options := &helm.Options{
-			SetValues: map[string]string{
-				"image.tag":                       support.DigestTag,
-				"login.enabled":                   "true",
-				"login.gateway.httpRoute.enabled": "true",
-				"login.gateway.httpRoute.parentRefs[0].name": "my-gw",
-				"zitadel.configmapConfig.ExternalDomain":     "zitadel.example.local",
-				"zitadel.masterkey":                          "01234567890123456789012345678901",
-			},
-		}
+		options := gatewayOptions(map[string]string{
+			"login.enabled":                               "true",
+			"login.gateway.httpRoute.enabled":              "true",
+			"login.gateway.httpRoute.parentRefs[0].name":   "my-gw",
+		})
 
 		rendered := helm.RenderTemplate(t, options, chartPath, "gateway-default-paths",
 			[]string{"templates/httproute_login.yaml"})
@@ -283,17 +241,12 @@ func TestGatewayHTTPRouteEmptyPathsFails(t *testing.T) {
 	chartPath := support.ChartPath(t)
 
 	t.Run("zitadel empty paths fails", func(t *testing.T) {
-		options := &helm.Options{
-			SetValues: map[string]string{
-				"image.tag":                              support.DigestTag,
-				"gateway.httpRoute.enabled":              "true",
-				"gateway.httpRoute.parentRefs[0].name":   "my-gw",
-				"zitadel.configmapConfig.ExternalDomain": "zitadel.example.local",
-				"zitadel.masterkey":                      "01234567890123456789012345678901",
-			},
-			SetJsonValues: map[string]string{
-				"gateway.httpRoute.paths": "[]",
-			},
+		options := gatewayOptions(map[string]string{
+			"gateway.httpRoute.enabled":            "true",
+			"gateway.httpRoute.parentRefs[0].name": "my-gw",
+		})
+		options.SetJsonValues = map[string]string{
+			"gateway.httpRoute.paths": "[]",
 		}
 
 		_, err := helm.RenderTemplateE(t, options, chartPath, "gateway-empty-paths",
@@ -303,18 +256,13 @@ func TestGatewayHTTPRouteEmptyPathsFails(t *testing.T) {
 	})
 
 	t.Run("login empty paths fails", func(t *testing.T) {
-		options := &helm.Options{
-			SetValues: map[string]string{
-				"image.tag":                       support.DigestTag,
-				"login.enabled":                   "true",
-				"login.gateway.httpRoute.enabled": "true",
-				"login.gateway.httpRoute.parentRefs[0].name": "my-gw",
-				"zitadel.configmapConfig.ExternalDomain":     "zitadel.example.local",
-				"zitadel.masterkey":                          "01234567890123456789012345678901",
-			},
-			SetJsonValues: map[string]string{
-				"login.gateway.httpRoute.paths": "[]",
-			},
+		options := gatewayOptions(map[string]string{
+			"login.enabled":                               "true",
+			"login.gateway.httpRoute.enabled":              "true",
+			"login.gateway.httpRoute.parentRefs[0].name":   "my-gw",
+		})
+		options.SetJsonValues = map[string]string{
+			"login.gateway.httpRoute.paths": "[]",
 		}
 
 		_, err := helm.RenderTemplateE(t, options, chartPath, "gateway-empty-paths",
@@ -328,21 +276,15 @@ func TestGatewayHTTPRouteParentRefs(t *testing.T) {
 	t.Parallel()
 
 	chartPath := support.ChartPath(t)
-
-	options := &helm.Options{
-		SetValues: map[string]string{
-			"image.tag":                                   support.DigestTag,
-			"gateway.httpRoute.enabled":                   "true",
-			"gateway.httpRoute.parentRefs[0].name":        "my-gateway",
-			"gateway.httpRoute.parentRefs[0].namespace":   "gateway-ns",
-			"gateway.httpRoute.parentRefs[0].sectionName": "https",
-			"gateway.httpRoute.parentRefs[0].port":        "443",
-			"zitadel.configmapConfig.ExternalDomain":      "zitadel.example.local",
-			"zitadel.masterkey":                           "01234567890123456789012345678901",
-		},
-	}
-
 	releaseName := "gateway-parentrefs"
+
+	options := gatewayOptions(map[string]string{
+		"gateway.httpRoute.enabled":                   "true",
+		"gateway.httpRoute.parentRefs[0].name":        "my-gateway",
+		"gateway.httpRoute.parentRefs[0].namespace":   "gateway-ns",
+		"gateway.httpRoute.parentRefs[0].sectionName": "https",
+		"gateway.httpRoute.parentRefs[0].port":        "443",
+	})
 
 	rendered := helm.RenderTemplate(t, options, chartPath, releaseName,
 		[]string{"templates/httproute_zitadel.yaml"})
@@ -358,17 +300,12 @@ func TestGatewayHTTPRouteFilters(t *testing.T) {
 	chartPath := support.ChartPath(t)
 	releaseName := "gateway-filters"
 
-	options := &helm.Options{
-		SetValues: map[string]string{
-			"image.tag":                              support.DigestTag,
-			"gateway.httpRoute.enabled":              "true",
-			"gateway.httpRoute.parentRefs[0].name":   "my-gw",
-			"zitadel.configmapConfig.ExternalDomain": "zitadel.example.local",
-			"zitadel.masterkey":                      "01234567890123456789012345678901",
-		},
-		SetJsonValues: map[string]string{
-			"gateway.httpRoute.filters": `[{"type":"RequestHeaderModifier","requestHeaderModifier":{"set":[{"name":"X-Custom","value":"test"}]}}]`,
-		},
+	options := gatewayOptions(map[string]string{
+		"gateway.httpRoute.enabled":            "true",
+		"gateway.httpRoute.parentRefs[0].name": "my-gw",
+	})
+	options.SetJsonValues = map[string]string{
+		"gateway.httpRoute.filters": `[{"type":"RequestHeaderModifier","requestHeaderModifier":{"set":[{"name":"X-Custom","value":"test"}]}}]`,
 	}
 
 	rendered := helm.RenderTemplate(t, options, chartPath, releaseName,
@@ -384,17 +321,12 @@ func TestGatewayHTTPRouteTimeouts(t *testing.T) {
 	chartPath := support.ChartPath(t)
 	releaseName := "gateway-timeouts"
 
-	options := &helm.Options{
-		SetValues: map[string]string{
-			"image.tag":                                 support.DigestTag,
-			"gateway.httpRoute.enabled":                 "true",
-			"gateway.httpRoute.parentRefs[0].name":      "my-gw",
-			"gateway.httpRoute.timeouts.request":        "30s",
-			"gateway.httpRoute.timeouts.backendRequest": "20s",
-			"zitadel.configmapConfig.ExternalDomain":    "zitadel.example.local",
-			"zitadel.masterkey":                         "01234567890123456789012345678901",
-		},
-	}
+	options := gatewayOptions(map[string]string{
+		"gateway.httpRoute.enabled":                 "true",
+		"gateway.httpRoute.parentRefs[0].name":      "my-gw",
+		"gateway.httpRoute.timeouts.request":        "30s",
+		"gateway.httpRoute.timeouts.backendRequest": "20s",
+	})
 
 	rendered := helm.RenderTemplate(t, options, chartPath, releaseName,
 		[]string{"templates/httproute_zitadel.yaml"})
@@ -409,16 +341,11 @@ func TestGatewayHTTPRouteCustomLabels(t *testing.T) {
 	chartPath := support.ChartPath(t)
 	releaseName := "gateway-custom-labels"
 
-	options := &helm.Options{
-		SetValues: map[string]string{
-			"image.tag":                              support.DigestTag,
-			"gateway.httpRoute.enabled":              "true",
-			"gateway.httpRoute.parentRefs[0].name":   "my-gw",
-			"gateway.httpRoute.labels.custom-label":  "custom-value",
-			"zitadel.configmapConfig.ExternalDomain": "zitadel.example.local",
-			"zitadel.masterkey":                      "01234567890123456789012345678901",
-		},
-	}
+	options := gatewayOptions(map[string]string{
+		"gateway.httpRoute.enabled":             "true",
+		"gateway.httpRoute.parentRefs[0].name":  "my-gw",
+		"gateway.httpRoute.labels.custom-label": "custom-value",
+	})
 
 	rendered := helm.RenderTemplate(t, options, chartPath, releaseName,
 		[]string{"templates/httproute_zitadel.yaml"})
@@ -437,17 +364,12 @@ func TestGatewayGRPCRouteFilters(t *testing.T) {
 	chartPath := support.ChartPath(t)
 	releaseName := "gateway-grpc-filters"
 
-	options := &helm.Options{
-		SetValues: map[string]string{
-			"image.tag":                              support.DigestTag,
-			"gateway.grpcRoute.enabled":              "true",
-			"gateway.grpcRoute.parentRefs[0].name":   "my-gw",
-			"zitadel.configmapConfig.ExternalDomain": "zitadel.example.local",
-			"zitadel.masterkey":                      "01234567890123456789012345678901",
-		},
-		SetJsonValues: map[string]string{
-			"gateway.grpcRoute.filters": `[{"type":"RequestHeaderModifier","requestHeaderModifier":{"set":[{"name":"X-Custom","value":"grpc-test"}]}}]`,
-		},
+	options := gatewayOptions(map[string]string{
+		"gateway.grpcRoute.enabled":            "true",
+		"gateway.grpcRoute.parentRefs[0].name": "my-gw",
+	})
+	options.SetJsonValues = map[string]string{
+		"gateway.grpcRoute.filters": `[{"type":"RequestHeaderModifier","requestHeaderModifier":{"set":[{"name":"X-Custom","value":"grpc-test"}]}}]`,
 	}
 
 	rendered := helm.RenderTemplate(t, options, chartPath, releaseName,

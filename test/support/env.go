@@ -1,0 +1,20 @@
+// Package support provides generic Kubernetes and Helm test infrastructure
+// for chart testing: ephemeral namespaces, resource getters, and template
+// rendering helpers.
+package support
+
+import (
+	"github.com/gruntwork-io/terratest/modules/k8s"
+	"github.com/gruntwork-io/terratest/modules/logger"
+	"k8s.io/client-go/kubernetes"
+)
+
+// Env represents a per-test environment created by WithNamespace. It provides
+// namespace-scoped kubectl options, a Kubernetes client, and a logger for
+// consistent test output across test execution.
+type Env struct {
+	Namespace string
+	Kube      *k8s.KubectlOptions
+	Client    *kubernetes.Clientset
+	Logger    *logger.Logger
+}

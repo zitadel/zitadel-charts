@@ -1,4 +1,4 @@
-package k8s
+package testcluster
 
 import (
 	"context"
@@ -10,13 +10,12 @@ import (
 )
 
 // WithNamespace creates a unique namespace for a test, runs the provided
-// function, and cleans up the namespace afterwards (unless the test failed).
-// The namespace name is generated using the current Unix nanosecond timestamp
-// to ensure uniqueness across concurrent test runs.
+// function, and cleans up the namespace afterwards. The namespace name is
+// generated using the current Unix nanosecond timestamp to ensure uniqueness
+// across concurrent test runs.
 //
-// The function provides a 30-minute context timeout and passes both the context
-// and configured KubectlOptions to the callback. If the test fails, the
-// namespace is preserved for debugging purposes.
+// A 30-minute context timeout is provided to the callback. If the test fails,
+// the namespace is preserved for debugging purposes.
 func WithNamespace(t *testing.T, fn func(ctx context.Context, k *k8s.KubectlOptions)) {
 	t.Helper()
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Minute)
