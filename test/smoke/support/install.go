@@ -16,6 +16,18 @@ import (
 	"github.com/zitadel/zitadel-charts/test/support"
 )
 
+// ChartPath returns the absolute path to the Zitadel Helm chart.
+func ChartPath(t *testing.T) string {
+	t.Helper()
+	_, filename, _, ok := runtime.Caller(0)
+	if !ok {
+		t.Fatal("failed to determine caller info for chart path resolution")
+	}
+	absPath, err := filepath.Abs(filepath.Join(filepath.Dir(filename), "..", "..", "..", "charts", "zitadel"))
+	require.NoError(t, err)
+	return absPath
+}
+
 // InstallZitadel installs the Zitadel chart with PostgreSQL and standard
 // configuration. It handles: WithPostgres, commonSetValues, MakeRelease,
 // mergedSetValues, helm.Options, helm.UpgradeE, and log dumping on failure.
@@ -23,8 +35,7 @@ import (
 func InstallZitadel(t *testing.T, env *support.Env, testName string, setValues map[string]string) string {
 	t.Helper()
 
-	_, filename, _, _ := runtime.Caller(0)
-	chartPath := filepath.Join(filepath.Dir(filename), "..", "..", "..", "charts", "zitadel")
+	chartPath := ChartPath(t)
 
 	env.Logger.Logf(t, "namespace %q created; installing PostgreSQL…", env.Namespace)
 	WithPostgres(t, env)
