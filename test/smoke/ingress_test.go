@@ -8,6 +8,7 @@ import (
 	"github.com/zitadel/zitadel-charts/test/support"
 )
 
+//goland:noinspection DuplicatedCode
 func TestIngressMatrix(t *testing.T) {
 	t.Parallel()
 

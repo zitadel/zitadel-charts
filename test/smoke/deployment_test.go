@@ -11,6 +11,7 @@ import (
 	"github.com/zitadel/zitadel-charts/test/support"
 )
 
+//goland:noinspection ALL
 func TestDeploymentMatrix(t *testing.T) {
 	t.Parallel()
 

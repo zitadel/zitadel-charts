@@ -137,6 +137,8 @@ func TestReferencedSecrets(t *testing.T) {
 // machine user, verifies that the service account key is created as a
 // Kubernetes secret, and then uses that key to authenticate against both the
 // HTTP and gRPC management APIs. This validates the complete M2M auth flow.
+//
+//goland:noinspection DuplicatedCode
 func TestMachineUser(t *testing.T) {
 	domain := "machine.127.0.0.1.sslip.io"
 	apiBaseURL := BuildAPIBaseURL(domain, httpsPort, true)

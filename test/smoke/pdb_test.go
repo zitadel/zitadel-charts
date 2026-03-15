@@ -10,6 +10,7 @@ import (
 	"github.com/zitadel/zitadel-charts/test/support"
 )
 
+//goland:noinspection DuplicatedCode
 func TestPodDisruptionBudgetMatrix(t *testing.T) {
 	t.Parallel()
 
