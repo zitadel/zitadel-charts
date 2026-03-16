@@ -2,6 +2,7 @@ package testcluster
 
 import (
 	"context"
+	"os"
 	"strings"
 	"testing"
 	"time"
@@ -23,7 +24,7 @@ func WithNamespace(t *testing.T, fn func(ctx context.Context, k *k8s.KubectlOpti
 	defer cancel()
 
 	namespace := "zitadel-test-" + strings.ToLower(random.UniqueId())
-	k := k8s.NewKubectlOptions("", "", namespace)
+	k := k8s.NewKubectlOptions("", os.Getenv("KUBECONFIG"), namespace)
 
 	k8s.CreateNamespace(t, k, namespace)
 	defer func() {
