@@ -302,7 +302,10 @@ func main() {
 	var noneSwitchCases []Code
 	for _, r := range assertResources {
 		noneSwitchCases = append(noneSwitchCases,
-			Case(Qual("github.com/zitadel/zitadel-charts/test/assert", r.AssertName())).Block(
+			Case(
+				Qual("github.com/zitadel/zitadel-charts/test/assert", r.AssertName()),
+				Op("*").Qual("github.com/zitadel/zitadel-charts/test/assert", r.AssertName()),
+			).Block(
 				List(Id("_"), Id("err")).Op(":=").Id("env").Dot("Get"+r.Name+"E").Call(Id("t"), Id("name")),
 				Qual("github.com/stretchr/testify/require", "True").Call(
 					Id("t"),
