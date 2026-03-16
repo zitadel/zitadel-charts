@@ -1,49 +1,27 @@
 package smoke_test_test
 
 import (
-	"context"
-	"fmt"
 	"testing"
-	"time"
 
-	"github.com/gruntwork-io/terratest/modules/helm"
-	"github.com/gruntwork-io/terratest/modules/k8s"
-	"github.com/stretchr/testify/require"
-	appsv1 "k8s.io/api/apps/v1"
 	autoscalingv2 "k8s.io/api/autoscaling/v2"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	corev1 "k8s.io/api/core/v1"
 
-	"github.com/zitadel/zitadel-charts/test/smoke/support"
+	"github.com/zitadel/zitadel-charts/test/assert"
+	setup "github.com/zitadel/zitadel-charts/test/smoke/support"
+	"github.com/zitadel/zitadel-charts/test/support"
 )
 
-type hpaExpected struct {
-	zitadelEnabled bool
-	loginEnabled   bool
-
-	zitadelSpec        autoscalingv2.HorizontalPodAutoscalerSpec
-	zitadelAnnotations map[string]string
-
-	loginSpec        autoscalingv2.HorizontalPodAutoscalerSpec
-	loginAnnotations map[string]string
-
-	zitadelReplicas *int32
-	loginReplicas   *int32
-}
-
+//goland:noinspection DuplicatedCode
 func TestAutoscalingMatrix(t *testing.T) {
 	t.Parallel()
 
-	cluster := support.ConnectCluster(t)
-
-	chartPath := support.ChartPath(t)
-
-	int32Ptr := func(value int32) *int32 { return &value }
-	selectPolicyPtr := func(v autoscalingv2.ScalingPolicySelect) *autoscalingv2.ScalingPolicySelect { return &v }
-
 	testCases := []struct {
-		name      string
-		setValues map[string]string
-		expected  hpaExpected
+		name              string
+		setValues         map[string]string
+		zitadel           *assert.HorizontalPodAutoscalerAssertion
+		login             *assert.HorizontalPodAutoscalerAssertion
+		zitadelDeployment *assert.DeploymentAssertion
+		loginDeployment   *assert.DeploymentAssertion
 	}{
 		{
 			name: "both-enabled-cpu-only",
@@ -56,53 +34,49 @@ func TestAutoscalingMatrix(t *testing.T) {
 				"login.autoscaling.enabled":   "true",
 				"login.autoscaling.targetCPU": "55",
 			},
-			expected: hpaExpected{
-				zitadelEnabled: true,
-				loginEnabled:   true,
-				zitadelSpec: autoscalingv2.HorizontalPodAutoscalerSpec{
-					ScaleTargetRef: autoscalingv2.CrossVersionObjectReference{
-						Kind:       "Deployment",
-						Name:       "",
-						APIVersion: "apps/v1",
+			zitadel: &assert.HorizontalPodAutoscalerAssertion{
+				Spec: assert.HorizontalPodAutoscalerSpecAssertion{
+					ScaleTargetRef: assert.CrossVersionObjectReferenceAssertion{
+						Kind:       assert.Some("Deployment"),
+						APIVersion: assert.Some("apps/v1"),
 					},
-					MinReplicas: int32Ptr(3),
-					MaxReplicas: 10,
-					Metrics: []autoscalingv2.MetricSpec{
+					MinReplicas: assert.SomePtr(int32(3)),
+					MaxReplicas: assert.Some(int32(10)),
+					Metrics: assert.Some([]assert.MetricSpecAssertion{
 						{
-							Type: autoscalingv2.ResourceMetricSourceType,
-							Resource: &autoscalingv2.ResourceMetricSource{
-								Name: "cpu",
-								Target: autoscalingv2.MetricTarget{
-									Type:               autoscalingv2.UtilizationMetricType,
-									AverageUtilization: int32Ptr(60),
+							Type: assert.Some(autoscalingv2.ResourceMetricSourceType),
+							Resource: assert.ResourceMetricSourceAssertion{
+								Name: assert.Some(corev1.ResourceName("cpu")),
+								Target: assert.MetricTargetAssertion{
+									Type:               assert.Some(autoscalingv2.UtilizationMetricType),
+									AverageUtilization: assert.SomePtr(int32(60)),
 								},
 							},
 						},
-					},
+					}),
 				},
-				zitadelAnnotations: map[string]string{},
-				loginSpec: autoscalingv2.HorizontalPodAutoscalerSpec{
-					ScaleTargetRef: autoscalingv2.CrossVersionObjectReference{
-						Kind:       "Deployment",
-						Name:       "",
-						APIVersion: "apps/v1",
+			},
+			login: &assert.HorizontalPodAutoscalerAssertion{
+				Spec: assert.HorizontalPodAutoscalerSpecAssertion{
+					ScaleTargetRef: assert.CrossVersionObjectReferenceAssertion{
+						Kind:       assert.Some("Deployment"),
+						APIVersion: assert.Some("apps/v1"),
 					},
-					MinReplicas: int32Ptr(3),
-					MaxReplicas: 10,
-					Metrics: []autoscalingv2.MetricSpec{
+					MinReplicas: assert.SomePtr(int32(3)),
+					MaxReplicas: assert.Some(int32(10)),
+					Metrics: assert.Some([]assert.MetricSpecAssertion{
 						{
-							Type: autoscalingv2.ResourceMetricSourceType,
-							Resource: &autoscalingv2.ResourceMetricSource{
-								Name: "cpu",
-								Target: autoscalingv2.MetricTarget{
-									Type:               autoscalingv2.UtilizationMetricType,
-									AverageUtilization: int32Ptr(55),
+							Type: assert.Some(autoscalingv2.ResourceMetricSourceType),
+							Resource: assert.ResourceMetricSourceAssertion{
+								Name: assert.Some(corev1.ResourceName("cpu")),
+								Target: assert.MetricTargetAssertion{
+									Type:               assert.Some(autoscalingv2.UtilizationMetricType),
+									AverageUtilization: assert.SomePtr(int32(55)),
 								},
 							},
 						},
-					},
+					}),
 				},
-				loginAnnotations: map[string]string{},
 			},
 		},
 		{
@@ -116,32 +90,32 @@ func TestAutoscalingMatrix(t *testing.T) {
 				"login.autoscaling.enabled": "false",
 				"login.replicaCount":        "2",
 			},
-			expected: hpaExpected{
-				zitadelEnabled: true,
-				loginEnabled:   false,
-				zitadelSpec: autoscalingv2.HorizontalPodAutoscalerSpec{
-					ScaleTargetRef: autoscalingv2.CrossVersionObjectReference{
-						Kind:       "Deployment",
-						Name:       "",
-						APIVersion: "apps/v1",
+			zitadel: &assert.HorizontalPodAutoscalerAssertion{
+				Spec: assert.HorizontalPodAutoscalerSpecAssertion{
+					ScaleTargetRef: assert.CrossVersionObjectReferenceAssertion{
+						Kind:       assert.Some("Deployment"),
+						APIVersion: assert.Some("apps/v1"),
 					},
-					MinReplicas: int32Ptr(3),
-					MaxReplicas: 10,
-					Metrics: []autoscalingv2.MetricSpec{
+					MinReplicas: assert.SomePtr(int32(3)),
+					MaxReplicas: assert.Some(int32(10)),
+					Metrics: assert.Some([]assert.MetricSpecAssertion{
 						{
-							Type: autoscalingv2.ResourceMetricSourceType,
-							Resource: &autoscalingv2.ResourceMetricSource{
-								Name: "memory",
-								Target: autoscalingv2.MetricTarget{
-									Type:               autoscalingv2.UtilizationMetricType,
-									AverageUtilization: int32Ptr(70),
+							Type: assert.Some(autoscalingv2.ResourceMetricSourceType),
+							Resource: assert.ResourceMetricSourceAssertion{
+								Name: assert.Some(corev1.ResourceName("memory")),
+								Target: assert.MetricTargetAssertion{
+									Type:               assert.Some(autoscalingv2.UtilizationMetricType),
+									AverageUtilization: assert.SomePtr(int32(70)),
 								},
 							},
 						},
-					},
+					}),
 				},
-				zitadelAnnotations: map[string]string{},
-				loginReplicas:      int32Ptr(2),
+			},
+			loginDeployment: &assert.DeploymentAssertion{
+				Spec: assert.DeploymentSpecAssertion{
+					Replicas: assert.SomePtr(int32(2)),
+				},
 			},
 		},
 		{
@@ -159,114 +133,92 @@ func TestAutoscalingMatrix(t *testing.T) {
 				"login.autoscaling.annotations.owner": "iam",
 				"login.autoscaling.behavior.scaleDown.stabilizationWindowSeconds": "300",
 			},
-			expected: hpaExpected{
-				zitadelEnabled: true,
-				loginEnabled:   true,
-				zitadelSpec: autoscalingv2.HorizontalPodAutoscalerSpec{
-					ScaleTargetRef: autoscalingv2.CrossVersionObjectReference{
-						Kind:       "Deployment",
-						Name:       "",
-						APIVersion: "apps/v1",
+			zitadel: &assert.HorizontalPodAutoscalerAssertion{
+				Spec: assert.HorizontalPodAutoscalerSpecAssertion{
+					ScaleTargetRef: assert.CrossVersionObjectReferenceAssertion{
+						Kind:       assert.Some("Deployment"),
+						APIVersion: assert.Some("apps/v1"),
 					},
-					MinReplicas: int32Ptr(3),
-					MaxReplicas: 10,
-					Metrics: []autoscalingv2.MetricSpec{
+					MinReplicas: assert.SomePtr(int32(3)),
+					MaxReplicas: assert.Some(int32(10)),
+					Metrics: assert.Some([]assert.MetricSpecAssertion{
 						{
-							Type: autoscalingv2.ResourceMetricSourceType,
-							Resource: &autoscalingv2.ResourceMetricSource{
-								Name: "cpu",
-								Target: autoscalingv2.MetricTarget{
-									Type:               autoscalingv2.UtilizationMetricType,
-									AverageUtilization: int32Ptr(60),
+							Type: assert.Some(autoscalingv2.ResourceMetricSourceType),
+							Resource: assert.ResourceMetricSourceAssertion{
+								Name: assert.Some(corev1.ResourceName("cpu")),
+								Target: assert.MetricTargetAssertion{
+									Type:               assert.Some(autoscalingv2.UtilizationMetricType),
+									AverageUtilization: assert.SomePtr(int32(60)),
 								},
 							},
 						},
-					},
-					Behavior: &autoscalingv2.HorizontalPodAutoscalerBehavior{
-						ScaleUp: &autoscalingv2.HPAScalingRules{
-							StabilizationWindowSeconds: int32Ptr(0),
-							SelectPolicy:               selectPolicyPtr(autoscalingv2.MaxChangePolicySelect),
-							Policies: []autoscalingv2.HPAScalingPolicy{
-								{
-									Type:          autoscalingv2.PodsScalingPolicy,
-									Value:         4,
-									PeriodSeconds: 15,
-								},
-								{
-									Type:          autoscalingv2.PercentScalingPolicy,
-									Value:         100,
-									PeriodSeconds: 15,
-								},
-							},
+					}),
+					Behavior: assert.HorizontalPodAutoscalerBehaviorAssertion{
+						ScaleUp: assert.HPAScalingRulesAssertion{
+							StabilizationWindowSeconds: assert.SomePtr(int32(0)),
+							SelectPolicy:               assert.SomePtr(autoscalingv2.MaxChangePolicySelect),
+							Policies: assert.Some([]assert.HPAScalingPolicyAssertion{
+								{Type: assert.Some(autoscalingv2.PodsScalingPolicy), Value: assert.Some(int32(4)), PeriodSeconds: assert.Some(int32(15))},
+								{Type: assert.Some(autoscalingv2.PercentScalingPolicy), Value: assert.Some(int32(100)), PeriodSeconds: assert.Some(int32(15))},
+							}),
 						},
-						ScaleDown: &autoscalingv2.HPAScalingRules{
-							StabilizationWindowSeconds: int32Ptr(300),
-							SelectPolicy:               selectPolicyPtr(autoscalingv2.MaxChangePolicySelect),
-							Policies: []autoscalingv2.HPAScalingPolicy{
-								{
-									Type:          autoscalingv2.PercentScalingPolicy,
-									Value:         100,
-									PeriodSeconds: 15,
-								},
-							},
+						ScaleDown: assert.HPAScalingRulesAssertion{
+							StabilizationWindowSeconds: assert.SomePtr(int32(300)),
+							SelectPolicy:               assert.SomePtr(autoscalingv2.MaxChangePolicySelect),
+							Policies: assert.Some([]assert.HPAScalingPolicyAssertion{
+								{Type: assert.Some(autoscalingv2.PercentScalingPolicy), Value: assert.Some(int32(100)), PeriodSeconds: assert.Some(int32(15))},
+							}),
 						},
 					},
 				},
-				zitadelAnnotations: map[string]string{
-					"team": "platform",
+				ObjectMeta: assert.ObjectMetaAssertion{
+					Annotations: assert.Some(map[string]string{
+						"team": "platform",
+					}),
 				},
-				loginSpec: autoscalingv2.HorizontalPodAutoscalerSpec{
-					ScaleTargetRef: autoscalingv2.CrossVersionObjectReference{
-						Kind:       "Deployment",
-						Name:       "",
-						APIVersion: "apps/v1",
+			},
+			login: &assert.HorizontalPodAutoscalerAssertion{
+				Spec: assert.HorizontalPodAutoscalerSpecAssertion{
+					ScaleTargetRef: assert.CrossVersionObjectReferenceAssertion{
+						Kind:       assert.Some("Deployment"),
+						APIVersion: assert.Some("apps/v1"),
 					},
-					MinReplicas: int32Ptr(3),
-					MaxReplicas: 10,
-					Metrics: []autoscalingv2.MetricSpec{
+					MinReplicas: assert.SomePtr(int32(3)),
+					MaxReplicas: assert.Some(int32(10)),
+					Metrics: assert.Some([]assert.MetricSpecAssertion{
 						{
-							Type: autoscalingv2.ResourceMetricSourceType,
-							Resource: &autoscalingv2.ResourceMetricSource{
-								Name: "cpu",
-								Target: autoscalingv2.MetricTarget{
-									Type:               autoscalingv2.UtilizationMetricType,
-									AverageUtilization: int32Ptr(50),
+							Type: assert.Some(autoscalingv2.ResourceMetricSourceType),
+							Resource: assert.ResourceMetricSourceAssertion{
+								Name: assert.Some(corev1.ResourceName("cpu")),
+								Target: assert.MetricTargetAssertion{
+									Type:               assert.Some(autoscalingv2.UtilizationMetricType),
+									AverageUtilization: assert.SomePtr(int32(50)),
 								},
 							},
 						},
-					},
-					Behavior: &autoscalingv2.HorizontalPodAutoscalerBehavior{
-						ScaleUp: &autoscalingv2.HPAScalingRules{
-							StabilizationWindowSeconds: int32Ptr(0),
-							SelectPolicy:               selectPolicyPtr(autoscalingv2.MaxChangePolicySelect),
-							Policies: []autoscalingv2.HPAScalingPolicy{
-								{
-									Type:          autoscalingv2.PodsScalingPolicy,
-									Value:         4,
-									PeriodSeconds: 15,
-								},
-								{
-									Type:          autoscalingv2.PercentScalingPolicy,
-									Value:         100,
-									PeriodSeconds: 15,
-								},
-							},
+					}),
+					Behavior: assert.HorizontalPodAutoscalerBehaviorAssertion{
+						ScaleUp: assert.HPAScalingRulesAssertion{
+							StabilizationWindowSeconds: assert.SomePtr(int32(0)),
+							SelectPolicy:               assert.SomePtr(autoscalingv2.MaxChangePolicySelect),
+							Policies: assert.Some([]assert.HPAScalingPolicyAssertion{
+								{Type: assert.Some(autoscalingv2.PodsScalingPolicy), Value: assert.Some(int32(4)), PeriodSeconds: assert.Some(int32(15))},
+								{Type: assert.Some(autoscalingv2.PercentScalingPolicy), Value: assert.Some(int32(100)), PeriodSeconds: assert.Some(int32(15))},
+							}),
 						},
-						ScaleDown: &autoscalingv2.HPAScalingRules{
-							StabilizationWindowSeconds: int32Ptr(300),
-							SelectPolicy:               selectPolicyPtr(autoscalingv2.MaxChangePolicySelect),
-							Policies: []autoscalingv2.HPAScalingPolicy{
-								{
-									Type:          autoscalingv2.PercentScalingPolicy,
-									Value:         100,
-									PeriodSeconds: 15,
-								},
-							},
+						ScaleDown: assert.HPAScalingRulesAssertion{
+							StabilizationWindowSeconds: assert.SomePtr(int32(300)),
+							SelectPolicy:               assert.SomePtr(autoscalingv2.MaxChangePolicySelect),
+							Policies: assert.Some([]assert.HPAScalingPolicyAssertion{
+								{Type: assert.Some(autoscalingv2.PercentScalingPolicy), Value: assert.Some(int32(100)), PeriodSeconds: assert.Some(int32(15))},
+							}),
 						},
 					},
 				},
-				loginAnnotations: map[string]string{
-					"owner": "iam",
+				ObjectMeta: assert.ObjectMetaAssertion{
+					Annotations: assert.Some(map[string]string{
+						"owner": "iam",
+					}),
 				},
 			},
 		},
@@ -281,183 +233,38 @@ func TestAutoscalingMatrix(t *testing.T) {
 				"login.autoscaling.enabled": "false",
 				"login.replicaCount":        "2",
 			},
-			expected: hpaExpected{
-				zitadelEnabled:  false,
-				loginEnabled:    false,
-				zitadelReplicas: int32Ptr(2),
-				loginReplicas:   int32Ptr(2),
+			zitadelDeployment: &assert.DeploymentAssertion{
+				Spec: assert.DeploymentSpecAssertion{
+					Replicas: assert.SomePtr(int32(2)),
+				},
+			},
+			loginDeployment: &assert.DeploymentAssertion{
+				Spec: assert.DeploymentSpecAssertion{
+					Replicas: assert.SomePtr(int32(2)),
+				},
 			},
 		},
 	}
 
-	for _, testCase := range testCases {
-		testCase := testCase
-		t.Run(testCase.name, func(t *testing.T) {
+	for _, tc := range testCases {
+		tc := tc
+		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
-			support.WithNamespace(t, cluster, func(env *support.Env) {
-				env.Logger.Logf(t, "namespace %q created; installing PostgreSQL…", env.Namespace)
-				support.WithPostgres(t, env)
+			support.WithNamespace(t, func(env *support.Env) {
+				releaseName := setup.InstallZitadel(t, env, tc.name, tc.setValues)
 
-				uniqueDomain := fmt.Sprintf("%s.test.local", env.Namespace)
-				commonSetValues := map[string]string{
-					"zitadel.masterkey":                                         "x123456789012345678901234567891y",
-					"zitadel.configmapConfig.ExternalDomain":                    uniqueDomain,
-					"zitadel.configmapConfig.ExternalPort":                      "443",
-					"zitadel.configmapConfig.TLS.Enabled":                       "false",
-					"zitadel.configmapConfig.Database.Postgres.Host":            "db-postgresql",
-					"zitadel.configmapConfig.Database.Postgres.Port":            "5432",
-					"zitadel.configmapConfig.Database.Postgres.Database":        "zitadel",
-					"zitadel.configmapConfig.Database.Postgres.MaxOpenConns":    "20",
-					"zitadel.configmapConfig.Database.Postgres.MaxIdleConns":    "10",
-					"zitadel.configmapConfig.Database.Postgres.MaxConnLifetime": "30m",
-					"zitadel.configmapConfig.Database.Postgres.MaxConnIdleTime": "5m",
-					"zitadel.configmapConfig.Database.Postgres.User.Username":   "postgres",
-					"zitadel.configmapConfig.Database.Postgres.User.SSL.Mode":   "disable",
-					"zitadel.configmapConfig.Database.Postgres.Admin.Username":  "postgres",
-					"zitadel.configmapConfig.Database.Postgres.Admin.SSL.Mode":  "disable",
-					"ingress.enabled":       "true",
-					"login.ingress.enabled": "true",
-					"image.tag":             support.DigestTag,
+				if tc.zitadel != nil {
+					env.AssertPartial(t, releaseName, *tc.zitadel)
+				} else if tc.zitadelDeployment != nil {
+					env.AssertPartial(t, releaseName, *tc.zitadelDeployment)
 				}
 
-				releaseName := env.MakeRelease("zitadel-test", testCase.name)
-
-				mergedSetValues := make(map[string]string)
-				for key, value := range commonSetValues {
-					mergedSetValues[key] = value
-				}
-				for key, value := range testCase.setValues {
-					mergedSetValues[key] = value
-				}
-
-				helmOptions := &helm.Options{
-					KubectlOptions: env.Kube,
-					SetValues:      mergedSetValues,
-					ExtraArgs: map[string][]string{
-						"upgrade": {"--install", "--wait", "--timeout", "30m"},
-					},
-				}
-
-				if err := helm.UpgradeE(t, helmOptions, chartPath, releaseName); err != nil {
-					//dumpSetupAndInitJobLogs(t, env, releaseName)
-					require.NoError(t, err)
-				}
-
-				zitadelDeployment := mustGetDeployment(t, env, releaseName)
-				loginDeployment := mustGetDeployment(t, env, releaseName+"-login")
-
-				var expectedZitadelHPA *autoscalingv2.HorizontalPodAutoscaler
-				if testCase.expected.zitadelEnabled {
-					zitadelAnnotations := map[string]string{
-						"meta.helm.sh/release-name":      releaseName,
-						"meta.helm.sh/release-namespace": env.Namespace,
-					}
-					for k, v := range testCase.expected.zitadelAnnotations {
-						zitadelAnnotations[k] = v
-					}
-
-					zitadelSpec := testCase.expected.zitadelSpec
-					zitadelSpec.ScaleTargetRef.Name = zitadelDeployment.Name
-
-					expectedZitadelHPA = &autoscalingv2.HorizontalPodAutoscaler{
-						ObjectMeta: metav1.ObjectMeta{
-							Name:        releaseName,
-							Annotations: zitadelAnnotations,
-							Labels: support.ExpectedLabels(
-								releaseName,
-								"zitadel",
-								support.ExpectedVersion,
-								"",
-								nil,
-							),
-						},
-						Spec: zitadelSpec,
-					}
-				}
-				assertHPA(t, env, expectedZitadelHPA)
-
-				if !testCase.expected.zitadelEnabled {
-					require.NotNil(t, zitadelDeployment.Spec.Replicas)
-					if testCase.expected.zitadelReplicas != nil {
-						require.Equal(t, *testCase.expected.zitadelReplicas, *zitadelDeployment.Spec.Replicas)
-					}
-				}
-
-				var expectedLoginHPA *autoscalingv2.HorizontalPodAutoscaler
-				if testCase.expected.loginEnabled {
-					loginAnnotations := map[string]string{
-						"meta.helm.sh/release-name":      releaseName,
-						"meta.helm.sh/release-namespace": env.Namespace,
-					}
-					for k, v := range testCase.expected.loginAnnotations {
-						loginAnnotations[k] = v
-					}
-
-					loginSpec := testCase.expected.loginSpec
-					loginSpec.ScaleTargetRef.Name = loginDeployment.Name
-
-					expectedLoginHPA = &autoscalingv2.HorizontalPodAutoscaler{
-						ObjectMeta: metav1.ObjectMeta{
-							Name:        releaseName + "-login",
-							Annotations: loginAnnotations,
-							Labels: support.ExpectedLabels(
-								releaseName,
-								"zitadel-login",
-								support.ExpectedVersion,
-								"login",
-								nil,
-							),
-						},
-						Spec: loginSpec,
-					}
-				}
-				assertHPA(t, env, expectedLoginHPA)
-
-				if !testCase.expected.loginEnabled {
-					require.NotNil(t, loginDeployment.Spec.Replicas)
-					if testCase.expected.loginReplicas != nil {
-						require.Equal(t, *testCase.expected.loginReplicas, *loginDeployment.Spec.Replicas)
-					}
+				if tc.login != nil {
+					env.AssertPartial(t, releaseName+"-login", *tc.login)
+				} else if tc.loginDeployment != nil {
+					env.AssertPartial(t, releaseName+"-login", *tc.loginDeployment)
 				}
 			})
 		})
 	}
-}
-
-func mustGetDeployment(t *testing.T, env *support.Env, deploymentName string) *appsv1.Deployment {
-	var deployment *appsv1.Deployment
-	require.Eventually(
-		t,
-		func() bool {
-			retrievedDeployment, err := k8s.GetDeploymentE(t, env.Kube, deploymentName)
-			if err != nil {
-				return false
-			}
-			deployment = retrievedDeployment
-			return true
-		},
-		2*time.Minute,
-		2*time.Second,
-	)
-	return deployment
-}
-
-func assertHPA(t *testing.T, env *support.Env, expected *autoscalingv2.HorizontalPodAutoscaler) {
-	t.Helper()
-
-	if expected == nil {
-		return
-	}
-
-	actualHPA, err := env.Client.
-		AutoscalingV2().
-		HorizontalPodAutoscalers(env.Kube.Namespace).
-		Get(context.Background(), expected.Name, metav1.GetOptions{})
-
-	require.NoError(t, err, "failed to get HPA %s", expected.Name)
-	require.Equal(t, expected.Spec, actualHPA.Spec, "HPA spec mismatch for %s", expected.Name)
-	require.Equal(t, expected.Annotations, actualHPA.Annotations, "HPA annotations mismatch for %s", expected.Name)
-	support.AssertLabels(t, actualHPA.Labels, expected.Labels)
-
-	env.Logger.Logf(t, "✓ Verified HPA configuration for %s", expected.Name)
 }

@@ -2,49 +2,13 @@ package acceptance_test
 
 import (
 	"context"
-	"fmt"
-	"os"
 	"testing"
 
-	"github.com/gruntwork-io/terratest/modules/helm"
 	"github.com/gruntwork-io/terratest/modules/k8s"
 	"github.com/stretchr/testify/require"
 
-	k8shelpers "github.com/zitadel/zitadel-charts/test/acceptance/helpers/k8s"
+	"github.com/zitadel/zitadel-charts/test/internal/testcluster"
 )
-
-type panicT struct {
-	testing.T
-}
-
-func (p *panicT) Errorf(format string, args ...interface{}) {
-	panic(fmt.Sprintf(format, args...))
-}
-
-func TestMain(m *testing.M) {
-	os.Exit(func() int {
-		t := &panicT{}
-		helm.AddRepo(t, &helm.Options{}, "traefik", "https://traefik.github.io/charts")
-		traefikOptions := &helm.Options{
-			Version: "38.0.2",
-			SetValues: map[string]string{
-				"logs.general.level":                          "DEBUG",
-				"additionalArguments[0]":                      "--serverstransport.insecureskipverify=true",
-				"service.type":                                "NodePort",
-				"ports.web.nodePort":                          "30080",
-				"ports.web.redirections.entryPoint.to":        "websecure",
-				"ports.web.redirections.entryPoint.scheme":    "https",
-				"ports.web.redirections.entryPoint.permanent": "true",
-				"ports.websecure.nodePort":                    "30443",
-				"ingressClass.enabled":                        "true",
-				"ingressClass.isDefaultClass":                 "true",
-			},
-			ExtraArgs: map[string][]string{"upgrade": {"--install", "--wait", "--namespace", "ingress", "--create-namespace"}},
-		}
-		helm.Upgrade(t, traefikOptions, "traefik/traefik", "traefik")
-		return m.Run()
-	}())
-}
 
 // TestPostgresInsecure validates a basic ZITADEL deployment with an insecure
 // PostgreSQL connection (no TLS). This is the simplest deployment scenario and
@@ -53,14 +17,14 @@ func TestMain(m *testing.M) {
 // HTTP/gRPC endpoints are accessible and the browser-based login flow works.
 func TestPostgresInsecure(t *testing.T) {
 	domain := "pg-insecure.127.0.0.1.sslip.io"
-	apiBaseURL := BuildAPIBaseURL(domain, "443", false)
+	apiBaseURL := BuildAPIBaseURL(domain, httpsPort, true)
 	machineUsername := "zitadel-admin-sa"
 
-	k8shelpers.WithNamespace(t, func(ctx context.Context, k *k8s.KubectlOptions) {
+	testcluster.WithNamespace(t, func(ctx context.Context, k *k8s.KubectlOptions) {
 		InstallPostgres(t, k)
 		InstallZitadel(t, k,
 			WithExternalDomain(domain),
-			WithExternalPort("443"),
+			WithExternalPort(httpsPort),
 			WithMachineUser("Admin", machineUsername),
 		)
 
@@ -83,11 +47,11 @@ func TestPostgresInsecure(t *testing.T) {
 // for database connections.
 func TestPostgresSecure(t *testing.T) {
 	domain := "pg-secure.127.0.0.1.sslip.io"
-	apiBaseURL := BuildAPIBaseURL(domain, "443", false)
+	apiBaseURL := BuildAPIBaseURL(domain, httpsPort, true)
 	machineUsername := "zitadel-admin-sa"
 
-	k8shelpers.WithNamespace(t, func(ctx context.Context, k *k8s.KubectlOptions) {
-		ca, err := k8shelpers.GenerateCA("Test CA")
+	testcluster.WithNamespace(t, func(ctx context.Context, k *k8s.KubectlOptions) {
+		ca, err := testcluster.GenerateCA("Test CA")
 		require.NoError(t, err, "failed to generate CA")
 
 		dnsNames := []string{"postgres", "zitadel", "db-postgresql"}
@@ -96,8 +60,8 @@ func TestPostgresSecure(t *testing.T) {
 		zitadelCert, err := ca.SignCertificate("zitadel", dnsNames)
 		require.NoError(t, err, "failed to generate zitadel certificate")
 
-		k8shelpers.CreateTLSSecret(t, k, "postgres-cert", ca.Cert, pgCert.Cert, pgCert.Key)
-		k8shelpers.CreateTLSSecret(t, k, "zitadel-cert", ca.Cert, zitadelCert.Cert, zitadelCert.Key)
+		testcluster.CreateTLSSecret(t, k, "postgres-cert", ca.Cert, pgCert.Cert, pgCert.Key)
+		testcluster.CreateTLSSecret(t, k, "zitadel-cert", ca.Cert, zitadelCert.Cert, zitadelCert.Key)
 
 		InstallPostgres(t, k,
 			WithPostgresTLS("postgres-cert"),
@@ -105,7 +69,7 @@ func TestPostgresSecure(t *testing.T) {
 		)
 		InstallZitadel(t, k,
 			WithExternalDomain(domain),
-			WithExternalPort("443"),
+			WithExternalPort(httpsPort),
 			WithDBSSLMode("verify-full"),
 			WithDBCredentials("zitadel", "xyz", "postgres", "abc"),
 			WithDBTLSSecrets("postgres-cert", "postgres-cert", "zitadel-cert"),
@@ -132,14 +96,14 @@ func TestPostgresSecure(t *testing.T) {
 // these external secrets.
 func TestReferencedSecrets(t *testing.T) {
 	domain := "ref-secrets.127.0.0.1.sslip.io"
-	apiBaseURL := BuildAPIBaseURL(domain, "443", false)
+	apiBaseURL := BuildAPIBaseURL(domain, httpsPort, true)
 	machineUsername := "zitadel-admin-sa"
 
-	k8shelpers.WithNamespace(t, func(ctx context.Context, k *k8s.KubectlOptions) {
-		k8shelpers.CreateOpaqueSecret(t, k, "existing-zitadel-masterkey", map[string]string{
+	testcluster.WithNamespace(t, func(ctx context.Context, k *k8s.KubectlOptions) {
+		testcluster.CreateOpaqueSecret(t, k, "existing-zitadel-masterkey", map[string]string{
 			"masterkey": defaultMasterkey,
 		})
-		k8shelpers.CreateOpaqueSecret(t, k, "existing-zitadel-secrets", map[string]string{
+		testcluster.CreateOpaqueSecret(t, k, "existing-zitadel-secrets", map[string]string{
 			"config.yaml": `Database:
   Postgres:
     Host: db-postgresql
@@ -149,7 +113,7 @@ func TestReferencedSecrets(t *testing.T) {
 		InstallPostgres(t, k)
 		InstallZitadel(t, k,
 			WithExternalDomain(domain),
-			WithExternalPort("443"),
+			WithExternalPort(httpsPort),
 			WithMasterkeySecret("existing-zitadel-masterkey"),
 			WithConfigSecret("existing-zitadel-secrets", "config.yaml"),
 			WithoutDBHost(),
@@ -173,16 +137,18 @@ func TestReferencedSecrets(t *testing.T) {
 // machine user, verifies that the service account key is created as a
 // Kubernetes secret, and then uses that key to authenticate against both the
 // HTTP and gRPC management APIs. This validates the complete M2M auth flow.
+//
+//goland:noinspection DuplicatedCode
 func TestMachineUser(t *testing.T) {
 	domain := "machine.127.0.0.1.sslip.io"
-	apiBaseURL := BuildAPIBaseURL(domain, "443", false)
+	apiBaseURL := BuildAPIBaseURL(domain, httpsPort, true)
 	machineUsername := "zitadel-admin-sa"
 
-	k8shelpers.WithNamespace(t, func(ctx context.Context, k *k8s.KubectlOptions) {
+	testcluster.WithNamespace(t, func(ctx context.Context, k *k8s.KubectlOptions) {
 		InstallPostgres(t, k)
 		InstallZitadel(t, k,
 			WithExternalDomain(domain),
-			WithExternalPort("443"),
+			WithExternalPort(httpsPort),
 			WithMachineUser("Admin", machineUsername),
 		)
 
@@ -206,14 +172,14 @@ func TestMachineUser(t *testing.T) {
 //goland:noinspection DuplicatedCode
 func TestInternalTLS(t *testing.T) {
 	domain := "internal-tls.127.0.0.1.sslip.io"
-	apiBaseURL := BuildAPIBaseURL(domain, "443", true)
+	apiBaseURL := BuildAPIBaseURL(domain, httpsPort, true)
 	machineUsername := "zitadel-admin-sa"
 
-	k8shelpers.WithNamespace(t, func(ctx context.Context, k *k8s.KubectlOptions) {
+	testcluster.WithNamespace(t, func(ctx context.Context, k *k8s.KubectlOptions) {
 		InstallPostgres(t, k)
 		InstallZitadel(t, k,
 			WithExternalDomain(domain),
-			WithExternalPort("443"),
+			WithExternalPort(httpsPort),
 			WithSelfSignedCert(domain),
 			WithMachineUser("Admin", machineUsername),
 		)

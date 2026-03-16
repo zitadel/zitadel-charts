@@ -3,68 +3,347 @@ package smoke_test_test
 import (
 	"testing"
 
-	"github.com/gruntwork-io/terratest/modules/helm"
-	appsv1 "k8s.io/api/apps/v1"
+	"github.com/onsi/gomega"
+	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/resource"
 
-	"github.com/zitadel/zitadel-charts/test/smoke/support"
+	"github.com/zitadel/zitadel-charts/test/assert"
+	setup "github.com/zitadel/zitadel-charts/test/smoke/support"
+	"github.com/zitadel/zitadel-charts/test/support"
 )
 
-func TestDeploymentLabels(t *testing.T) {
+//goland:noinspection ALL
+func TestDeploymentMatrix(t *testing.T) {
 	t.Parallel()
-
-	chartPath := support.ChartPath(t)
-
-	options := &helm.Options{
-		SetValues: map[string]string{
-			"image.tag":         support.DigestTag,
-			"login.enabled":     "true",
-			"ingress.enabled":   "true",
-			"zitadel.masterkey": "01234567890123456789012345678901",
-		},
-	}
-
-	releaseName := "deployment-labels"
 
 	testCases := []struct {
 		name      string
-		template  string
-		appName   string
-		component string
+		setValues map[string]string
+		zitadel   *assert.DeploymentAssertion
+		login     *assert.DeploymentAssertion
 	}{
 		{
-			name:      "zitadel",
-			template:  "templates/deployment_zitadel.yaml",
-			appName:   "zitadel",
-			component: "start",
+			name: "defaults",
+			setValues: map[string]string{
+				"login.enabled":         "true",
+				"login.ingress.enabled": "true",
+			},
+			zitadel: &assert.DeploymentAssertion{
+				ObjectMeta: assert.ObjectMetaAssertion{
+					Labels: assert.Matching[map[string]string](gomega.And(
+						gomega.HaveKeyWithValue("app.kubernetes.io/name", "zitadel"),
+						gomega.HaveKeyWithValue("app.kubernetes.io/managed-by", "Helm"),
+						gomega.HaveKeyWithValue("app.kubernetes.io/component", "start"),
+						gomega.HaveKeyWithValue("app.kubernetes.io/version", gomega.MatchRegexp(`^v?\d+\.\d+\.\d+`)),
+					)),
+				},
+				Spec: assert.DeploymentSpecAssertion{
+					Selector: assert.LabelSelectorAssertion{
+						MatchLabels: assert.Some(map[string]string{
+							"app.kubernetes.io/name":      "zitadel",
+							"app.kubernetes.io/component": "start",
+						}),
+					},
+
+					Template: assert.PodTemplateSpecAssertion{
+						ObjectMeta: assert.ObjectMetaAssertion{
+							Labels: assert.Matching[map[string]string](gomega.And(
+								gomega.HaveKeyWithValue("app.kubernetes.io/name", "zitadel"),
+								gomega.HaveKeyWithValue("app.kubernetes.io/managed-by", "Helm"),
+								gomega.HaveKeyWithValue("app.kubernetes.io/component", "start"),
+								gomega.HaveKeyWithValue("app.kubernetes.io/version", gomega.MatchRegexp(`^v?\d+\.\d+\.\d+`)),
+							)),
+						},
+						Spec: assert.PodSpecAssertion{
+							SecurityContext: assert.PodSecurityContextAssertion{
+								RunAsNonRoot: assert.SomePtr(true),
+								RunAsUser:    assert.SomePtr(int64(1000)),
+								FSGroup:      assert.SomePtr(int64(1000)),
+							},
+							InitContainers: assert.Some([]assert.ContainerAssertion{
+								{
+									Name: assert.Some("wait-for-postgres"),
+									Resources: assert.ResourceRequirementsAssertion{
+										Requests: assert.Some(corev1.ResourceList{}),
+										Limits:   assert.Some(corev1.ResourceList{}),
+									},
+									SecurityContext: assert.SecurityContextAssertion{
+										RunAsNonRoot:           assert.SomePtr(true),
+										RunAsUser:              assert.SomePtr(int64(1000)),
+										ReadOnlyRootFilesystem: assert.SomePtr(true),
+										Privileged:             assert.SomePtr(false),
+									},
+								},
+							}),
+							Containers: assert.Some([]assert.ContainerAssertion{
+								{
+									Name: assert.Some("zitadel"),
+									SecurityContext: assert.SecurityContextAssertion{
+										RunAsNonRoot:           assert.SomePtr(true),
+										RunAsUser:              assert.SomePtr(int64(1000)),
+										ReadOnlyRootFilesystem: assert.SomePtr(true),
+										Privileged:             assert.SomePtr(false),
+									},
+								},
+							}),
+						},
+					},
+				},
+			},
+			login: &assert.DeploymentAssertion{
+				ObjectMeta: assert.ObjectMetaAssertion{
+					Labels: assert.Matching[map[string]string](gomega.And(
+						gomega.HaveKeyWithValue("app.kubernetes.io/name", "zitadel-login"),
+						gomega.HaveKeyWithValue("app.kubernetes.io/managed-by", "Helm"),
+						gomega.HaveKeyWithValue("app.kubernetes.io/component", "login"),
+						gomega.HaveKeyWithValue("app.kubernetes.io/version", gomega.MatchRegexp(`^v?\d+\.\d+\.\d+`)),
+					)),
+				},
+				Spec: assert.DeploymentSpecAssertion{
+					Selector: assert.LabelSelectorAssertion{
+						MatchLabels: assert.Some(map[string]string{
+							"app.kubernetes.io/name":      "zitadel-login",
+							"app.kubernetes.io/component": "login",
+						}),
+					},
+					Template: assert.PodTemplateSpecAssertion{
+						ObjectMeta: assert.ObjectMetaAssertion{
+							Labels: assert.Matching[map[string]string](gomega.And(
+								gomega.HaveKeyWithValue("app.kubernetes.io/name", "zitadel-login"),
+								gomega.HaveKeyWithValue("app.kubernetes.io/managed-by", "Helm"),
+								gomega.HaveKeyWithValue("app.kubernetes.io/component", "login"),
+								gomega.HaveKeyWithValue("app.kubernetes.io/version", gomega.MatchRegexp(`^v?\d+\.\d+\.\d+`)),
+							)),
+						},
+						Spec: assert.PodSpecAssertion{
+							SecurityContext: assert.PodSecurityContextAssertion{
+								RunAsNonRoot: assert.SomePtr(true),
+								RunAsUser:    assert.SomePtr(int64(1000)),
+								FSGroup:      assert.SomePtr(int64(1000)),
+							},
+							InitContainers: assert.Some([]assert.ContainerAssertion{
+								{
+									Name: assert.Some("wait-for-zitadel"),
+									Resources: assert.ResourceRequirementsAssertion{
+										Requests: assert.Some(corev1.ResourceList{}),
+										Limits:   assert.Some(corev1.ResourceList{}),
+									},
+									SecurityContext: assert.SecurityContextAssertion{
+										RunAsNonRoot:           assert.SomePtr(true),
+										RunAsUser:              assert.SomePtr(int64(1000)),
+										ReadOnlyRootFilesystem: assert.SomePtr(true),
+										Privileged:             assert.SomePtr(false),
+									},
+								},
+							}),
+							Containers: assert.Some([]assert.ContainerAssertion{
+								{
+									Name: assert.Some("zitadel-login"),
+									SecurityContext: assert.SecurityContextAssertion{
+										RunAsNonRoot:           assert.SomePtr(true),
+										RunAsUser:              assert.SomePtr(int64(1000)),
+										ReadOnlyRootFilesystem: assert.SomePtr(true),
+										Privileged:             assert.SomePtr(false),
+									},
+								},
+							}),
+						},
+					},
+				},
+			},
 		},
 		{
-			name:      "login",
-			template:  "templates/deployment_login.yaml",
-			appName:   "zitadel-login",
-			component: "login",
+			name: "with-wait4x-resources",
+			setValues: map[string]string{
+				"login.enabled":                          "true",
+				"tools.wait4x.resources.requests.cpu":    "50m",
+				"tools.wait4x.resources.requests.memory": "32Mi",
+				"tools.wait4x.resources.limits.cpu":      "100m",
+				"tools.wait4x.resources.limits.memory":   "64Mi",
+			},
+			zitadel: &assert.DeploymentAssertion{
+				Spec: assert.DeploymentSpecAssertion{
+					Template: assert.PodTemplateSpecAssertion{
+						Spec: assert.PodSpecAssertion{
+							InitContainers: assert.Some([]assert.ContainerAssertion{
+								{
+									Name: assert.Some("wait-for-postgres"),
+									Resources: assert.ResourceRequirementsAssertion{
+										Requests: assert.Some(corev1.ResourceList{
+											corev1.ResourceCPU:    resource.MustParse("50m"),
+											corev1.ResourceMemory: resource.MustParse("32Mi"),
+										}),
+										Limits: assert.Some(corev1.ResourceList{
+											corev1.ResourceCPU:    resource.MustParse("100m"),
+											corev1.ResourceMemory: resource.MustParse("64Mi"),
+										}),
+									},
+								},
+							}),
+						},
+					},
+				},
+			},
+			login: &assert.DeploymentAssertion{
+				Spec: assert.DeploymentSpecAssertion{
+					Template: assert.PodTemplateSpecAssertion{
+						Spec: assert.PodSpecAssertion{
+							InitContainers: assert.Some([]assert.ContainerAssertion{
+								{
+									Name: assert.Some("wait-for-zitadel"),
+									Resources: assert.ResourceRequirementsAssertion{
+										Requests: assert.Some(corev1.ResourceList{
+											corev1.ResourceCPU:    resource.MustParse("50m"),
+											corev1.ResourceMemory: resource.MustParse("32Mi"),
+										}),
+										Limits: assert.Some(corev1.ResourceList{
+											corev1.ResourceCPU:    resource.MustParse("100m"),
+											corev1.ResourceMemory: resource.MustParse("64Mi"),
+										}),
+									},
+								},
+							}),
+						},
+					},
+				},
+			},
+		},
+		{
+			name: "component-overrides",
+			setValues: map[string]string{
+				"login.enabled":         "true",
+				"login.ingress.enabled": "true",
+
+				"zitadel.podSecurityContext.runAsNonRoot":          "true",
+				"zitadel.podSecurityContext.runAsUser":             "2000",
+				"zitadel.podSecurityContext.fsGroup":               "2000",
+				"zitadel.podSecurityContext.seccompProfile.type":   "RuntimeDefault",
+				"zitadel.securityContext.runAsNonRoot":             "true",
+				"zitadel.securityContext.runAsUser":                "2000",
+				"zitadel.securityContext.readOnlyRootFilesystem":   "true",
+				"zitadel.securityContext.privileged":               "false",
+				"zitadel.securityContext.allowPrivilegeEscalation": "false",
+				"zitadel.securityContext.capabilities.drop[0]":     "ALL",
+				"login.podSecurityContext.runAsNonRoot":            "true",
+				"login.podSecurityContext.runAsUser":               "3000",
+				"login.podSecurityContext.fsGroup":                 "3000",
+				"login.podSecurityContext.seccompProfile.type":     "RuntimeDefault",
+				"login.securityContext.runAsNonRoot":               "true",
+				"login.securityContext.runAsUser":                  "3000",
+				"login.securityContext.readOnlyRootFilesystem":     "true",
+				"login.securityContext.privileged":                 "false",
+				"login.securityContext.allowPrivilegeEscalation":   "false",
+				"login.securityContext.capabilities.drop[0]":       "NET_RAW",
+			},
+			zitadel: &assert.DeploymentAssertion{
+				Spec: assert.DeploymentSpecAssertion{
+					Template: assert.PodTemplateSpecAssertion{
+						Spec: assert.PodSpecAssertion{
+							SecurityContext: assert.PodSecurityContextAssertion{
+								RunAsNonRoot: assert.SomePtr(true),
+								RunAsUser:    assert.SomePtr(int64(2000)),
+								FSGroup:      assert.SomePtr(int64(2000)),
+								SeccompProfile: assert.SeccompProfileAssertion{
+									Type: assert.Some(corev1.SeccompProfileTypeRuntimeDefault),
+								},
+							},
+							InitContainers: assert.Some([]assert.ContainerAssertion{
+								{
+									Name: assert.Some("wait-for-postgres"),
+									SecurityContext: assert.SecurityContextAssertion{
+										RunAsNonRoot:             assert.SomePtr(true),
+										RunAsUser:                assert.SomePtr(int64(2000)),
+										ReadOnlyRootFilesystem:   assert.SomePtr(true),
+										Privileged:               assert.SomePtr(false),
+										AllowPrivilegeEscalation: assert.SomePtr(false),
+										Capabilities: assert.CapabilitiesAssertion{
+											Drop: assert.Some([]corev1.Capability{"ALL"}),
+										},
+									},
+								},
+							}),
+							Containers: assert.Some([]assert.ContainerAssertion{
+								{
+									Name: assert.Some("zitadel"),
+									SecurityContext: assert.SecurityContextAssertion{
+										RunAsNonRoot:             assert.SomePtr(true),
+										RunAsUser:                assert.SomePtr(int64(2000)),
+										ReadOnlyRootFilesystem:   assert.SomePtr(true),
+										Privileged:               assert.SomePtr(false),
+										AllowPrivilegeEscalation: assert.SomePtr(false),
+										Capabilities: assert.CapabilitiesAssertion{
+											Drop: assert.Some([]corev1.Capability{"ALL"}),
+										},
+									},
+								},
+							}),
+						},
+					},
+				},
+			},
+			login: &assert.DeploymentAssertion{
+				Spec: assert.DeploymentSpecAssertion{
+					Template: assert.PodTemplateSpecAssertion{
+						Spec: assert.PodSpecAssertion{
+							SecurityContext: assert.PodSecurityContextAssertion{
+								RunAsNonRoot: assert.SomePtr(true),
+								RunAsUser:    assert.SomePtr(int64(3000)),
+								FSGroup:      assert.SomePtr(int64(3000)),
+								SeccompProfile: assert.SeccompProfileAssertion{
+									Type: assert.Some(corev1.SeccompProfileTypeRuntimeDefault),
+								},
+							},
+							InitContainers: assert.Some([]assert.ContainerAssertion{
+								{
+									Name: assert.Some("wait-for-zitadel"),
+									SecurityContext: assert.SecurityContextAssertion{
+										RunAsNonRoot:             assert.SomePtr(true),
+										RunAsUser:                assert.SomePtr(int64(3000)),
+										ReadOnlyRootFilesystem:   assert.SomePtr(true),
+										Privileged:               assert.SomePtr(false),
+										AllowPrivilegeEscalation: assert.SomePtr(false),
+										Capabilities: assert.CapabilitiesAssertion{
+											Drop: assert.Some([]corev1.Capability{"NET_RAW"}),
+										},
+									},
+								},
+							}),
+							Containers: assert.Some([]assert.ContainerAssertion{
+								{
+									Name: assert.Some("zitadel-login"),
+									SecurityContext: assert.SecurityContextAssertion{
+										RunAsNonRoot:             assert.SomePtr(true),
+										RunAsUser:                assert.SomePtr(int64(3000)),
+										ReadOnlyRootFilesystem:   assert.SomePtr(true),
+										Privileged:               assert.SomePtr(false),
+										AllowPrivilegeEscalation: assert.SomePtr(false),
+										Capabilities: assert.CapabilitiesAssertion{
+											Drop: assert.Some([]corev1.Capability{"NET_RAW"}),
+										},
+									},
+								},
+							}),
+						},
+					},
+				},
+			},
 		},
 	}
 
 	for _, tc := range testCases {
 		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
-			rendered := helm.RenderTemplate(t, options, chartPath, releaseName, []string{tc.template})
+			t.Parallel()
+			support.WithNamespace(t, func(env *support.Env) {
+				releaseName := setup.InstallZitadel(t, env, tc.name, tc.setValues)
 
-			var deployment appsv1.Deployment
-			helm.UnmarshalK8SYaml(t, rendered, &deployment)
-
-			expectedLabels := support.ExpectedLabels(releaseName, tc.appName, support.ExpectedVersion, tc.component, nil)
-			selectorLabels := map[string]string{
-				"app.kubernetes.io/name":     tc.appName,
-				"app.kubernetes.io/instance": releaseName,
-			}
-			if tc.component != "" {
-				selectorLabels["app.kubernetes.io/component"] = tc.component
-			}
-
-			support.AssertLabels(t, deployment.Labels, expectedLabels)
-			support.AssertLabels(t, deployment.Spec.Selector.MatchLabels, selectorLabels)
-			support.AssertLabels(t, deployment.Spec.Template.Labels, expectedLabels)
+				if tc.zitadel != nil {
+					env.AssertPartial(t, releaseName, *tc.zitadel)
+				}
+				if tc.login != nil {
+					env.AssertPartial(t, releaseName+"-login", *tc.login)
+				}
+			})
 		})
 	}
 }
