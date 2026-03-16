@@ -40,5 +40,10 @@ func run(m *testing.M) int {
 	}
 	defer cluster.Cleanup()
 
+	if err := cluster.ApplyGatewayCRDs(ctx); err != nil {
+		log.Printf("failed to apply Gateway API CRDs: %v", err)
+		return 1
+	}
+
 	return m.Run()
 }

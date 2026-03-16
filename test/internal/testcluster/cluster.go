@@ -12,7 +12,9 @@ package testcluster
 import (
 	"context"
 	"embed"
+	"fmt"
 	"os"
+	"os/exec"
 
 	"github.com/docker/go-connections/nat"
 	"github.com/testcontainers/testcontainers-go"
@@ -47,17 +49,10 @@ func Start(ctx context.Context) (*Cluster, error) {
 	}
 	defer func() { _ = os.Remove(traefikPath) }()
 
-	gatewayPath, err := writeEmbeddedFile("gateway-crds.yaml")
-	if err != nil {
-		return nil, err
-	}
-	defer func() { _ = os.Remove(gatewayPath) }()
-
 	container, err := k3s.Run(ctx, k3sImage,
 		testcontainers.WithCmd("server", "--tls-san=localhost"),
 		testcontainers.WithExposedPorts("30080/tcp", "30443/tcp"),
 		k3s.WithManifest(traefikPath),
-		k3s.WithManifest(gatewayPath),
 	)
 	if err != nil {
 		return nil, err
@@ -104,6 +99,26 @@ func Start(ctx context.Context) (*Cluster, error) {
 		container:      container,
 		kubeconfigPath: kubeconfigFile.Name(),
 	}, nil
+}
+
+// ApplyGatewayCRDs registers the Gateway API CRDs with the cluster's API
+// server using kubectl apply. This must be called after Start and only by
+// test suites that need Gateway API resources (e.g. smoke tests). The CRDs
+// are not loaded at startup to avoid interfering with Traefik's ingress
+// routing, which acceptance tests depend on.
+func (c *Cluster) ApplyGatewayCRDs(ctx context.Context) error {
+	path, err := writeEmbeddedFile("gateway-crds.yaml")
+	if err != nil {
+		return fmt.Errorf("extracting gateway CRDs: %w", err)
+	}
+	defer func() { _ = os.Remove(path) }()
+
+	cmd := exec.CommandContext(ctx, "kubectl", "apply", "-f", path)
+	cmd.Env = append(os.Environ(), "KUBECONFIG="+c.kubeconfigPath)
+	if out, err := cmd.CombinedOutput(); err != nil {
+		return fmt.Errorf("kubectl apply gateway CRDs: %w\n%s", err, out)
+	}
+	return nil
 }
 
 // Cleanup terminates the K3s container and removes the temporary kubeconfig
