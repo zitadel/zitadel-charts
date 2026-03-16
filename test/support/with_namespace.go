@@ -2,7 +2,6 @@ package support
 
 import (
 	"context"
-	"os"
 	"regexp"
 	"strings"
 	"testing"
@@ -28,7 +27,7 @@ func WithNamespace(t *testing.T, fn func(*Env)) {
 		client, err := k8s.GetKubernetesClientFromOptionsE(t, k)
 		require.NoError(t, err)
 
-		config, err := clientcmd.BuildConfigFromFlags("", os.Getenv("KUBECONFIG"))
+		config, err := clientcmd.BuildConfigFromFlags("", k.ConfigPath)
 		require.NoError(t, err)
 		dynClient, err := dynamic.NewForConfig(config)
 		require.NoError(t, err)
