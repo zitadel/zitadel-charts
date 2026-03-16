@@ -23,7 +23,7 @@ import (
 var manifests embed.FS
 
 // k3sImage is the K3s container image used by all test suites.
-const k3sImage = "rancher/k3s:v1.31.6-k3s1"
+const k3sImage = "rancher/k3s:v1.34.1-k3s1"
 
 // Cluster holds a running K3s container and the temporary kubeconfig file
 // that points to it.
