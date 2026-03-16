@@ -8,6 +8,8 @@ import (
 	"github.com/zitadel/zitadel-charts/test/support"
 )
 
+const expectedAppVersion = "v4.12.1"
+
 func TestRBACLabels(t *testing.T) {
 	t.Parallel()
 
@@ -22,7 +24,7 @@ func TestRBACLabels(t *testing.T) {
 				ObjectMeta: assert.ObjectMetaAssertion{
 					Labels: assert.Some(map[string]string{
 						"app.kubernetes.io/name":       "zitadel",
-						"app.kubernetes.io/version":    "v4.12.1",
+						"app.kubernetes.io/version":    expectedAppVersion,
 						"app.kubernetes.io/managed-by": "Helm",
 					}),
 				},
@@ -31,7 +33,7 @@ func TestRBACLabels(t *testing.T) {
 				ObjectMeta: assert.ObjectMetaAssertion{
 					Labels: assert.Some(map[string]string{
 						"app.kubernetes.io/name":       "zitadel",
-						"app.kubernetes.io/version":    "v4.12.1",
+						"app.kubernetes.io/version":    expectedAppVersion,
 						"app.kubernetes.io/managed-by": "Helm",
 					}),
 				},
