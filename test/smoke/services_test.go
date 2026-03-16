@@ -3,6 +3,7 @@ package smoke_test_test
 import (
 	"testing"
 
+	"github.com/onsi/gomega"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
 
@@ -34,6 +35,11 @@ func TestServiceMatrix(t *testing.T) {
 				},
 				Spec: assert.ServiceSpecAssertion{
 					Type: assert.Some(corev1.ServiceTypeClusterIP),
+					Selector: assert.Matching[map[string]string](gomega.And(
+						gomega.HaveKey("app.kubernetes.io/name"),
+						gomega.HaveKey("app.kubernetes.io/instance"),
+						gomega.HaveKey("app.kubernetes.io/component"),
+					)),
 					Ports: assert.Some([]assert.ServicePortAssertion{
 						{
 							Port:     assert.Some(int32(8080)),
@@ -49,6 +55,11 @@ func TestServiceMatrix(t *testing.T) {
 			login: &assert.ServiceAssertion{
 				Spec: assert.ServiceSpecAssertion{
 					Type: assert.Some(corev1.ServiceTypeClusterIP),
+					Selector: assert.Matching[map[string]string](gomega.And(
+						gomega.HaveKey("app.kubernetes.io/name"),
+						gomega.HaveKey("app.kubernetes.io/instance"),
+						gomega.HaveKey("app.kubernetes.io/component"),
+					)),
 					Ports: assert.Some([]assert.ServicePortAssertion{
 						{
 							Port:     assert.Some(int32(3000)),
