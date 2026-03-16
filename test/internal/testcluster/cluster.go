@@ -142,7 +142,7 @@ func writeEmbeddedFile(name string) (string, error) {
 		return "", err
 	}
 
-	tmpFile, err := os.CreateTemp("", "traefik-config-*.yaml")
+	tmpFile, err := os.CreateTemp("", "testcluster-*.yaml")
 	if err != nil {
 		return "", err
 	}
