@@ -265,7 +265,6 @@ func main() {
 		switchCases = append(switchCases,
 			Case(
 				Qual("github.com/zitadel/zitadel-charts/test/assert", r.AssertName()),
-				Op("*").Qual("github.com/zitadel/zitadel-charts/test/assert", r.AssertName()),
 			).Block(
 				Qual("github.com/zitadel/zitadel-charts/test/assert", "AssertPartial").Call(
 					Id("t"),
