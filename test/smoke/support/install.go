@@ -12,7 +12,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	"github.com/zitadel/zitadel-charts/test/support"
+	testsupport "github.com/zitadel/zitadel-charts/test/support"
 )
 
 // ChartPath returns the absolute path to the Zitadel Helm chart.
@@ -31,7 +31,7 @@ func ChartPath(t *testing.T) string {
 // configuration. It handles: WithPostgres, commonSetValues, MakeRelease,
 // mergedSetValues, helm.Options, helm.UpgradeE, and log dumping on failure.
 // Returns the generated release name.
-func InstallZitadel(t *testing.T, env *support.Env, testName string, setValues map[string]string) string {
+func InstallZitadel(t *testing.T, env *testsupport.Env, testName string, setValues map[string]string) string {
 	t.Helper()
 
 	chartPath := ChartPath(t)
@@ -86,7 +86,7 @@ func InstallZitadel(t *testing.T, env *support.Env, testName string, setValues m
 	return releaseName
 }
 
-func dumpSetupAndInitJobLogs(t *testing.T, env *support.Env, releaseName string) {
+func dumpSetupAndInitJobLogs(t *testing.T, env *testsupport.Env, releaseName string) {
 	namespace := env.Kube.Namespace
 	jobNames := []string{fmt.Sprintf("%s-setup", releaseName), fmt.Sprintf("%s-init", releaseName)}
 
@@ -117,7 +117,7 @@ func dumpSetupAndInitJobLogs(t *testing.T, env *support.Env, releaseName string)
 	}
 }
 
-func listPodsE(t *testing.T, env *support.Env, labelSelector string) []corev1.Pod {
+func listPodsE(t *testing.T, env *testsupport.Env, labelSelector string) []corev1.Pod {
 	podList, err := env.Client.CoreV1().Pods(env.Kube.Namespace).List(
 		env.Ctx,
 		metav1.ListOptions{LabelSelector: labelSelector},

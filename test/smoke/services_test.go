@@ -11,6 +11,7 @@ import (
 	"github.com/zitadel/zitadel-charts/test/support"
 )
 
+//goland:noinspection DuplicatedCode
 func TestServiceMatrix(t *testing.T) {
 	t.Parallel()
 
@@ -26,6 +27,11 @@ func TestServiceMatrix(t *testing.T) {
 				"login.enabled": "true",
 			},
 			zitadel: &assert.ServiceAssertion{
+				ObjectMeta: assert.ObjectMetaAssertion{
+					Annotations: assert.Some(map[string]string{
+						"traefik.ingress.kubernetes.io/service.serversscheme": "h2c",
+					}),
+				},
 				Spec: assert.ServiceSpecAssertion{
 					Type: assert.Some(corev1.ServiceTypeClusterIP),
 					Ports: assert.Some([]assert.ServicePortAssertion{

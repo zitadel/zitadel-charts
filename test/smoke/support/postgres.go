@@ -7,14 +7,14 @@ import (
 	"github.com/gruntwork-io/terratest/modules/helm"
 	"github.com/stretchr/testify/require"
 
-	"github.com/zitadel/zitadel-charts/test/support"
+	testsupport "github.com/zitadel/zitadel-charts/test/support"
 )
 
 // WithPostgres installs a lightweight Bitnami PostgreSQL release named "db"
 // into the test environment's namespace. It disables persistence and
 // authentication for fast, ephemeral test environments suitable for automated
 // testing scenarios.
-func WithPostgres(testing *testing.T, env *support.Env) {
+func WithPostgres(testing *testing.T, env *testsupport.Env) {
 	testing.Helper()
 
 	chartRepository := "https://charts.bitnami.com/bitnami"
