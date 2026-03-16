@@ -41,6 +41,7 @@ func TestDeploymentMatrix(t *testing.T) {
 						MatchLabels: assert.Some(map[string]string{
 							"app.kubernetes.io/name":      "zitadel",
 							"app.kubernetes.io/component": "start",
+							"app.kubernetes.io/instance":  support.ReleaseName,
 						}),
 					},
 					Template: assert.PodTemplateSpecAssertion{
