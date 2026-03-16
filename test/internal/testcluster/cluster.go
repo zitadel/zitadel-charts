@@ -71,6 +71,7 @@ func Start(ctx context.Context) (*Cluster, error) {
 	}
 
 	if _, err := kubeconfigFile.Write(kubeconfig); err != nil {
+		_ = kubeconfigFile.Close()
 		_ = os.Remove(kubeconfigFile.Name())
 		_ = container.Terminate(context.Background())
 		return nil, err
@@ -147,6 +148,7 @@ func writeEmbeddedFile(name string) (string, error) {
 	}
 
 	if _, err := tmpFile.Write(data); err != nil {
+		_ = tmpFile.Close()
 		_ = os.Remove(tmpFile.Name())
 		return "", err
 	}
