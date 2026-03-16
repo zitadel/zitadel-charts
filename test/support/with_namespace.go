@@ -2,6 +2,7 @@ package support
 
 import (
 	"context"
+	"os"
 	"regexp"
 	"strings"
 	"testing"
@@ -10,6 +11,8 @@ import (
 	"github.com/gruntwork-io/terratest/modules/logger"
 	"github.com/gruntwork-io/terratest/modules/random"
 	"github.com/stretchr/testify/require"
+	"k8s.io/client-go/dynamic"
+	"k8s.io/client-go/tools/clientcmd"
 
 	"github.com/zitadel/zitadel-charts/test/internal/testcluster"
 )
@@ -25,12 +28,18 @@ func WithNamespace(t *testing.T, fn func(*Env)) {
 		client, err := k8s.GetKubernetesClientFromOptionsE(t, k)
 		require.NoError(t, err)
 
+		config, err := clientcmd.BuildConfigFromFlags("", os.Getenv("KUBECONFIG"))
+		require.NoError(t, err)
+		dynClient, err := dynamic.NewForConfig(config)
+		require.NoError(t, err)
+
 		env := &Env{
-			Ctx:       ctx,
-			Namespace: k.Namespace,
-			Kube:      k,
-			Client:    client,
-			Logger:    logger.New(logger.Terratest),
+			Ctx:           ctx,
+			Namespace:     k.Namespace,
+			Kube:          k,
+			Client:        client,
+			DynamicClient: dynClient,
+			Logger:        logger.New(logger.Terratest),
 		}
 		fn(env)
 	})

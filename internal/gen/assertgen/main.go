@@ -27,6 +27,7 @@ var scannedPkgs = []string{
 	"k8s.io/apimachinery/pkg/apis/meta/v1",
 	"k8s.io/apimachinery/pkg/api/resource",
 	"k8s.io/apimachinery/pkg/util/intstr",
+	"sigs.k8s.io/gateway-api/apis/v1",
 }
 
 func main() {
@@ -431,6 +432,14 @@ func jenType(t types.Type) *Statement {
 		pkg := obj.Pkg()
 		if pkg == nil {
 			// Built-in type
+			return Id(obj.Name())
+		}
+		return Qual(pkg.Path(), obj.Name())
+
+	case *types.Alias:
+		obj := tt.Obj()
+		pkg := obj.Pkg()
+		if pkg == nil {
 			return Id(obj.Name())
 		}
 		return Qual(pkg.Path(), obj.Name())

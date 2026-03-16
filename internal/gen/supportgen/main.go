@@ -277,10 +277,7 @@ func main() {
 	}
 	switchCases = append(switchCases,
 		Default().Block(
-			Id("t").Dot("Fatalf").Call(
-				Lit("env.AssertPartial: unsupported assertion type %T"),
-				Id("assertion"),
-			),
+			Id("env").Dot("assertPartialFallback").Call(Id("t"), Id("name"), Id("assertion")),
 		),
 	)
 
@@ -318,10 +315,7 @@ func main() {
 	}
 	noneSwitchCases = append(noneSwitchCases,
 		Default().Block(
-			Id("t").Dot("Fatalf").Call(
-				Lit("env.AssertNone: unsupported assertion type %T"),
-				Id("assertion"),
-			),
+			Id("env").Dot("assertNoneFallback").Call(Id("t"), Id("name"), Id("assertion")),
 		),
 	)
 

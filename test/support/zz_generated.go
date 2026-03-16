@@ -7,12 +7,11 @@ import (
 	assert "github.com/zitadel/zitadel-charts/test/assert"
 	v1 "k8s.io/api/admissionregistration/v1"
 	v1beta1 "k8s.io/api/admissionregistration/v1beta1"
-	v1alpha11 "k8s.io/api/apiserverinternal/v1alpha1"
+	v1alpha1 "k8s.io/api/apiserverinternal/v1alpha1"
 	v12 "k8s.io/api/apps/v1"
 	v2 "k8s.io/api/autoscaling/v2"
 	v13 "k8s.io/api/batch/v1"
 	v14 "k8s.io/api/certificates/v1"
-	v1alpha1 "k8s.io/api/certificates/v1alpha1"
 	v1beta11 "k8s.io/api/certificates/v1beta1"
 	v15 "k8s.io/api/coordination/v1"
 	v1beta12 "k8s.io/api/coordination/v1beta1"
@@ -26,8 +25,9 @@ import (
 	v113 "k8s.io/api/resource/v1"
 	v1alpha3 "k8s.io/api/resource/v1alpha3"
 	v114 "k8s.io/api/scheduling/v1"
+	v1alpha11 "k8s.io/api/scheduling/v1alpha1"
 	v115 "k8s.io/api/storage/v1"
-	v1alpha12 "k8s.io/api/storagemigration/v1alpha1"
+	v1beta13 "k8s.io/api/storagemigration/v1beta1"
 	errors "k8s.io/apimachinery/pkg/api/errors"
 	v11 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"testing"
@@ -243,20 +243,6 @@ func (env *Env) GetCertificateSigningRequestE(t *testing.T, name string) (*v14.C
 	return env.Client.CertificatesV1().CertificateSigningRequests().Get(env.Ctx, name, v11.GetOptions{})
 }
 
-// GetPodCertificateRequest fetches a PodCertificateRequest by name, failing the test on error.
-func (env *Env) GetPodCertificateRequest(t *testing.T, name string) *v1alpha1.PodCertificateRequest {
-	t.Helper()
-	obj, err := env.Client.CertificatesV1alpha1().PodCertificateRequests(env.Kube.Namespace).Get(env.Ctx, name, v11.GetOptions{})
-	require.NoError(t, err, "failed to get PodCertificateRequest %s", name)
-	return obj
-}
-
-// GetPodCertificateRequestE fetches a PodCertificateRequest by name, returning the error for non-existence checks.
-func (env *Env) GetPodCertificateRequestE(t *testing.T, name string) (*v1alpha1.PodCertificateRequest, error) {
-	t.Helper()
-	return env.Client.CertificatesV1alpha1().PodCertificateRequests(env.Kube.Namespace).Get(env.Ctx, name, v11.GetOptions{})
-}
-
 // GetClusterTrustBundle fetches a ClusterTrustBundle by name, failing the test on error.
 func (env *Env) GetClusterTrustBundle(t *testing.T, name string) *v1beta11.ClusterTrustBundle {
 	t.Helper()
@@ -269,6 +255,20 @@ func (env *Env) GetClusterTrustBundle(t *testing.T, name string) *v1beta11.Clust
 func (env *Env) GetClusterTrustBundleE(t *testing.T, name string) (*v1beta11.ClusterTrustBundle, error) {
 	t.Helper()
 	return env.Client.CertificatesV1beta1().ClusterTrustBundles().Get(env.Ctx, name, v11.GetOptions{})
+}
+
+// GetPodCertificateRequest fetches a PodCertificateRequest by name, failing the test on error.
+func (env *Env) GetPodCertificateRequest(t *testing.T, name string) *v1beta11.PodCertificateRequest {
+	t.Helper()
+	obj, err := env.Client.CertificatesV1beta1().PodCertificateRequests(env.Kube.Namespace).Get(env.Ctx, name, v11.GetOptions{})
+	require.NoError(t, err, "failed to get PodCertificateRequest %s", name)
+	return obj
+}
+
+// GetPodCertificateRequestE fetches a PodCertificateRequest by name, returning the error for non-existence checks.
+func (env *Env) GetPodCertificateRequestE(t *testing.T, name string) (*v1beta11.PodCertificateRequest, error) {
+	t.Helper()
+	return env.Client.CertificatesV1beta1().PodCertificateRequests(env.Kube.Namespace).Get(env.Ctx, name, v11.GetOptions{})
 }
 
 // GetLease fetches a Lease by name, failing the test on error.
@@ -566,7 +566,7 @@ func (env *Env) GetPriorityLevelConfigurationE(t *testing.T, name string) (*v18.
 }
 
 // GetStorageVersion fetches a StorageVersion by name, failing the test on error.
-func (env *Env) GetStorageVersion(t *testing.T, name string) *v1alpha11.StorageVersion {
+func (env *Env) GetStorageVersion(t *testing.T, name string) *v1alpha1.StorageVersion {
 	t.Helper()
 	obj, err := env.Client.InternalV1alpha1().StorageVersions().Get(env.Ctx, name, v11.GetOptions{})
 	require.NoError(t, err, "failed to get StorageVersion %s", name)
@@ -574,7 +574,7 @@ func (env *Env) GetStorageVersion(t *testing.T, name string) *v1alpha11.StorageV
 }
 
 // GetStorageVersionE fetches a StorageVersion by name, returning the error for non-existence checks.
-func (env *Env) GetStorageVersionE(t *testing.T, name string) (*v1alpha11.StorageVersion, error) {
+func (env *Env) GetStorageVersionE(t *testing.T, name string) (*v1alpha1.StorageVersion, error) {
 	t.Helper()
 	return env.Client.InternalV1alpha1().StorageVersions().Get(env.Ctx, name, v11.GetOptions{})
 }
@@ -817,6 +817,20 @@ func (env *Env) GetPriorityClassE(t *testing.T, name string) (*v114.PriorityClas
 	return env.Client.SchedulingV1().PriorityClasses().Get(env.Ctx, name, v11.GetOptions{})
 }
 
+// GetWorkload fetches a Workload by name, failing the test on error.
+func (env *Env) GetWorkload(t *testing.T, name string) *v1alpha11.Workload {
+	t.Helper()
+	obj, err := env.Client.SchedulingV1alpha1().Workloads(env.Kube.Namespace).Get(env.Ctx, name, v11.GetOptions{})
+	require.NoError(t, err, "failed to get Workload %s", name)
+	return obj
+}
+
+// GetWorkloadE fetches a Workload by name, returning the error for non-existence checks.
+func (env *Env) GetWorkloadE(t *testing.T, name string) (*v1alpha11.Workload, error) {
+	t.Helper()
+	return env.Client.SchedulingV1alpha1().Workloads(env.Kube.Namespace).Get(env.Ctx, name, v11.GetOptions{})
+}
+
 // GetCSIDriver fetches a CSIDriver by name, failing the test on error.
 func (env *Env) GetCSIDriver(t *testing.T, name string) *v115.CSIDriver {
 	t.Helper()
@@ -902,17 +916,17 @@ func (env *Env) GetVolumeAttributesClassE(t *testing.T, name string) (*v115.Volu
 }
 
 // GetStorageVersionMigration fetches a StorageVersionMigration by name, failing the test on error.
-func (env *Env) GetStorageVersionMigration(t *testing.T, name string) *v1alpha12.StorageVersionMigration {
+func (env *Env) GetStorageVersionMigration(t *testing.T, name string) *v1beta13.StorageVersionMigration {
 	t.Helper()
-	obj, err := env.Client.StoragemigrationV1alpha1().StorageVersionMigrations().Get(env.Ctx, name, v11.GetOptions{})
+	obj, err := env.Client.StoragemigrationV1beta1().StorageVersionMigrations().Get(env.Ctx, name, v11.GetOptions{})
 	require.NoError(t, err, "failed to get StorageVersionMigration %s", name)
 	return obj
 }
 
 // GetStorageVersionMigrationE fetches a StorageVersionMigration by name, returning the error for non-existence checks.
-func (env *Env) GetStorageVersionMigrationE(t *testing.T, name string) (*v1alpha12.StorageVersionMigration, error) {
+func (env *Env) GetStorageVersionMigrationE(t *testing.T, name string) (*v1beta13.StorageVersionMigration, error) {
 	t.Helper()
-	return env.Client.StoragemigrationV1alpha1().StorageVersionMigrations().Get(env.Ctx, name, v11.GetOptions{})
+	return env.Client.StoragemigrationV1beta1().StorageVersionMigrations().Get(env.Ctx, name, v11.GetOptions{})
 }
 
 // AssertPartial fetches the K8s resource implied by the assertion type and
@@ -1000,7 +1014,7 @@ func (env *Env) AssertPartial(t *testing.T, name string, assertion assert.Assert
 	case assert.VolumeAttributesClassAssertion:
 		assert.AssertPartial(t, env.GetVolumeAttributesClass(t, name), a, name)
 	default:
-		t.Fatalf("env.AssertPartial: unsupported assertion type %T", assertion)
+		env.assertPartialFallback(t, name, assertion)
 	}
 }
 
@@ -1010,124 +1024,124 @@ func (env *Env) AssertPartial(t *testing.T, name string, assertion assert.Assert
 func (env *Env) AssertNone(t *testing.T, name string, assertion assert.Assertable) {
 	t.Helper()
 	switch assertion.(type) {
-	case assert.ControllerRevisionAssertion:
+	case assert.ControllerRevisionAssertion, *assert.ControllerRevisionAssertion:
 		_, err := env.GetControllerRevisionE(t, name)
-		require.True(t, errors.IsNotFound(err), "ControllerRevision %q should not exist", name)
-	case assert.DaemonSetAssertion:
+		require.True(t, errors.IsNotFound(err), "ControllerRevision %q should not exist (err: %v)", name, err)
+	case assert.DaemonSetAssertion, *assert.DaemonSetAssertion:
 		_, err := env.GetDaemonSetE(t, name)
-		require.True(t, errors.IsNotFound(err), "DaemonSet %q should not exist", name)
-	case assert.DeploymentAssertion:
+		require.True(t, errors.IsNotFound(err), "DaemonSet %q should not exist (err: %v)", name, err)
+	case assert.DeploymentAssertion, *assert.DeploymentAssertion:
 		_, err := env.GetDeploymentE(t, name)
-		require.True(t, errors.IsNotFound(err), "Deployment %q should not exist", name)
-	case assert.ReplicaSetAssertion:
+		require.True(t, errors.IsNotFound(err), "Deployment %q should not exist (err: %v)", name, err)
+	case assert.ReplicaSetAssertion, *assert.ReplicaSetAssertion:
 		_, err := env.GetReplicaSetE(t, name)
-		require.True(t, errors.IsNotFound(err), "ReplicaSet %q should not exist", name)
-	case assert.StatefulSetAssertion:
+		require.True(t, errors.IsNotFound(err), "ReplicaSet %q should not exist (err: %v)", name, err)
+	case assert.StatefulSetAssertion, *assert.StatefulSetAssertion:
 		_, err := env.GetStatefulSetE(t, name)
-		require.True(t, errors.IsNotFound(err), "StatefulSet %q should not exist", name)
-	case assert.HorizontalPodAutoscalerAssertion:
+		require.True(t, errors.IsNotFound(err), "StatefulSet %q should not exist (err: %v)", name, err)
+	case assert.HorizontalPodAutoscalerAssertion, *assert.HorizontalPodAutoscalerAssertion:
 		_, err := env.GetHorizontalPodAutoscalerE(t, name)
-		require.True(t, errors.IsNotFound(err), "HorizontalPodAutoscaler %q should not exist", name)
-	case assert.CronJobAssertion:
+		require.True(t, errors.IsNotFound(err), "HorizontalPodAutoscaler %q should not exist (err: %v)", name, err)
+	case assert.CronJobAssertion, *assert.CronJobAssertion:
 		_, err := env.GetCronJobE(t, name)
-		require.True(t, errors.IsNotFound(err), "CronJob %q should not exist", name)
-	case assert.JobAssertion:
+		require.True(t, errors.IsNotFound(err), "CronJob %q should not exist (err: %v)", name, err)
+	case assert.JobAssertion, *assert.JobAssertion:
 		_, err := env.GetJobE(t, name)
-		require.True(t, errors.IsNotFound(err), "Job %q should not exist", name)
-	case assert.ConfigMapAssertion:
+		require.True(t, errors.IsNotFound(err), "Job %q should not exist (err: %v)", name, err)
+	case assert.ConfigMapAssertion, *assert.ConfigMapAssertion:
 		_, err := env.GetConfigMapE(t, name)
-		require.True(t, errors.IsNotFound(err), "ConfigMap %q should not exist", name)
-	case assert.EndpointsAssertion:
+		require.True(t, errors.IsNotFound(err), "ConfigMap %q should not exist (err: %v)", name, err)
+	case assert.EndpointsAssertion, *assert.EndpointsAssertion:
 		_, err := env.GetEndpointsE(t, name)
-		require.True(t, errors.IsNotFound(err), "Endpoints %q should not exist", name)
-	case assert.EventAssertion:
+		require.True(t, errors.IsNotFound(err), "Endpoints %q should not exist (err: %v)", name, err)
+	case assert.EventAssertion, *assert.EventAssertion:
 		_, err := env.GetEventE(t, name)
-		require.True(t, errors.IsNotFound(err), "Event %q should not exist", name)
-	case assert.LimitRangeAssertion:
+		require.True(t, errors.IsNotFound(err), "Event %q should not exist (err: %v)", name, err)
+	case assert.LimitRangeAssertion, *assert.LimitRangeAssertion:
 		_, err := env.GetLimitRangeE(t, name)
-		require.True(t, errors.IsNotFound(err), "LimitRange %q should not exist", name)
-	case assert.NamespaceAssertion:
+		require.True(t, errors.IsNotFound(err), "LimitRange %q should not exist (err: %v)", name, err)
+	case assert.NamespaceAssertion, *assert.NamespaceAssertion:
 		_, err := env.GetNamespaceE(t, name)
-		require.True(t, errors.IsNotFound(err), "Namespace %q should not exist", name)
-	case assert.NodeAssertion:
+		require.True(t, errors.IsNotFound(err), "Namespace %q should not exist (err: %v)", name, err)
+	case assert.NodeAssertion, *assert.NodeAssertion:
 		_, err := env.GetNodeE(t, name)
-		require.True(t, errors.IsNotFound(err), "Node %q should not exist", name)
-	case assert.PersistentVolumeAssertion:
+		require.True(t, errors.IsNotFound(err), "Node %q should not exist (err: %v)", name, err)
+	case assert.PersistentVolumeAssertion, *assert.PersistentVolumeAssertion:
 		_, err := env.GetPersistentVolumeE(t, name)
-		require.True(t, errors.IsNotFound(err), "PersistentVolume %q should not exist", name)
-	case assert.PersistentVolumeClaimAssertion:
+		require.True(t, errors.IsNotFound(err), "PersistentVolume %q should not exist (err: %v)", name, err)
+	case assert.PersistentVolumeClaimAssertion, *assert.PersistentVolumeClaimAssertion:
 		_, err := env.GetPersistentVolumeClaimE(t, name)
-		require.True(t, errors.IsNotFound(err), "PersistentVolumeClaim %q should not exist", name)
-	case assert.PodAssertion:
+		require.True(t, errors.IsNotFound(err), "PersistentVolumeClaim %q should not exist (err: %v)", name, err)
+	case assert.PodAssertion, *assert.PodAssertion:
 		_, err := env.GetPodE(t, name)
-		require.True(t, errors.IsNotFound(err), "Pod %q should not exist", name)
-	case assert.PodTemplateAssertion:
+		require.True(t, errors.IsNotFound(err), "Pod %q should not exist (err: %v)", name, err)
+	case assert.PodTemplateAssertion, *assert.PodTemplateAssertion:
 		_, err := env.GetPodTemplateE(t, name)
-		require.True(t, errors.IsNotFound(err), "PodTemplate %q should not exist", name)
-	case assert.ReplicationControllerAssertion:
+		require.True(t, errors.IsNotFound(err), "PodTemplate %q should not exist (err: %v)", name, err)
+	case assert.ReplicationControllerAssertion, *assert.ReplicationControllerAssertion:
 		_, err := env.GetReplicationControllerE(t, name)
-		require.True(t, errors.IsNotFound(err), "ReplicationController %q should not exist", name)
-	case assert.ResourceQuotaAssertion:
+		require.True(t, errors.IsNotFound(err), "ReplicationController %q should not exist (err: %v)", name, err)
+	case assert.ResourceQuotaAssertion, *assert.ResourceQuotaAssertion:
 		_, err := env.GetResourceQuotaE(t, name)
-		require.True(t, errors.IsNotFound(err), "ResourceQuota %q should not exist", name)
-	case assert.SecretAssertion:
+		require.True(t, errors.IsNotFound(err), "ResourceQuota %q should not exist (err: %v)", name, err)
+	case assert.SecretAssertion, *assert.SecretAssertion:
 		_, err := env.GetSecretE(t, name)
-		require.True(t, errors.IsNotFound(err), "Secret %q should not exist", name)
-	case assert.ServiceAssertion:
+		require.True(t, errors.IsNotFound(err), "Secret %q should not exist (err: %v)", name, err)
+	case assert.ServiceAssertion, *assert.ServiceAssertion:
 		_, err := env.GetServiceE(t, name)
-		require.True(t, errors.IsNotFound(err), "Service %q should not exist", name)
-	case assert.ServiceAccountAssertion:
+		require.True(t, errors.IsNotFound(err), "Service %q should not exist (err: %v)", name, err)
+	case assert.ServiceAccountAssertion, *assert.ServiceAccountAssertion:
 		_, err := env.GetServiceAccountE(t, name)
-		require.True(t, errors.IsNotFound(err), "ServiceAccount %q should not exist", name)
-	case assert.IPAddressAssertion:
+		require.True(t, errors.IsNotFound(err), "ServiceAccount %q should not exist (err: %v)", name, err)
+	case assert.IPAddressAssertion, *assert.IPAddressAssertion:
 		_, err := env.GetIPAddressE(t, name)
-		require.True(t, errors.IsNotFound(err), "IPAddress %q should not exist", name)
-	case assert.IngressAssertion:
+		require.True(t, errors.IsNotFound(err), "IPAddress %q should not exist (err: %v)", name, err)
+	case assert.IngressAssertion, *assert.IngressAssertion:
 		_, err := env.GetIngressE(t, name)
-		require.True(t, errors.IsNotFound(err), "Ingress %q should not exist", name)
-	case assert.IngressClassAssertion:
+		require.True(t, errors.IsNotFound(err), "Ingress %q should not exist (err: %v)", name, err)
+	case assert.IngressClassAssertion, *assert.IngressClassAssertion:
 		_, err := env.GetIngressClassE(t, name)
-		require.True(t, errors.IsNotFound(err), "IngressClass %q should not exist", name)
-	case assert.NetworkPolicyAssertion:
+		require.True(t, errors.IsNotFound(err), "IngressClass %q should not exist (err: %v)", name, err)
+	case assert.NetworkPolicyAssertion, *assert.NetworkPolicyAssertion:
 		_, err := env.GetNetworkPolicyE(t, name)
-		require.True(t, errors.IsNotFound(err), "NetworkPolicy %q should not exist", name)
-	case assert.ServiceCIDRAssertion:
+		require.True(t, errors.IsNotFound(err), "NetworkPolicy %q should not exist (err: %v)", name, err)
+	case assert.ServiceCIDRAssertion, *assert.ServiceCIDRAssertion:
 		_, err := env.GetServiceCIDRE(t, name)
-		require.True(t, errors.IsNotFound(err), "ServiceCIDR %q should not exist", name)
-	case assert.PodDisruptionBudgetAssertion:
+		require.True(t, errors.IsNotFound(err), "ServiceCIDR %q should not exist (err: %v)", name, err)
+	case assert.PodDisruptionBudgetAssertion, *assert.PodDisruptionBudgetAssertion:
 		_, err := env.GetPodDisruptionBudgetE(t, name)
-		require.True(t, errors.IsNotFound(err), "PodDisruptionBudget %q should not exist", name)
-	case assert.ClusterRoleAssertion:
+		require.True(t, errors.IsNotFound(err), "PodDisruptionBudget %q should not exist (err: %v)", name, err)
+	case assert.ClusterRoleAssertion, *assert.ClusterRoleAssertion:
 		_, err := env.GetClusterRoleE(t, name)
-		require.True(t, errors.IsNotFound(err), "ClusterRole %q should not exist", name)
-	case assert.ClusterRoleBindingAssertion:
+		require.True(t, errors.IsNotFound(err), "ClusterRole %q should not exist (err: %v)", name, err)
+	case assert.ClusterRoleBindingAssertion, *assert.ClusterRoleBindingAssertion:
 		_, err := env.GetClusterRoleBindingE(t, name)
-		require.True(t, errors.IsNotFound(err), "ClusterRoleBinding %q should not exist", name)
-	case assert.RoleAssertion:
+		require.True(t, errors.IsNotFound(err), "ClusterRoleBinding %q should not exist (err: %v)", name, err)
+	case assert.RoleAssertion, *assert.RoleAssertion:
 		_, err := env.GetRoleE(t, name)
-		require.True(t, errors.IsNotFound(err), "Role %q should not exist", name)
-	case assert.RoleBindingAssertion:
+		require.True(t, errors.IsNotFound(err), "Role %q should not exist (err: %v)", name, err)
+	case assert.RoleBindingAssertion, *assert.RoleBindingAssertion:
 		_, err := env.GetRoleBindingE(t, name)
-		require.True(t, errors.IsNotFound(err), "RoleBinding %q should not exist", name)
-	case assert.CSIDriverAssertion:
+		require.True(t, errors.IsNotFound(err), "RoleBinding %q should not exist (err: %v)", name, err)
+	case assert.CSIDriverAssertion, *assert.CSIDriverAssertion:
 		_, err := env.GetCSIDriverE(t, name)
-		require.True(t, errors.IsNotFound(err), "CSIDriver %q should not exist", name)
-	case assert.CSINodeAssertion:
+		require.True(t, errors.IsNotFound(err), "CSIDriver %q should not exist (err: %v)", name, err)
+	case assert.CSINodeAssertion, *assert.CSINodeAssertion:
 		_, err := env.GetCSINodeE(t, name)
-		require.True(t, errors.IsNotFound(err), "CSINode %q should not exist", name)
-	case assert.CSIStorageCapacityAssertion:
+		require.True(t, errors.IsNotFound(err), "CSINode %q should not exist (err: %v)", name, err)
+	case assert.CSIStorageCapacityAssertion, *assert.CSIStorageCapacityAssertion:
 		_, err := env.GetCSIStorageCapacityE(t, name)
-		require.True(t, errors.IsNotFound(err), "CSIStorageCapacity %q should not exist", name)
-	case assert.StorageClassAssertion:
+		require.True(t, errors.IsNotFound(err), "CSIStorageCapacity %q should not exist (err: %v)", name, err)
+	case assert.StorageClassAssertion, *assert.StorageClassAssertion:
 		_, err := env.GetStorageClassE(t, name)
-		require.True(t, errors.IsNotFound(err), "StorageClass %q should not exist", name)
-	case assert.VolumeAttachmentAssertion:
+		require.True(t, errors.IsNotFound(err), "StorageClass %q should not exist (err: %v)", name, err)
+	case assert.VolumeAttachmentAssertion, *assert.VolumeAttachmentAssertion:
 		_, err := env.GetVolumeAttachmentE(t, name)
-		require.True(t, errors.IsNotFound(err), "VolumeAttachment %q should not exist", name)
-	case assert.VolumeAttributesClassAssertion:
+		require.True(t, errors.IsNotFound(err), "VolumeAttachment %q should not exist (err: %v)", name, err)
+	case assert.VolumeAttributesClassAssertion, *assert.VolumeAttributesClassAssertion:
 		_, err := env.GetVolumeAttributesClassE(t, name)
-		require.True(t, errors.IsNotFound(err), "VolumeAttributesClass %q should not exist", name)
+		require.True(t, errors.IsNotFound(err), "VolumeAttributesClass %q should not exist (err: %v)", name, err)
 	default:
-		t.Fatalf("env.AssertNone: unsupported assertion type %T", assertion)
+		env.assertNoneFallback(t, name, assertion)
 	}
 }

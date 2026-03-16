@@ -22,6 +22,7 @@ import (
 	types1 "k8s.io/apimachinery/pkg/types"
 	intstr "k8s.io/apimachinery/pkg/util/intstr"
 	watch "k8s.io/apimachinery/pkg/watch"
+	v17 "sigs.k8s.io/gateway-api/apis/v1"
 	"time"
 )
 
@@ -631,7 +632,7 @@ func (_ AzureFileVolumeSourceAssertion) isAssertable() {}
 type BindingAssertion struct {
 	TypeMeta   TypeMetaAssertion
 	ObjectMeta ObjectMetaAssertion
-	Target     ObjectReferenceAssertion
+	Target     CoreObjectReferenceAssertion
 }
 
 func (_ BindingAssertion) isAssertable() {}
@@ -658,7 +659,7 @@ type CSIVolumeSourceAssertion struct {
 	ReadOnly             Opt[*bool]
 	FSType               Opt[*string]
 	VolumeAttributes     Opt[map[string]string]
-	NodePublishSecretRef LocalObjectReferenceAssertion
+	NodePublishSecretRef CoreLocalObjectReferenceAssertion
 }
 
 func (_ CSIVolumeSourceAssertion) isAssertable() {}
@@ -689,7 +690,7 @@ type CephFSVolumeSourceAssertion struct {
 	Path       Opt[string]
 	User       Opt[string]
 	SecretFile Opt[string]
-	SecretRef  LocalObjectReferenceAssertion
+	SecretRef  CoreLocalObjectReferenceAssertion
 	ReadOnly   Opt[bool]
 }
 
@@ -710,7 +711,7 @@ type CinderVolumeSourceAssertion struct {
 	VolumeID  Opt[string]
 	FSType    Opt[string]
 	ReadOnly  Opt[bool]
-	SecretRef LocalObjectReferenceAssertion
+	SecretRef CoreLocalObjectReferenceAssertion
 }
 
 func (_ CinderVolumeSourceAssertion) isAssertable() {}
@@ -756,7 +757,7 @@ func (_ ConfigMapAssertion) isAssertable() {}
 
 // ConfigMapEnvSourceAssertion is the assertion struct for ConfigMapEnvSource.
 type ConfigMapEnvSourceAssertion struct {
-	LocalObjectReference LocalObjectReferenceAssertion
+	LocalObjectReference CoreLocalObjectReferenceAssertion
 	Optional             Opt[*bool]
 }
 
@@ -764,7 +765,7 @@ func (_ ConfigMapEnvSourceAssertion) isAssertable() {}
 
 // ConfigMapKeySelectorAssertion is the assertion struct for ConfigMapKeySelector.
 type ConfigMapKeySelectorAssertion struct {
-	LocalObjectReference LocalObjectReferenceAssertion
+	LocalObjectReference CoreLocalObjectReferenceAssertion
 	Key                  Opt[string]
 	Optional             Opt[*bool]
 }
@@ -784,7 +785,7 @@ func (_ ConfigMapNodeConfigSourceAssertion) isAssertable() {}
 
 // ConfigMapProjectionAssertion is the assertion struct for ConfigMapProjection.
 type ConfigMapProjectionAssertion struct {
-	LocalObjectReference LocalObjectReferenceAssertion
+	LocalObjectReference CoreLocalObjectReferenceAssertion
 	Items                Opt[[]KeyToPathAssertion]
 	Optional             Opt[*bool]
 }
@@ -793,7 +794,7 @@ func (_ ConfigMapProjectionAssertion) isAssertable() {}
 
 // ConfigMapVolumeSourceAssertion is the assertion struct for ConfigMapVolumeSource.
 type ConfigMapVolumeSourceAssertion struct {
-	LocalObjectReference LocalObjectReferenceAssertion
+	LocalObjectReference CoreLocalObjectReferenceAssertion
 	Items                Opt[[]KeyToPathAssertion]
 	DefaultMode          Opt[*int32]
 	Optional             Opt[*bool]
@@ -973,7 +974,7 @@ type EndpointAddressAssertion struct {
 	IP        Opt[string]
 	Hostname  Opt[string]
 	NodeName  Opt[*string]
-	TargetRef ObjectReferenceAssertion
+	TargetRef CoreObjectReferenceAssertion
 }
 
 func (_ EndpointAddressAssertion) isAssertable() {}
@@ -1085,7 +1086,7 @@ func (_ EphemeralVolumeSourceAssertion) isAssertable() {}
 type EventAssertion struct {
 	TypeMeta            TypeMetaAssertion
 	ObjectMeta          ObjectMetaAssertion
-	InvolvedObject      ObjectReferenceAssertion
+	InvolvedObject      CoreObjectReferenceAssertion
 	Reason              Opt[string]
 	Message             Opt[string]
 	Source              EventSourceAssertion
@@ -1096,7 +1097,7 @@ type EventAssertion struct {
 	EventTime           MicroTimeAssertion
 	Series              EventSeriesAssertion
 	Action              Opt[string]
-	Related             ObjectReferenceAssertion
+	Related             CoreObjectReferenceAssertion
 	ReportingController Opt[string]
 	ReportingInstance   Opt[string]
 }
@@ -1162,7 +1163,7 @@ func (_ FlexPersistentVolumeSourceAssertion) isAssertable() {}
 type FlexVolumeSourceAssertion struct {
 	Driver    Opt[string]
 	FSType    Opt[string]
-	SecretRef LocalObjectReferenceAssertion
+	SecretRef CoreLocalObjectReferenceAssertion
 	ReadOnly  Opt[bool]
 	Options   Opt[map[string]string]
 }
@@ -1229,18 +1230,18 @@ type HTTPGetActionAssertion struct {
 	Port        IntOrStringAssertion
 	Host        Opt[string]
 	Scheme      Opt[v11.URIScheme]
-	HTTPHeaders Opt[[]HTTPHeaderAssertion]
+	HTTPHeaders Opt[[]CoreHTTPHeaderAssertion]
 }
 
 func (_ HTTPGetActionAssertion) isAssertable() {}
 
-// HTTPHeaderAssertion is the assertion struct for HTTPHeader.
-type HTTPHeaderAssertion struct {
+// CoreHTTPHeaderAssertion is the assertion struct for HTTPHeader.
+type CoreHTTPHeaderAssertion struct {
 	Name  Opt[string]
 	Value Opt[string]
 }
 
-func (_ HTTPHeaderAssertion) isAssertable() {}
+func (_ CoreHTTPHeaderAssertion) isAssertable() {}
 
 // HostAliasAssertion is the assertion struct for HostAlias.
 type HostAliasAssertion struct {
@@ -1293,7 +1294,7 @@ type ISCSIVolumeSourceAssertion struct {
 	Portals           Opt[[]string]
 	DiscoveryCHAPAuth Opt[bool]
 	SessionCHAPAuth   Opt[bool]
-	SecretRef         LocalObjectReferenceAssertion
+	SecretRef         CoreLocalObjectReferenceAssertion
 	InitiatorName     Opt[*string]
 }
 
@@ -1382,12 +1383,12 @@ type LoadBalancerIngressAssertion struct {
 
 func (_ LoadBalancerIngressAssertion) isAssertable() {}
 
-// LocalObjectReferenceAssertion is the assertion struct for LocalObjectReference.
-type LocalObjectReferenceAssertion struct {
+// CoreLocalObjectReferenceAssertion is the assertion struct for LocalObjectReference.
+type CoreLocalObjectReferenceAssertion struct {
 	Name Opt[string]
 }
 
-func (_ LocalObjectReferenceAssertion) isAssertable() {}
+func (_ CoreLocalObjectReferenceAssertion) isAssertable() {}
 
 // LocalVolumeSourceAssertion is the assertion struct for LocalVolumeSource.
 type LocalVolumeSourceAssertion struct {
@@ -1579,8 +1580,8 @@ type ObjectFieldSelectorAssertion struct {
 
 func (_ ObjectFieldSelectorAssertion) isAssertable() {}
 
-// ObjectReferenceAssertion is the assertion struct for ObjectReference.
-type ObjectReferenceAssertion struct {
+// CoreObjectReferenceAssertion is the assertion struct for ObjectReference.
+type CoreObjectReferenceAssertion struct {
 	Kind            Opt[string]
 	Namespace       Opt[string]
 	Name            Opt[string]
@@ -1590,7 +1591,7 @@ type ObjectReferenceAssertion struct {
 	FieldPath       Opt[string]
 }
 
-func (_ ObjectReferenceAssertion) isAssertable() {}
+func (_ CoreObjectReferenceAssertion) isAssertable() {}
 
 // PersistentVolumeAssertion is the assertion struct for PersistentVolume.
 type PersistentVolumeAssertion struct {
@@ -1688,7 +1689,7 @@ type PersistentVolumeSpecAssertion struct {
 	Capacity                      Opt[v11.ResourceList]
 	PersistentVolumeSource        PersistentVolumeSourceAssertion
 	AccessModes                   Opt[[]v11.PersistentVolumeAccessMode]
-	ClaimRef                      ObjectReferenceAssertion
+	ClaimRef                      CoreObjectReferenceAssertion
 	PersistentVolumeReclaimPolicy Opt[v11.PersistentVolumeReclaimPolicy]
 	StorageClassName              Opt[string]
 	MountOptions                  Opt[[]string]
@@ -1765,6 +1766,7 @@ type PodCertificateProjectionAssertion struct {
 	CredentialBundlePath Opt[string]
 	KeyPath              Opt[string]
 	CertificateChainPath Opt[string]
+	UserAnnotations      Opt[map[string]string]
 }
 
 func (_ PodCertificateProjectionAssertion) isAssertable() {}
@@ -1928,7 +1930,7 @@ type PodSpecAssertion struct {
 	HostIPC                       Opt[bool]
 	ShareProcessNamespace         Opt[*bool]
 	SecurityContext               PodSecurityContextAssertion
-	ImagePullSecrets              Opt[[]LocalObjectReferenceAssertion]
+	ImagePullSecrets              Opt[[]CoreLocalObjectReferenceAssertion]
 	Hostname                      Opt[string]
 	Subdomain                     Opt[string]
 	Affinity                      AffinityAssertion
@@ -1951,6 +1953,7 @@ type PodSpecAssertion struct {
 	ResourceClaims                Opt[[]PodResourceClaimAssertion]
 	Resources                     ResourceRequirementsAssertion
 	HostnameOverride              Opt[*string]
+	WorkloadRef                   WorkloadReferenceAssertion
 }
 
 func (_ PodSpecAssertion) isAssertable() {}
@@ -2080,7 +2083,7 @@ type RBDVolumeSourceAssertion struct {
 	RBDPool      Opt[string]
 	RadosUser    Opt[string]
 	Keyring      Opt[string]
-	SecretRef    LocalObjectReferenceAssertion
+	SecretRef    CoreLocalObjectReferenceAssertion
 	ReadOnly     Opt[bool]
 }
 
@@ -2210,7 +2213,7 @@ func (_ ScaleIOPersistentVolumeSourceAssertion) isAssertable() {}
 type ScaleIOVolumeSourceAssertion struct {
 	Gateway          Opt[string]
 	System           Opt[string]
-	SecretRef        LocalObjectReferenceAssertion
+	SecretRef        CoreLocalObjectReferenceAssertion
 	SSLEnabled       Opt[bool]
 	ProtectionDomain Opt[string]
 	StoragePool      Opt[string]
@@ -2268,7 +2271,7 @@ func (_ SecretAssertion) isAssertable() {}
 
 // SecretEnvSourceAssertion is the assertion struct for SecretEnvSource.
 type SecretEnvSourceAssertion struct {
-	LocalObjectReference LocalObjectReferenceAssertion
+	LocalObjectReference CoreLocalObjectReferenceAssertion
 	Optional             Opt[*bool]
 }
 
@@ -2276,7 +2279,7 @@ func (_ SecretEnvSourceAssertion) isAssertable() {}
 
 // SecretKeySelectorAssertion is the assertion struct for SecretKeySelector.
 type SecretKeySelectorAssertion struct {
-	LocalObjectReference LocalObjectReferenceAssertion
+	LocalObjectReference CoreLocalObjectReferenceAssertion
 	Key                  Opt[string]
 	Optional             Opt[*bool]
 }
@@ -2285,7 +2288,7 @@ func (_ SecretKeySelectorAssertion) isAssertable() {}
 
 // SecretProjectionAssertion is the assertion struct for SecretProjection.
 type SecretProjectionAssertion struct {
-	LocalObjectReference LocalObjectReferenceAssertion
+	LocalObjectReference CoreLocalObjectReferenceAssertion
 	Items                Opt[[]KeyToPathAssertion]
 	Optional             Opt[*bool]
 }
@@ -2331,7 +2334,7 @@ func (_ SecurityContextAssertion) isAssertable() {}
 // SerializedReferenceAssertion is the assertion struct for SerializedReference.
 type SerializedReferenceAssertion struct {
 	TypeMeta  TypeMetaAssertion
-	Reference ObjectReferenceAssertion
+	Reference CoreObjectReferenceAssertion
 }
 
 func (_ SerializedReferenceAssertion) isAssertable() {}
@@ -2350,8 +2353,8 @@ func (_ ServiceAssertion) isAssertable() {}
 type ServiceAccountAssertion struct {
 	TypeMeta                     TypeMetaAssertion
 	ObjectMeta                   ObjectMetaAssertion
-	Secrets                      Opt[[]ObjectReferenceAssertion]
-	ImagePullSecrets             Opt[[]LocalObjectReferenceAssertion]
+	Secrets                      Opt[[]CoreObjectReferenceAssertion]
+	ImagePullSecrets             Opt[[]CoreLocalObjectReferenceAssertion]
 	AutomountServiceAccountToken Opt[*bool]
 }
 
@@ -2432,7 +2435,7 @@ type StorageOSPersistentVolumeSourceAssertion struct {
 	VolumeNamespace Opt[string]
 	FSType          Opt[string]
 	ReadOnly        Opt[bool]
-	SecretRef       ObjectReferenceAssertion
+	SecretRef       CoreObjectReferenceAssertion
 }
 
 func (_ StorageOSPersistentVolumeSourceAssertion) isAssertable() {}
@@ -2443,7 +2446,7 @@ type StorageOSVolumeSourceAssertion struct {
 	VolumeNamespace Opt[string]
 	FSType          Opt[string]
 	ReadOnly        Opt[bool]
-	SecretRef       LocalObjectReferenceAssertion
+	SecretRef       CoreLocalObjectReferenceAssertion
 }
 
 func (_ StorageOSVolumeSourceAssertion) isAssertable() {}
@@ -2653,6 +2656,15 @@ type WindowsSecurityContextOptionsAssertion struct {
 
 func (_ WindowsSecurityContextOptionsAssertion) isAssertable() {}
 
+// WorkloadReferenceAssertion is the assertion struct for WorkloadReference.
+type WorkloadReferenceAssertion struct {
+	Name               Opt[string]
+	PodGroup           Opt[string]
+	PodGroupReplicaKey Opt[string]
+}
+
+func (_ WorkloadReferenceAssertion) isAssertable() {}
+
 // HTTPIngressPathAssertion is the assertion struct for HTTPIngressPath.
 type HTTPIngressPathAssertion struct {
 	Path     Opt[string]
@@ -2680,7 +2692,7 @@ func (_ IPAddressAssertion) isAssertable() {}
 
 // IPAddressSpecAssertion is the assertion struct for IPAddressSpec.
 type IPAddressSpecAssertion struct {
-	ParentRef ParentReferenceAssertion
+	ParentRef NetworkingParentReferenceAssertion
 }
 
 func (_ IPAddressSpecAssertion) isAssertable() {}
@@ -2842,15 +2854,15 @@ type NetworkPolicySpecAssertion struct {
 
 func (_ NetworkPolicySpecAssertion) isAssertable() {}
 
-// ParentReferenceAssertion is the assertion struct for ParentReference.
-type ParentReferenceAssertion struct {
+// NetworkingParentReferenceAssertion is the assertion struct for ParentReference.
+type NetworkingParentReferenceAssertion struct {
 	Group     Opt[string]
 	Resource  Opt[string]
 	Namespace Opt[string]
 	Name      Opt[string]
 }
 
-func (_ ParentReferenceAssertion) isAssertable() {}
+func (_ NetworkingParentReferenceAssertion) isAssertable() {}
 
 // NetworkingSchemeGroupVersionAssertion is the assertion struct for GroupVersion.
 type NetworkingSchemeGroupVersionAssertion struct {
@@ -3026,6 +3038,7 @@ type CSIDriverSpecAssertion struct {
 	RequiresRepublish                  Opt[*bool]
 	SELinuxMount                       Opt[*bool]
 	NodeAllocatableUpdatePeriodSeconds Opt[*int64]
+	ServiceAccountTokenInSecrets       Opt[*bool]
 }
 
 func (_ CSIDriverSpecAssertion) isAssertable() {}
@@ -3299,13 +3312,13 @@ type GroupResourceAssertion struct {
 
 func (_ GroupResourceAssertion) isAssertable() {}
 
-// GroupVersionAssertion is the assertion struct for GroupVersion.
-type GroupVersionAssertion struct {
+// MetaGroupVersionAssertion is the assertion struct for GroupVersion.
+type MetaGroupVersionAssertion struct {
 	Group   Opt[string]
 	Version Opt[string]
 }
 
-func (_ GroupVersionAssertion) isAssertable() {}
+func (_ MetaGroupVersionAssertion) isAssertable() {}
 
 // GroupVersionForDiscoveryAssertion is the assertion struct for GroupVersionForDiscovery.
 type GroupVersionForDiscoveryAssertion struct {
@@ -3621,6 +3634,765 @@ type IntOrStringAssertion struct {
 
 func (_ IntOrStringAssertion) isAssertable() {}
 
+// AllowedListenersAssertion is the assertion struct for AllowedListeners.
+type AllowedListenersAssertion struct {
+	Namespaces ListenerNamespacesAssertion
+}
+
+func (_ AllowedListenersAssertion) isAssertable() {}
+
+// AllowedRoutesAssertion is the assertion struct for AllowedRoutes.
+type AllowedRoutesAssertion struct {
+	Namespaces RouteNamespacesAssertion
+	Kinds      Opt[[]RouteGroupKindAssertion]
+}
+
+func (_ AllowedRoutesAssertion) isAssertable() {}
+
+// BackendObjectReferenceAssertion is the assertion struct for BackendObjectReference.
+type BackendObjectReferenceAssertion struct {
+	Group     Opt[*v17.Group]
+	Kind      Opt[*v17.Kind]
+	Name      Opt[v17.ObjectName]
+	Namespace Opt[*v17.Namespace]
+	Port      Opt[*v17.PortNumber]
+}
+
+func (_ BackendObjectReferenceAssertion) isAssertable() {}
+
+// BackendRefAssertion is the assertion struct for BackendRef.
+type BackendRefAssertion struct {
+	BackendObjectReference BackendObjectReferenceAssertion
+	Weight                 Opt[*int32]
+}
+
+func (_ BackendRefAssertion) isAssertable() {}
+
+// BackendTLSPolicyAssertion is the assertion struct for BackendTLSPolicy.
+type BackendTLSPolicyAssertion struct {
+	TypeMeta   TypeMetaAssertion
+	ObjectMeta ObjectMetaAssertion
+	Spec       BackendTLSPolicySpecAssertion
+	Status     Opt[v17.PolicyStatus]
+}
+
+func (_ BackendTLSPolicyAssertion) isAssertable() {}
+
+// BackendTLSPolicySpecAssertion is the assertion struct for BackendTLSPolicySpec.
+type BackendTLSPolicySpecAssertion struct {
+	TargetRefs Opt[[]LocalPolicyTargetReferenceWithSectionNameAssertion]
+	Validation BackendTLSPolicyValidationAssertion
+	Options    Opt[map[v17.AnnotationKey]v17.AnnotationValue]
+}
+
+func (_ BackendTLSPolicySpecAssertion) isAssertable() {}
+
+// BackendTLSPolicyValidationAssertion is the assertion struct for BackendTLSPolicyValidation.
+type BackendTLSPolicyValidationAssertion struct {
+	CACertificateRefs       Opt[[]ApisLocalObjectReferenceAssertion]
+	WellKnownCACertificates Opt[*v17.WellKnownCACertificatesType]
+	Hostname                Opt[v17.PreciseHostname]
+	SubjectAltNames         Opt[[]SubjectAltNameAssertion]
+}
+
+func (_ BackendTLSPolicyValidationAssertion) isAssertable() {}
+
+// CommonRouteSpecAssertion is the assertion struct for CommonRouteSpec.
+type CommonRouteSpecAssertion struct {
+	ParentRefs         Opt[[]ApisParentReferenceAssertion]
+	UseDefaultGateways Opt[v17.GatewayDefaultScope]
+}
+
+func (_ CommonRouteSpecAssertion) isAssertable() {}
+
+// CookieConfigAssertion is the assertion struct for CookieConfig.
+type CookieConfigAssertion struct {
+	LifetimeType Opt[*v17.CookieLifetimeType]
+}
+
+func (_ CookieConfigAssertion) isAssertable() {}
+
+// ForwardBodyConfigAssertion is the assertion struct for ForwardBodyConfig.
+type ForwardBodyConfigAssertion struct {
+	MaxSize Opt[uint16]
+}
+
+func (_ ForwardBodyConfigAssertion) isAssertable() {}
+
+// FractionAssertion is the assertion struct for Fraction.
+type FractionAssertion struct {
+	Numerator   Opt[int32]
+	Denominator Opt[*int32]
+}
+
+func (_ FractionAssertion) isAssertable() {}
+
+// FrontendTLSConfigAssertion is the assertion struct for FrontendTLSConfig.
+type FrontendTLSConfigAssertion struct {
+	Default TLSConfigAssertion
+	PerPort Opt[[]TLSPortConfigAssertion]
+}
+
+func (_ FrontendTLSConfigAssertion) isAssertable() {}
+
+// FrontendTLSValidationAssertion is the assertion struct for FrontendTLSValidation.
+type FrontendTLSValidationAssertion struct {
+	CACertificateRefs Opt[[]ApisObjectReferenceAssertion]
+	Mode              Opt[v17.FrontendValidationModeType]
+}
+
+func (_ FrontendTLSValidationAssertion) isAssertable() {}
+
+// GRPCAuthConfigAssertion is the assertion struct for GRPCAuthConfig.
+type GRPCAuthConfigAssertion struct {
+	AllowedRequestHeaders Opt[[]string]
+}
+
+func (_ GRPCAuthConfigAssertion) isAssertable() {}
+
+// GRPCBackendRefAssertion is the assertion struct for GRPCBackendRef.
+type GRPCBackendRefAssertion struct {
+	BackendRef BackendRefAssertion
+	Filters    Opt[[]GRPCRouteFilterAssertion]
+}
+
+func (_ GRPCBackendRefAssertion) isAssertable() {}
+
+// GRPCHeaderMatchAssertion is the assertion struct for GRPCHeaderMatch.
+type GRPCHeaderMatchAssertion struct {
+	Type  Opt[*v17.GRPCHeaderMatchType]
+	Name  Opt[v17.GRPCHeaderName]
+	Value Opt[string]
+}
+
+func (_ GRPCHeaderMatchAssertion) isAssertable() {}
+
+// GRPCMethodMatchAssertion is the assertion struct for GRPCMethodMatch.
+type GRPCMethodMatchAssertion struct {
+	Type    Opt[*v17.GRPCMethodMatchType]
+	Service Opt[*string]
+	Method  Opt[*string]
+}
+
+func (_ GRPCMethodMatchAssertion) isAssertable() {}
+
+// GRPCRouteAssertion is the assertion struct for GRPCRoute.
+type GRPCRouteAssertion struct {
+	TypeMeta   TypeMetaAssertion
+	ObjectMeta ObjectMetaAssertion
+	Spec       GRPCRouteSpecAssertion
+	Status     Opt[v17.GRPCRouteStatus]
+}
+
+func (_ GRPCRouteAssertion) isAssertable() {}
+
+// GRPCRouteFilterAssertion is the assertion struct for GRPCRouteFilter.
+type GRPCRouteFilterAssertion struct {
+	Type                   Opt[v17.GRPCRouteFilterType]
+	RequestHeaderModifier  HTTPHeaderFilterAssertion
+	ResponseHeaderModifier HTTPHeaderFilterAssertion
+	RequestMirror          HTTPRequestMirrorFilterAssertion
+	ExtensionRef           ApisLocalObjectReferenceAssertion
+}
+
+func (_ GRPCRouteFilterAssertion) isAssertable() {}
+
+// GRPCRouteMatchAssertion is the assertion struct for GRPCRouteMatch.
+type GRPCRouteMatchAssertion struct {
+	Method  GRPCMethodMatchAssertion
+	Headers Opt[[]GRPCHeaderMatchAssertion]
+}
+
+func (_ GRPCRouteMatchAssertion) isAssertable() {}
+
+// GRPCRouteRuleAssertion is the assertion struct for GRPCRouteRule.
+type GRPCRouteRuleAssertion struct {
+	Name               Opt[*v17.SectionName]
+	Matches            Opt[[]GRPCRouteMatchAssertion]
+	Filters            Opt[[]GRPCRouteFilterAssertion]
+	BackendRefs        Opt[[]GRPCBackendRefAssertion]
+	SessionPersistence SessionPersistenceAssertion
+}
+
+func (_ GRPCRouteRuleAssertion) isAssertable() {}
+
+// GRPCRouteSpecAssertion is the assertion struct for GRPCRouteSpec.
+type GRPCRouteSpecAssertion struct {
+	CommonRouteSpec CommonRouteSpecAssertion
+	Hostnames       Opt[[]v17.Hostname]
+	Rules           Opt[[]GRPCRouteRuleAssertion]
+}
+
+func (_ GRPCRouteSpecAssertion) isAssertable() {}
+
+// GatewayAssertion is the assertion struct for Gateway.
+type GatewayAssertion struct {
+	TypeMeta   TypeMetaAssertion
+	ObjectMeta ObjectMetaAssertion
+	Spec       GatewaySpecAssertion
+	Status     Opt[v17.GatewayStatus]
+}
+
+func (_ GatewayAssertion) isAssertable() {}
+
+// GatewayBackendTLSAssertion is the assertion struct for GatewayBackendTLS.
+type GatewayBackendTLSAssertion struct {
+	ClientCertificateRef SecretObjectReferenceAssertion
+}
+
+func (_ GatewayBackendTLSAssertion) isAssertable() {}
+
+// GatewayClassAssertion is the assertion struct for GatewayClass.
+type GatewayClassAssertion struct {
+	TypeMeta   TypeMetaAssertion
+	ObjectMeta ObjectMetaAssertion
+	Spec       GatewayClassSpecAssertion
+	Status     Opt[v17.GatewayClassStatus]
+}
+
+func (_ GatewayClassAssertion) isAssertable() {}
+
+// GatewayClassSpecAssertion is the assertion struct for GatewayClassSpec.
+type GatewayClassSpecAssertion struct {
+	ControllerName Opt[v17.GatewayController]
+	ParametersRef  ParametersReferenceAssertion
+	Description    Opt[*string]
+}
+
+func (_ GatewayClassSpecAssertion) isAssertable() {}
+
+// GatewayInfrastructureAssertion is the assertion struct for GatewayInfrastructure.
+type GatewayInfrastructureAssertion struct {
+	Labels        Opt[map[v17.LabelKey]v17.LabelValue]
+	Annotations   Opt[map[v17.AnnotationKey]v17.AnnotationValue]
+	ParametersRef LocalParametersReferenceAssertion
+}
+
+func (_ GatewayInfrastructureAssertion) isAssertable() {}
+
+// GatewaySpecAssertion is the assertion struct for GatewaySpec.
+type GatewaySpecAssertion struct {
+	GatewayClassName Opt[v17.ObjectName]
+	Listeners        Opt[[]ListenerAssertion]
+	Addresses        Opt[[]GatewaySpecAddressAssertion]
+	Infrastructure   GatewayInfrastructureAssertion
+	AllowedListeners AllowedListenersAssertion
+	TLS              GatewayTLSConfigAssertion
+	DefaultScope     Opt[v17.GatewayDefaultScope]
+}
+
+func (_ GatewaySpecAssertion) isAssertable() {}
+
+// GatewaySpecAddressAssertion is the assertion struct for GatewaySpecAddress.
+type GatewaySpecAddressAssertion struct {
+	Type  Opt[*v17.AddressType]
+	Value Opt[string]
+}
+
+func (_ GatewaySpecAddressAssertion) isAssertable() {}
+
+// GatewayStatusAddressAssertion is the assertion struct for GatewayStatusAddress.
+type GatewayStatusAddressAssertion struct {
+	Type  Opt[*v17.AddressType]
+	Value Opt[string]
+}
+
+func (_ GatewayStatusAddressAssertion) isAssertable() {}
+
+// GatewayTLSConfigAssertion is the assertion struct for GatewayTLSConfig.
+type GatewayTLSConfigAssertion struct {
+	Backend  GatewayBackendTLSAssertion
+	Frontend FrontendTLSConfigAssertion
+}
+
+func (_ GatewayTLSConfigAssertion) isAssertable() {}
+
+// ApisGroupVersionAssertion is the assertion struct for GroupVersion.
+type ApisGroupVersionAssertion struct {
+	Group   Opt[string]
+	Version Opt[string]
+}
+
+func (_ ApisGroupVersionAssertion) isAssertable() {}
+
+// HTTPAuthConfigAssertion is the assertion struct for HTTPAuthConfig.
+type HTTPAuthConfigAssertion struct {
+	Path                   Opt[string]
+	AllowedRequestHeaders  Opt[[]string]
+	AllowedResponseHeaders Opt[[]string]
+}
+
+func (_ HTTPAuthConfigAssertion) isAssertable() {}
+
+// HTTPBackendRefAssertion is the assertion struct for HTTPBackendRef.
+type HTTPBackendRefAssertion struct {
+	BackendRef BackendRefAssertion
+	Filters    Opt[[]HTTPRouteFilterAssertion]
+}
+
+func (_ HTTPBackendRefAssertion) isAssertable() {}
+
+// HTTPCORSFilterAssertion is the assertion struct for HTTPCORSFilter.
+type HTTPCORSFilterAssertion struct {
+	AllowOrigins     Opt[[]v17.CORSOrigin]
+	AllowCredentials Opt[*bool]
+	AllowMethods     Opt[[]v17.HTTPMethodWithWildcard]
+	AllowHeaders     Opt[[]v17.HTTPHeaderName]
+	ExposeHeaders    Opt[[]v17.HTTPHeaderName]
+	MaxAge           Opt[int32]
+}
+
+func (_ HTTPCORSFilterAssertion) isAssertable() {}
+
+// HTTPExternalAuthFilterAssertion is the assertion struct for HTTPExternalAuthFilter.
+type HTTPExternalAuthFilterAssertion struct {
+	ExternalAuthProtocol Opt[v17.HTTPRouteExternalAuthProtocol]
+	BackendRef           BackendObjectReferenceAssertion
+	GRPCAuthConfig       GRPCAuthConfigAssertion
+	HTTPAuthConfig       HTTPAuthConfigAssertion
+	ForwardBody          ForwardBodyConfigAssertion
+}
+
+func (_ HTTPExternalAuthFilterAssertion) isAssertable() {}
+
+// ApisHTTPHeaderAssertion is the assertion struct for HTTPHeader.
+type ApisHTTPHeaderAssertion struct {
+	Name  Opt[v17.HTTPHeaderName]
+	Value Opt[string]
+}
+
+func (_ ApisHTTPHeaderAssertion) isAssertable() {}
+
+// HTTPHeaderFilterAssertion is the assertion struct for HTTPHeaderFilter.
+type HTTPHeaderFilterAssertion struct {
+	Set    Opt[[]ApisHTTPHeaderAssertion]
+	Add    Opt[[]ApisHTTPHeaderAssertion]
+	Remove Opt[[]string]
+}
+
+func (_ HTTPHeaderFilterAssertion) isAssertable() {}
+
+// HTTPHeaderMatchAssertion is the assertion struct for HTTPHeaderMatch.
+type HTTPHeaderMatchAssertion struct {
+	Type  Opt[*v17.HeaderMatchType]
+	Name  Opt[v17.HTTPHeaderName]
+	Value Opt[string]
+}
+
+func (_ HTTPHeaderMatchAssertion) isAssertable() {}
+
+// HTTPPathMatchAssertion is the assertion struct for HTTPPathMatch.
+type HTTPPathMatchAssertion struct {
+	Type  Opt[*v17.PathMatchType]
+	Value Opt[*string]
+}
+
+func (_ HTTPPathMatchAssertion) isAssertable() {}
+
+// HTTPPathModifierAssertion is the assertion struct for HTTPPathModifier.
+type HTTPPathModifierAssertion struct {
+	Type               Opt[v17.HTTPPathModifierType]
+	ReplaceFullPath    Opt[*string]
+	ReplacePrefixMatch Opt[*string]
+}
+
+func (_ HTTPPathModifierAssertion) isAssertable() {}
+
+// HTTPQueryParamMatchAssertion is the assertion struct for HTTPQueryParamMatch.
+type HTTPQueryParamMatchAssertion struct {
+	Type  Opt[*v17.QueryParamMatchType]
+	Name  Opt[v17.HTTPHeaderName]
+	Value Opt[string]
+}
+
+func (_ HTTPQueryParamMatchAssertion) isAssertable() {}
+
+// HTTPRequestMirrorFilterAssertion is the assertion struct for HTTPRequestMirrorFilter.
+type HTTPRequestMirrorFilterAssertion struct {
+	BackendRef BackendObjectReferenceAssertion
+	Percent    Opt[*int32]
+	Fraction   FractionAssertion
+}
+
+func (_ HTTPRequestMirrorFilterAssertion) isAssertable() {}
+
+// HTTPRequestRedirectFilterAssertion is the assertion struct for HTTPRequestRedirectFilter.
+type HTTPRequestRedirectFilterAssertion struct {
+	Scheme     Opt[*string]
+	Hostname   Opt[*v17.PreciseHostname]
+	Path       HTTPPathModifierAssertion
+	Port       Opt[*v17.PortNumber]
+	StatusCode Opt[*int]
+}
+
+func (_ HTTPRequestRedirectFilterAssertion) isAssertable() {}
+
+// HTTPRouteAssertion is the assertion struct for HTTPRoute.
+type HTTPRouteAssertion struct {
+	TypeMeta   TypeMetaAssertion
+	ObjectMeta ObjectMetaAssertion
+	Spec       HTTPRouteSpecAssertion
+	Status     Opt[v17.HTTPRouteStatus]
+}
+
+func (_ HTTPRouteAssertion) isAssertable() {}
+
+// HTTPRouteFilterAssertion is the assertion struct for HTTPRouteFilter.
+type HTTPRouteFilterAssertion struct {
+	Type                   Opt[v17.HTTPRouteFilterType]
+	RequestHeaderModifier  HTTPHeaderFilterAssertion
+	ResponseHeaderModifier HTTPHeaderFilterAssertion
+	RequestMirror          HTTPRequestMirrorFilterAssertion
+	RequestRedirect        HTTPRequestRedirectFilterAssertion
+	URLRewrite             HTTPURLRewriteFilterAssertion
+	CORS                   HTTPCORSFilterAssertion
+	ExternalAuth           HTTPExternalAuthFilterAssertion
+	ExtensionRef           ApisLocalObjectReferenceAssertion
+}
+
+func (_ HTTPRouteFilterAssertion) isAssertable() {}
+
+// HTTPRouteMatchAssertion is the assertion struct for HTTPRouteMatch.
+type HTTPRouteMatchAssertion struct {
+	Path        HTTPPathMatchAssertion
+	Headers     Opt[[]HTTPHeaderMatchAssertion]
+	QueryParams Opt[[]HTTPQueryParamMatchAssertion]
+	Method      Opt[*v17.HTTPMethod]
+}
+
+func (_ HTTPRouteMatchAssertion) isAssertable() {}
+
+// HTTPRouteRetryAssertion is the assertion struct for HTTPRouteRetry.
+type HTTPRouteRetryAssertion struct {
+	Codes    Opt[[]v17.HTTPRouteRetryStatusCode]
+	Attempts Opt[*int]
+	Backoff  Opt[*v17.Duration]
+}
+
+func (_ HTTPRouteRetryAssertion) isAssertable() {}
+
+// HTTPRouteRuleAssertion is the assertion struct for HTTPRouteRule.
+type HTTPRouteRuleAssertion struct {
+	Name               Opt[*v17.SectionName]
+	Matches            Opt[[]HTTPRouteMatchAssertion]
+	Filters            Opt[[]HTTPRouteFilterAssertion]
+	BackendRefs        Opt[[]HTTPBackendRefAssertion]
+	Timeouts           HTTPRouteTimeoutsAssertion
+	Retry              HTTPRouteRetryAssertion
+	SessionPersistence SessionPersistenceAssertion
+}
+
+func (_ HTTPRouteRuleAssertion) isAssertable() {}
+
+// HTTPRouteSpecAssertion is the assertion struct for HTTPRouteSpec.
+type HTTPRouteSpecAssertion struct {
+	CommonRouteSpec CommonRouteSpecAssertion
+	Hostnames       Opt[[]v17.Hostname]
+	Rules           Opt[[]HTTPRouteRuleAssertion]
+}
+
+func (_ HTTPRouteSpecAssertion) isAssertable() {}
+
+// HTTPRouteTimeoutsAssertion is the assertion struct for HTTPRouteTimeouts.
+type HTTPRouteTimeoutsAssertion struct {
+	Request        Opt[*v17.Duration]
+	BackendRequest Opt[*v17.Duration]
+}
+
+func (_ HTTPRouteTimeoutsAssertion) isAssertable() {}
+
+// HTTPURLRewriteFilterAssertion is the assertion struct for HTTPURLRewriteFilter.
+type HTTPURLRewriteFilterAssertion struct {
+	Hostname Opt[*v17.PreciseHostname]
+	Path     HTTPPathModifierAssertion
+}
+
+func (_ HTTPURLRewriteFilterAssertion) isAssertable() {}
+
+// ListenerAssertion is the assertion struct for Listener.
+type ListenerAssertion struct {
+	Name          Opt[v17.SectionName]
+	Hostname      Opt[*v17.Hostname]
+	Port          Opt[v17.PortNumber]
+	Protocol      Opt[v17.ProtocolType]
+	TLS           ListenerTLSConfigAssertion
+	AllowedRoutes AllowedRoutesAssertion
+}
+
+func (_ ListenerAssertion) isAssertable() {}
+
+// ListenerEntryAssertion is the assertion struct for ListenerEntry.
+type ListenerEntryAssertion struct {
+	Name          Opt[v17.SectionName]
+	Hostname      Opt[*v17.Hostname]
+	Port          Opt[v17.PortNumber]
+	Protocol      Opt[v17.ProtocolType]
+	TLS           ListenerTLSConfigAssertion
+	AllowedRoutes AllowedRoutesAssertion
+}
+
+func (_ ListenerEntryAssertion) isAssertable() {}
+
+// ListenerNamespacesAssertion is the assertion struct for ListenerNamespaces.
+type ListenerNamespacesAssertion struct {
+	From     Opt[*v17.FromNamespaces]
+	Selector LabelSelectorAssertion
+}
+
+func (_ ListenerNamespacesAssertion) isAssertable() {}
+
+// ListenerSetAssertion is the assertion struct for ListenerSet.
+type ListenerSetAssertion struct {
+	TypeMeta   TypeMetaAssertion
+	ObjectMeta ObjectMetaAssertion
+	Spec       ListenerSetSpecAssertion
+	Status     Opt[v17.ListenerSetStatus]
+}
+
+func (_ ListenerSetAssertion) isAssertable() {}
+
+// ListenerSetSpecAssertion is the assertion struct for ListenerSetSpec.
+type ListenerSetSpecAssertion struct {
+	ParentRef ParentGatewayReferenceAssertion
+	Listeners Opt[[]ListenerEntryAssertion]
+}
+
+func (_ ListenerSetSpecAssertion) isAssertable() {}
+
+// ListenerTLSConfigAssertion is the assertion struct for ListenerTLSConfig.
+type ListenerTLSConfigAssertion struct {
+	Mode            Opt[*v17.TLSModeType]
+	CertificateRefs Opt[[]SecretObjectReferenceAssertion]
+	Options         Opt[map[v17.AnnotationKey]v17.AnnotationValue]
+}
+
+func (_ ListenerTLSConfigAssertion) isAssertable() {}
+
+// ApisLocalObjectReferenceAssertion is the assertion struct for LocalObjectReference.
+type ApisLocalObjectReferenceAssertion struct {
+	Group Opt[v17.Group]
+	Kind  Opt[v17.Kind]
+	Name  Opt[v17.ObjectName]
+}
+
+func (_ ApisLocalObjectReferenceAssertion) isAssertable() {}
+
+// LocalParametersReferenceAssertion is the assertion struct for LocalParametersReference.
+type LocalParametersReferenceAssertion struct {
+	Group Opt[v17.Group]
+	Kind  Opt[v17.Kind]
+	Name  Opt[string]
+}
+
+func (_ LocalParametersReferenceAssertion) isAssertable() {}
+
+// LocalPolicyTargetReferenceAssertion is the assertion struct for LocalPolicyTargetReference.
+type LocalPolicyTargetReferenceAssertion struct {
+	Group Opt[v17.Group]
+	Kind  Opt[v17.Kind]
+	Name  Opt[v17.ObjectName]
+}
+
+func (_ LocalPolicyTargetReferenceAssertion) isAssertable() {}
+
+// LocalPolicyTargetReferenceWithSectionNameAssertion is the assertion struct for LocalPolicyTargetReferenceWithSectionName.
+type LocalPolicyTargetReferenceWithSectionNameAssertion struct {
+	LocalPolicyTargetReference LocalPolicyTargetReferenceAssertion
+	SectionName                Opt[*v17.SectionName]
+}
+
+func (_ LocalPolicyTargetReferenceWithSectionNameAssertion) isAssertable() {}
+
+// NamespacedPolicyTargetReferenceAssertion is the assertion struct for NamespacedPolicyTargetReference.
+type NamespacedPolicyTargetReferenceAssertion struct {
+	Group     Opt[v17.Group]
+	Kind      Opt[v17.Kind]
+	Name      Opt[v17.ObjectName]
+	Namespace Opt[*v17.Namespace]
+}
+
+func (_ NamespacedPolicyTargetReferenceAssertion) isAssertable() {}
+
+// ApisObjectReferenceAssertion is the assertion struct for ObjectReference.
+type ApisObjectReferenceAssertion struct {
+	Group     Opt[v17.Group]
+	Kind      Opt[v17.Kind]
+	Name      Opt[v17.ObjectName]
+	Namespace Opt[*v17.Namespace]
+}
+
+func (_ ApisObjectReferenceAssertion) isAssertable() {}
+
+// ParametersReferenceAssertion is the assertion struct for ParametersReference.
+type ParametersReferenceAssertion struct {
+	Group     Opt[v17.Group]
+	Kind      Opt[v17.Kind]
+	Name      Opt[string]
+	Namespace Opt[*v17.Namespace]
+}
+
+func (_ ParametersReferenceAssertion) isAssertable() {}
+
+// ParentGatewayReferenceAssertion is the assertion struct for ParentGatewayReference.
+type ParentGatewayReferenceAssertion struct {
+	Group     Opt[*v17.Group]
+	Kind      Opt[*v17.Kind]
+	Name      Opt[v17.ObjectName]
+	Namespace Opt[*v17.Namespace]
+}
+
+func (_ ParentGatewayReferenceAssertion) isAssertable() {}
+
+// ApisParentReferenceAssertion is the assertion struct for ParentReference.
+type ApisParentReferenceAssertion struct {
+	Group       Opt[*v17.Group]
+	Kind        Opt[*v17.Kind]
+	Namespace   Opt[*v17.Namespace]
+	Name        Opt[v17.ObjectName]
+	SectionName Opt[*v17.SectionName]
+	Port        Opt[*v17.PortNumber]
+}
+
+func (_ ApisParentReferenceAssertion) isAssertable() {}
+
+// ReferenceGrantAssertion is the assertion struct for ReferenceGrant.
+type ReferenceGrantAssertion struct {
+	TypeMeta   TypeMetaAssertion
+	ObjectMeta ObjectMetaAssertion
+	Spec       ReferenceGrantSpecAssertion
+}
+
+func (_ ReferenceGrantAssertion) isAssertable() {}
+
+// ReferenceGrantFromAssertion is the assertion struct for ReferenceGrantFrom.
+type ReferenceGrantFromAssertion struct {
+	Group     Opt[v17.Group]
+	Kind      Opt[v17.Kind]
+	Namespace Opt[v17.Namespace]
+}
+
+func (_ ReferenceGrantFromAssertion) isAssertable() {}
+
+// ReferenceGrantSpecAssertion is the assertion struct for ReferenceGrantSpec.
+type ReferenceGrantSpecAssertion struct {
+	From Opt[[]ReferenceGrantFromAssertion]
+	To   Opt[[]ReferenceGrantToAssertion]
+}
+
+func (_ ReferenceGrantSpecAssertion) isAssertable() {}
+
+// ReferenceGrantToAssertion is the assertion struct for ReferenceGrantTo.
+type ReferenceGrantToAssertion struct {
+	Group Opt[v17.Group]
+	Kind  Opt[v17.Kind]
+	Name  Opt[*v17.ObjectName]
+}
+
+func (_ ReferenceGrantToAssertion) isAssertable() {}
+
+// RouteGroupKindAssertion is the assertion struct for RouteGroupKind.
+type RouteGroupKindAssertion struct {
+	Group Opt[*v17.Group]
+	Kind  Opt[v17.Kind]
+}
+
+func (_ RouteGroupKindAssertion) isAssertable() {}
+
+// RouteNamespacesAssertion is the assertion struct for RouteNamespaces.
+type RouteNamespacesAssertion struct {
+	From     Opt[*v17.FromNamespaces]
+	Selector LabelSelectorAssertion
+}
+
+func (_ RouteNamespacesAssertion) isAssertable() {}
+
+// ApisSchemeGroupVersionAssertion is the assertion struct for GroupVersion.
+type ApisSchemeGroupVersionAssertion struct {
+	Group   Opt[string]
+	Version Opt[string]
+}
+
+func (_ ApisSchemeGroupVersionAssertion) isAssertable() {}
+
+// SecretObjectReferenceAssertion is the assertion struct for SecretObjectReference.
+type SecretObjectReferenceAssertion struct {
+	Group     Opt[*v17.Group]
+	Kind      Opt[*v17.Kind]
+	Name      Opt[v17.ObjectName]
+	Namespace Opt[*v17.Namespace]
+}
+
+func (_ SecretObjectReferenceAssertion) isAssertable() {}
+
+// SessionPersistenceAssertion is the assertion struct for SessionPersistence.
+type SessionPersistenceAssertion struct {
+	SessionName     Opt[*string]
+	AbsoluteTimeout Opt[*v17.Duration]
+	IdleTimeout     Opt[*v17.Duration]
+	Type            Opt[*v17.SessionPersistenceType]
+	CookieConfig    CookieConfigAssertion
+}
+
+func (_ SessionPersistenceAssertion) isAssertable() {}
+
+// SubjectAltNameAssertion is the assertion struct for SubjectAltName.
+type SubjectAltNameAssertion struct {
+	Type     Opt[v17.SubjectAltNameType]
+	Hostname Opt[v17.Hostname]
+	URI      Opt[v17.AbsoluteURI]
+}
+
+func (_ SubjectAltNameAssertion) isAssertable() {}
+
+// SupportedFeatureAssertion is the assertion struct for SupportedFeature.
+type SupportedFeatureAssertion struct {
+	Name Opt[v17.FeatureName]
+}
+
+func (_ SupportedFeatureAssertion) isAssertable() {}
+
+// TLSConfigAssertion is the assertion struct for TLSConfig.
+type TLSConfigAssertion struct {
+	Validation FrontendTLSValidationAssertion
+}
+
+func (_ TLSConfigAssertion) isAssertable() {}
+
+// TLSPortConfigAssertion is the assertion struct for TLSPortConfig.
+type TLSPortConfigAssertion struct {
+	Port Opt[v17.PortNumber]
+	TLS  TLSConfigAssertion
+}
+
+func (_ TLSPortConfigAssertion) isAssertable() {}
+
+// TLSRouteAssertion is the assertion struct for TLSRoute.
+type TLSRouteAssertion struct {
+	TypeMeta   TypeMetaAssertion
+	ObjectMeta ObjectMetaAssertion
+	Spec       TLSRouteSpecAssertion
+	Status     Opt[v17.TLSRouteStatus]
+}
+
+func (_ TLSRouteAssertion) isAssertable() {}
+
+// TLSRouteRuleAssertion is the assertion struct for TLSRouteRule.
+type TLSRouteRuleAssertion struct {
+	Name        Opt[*v17.SectionName]
+	BackendRefs Opt[[]BackendRefAssertion]
+}
+
+func (_ TLSRouteRuleAssertion) isAssertable() {}
+
+// TLSRouteSpecAssertion is the assertion struct for TLSRouteSpec.
+type TLSRouteSpecAssertion struct {
+	CommonRouteSpec CommonRouteSpecAssertion
+	Hostnames       Opt[[]v17.Hostname]
+	Rules           Opt[[]TLSRouteRuleAssertion]
+}
+
+func (_ TLSRouteSpecAssertion) isAssertable() {}
+
 // Ptr returns a pointer to the given value.
 // Use Ptr(int32(60)) instead of defining local int32Ptr closures.
 func Ptr[T any](v T) *T { return &v }
@@ -3648,6 +4420,20 @@ func doAssertPartial(t *testing.T, actualVal reflect.Value, assertionVal reflect
 			return
 		}
 		actualVal = actualVal.Elem()
+	}
+
+	// Dereference pointers on assertion
+	for assertionVal.Kind() == reflect.Ptr {
+		if assertionVal.IsNil() {
+			require.Fail(t, "assertion is nil but has fields to check",
+				append([]any{"got nil pointer for assertion"}, msgAndArgs...)...)
+			return
+		}
+		assertionVal = assertionVal.Elem()
+	}
+
+	if assertionVal.Kind() != reflect.Struct {
+		panic(fmt.Sprintf("assertPartial: assertion must be a struct or pointer to struct, got %v", assertionVal.Kind()))
 	}
 
 	assertionType := assertionVal.Type()

@@ -19,7 +19,7 @@ import (
 	"github.com/testcontainers/testcontainers-go/modules/k3s"
 )
 
-//go:embed traefik-config.yaml
+//go:embed *.yaml
 var manifests embed.FS
 
 // k3sImage is the K3s container image used by all test suites.
@@ -41,16 +41,23 @@ type Cluster struct {
 // manifest to use NodePort with dynamically mapped ports. Call Cleanup when
 // the cluster is no longer needed.
 func Start(ctx context.Context) (*Cluster, error) {
-	manifestPath, err := writeManifest()
+	traefikPath, err := writeEmbeddedFile("traefik-config.yaml")
 	if err != nil {
 		return nil, err
 	}
-	defer func() { _ = os.Remove(manifestPath) }()
+	defer func() { _ = os.Remove(traefikPath) }()
+
+	gatewayPath, err := writeEmbeddedFile("gateway-crds.yaml")
+	if err != nil {
+		return nil, err
+	}
+	defer func() { _ = os.Remove(gatewayPath) }()
 
 	container, err := k3s.Run(ctx, k3sImage,
 		testcontainers.WithCmd("server", "--tls-san=localhost"),
 		testcontainers.WithExposedPorts("30080/tcp", "30443/tcp"),
-		k3s.WithManifest(manifestPath),
+		k3s.WithManifest(traefikPath),
+		k3s.WithManifest(gatewayPath),
 	)
 	if err != nil {
 		return nil, err
@@ -111,10 +118,10 @@ func (c *Cluster) Cleanup() {
 	}
 }
 
-// writeManifest extracts the embedded Traefik HelmChartConfig to a temporary
-// file so it can be passed to k3s.WithManifest.
-func writeManifest() (string, error) {
-	data, err := manifests.ReadFile("traefik-config.yaml")
+// writeEmbeddedFile extracts an embedded file to a temporary file so it can
+// be passed to k3s.WithManifest.
+func writeEmbeddedFile(name string) (string, error) {
+	data, err := manifests.ReadFile(name)
 	if err != nil {
 		return "", err
 	}
