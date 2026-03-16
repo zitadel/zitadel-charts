@@ -74,7 +74,12 @@ func (env *Env) MakeRelease(baseName, suffix string) string {
 	normalizedSuffix := normalizeComponent(suffix)
 	uniqueId := strings.ToLower(random.UniqueId())
 
-	components := []string{normalizedBase, normalizedSuffix, uniqueId}
+	var components []string
+	for _, c := range []string{normalizedBase, normalizedSuffix, uniqueId} {
+		if c != "" {
+			components = append(components, c)
+		}
+	}
 	releaseName := strings.Join(components, "-")
 
 	if len(releaseName) > maxHelmNameLength {
