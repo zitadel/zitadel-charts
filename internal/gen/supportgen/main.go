@@ -307,8 +307,9 @@ func main() {
 				Qual("github.com/stretchr/testify/require", "True").Call(
 					Id("t"),
 					Qual("k8s.io/apimachinery/pkg/api/errors", "IsNotFound").Call(Id("err")),
-					Lit(fmt.Sprintf("%s %%q should not exist", r.Name)),
+					Lit(fmt.Sprintf("%s %%q should not exist (err: %%v)", r.Name)),
 					Id("name"),
+					Id("err"),
 				),
 			),
 		)
