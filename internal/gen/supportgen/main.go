@@ -187,25 +187,47 @@ func main() {
 		}
 	}
 
-	// Deduplicate by type name, preferring the best API version.
-	// The same K8s type (e.g. HorizontalPodAutoscaler) can appear in
-	// multiple API group versions (v1, v2, v1beta1). We keep only the
-	// best version to avoid duplicate method names.
-	// Priority: has assertion struct > stable > beta > alpha > higher version number.
-	seen := map[string]int{} // type name -> index in deduplicated slice
-	var deduped []resource
-	for _, r := range resources {
-		idx, exists := seen[r.Name]
-		if !exists {
-			seen[r.Name] = len(deduped)
-			deduped = append(deduped, r)
+	// Resolve method-name collisions instead of deduplicating by type name.
+	// The same logical K8s type (e.g. HorizontalPodAutoscaler) can appear in
+	// multiple API group versions (v1, v2, v1beta1). We still want a single
+	// "short" method name (e.g. GetHorizontalPodAutoscaler) for the best API
+	// version, but we must not drop distinct resources that happen to share a
+	// type name across different API groups (e.g. core/v1 and events.k8s.io/v1 Event).
+	//
+	// To achieve this, we:
+	//   * keep all discovered resources; and
+	//   * for each set of resources that share the same type Name, we pick the
+	//     best one (by resourcePriority) to keep the original Name, and we
+	//     disambiguate the others by prefixing their Name with GroupMethod.
+	// This preserves existing short method names for the preferred version while
+	// ensuring that all distinct resources get generated methods with unique names.
+	nameToIdxs := make(map[string][]int)
+	for i := range resources {
+		r := &resources[i]
+		nameToIdxs[r.Name] = append(nameToIdxs[r.Name], i)
+	}
+	for _, idxs := range nameToIdxs {
+		if len(idxs) <= 1 {
 			continue
 		}
-		if resourcePriority(r) > resourcePriority(deduped[idx]) {
-			deduped[idx] = r
+		// Choose the best resource to keep the original (short) Name.
+		bestIdx := idxs[0]
+		for _, idx := range idxs[1:] {
+			if resourcePriority(resources[idx]) > resourcePriority(resources[bestIdx]) {
+				bestIdx = idx
+			}
+		}
+		// Disambiguate all non-best resources by prefixing with GroupMethod.
+		for _, idx := range idxs {
+			if idx == bestIdx {
+				continue
+			}
+			r := &resources[idx]
+			// Only change the name if it would actually collide; this is defensive
+			// in case future code mutates r.Name earlier.
+			r.Name = r.GroupMethod + r.Name
 		}
 	}
-	resources = deduped
 
 	// Sort for deterministic output
 	sort.Slice(resources, func(i, j int) bool {
