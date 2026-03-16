@@ -263,7 +263,10 @@ func main() {
 	var switchCases []Code
 	for _, r := range assertResources {
 		switchCases = append(switchCases,
-			Case(Qual("github.com/zitadel/zitadel-charts/test/assert", r.AssertName())).Block(
+			Case(
+				Qual("github.com/zitadel/zitadel-charts/test/assert", r.AssertName()),
+				Op("*").Qual("github.com/zitadel/zitadel-charts/test/assert", r.AssertName()),
+			).Block(
 				Qual("github.com/zitadel/zitadel-charts/test/assert", "AssertPartial").Call(
 					Id("t"),
 					Id("env").Dot("Get"+r.Name).Call(Id("t"), Id("name")),
