@@ -105,6 +105,7 @@ func Start(ctx context.Context) (*Cluster, error) {
 func (c *Cluster) Cleanup() {
 	_ = c.container.Terminate(context.Background())
 	_ = os.Remove(c.kubeconfigPath)
+	_ = os.Unsetenv("KUBECONFIG")
 }
 
 // writeManifest extracts the embedded Traefik HelmChartConfig to a temporary
