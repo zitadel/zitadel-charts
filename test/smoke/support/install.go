@@ -92,7 +92,7 @@ func dumpSetupAndInitJobLogs(t *testing.T, env *testsupport.Env, releaseName str
 
 	for _, jobName := range jobNames {
 		labelSelector := fmt.Sprintf("job-name=%s", jobName)
-		pods := listPodsE(t, env, labelSelector)
+		pods := listPods(t, env, labelSelector)
 
 		for _, pod := range pods {
 			for _, container := range pod.Spec.Containers {
@@ -117,7 +117,7 @@ func dumpSetupAndInitJobLogs(t *testing.T, env *testsupport.Env, releaseName str
 	}
 }
 
-func listPodsE(t *testing.T, env *testsupport.Env, labelSelector string) []corev1.Pod {
+func listPods(t *testing.T, env *testsupport.Env, labelSelector string) []corev1.Pod {
 	podList, err := env.Client.CoreV1().Pods(env.Kube.Namespace).List(
 		env.Ctx,
 		metav1.ListOptions{LabelSelector: labelSelector},
