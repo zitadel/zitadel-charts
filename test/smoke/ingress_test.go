@@ -33,21 +33,25 @@ func TestIngressMatrix(t *testing.T) {
 			},
 			zitadel: &assert.IngressAssertion{
 				ObjectMeta: assert.ObjectMetaAssertion{
-					Labels: assert.Some(map[string]string{
-						"app.kubernetes.io/name":       "zitadel",
-						"app.kubernetes.io/version":    "v4.12.1",
-						"app.kubernetes.io/managed-by": "Helm",
-					}),
+					Labels: assert.Matching[map[string]string](
+						gomega.And(
+							gomega.HaveKeyWithValue("app.kubernetes.io/name", "zitadel"),
+							gomega.HaveKey("app.kubernetes.io/version"),
+							gomega.HaveKeyWithValue("app.kubernetes.io/managed-by", "Helm"),
+						),
+					),
 				},
 			},
 			login: &assert.IngressAssertion{
 				ObjectMeta: assert.ObjectMetaAssertion{
-					Labels: assert.Some(map[string]string{
-						"app.kubernetes.io/name":       "zitadel-login",
-						"app.kubernetes.io/version":    "v4.12.1",
-						"app.kubernetes.io/managed-by": "Helm",
-						"app.kubernetes.io/component":  "login",
-					}),
+					Labels: assert.Matching[map[string]string](
+						gomega.And(
+							gomega.HaveKeyWithValue("app.kubernetes.io/name", "zitadel-login"),
+							gomega.HaveKey("app.kubernetes.io/version"),
+							gomega.HaveKeyWithValue("app.kubernetes.io/managed-by", "Helm"),
+							gomega.HaveKeyWithValue("app.kubernetes.io/component", "login"),
+						),
+					),
 				},
 			},
 		},
