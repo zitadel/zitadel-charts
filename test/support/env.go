@@ -1,6 +1,3 @@
-// Package support provides generic Kubernetes and Helm test infrastructure
-// for chart testing: ephemeral namespaces, resource getters, and template
-// rendering helpers.
 package support
 
 import (
