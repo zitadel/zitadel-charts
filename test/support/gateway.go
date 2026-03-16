@@ -80,8 +80,12 @@ func (env *Env) assertPartialFallback(t *testing.T, name string, assertion asser
 	switch a := assertion.(type) {
 	case assert.HTTPRouteAssertion:
 		assert.AssertPartial(t, env.GetHTTPRoute(t, name), a, name)
+	case *assert.HTTPRouteAssertion:
+		assert.AssertPartial(t, env.GetHTTPRoute(t, name), *a, name)
 	case assert.GRPCRouteAssertion:
 		assert.AssertPartial(t, env.GetGRPCRoute(t, name), a, name)
+	case *assert.GRPCRouteAssertion:
+		assert.AssertPartial(t, env.GetGRPCRoute(t, name), *a, name)
 	default:
 		t.Fatalf("env.AssertPartial: unsupported assertion type %T", assertion)
 	}

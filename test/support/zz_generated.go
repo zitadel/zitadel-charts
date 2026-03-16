@@ -937,82 +937,160 @@ func (env *Env) AssertPartial(t *testing.T, name string, assertion assert.Assert
 	switch a := assertion.(type) {
 	case assert.ControllerRevisionAssertion:
 		assert.AssertPartial(t, env.GetControllerRevision(t, name), a, name)
+	case *assert.ControllerRevisionAssertion:
+		assert.AssertPartial(t, env.GetControllerRevision(t, name), *a, name)
 	case assert.DaemonSetAssertion:
 		assert.AssertPartial(t, env.GetDaemonSet(t, name), a, name)
+	case *assert.DaemonSetAssertion:
+		assert.AssertPartial(t, env.GetDaemonSet(t, name), *a, name)
 	case assert.DeploymentAssertion:
 		assert.AssertPartial(t, env.GetDeployment(t, name), a, name)
+	case *assert.DeploymentAssertion:
+		assert.AssertPartial(t, env.GetDeployment(t, name), *a, name)
 	case assert.ReplicaSetAssertion:
 		assert.AssertPartial(t, env.GetReplicaSet(t, name), a, name)
+	case *assert.ReplicaSetAssertion:
+		assert.AssertPartial(t, env.GetReplicaSet(t, name), *a, name)
 	case assert.StatefulSetAssertion:
 		assert.AssertPartial(t, env.GetStatefulSet(t, name), a, name)
+	case *assert.StatefulSetAssertion:
+		assert.AssertPartial(t, env.GetStatefulSet(t, name), *a, name)
 	case assert.HorizontalPodAutoscalerAssertion:
 		assert.AssertPartial(t, env.GetHorizontalPodAutoscaler(t, name), a, name)
+	case *assert.HorizontalPodAutoscalerAssertion:
+		assert.AssertPartial(t, env.GetHorizontalPodAutoscaler(t, name), *a, name)
 	case assert.CronJobAssertion:
 		assert.AssertPartial(t, env.GetCronJob(t, name), a, name)
+	case *assert.CronJobAssertion:
+		assert.AssertPartial(t, env.GetCronJob(t, name), *a, name)
 	case assert.JobAssertion:
 		assert.AssertPartial(t, env.GetJob(t, name), a, name)
+	case *assert.JobAssertion:
+		assert.AssertPartial(t, env.GetJob(t, name), *a, name)
 	case assert.ConfigMapAssertion:
 		assert.AssertPartial(t, env.GetConfigMap(t, name), a, name)
+	case *assert.ConfigMapAssertion:
+		assert.AssertPartial(t, env.GetConfigMap(t, name), *a, name)
 	case assert.EndpointsAssertion:
 		assert.AssertPartial(t, env.GetEndpoints(t, name), a, name)
+	case *assert.EndpointsAssertion:
+		assert.AssertPartial(t, env.GetEndpoints(t, name), *a, name)
 	case assert.EventAssertion:
 		assert.AssertPartial(t, env.GetEvent(t, name), a, name)
+	case *assert.EventAssertion:
+		assert.AssertPartial(t, env.GetEvent(t, name), *a, name)
 	case assert.LimitRangeAssertion:
 		assert.AssertPartial(t, env.GetLimitRange(t, name), a, name)
+	case *assert.LimitRangeAssertion:
+		assert.AssertPartial(t, env.GetLimitRange(t, name), *a, name)
 	case assert.NamespaceAssertion:
 		assert.AssertPartial(t, env.GetNamespace(t, name), a, name)
+	case *assert.NamespaceAssertion:
+		assert.AssertPartial(t, env.GetNamespace(t, name), *a, name)
 	case assert.NodeAssertion:
 		assert.AssertPartial(t, env.GetNode(t, name), a, name)
+	case *assert.NodeAssertion:
+		assert.AssertPartial(t, env.GetNode(t, name), *a, name)
 	case assert.PersistentVolumeAssertion:
 		assert.AssertPartial(t, env.GetPersistentVolume(t, name), a, name)
+	case *assert.PersistentVolumeAssertion:
+		assert.AssertPartial(t, env.GetPersistentVolume(t, name), *a, name)
 	case assert.PersistentVolumeClaimAssertion:
 		assert.AssertPartial(t, env.GetPersistentVolumeClaim(t, name), a, name)
+	case *assert.PersistentVolumeClaimAssertion:
+		assert.AssertPartial(t, env.GetPersistentVolumeClaim(t, name), *a, name)
 	case assert.PodAssertion:
 		assert.AssertPartial(t, env.GetPod(t, name), a, name)
+	case *assert.PodAssertion:
+		assert.AssertPartial(t, env.GetPod(t, name), *a, name)
 	case assert.PodTemplateAssertion:
 		assert.AssertPartial(t, env.GetPodTemplate(t, name), a, name)
+	case *assert.PodTemplateAssertion:
+		assert.AssertPartial(t, env.GetPodTemplate(t, name), *a, name)
 	case assert.ReplicationControllerAssertion:
 		assert.AssertPartial(t, env.GetReplicationController(t, name), a, name)
+	case *assert.ReplicationControllerAssertion:
+		assert.AssertPartial(t, env.GetReplicationController(t, name), *a, name)
 	case assert.ResourceQuotaAssertion:
 		assert.AssertPartial(t, env.GetResourceQuota(t, name), a, name)
+	case *assert.ResourceQuotaAssertion:
+		assert.AssertPartial(t, env.GetResourceQuota(t, name), *a, name)
 	case assert.SecretAssertion:
 		assert.AssertPartial(t, env.GetSecret(t, name), a, name)
+	case *assert.SecretAssertion:
+		assert.AssertPartial(t, env.GetSecret(t, name), *a, name)
 	case assert.ServiceAssertion:
 		assert.AssertPartial(t, env.GetService(t, name), a, name)
+	case *assert.ServiceAssertion:
+		assert.AssertPartial(t, env.GetService(t, name), *a, name)
 	case assert.ServiceAccountAssertion:
 		assert.AssertPartial(t, env.GetServiceAccount(t, name), a, name)
+	case *assert.ServiceAccountAssertion:
+		assert.AssertPartial(t, env.GetServiceAccount(t, name), *a, name)
 	case assert.IPAddressAssertion:
 		assert.AssertPartial(t, env.GetIPAddress(t, name), a, name)
+	case *assert.IPAddressAssertion:
+		assert.AssertPartial(t, env.GetIPAddress(t, name), *a, name)
 	case assert.IngressAssertion:
 		assert.AssertPartial(t, env.GetIngress(t, name), a, name)
+	case *assert.IngressAssertion:
+		assert.AssertPartial(t, env.GetIngress(t, name), *a, name)
 	case assert.IngressClassAssertion:
 		assert.AssertPartial(t, env.GetIngressClass(t, name), a, name)
+	case *assert.IngressClassAssertion:
+		assert.AssertPartial(t, env.GetIngressClass(t, name), *a, name)
 	case assert.NetworkPolicyAssertion:
 		assert.AssertPartial(t, env.GetNetworkPolicy(t, name), a, name)
+	case *assert.NetworkPolicyAssertion:
+		assert.AssertPartial(t, env.GetNetworkPolicy(t, name), *a, name)
 	case assert.ServiceCIDRAssertion:
 		assert.AssertPartial(t, env.GetServiceCIDR(t, name), a, name)
+	case *assert.ServiceCIDRAssertion:
+		assert.AssertPartial(t, env.GetServiceCIDR(t, name), *a, name)
 	case assert.PodDisruptionBudgetAssertion:
 		assert.AssertPartial(t, env.GetPodDisruptionBudget(t, name), a, name)
+	case *assert.PodDisruptionBudgetAssertion:
+		assert.AssertPartial(t, env.GetPodDisruptionBudget(t, name), *a, name)
 	case assert.ClusterRoleAssertion:
 		assert.AssertPartial(t, env.GetClusterRole(t, name), a, name)
+	case *assert.ClusterRoleAssertion:
+		assert.AssertPartial(t, env.GetClusterRole(t, name), *a, name)
 	case assert.ClusterRoleBindingAssertion:
 		assert.AssertPartial(t, env.GetClusterRoleBinding(t, name), a, name)
+	case *assert.ClusterRoleBindingAssertion:
+		assert.AssertPartial(t, env.GetClusterRoleBinding(t, name), *a, name)
 	case assert.RoleAssertion:
 		assert.AssertPartial(t, env.GetRole(t, name), a, name)
+	case *assert.RoleAssertion:
+		assert.AssertPartial(t, env.GetRole(t, name), *a, name)
 	case assert.RoleBindingAssertion:
 		assert.AssertPartial(t, env.GetRoleBinding(t, name), a, name)
+	case *assert.RoleBindingAssertion:
+		assert.AssertPartial(t, env.GetRoleBinding(t, name), *a, name)
 	case assert.CSIDriverAssertion:
 		assert.AssertPartial(t, env.GetCSIDriver(t, name), a, name)
+	case *assert.CSIDriverAssertion:
+		assert.AssertPartial(t, env.GetCSIDriver(t, name), *a, name)
 	case assert.CSINodeAssertion:
 		assert.AssertPartial(t, env.GetCSINode(t, name), a, name)
+	case *assert.CSINodeAssertion:
+		assert.AssertPartial(t, env.GetCSINode(t, name), *a, name)
 	case assert.CSIStorageCapacityAssertion:
 		assert.AssertPartial(t, env.GetCSIStorageCapacity(t, name), a, name)
+	case *assert.CSIStorageCapacityAssertion:
+		assert.AssertPartial(t, env.GetCSIStorageCapacity(t, name), *a, name)
 	case assert.StorageClassAssertion:
 		assert.AssertPartial(t, env.GetStorageClass(t, name), a, name)
+	case *assert.StorageClassAssertion:
+		assert.AssertPartial(t, env.GetStorageClass(t, name), *a, name)
 	case assert.VolumeAttachmentAssertion:
 		assert.AssertPartial(t, env.GetVolumeAttachment(t, name), a, name)
+	case *assert.VolumeAttachmentAssertion:
+		assert.AssertPartial(t, env.GetVolumeAttachment(t, name), *a, name)
 	case assert.VolumeAttributesClassAssertion:
 		assert.AssertPartial(t, env.GetVolumeAttributesClass(t, name), a, name)
+	case *assert.VolumeAttributesClassAssertion:
+		assert.AssertPartial(t, env.GetVolumeAttributesClass(t, name), *a, name)
 	default:
 		env.assertPartialFallback(t, name, assertion)
 	}
