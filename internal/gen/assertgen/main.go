@@ -256,6 +256,20 @@ func doAssertPartial(t *testing.T, actualVal reflect.Value, assertionVal reflect
 		actualVal = actualVal.Elem()
 	}
 
+	// Dereference pointers on assertion
+	for assertionVal.Kind() == reflect.Ptr {
+		if assertionVal.IsNil() {
+			require.Fail(t, "assertion is nil but has fields to check",
+				append([]any{"got nil pointer for assertion"}, msgAndArgs...)...)
+			return
+		}
+		assertionVal = assertionVal.Elem()
+	}
+
+	if assertionVal.Kind() != reflect.Struct {
+		panic(fmt.Sprintf("assertPartial: assertion must be a struct or pointer to struct, got %v", assertionVal.Kind()))
+	}
+
 	assertionType := assertionVal.Type()
 
 	for i := 0; i < assertionType.NumField(); i++ {
