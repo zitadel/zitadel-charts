@@ -2,11 +2,12 @@ package testcluster
 
 import (
 	"context"
-	"fmt"
+	"strings"
 	"testing"
 	"time"
 
 	"github.com/gruntwork-io/terratest/modules/k8s"
+	"github.com/gruntwork-io/terratest/modules/random"
 )
 
 // WithNamespace creates a unique namespace for a test, runs the provided
@@ -21,7 +22,7 @@ func WithNamespace(t *testing.T, fn func(ctx context.Context, k *k8s.KubectlOpti
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Minute)
 	defer cancel()
 
-	namespace := fmt.Sprintf("zitadel-test-%d", time.Now().UnixNano())
+	namespace := "zitadel-test-" + strings.ToLower(random.UniqueId())
 	k := k8s.NewKubectlOptions("", "", namespace)
 
 	k8s.CreateNamespace(t, k, namespace)
