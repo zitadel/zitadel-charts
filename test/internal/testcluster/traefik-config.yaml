@@ -9,6 +9,9 @@ spec:
     logs:
       general:
         level: DEBUG
+    providers:
+      kubernetesGateway:
+        enabled: false
     additionalArguments:
       - "--serverstransport.insecureskipverify=true"
     service:
