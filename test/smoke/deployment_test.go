@@ -11,6 +11,8 @@ import (
 	"github.com/zitadel/zitadel-charts/test/support"
 )
 
+const zitadelAppVersion = "v4.12.1"
+
 //goland:noinspection ALL
 func TestDeploymentMatrix(t *testing.T) {
 	t.Parallel()
@@ -31,7 +33,7 @@ func TestDeploymentMatrix(t *testing.T) {
 				ObjectMeta: assert.ObjectMetaAssertion{
 					Labels: assert.Some(map[string]string{
 						"app.kubernetes.io/name":       "zitadel",
-						"app.kubernetes.io/version":    "v4.12.1",
+						"app.kubernetes.io/version":    zitadelAppVersion,
 						"app.kubernetes.io/managed-by": "Helm",
 						"app.kubernetes.io/component":  "start",
 					}),
@@ -48,7 +50,7 @@ func TestDeploymentMatrix(t *testing.T) {
 						ObjectMeta: assert.ObjectMetaAssertion{
 							Labels: assert.Some(map[string]string{
 								"app.kubernetes.io/name":       "zitadel",
-								"app.kubernetes.io/version":    "v4.12.1",
+								"app.kubernetes.io/version":    zitadelAppVersion,
 								"app.kubernetes.io/managed-by": "Helm",
 								"app.kubernetes.io/component":  "start",
 							}),
