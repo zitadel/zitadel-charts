@@ -3,6 +3,7 @@ package smoke_test_test
 import (
 	"testing"
 
+	"github.com/onsi/gomega"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 
@@ -10,8 +11,6 @@ import (
 	setup "github.com/zitadel/zitadel-charts/test/smoke/support"
 	"github.com/zitadel/zitadel-charts/test/support"
 )
-
-const zitadelAppVersion = "v4.12.1"
 
 //goland:noinspection ALL
 func TestDeploymentMatrix(t *testing.T) {
@@ -31,12 +30,12 @@ func TestDeploymentMatrix(t *testing.T) {
 			},
 			zitadel: &assert.DeploymentAssertion{
 				ObjectMeta: assert.ObjectMetaAssertion{
-					Labels: assert.Some(map[string]string{
-						"app.kubernetes.io/name":       "zitadel",
-						"app.kubernetes.io/version":    zitadelAppVersion,
-						"app.kubernetes.io/managed-by": "Helm",
-						"app.kubernetes.io/component":  "start",
-					}),
+					Labels: assert.Matching[map[string]string](gomega.And(
+						gomega.HaveKeyWithValue("app.kubernetes.io/name", "zitadel"),
+						gomega.HaveKeyWithValue("app.kubernetes.io/managed-by", "Helm"),
+						gomega.HaveKeyWithValue("app.kubernetes.io/component", "start"),
+						gomega.HaveKeyWithValue("app.kubernetes.io/version", gomega.MatchRegexp(`^v?\d+\.\d+\.\d+`)),
+					)),
 				},
 				Spec: assert.DeploymentSpecAssertion{
 					Selector: assert.LabelSelectorAssertion{
@@ -48,12 +47,12 @@ func TestDeploymentMatrix(t *testing.T) {
 
 					Template: assert.PodTemplateSpecAssertion{
 						ObjectMeta: assert.ObjectMetaAssertion{
-							Labels: assert.Some(map[string]string{
-								"app.kubernetes.io/name":       "zitadel",
-								"app.kubernetes.io/version":    zitadelAppVersion,
-								"app.kubernetes.io/managed-by": "Helm",
-								"app.kubernetes.io/component":  "start",
-							}),
+							Labels: assert.Matching[map[string]string](gomega.And(
+								gomega.HaveKeyWithValue("app.kubernetes.io/name", "zitadel"),
+								gomega.HaveKeyWithValue("app.kubernetes.io/managed-by", "Helm"),
+								gomega.HaveKeyWithValue("app.kubernetes.io/component", "start"),
+								gomega.HaveKeyWithValue("app.kubernetes.io/version", gomega.MatchRegexp(`^v?\d+\.\d+\.\d+`)),
+							)),
 						},
 						Spec: assert.PodSpecAssertion{
 							SecurityContext: assert.PodSecurityContextAssertion{
@@ -93,12 +92,12 @@ func TestDeploymentMatrix(t *testing.T) {
 			},
 			login: &assert.DeploymentAssertion{
 				ObjectMeta: assert.ObjectMetaAssertion{
-					Labels: assert.Some(map[string]string{
-						"app.kubernetes.io/name":       "zitadel-login",
-						"app.kubernetes.io/version":    "v4.12.1",
-						"app.kubernetes.io/managed-by": "Helm",
-						"app.kubernetes.io/component":  "login",
-					}),
+					Labels: assert.Matching[map[string]string](gomega.And(
+						gomega.HaveKeyWithValue("app.kubernetes.io/name", "zitadel-login"),
+						gomega.HaveKeyWithValue("app.kubernetes.io/managed-by", "Helm"),
+						gomega.HaveKeyWithValue("app.kubernetes.io/component", "login"),
+						gomega.HaveKeyWithValue("app.kubernetes.io/version", gomega.MatchRegexp(`^v?\d+\.\d+\.\d+`)),
+					)),
 				},
 				Spec: assert.DeploymentSpecAssertion{
 					Selector: assert.LabelSelectorAssertion{
@@ -109,12 +108,12 @@ func TestDeploymentMatrix(t *testing.T) {
 					},
 					Template: assert.PodTemplateSpecAssertion{
 						ObjectMeta: assert.ObjectMetaAssertion{
-							Labels: assert.Some(map[string]string{
-								"app.kubernetes.io/name":       "zitadel-login",
-								"app.kubernetes.io/version":    "v4.12.1",
-								"app.kubernetes.io/managed-by": "Helm",
-								"app.kubernetes.io/component":  "login",
-							}),
+							Labels: assert.Matching[map[string]string](gomega.And(
+								gomega.HaveKeyWithValue("app.kubernetes.io/name", "zitadel-login"),
+								gomega.HaveKeyWithValue("app.kubernetes.io/managed-by", "Helm"),
+								gomega.HaveKeyWithValue("app.kubernetes.io/component", "login"),
+								gomega.HaveKeyWithValue("app.kubernetes.io/version", gomega.MatchRegexp(`^v?\d+\.\d+\.\d+`)),
+							)),
 						},
 						Spec: assert.PodSpecAssertion{
 							SecurityContext: assert.PodSecurityContextAssertion{

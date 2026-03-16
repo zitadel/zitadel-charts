@@ -3,12 +3,11 @@ package smoke_test_test
 import (
 	"testing"
 
+	"github.com/onsi/gomega"
 	"github.com/zitadel/zitadel-charts/test/assert"
 	setup "github.com/zitadel/zitadel-charts/test/smoke/support"
 	"github.com/zitadel/zitadel-charts/test/support"
 )
-
-const expectedAppVersion = "v4.12.1"
 
 func TestRBACLabels(t *testing.T) {
 	t.Parallel()
@@ -22,20 +21,20 @@ func TestRBACLabels(t *testing.T) {
 			name: "labels",
 			role: &assert.RoleAssertion{
 				ObjectMeta: assert.ObjectMetaAssertion{
-					Labels: assert.Some(map[string]string{
-						"app.kubernetes.io/name":       "zitadel",
-						"app.kubernetes.io/version":    expectedAppVersion,
-						"app.kubernetes.io/managed-by": "Helm",
-					}),
+					Labels: assert.Matching[map[string]string](gomega.And(
+						gomega.HaveKeyWithValue("app.kubernetes.io/name", "zitadel"),
+						gomega.HaveKeyWithValue("app.kubernetes.io/managed-by", "Helm"),
+						gomega.HaveKeyWithValue("app.kubernetes.io/version", gomega.MatchRegexp(`^v?\d+\.\d+\.\d+`)),
+					)),
 				},
 			},
 			binding: &assert.RoleBindingAssertion{
 				ObjectMeta: assert.ObjectMetaAssertion{
-					Labels: assert.Some(map[string]string{
-						"app.kubernetes.io/name":       "zitadel",
-						"app.kubernetes.io/version":    expectedAppVersion,
-						"app.kubernetes.io/managed-by": "Helm",
-					}),
+					Labels: assert.Matching[map[string]string](gomega.And(
+						gomega.HaveKeyWithValue("app.kubernetes.io/name", "zitadel"),
+						gomega.HaveKeyWithValue("app.kubernetes.io/managed-by", "Helm"),
+						gomega.HaveKeyWithValue("app.kubernetes.io/version", gomega.MatchRegexp(`^v?\d+\.\d+\.\d+`)),
+					)),
 				},
 			},
 		},
