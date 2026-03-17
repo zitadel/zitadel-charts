@@ -133,6 +133,16 @@ func TestSchemaFullyTyped(t *testing.T) {
 				if strings.Contains(desc, "(map[string]string)") {
 					continue
 				}
+				if additional, hasAdditional := propMap["additionalProperties"]; hasAdditional {
+					if additionalMap, ok := additional.(map[string]any); ok {
+						if _, hasRef := additionalMap["$ref"]; hasRef {
+							continue
+						}
+						if additionalType, _ := additionalMap["type"].(string); additionalType != "" {
+							continue
+						}
+					}
+				}
 				if nested, ok := propMap["properties"].(map[string]any); ok {
 					failures = append(failures, check(nested, propPath)...)
 					continue

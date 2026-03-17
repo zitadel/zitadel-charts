@@ -125,7 +125,9 @@ zitadel:
   configSecretKey: config-yaml
 
   # -- ZITADEL's masterkey for symmetric encryption of sensitive data like
-  # private keys and tokens. Must be exactly 32 characters (256 bits).
+  # private keys and tokens. Must be exactly 32 bytes. Using printable ASCII
+  # characters is recommended (alphanumeric). Do NOT use multi-byte Unicode
+  # characters, as the key length is measured in bytes, not characters.
   # Generate with: tr -dc A-Za-z0-9 </dev/urandom | head -c 32
   # IMPORTANT: Store this value securely. Loss of the masterkey means loss of
   # all encrypted data. Either set this value or use masterkeySecretName.
@@ -537,23 +539,6 @@ login:
     controller: generic
     # -- (map[string]string) Annotations to apply to the Login UI Ingress resource.
     annotations: {}
-    # @schema
-    # type: array
-    # items:
-    #   type: object
-    #   properties:
-    #     paths:
-    #       type: array
-    #       items:
-    #         type: object
-    #         properties:
-    #           path:
-    #             type: string
-    #           pathType:
-    #             type: string
-    #             enum: [Exact, Prefix, ImplementationSpecific]
-    #         required: [pathType]
-    # @schema
     # -- A list of host rules for the Ingress. The default path targets the login UI.
     hosts:
       - paths:
@@ -563,6 +548,35 @@ login:
     # -- ([]IngressTLS) TLS configuration for the Ingress. Secure the login UI with HTTPS by
     # referencing a secret containing the TLS certificate and key.
     tls: []
+  # Gateway API configuration for exposing the Login UI using Kubernetes Gateway API.
+  # This is an alternative to the traditional Ingress resource above.
+  gateway:
+    # HTTPRoute configuration for the Login UI.
+    httpRoute:
+      # -- If true, creates an HTTPRoute resource for the Login UI service.
+      enabled: false
+      # -- (map[string]string) Annotations to apply to the HTTPRoute resource.
+      annotations: {}
+      # -- (map[string]string) Additional labels to apply to the HTTPRoute resource.
+      labels: {}
+      # -- References to Gateway resources that this route should be attached to.
+      # Example:
+      #   parentRefs:
+      #     - name: my-gateway
+      parentRefs: []  # @schema item: object; itemProperties: {"name": {"type": "string"}, "namespace": {"type": "string"}, "sectionName": {"type": "string"}, "port": {"type": "integer"}}
+      # -- Hostnames for the HTTPRoute. If empty, defaults to ExternalDomain.
+      hostnames: []  # @schema item: string
+      # -- Path matching rules for the HTTPRoute. Each entry generates a separate rule.
+      paths:
+        - path: /ui/v2/login
+          pathType: PathPrefix  # @schema enum: [Exact, PathPrefix, RegularExpression]
+      # -- ([]HTTPRouteFilter) Filters to apply to all rules. These define processing
+      # steps for requests, such as header modification or URL rewrites.
+      # Ref: https://gateway-api.sigs.k8s.io/reference/spec/#gateway.networking.k8s.io/v1.HTTPRouteFilter
+      filters: []  # @schema item: object; itemProperties: {"type": {"type": "string"}}
+      # -- (HTTPRouteTimeouts) Timeouts for HTTP requests routed via this HTTPRoute.
+      # Ref: https://gateway-api.sigs.k8s.io/reference/spec/#gateway.networking.k8s.io/v1.HTTPRouteTimeouts
+      timeouts: {}  # @schema additionalProperties: {"type": "string"}
   # ServiceAccount configuration for Login UI pods.
   serviceAccount:
     # -- Whether to create a dedicated service account for the Login UI. Set to
@@ -857,31 +871,13 @@ ingress:
   enabled: false
   # -- A chart-specific setting to enable logic for different controllers.
   # Use "aws" to generate AWS ALB-specific annotations and resources.
+  # Use "nginx" to inject the nginx.ingress.kubernetes.io/backend-protocol annotation.
   controller: generic
   # -- The name of the IngressClass resource to use for this Ingress.
   # Ref: https://kubernetes.io/docs/concepts/services-networking/ingress/#ingress-class
   className: ""
-  # -- (map[string]string) Annotations to apply to the Ingress resource. The default
-  # annotation is for NGINX to correctly handle gRPC traffic.
-  annotations:
-    nginx.ingress.kubernetes.io/backend-protocol: "GRPC"
-  # @schema
-  # type: array
-  # items:
-  #   type: object
-  #   properties:
-  #     paths:
-  #       type: array
-  #       items:
-  #         type: object
-  #         properties:
-  #           path:
-  #             type: string
-  #           pathType:
-  #             type: string
-  #             enum: [Exact, Prefix, ImplementationSpecific]
-  #         required: [pathType]
-  # @schema
+  # -- (map[string]string) Annotations to apply to the Ingress resource.
+  annotations: {}
   # -- A list of host rules for the Ingress. Each host can have multiple paths.
   hosts:
     - paths:
@@ -891,6 +887,63 @@ ingress:
   # -- ([]IngressTLS) TLS configuration for the Ingress. This allows you to secure the endpoint
   # with HTTPS by referencing a secret that contains the TLS certificate and key.
   tls: []
+
+# Gateway API configuration for exposing ZITADEL using Kubernetes Gateway API
+# resources (HTTPRoute, GRPCRoute). This can be used alongside or instead of
+# the traditional Ingress resources above.
+# Requires a Gateway API implementation (e.g., Envoy Gateway, Istio, Cilium,
+# NGINX Gateway Fabric) and Gateway API CRDs installed in the cluster.
+# Ref: https://gateway-api.sigs.k8s.io/
+gateway:
+  # HTTPRoute configuration for ZITADEL HTTP API traffic.
+  httpRoute:
+    # -- If true, creates an HTTPRoute resource for the ZITADEL service.
+    enabled: false
+    # -- (map[string]string) Annotations to apply to the HTTPRoute resource.
+    annotations: {}
+    # -- (map[string]string) Additional labels to apply to the HTTPRoute resource.
+    labels: {}
+    # -- References to Gateway resources that this route should be attached to.
+    # Each entry must include at least a `name` field matching an existing Gateway.
+    # Example:
+    #   parentRefs:
+    #     - name: my-gateway
+    #       sectionName: https
+    parentRefs: []  # @schema item: object; itemProperties: {"name": {"type": "string"}, "namespace": {"type": "string"}, "sectionName": {"type": "string"}, "port": {"type": "integer"}}
+    # -- Hostnames for the HTTPRoute. If empty, defaults to ExternalDomain.
+    hostnames: []  # @schema item: string
+    # -- Path matching rules for the HTTPRoute. Each entry generates a separate rule.
+    paths:
+      - path: /
+        pathType: PathPrefix  # @schema enum: [Exact, PathPrefix, RegularExpression]
+    # -- ([]HTTPRouteFilter) Filters to apply to all rules. These define processing
+    # steps for requests, such as header modification or URL rewrites.
+    # Ref: https://gateway-api.sigs.k8s.io/reference/spec/#gateway.networking.k8s.io/v1.HTTPRouteFilter
+    filters: []  # @schema item: object; itemProperties: {"type": {"type": "string"}}
+    # -- (HTTPRouteTimeouts) Timeouts for HTTP requests routed via this HTTPRoute.
+    # Ref: https://gateway-api.sigs.k8s.io/reference/spec/#gateway.networking.k8s.io/v1.HTTPRouteTimeouts
+    timeouts: {}  # @schema additionalProperties: {"type": "string"}
+  # GRPCRoute configuration for ZITADEL gRPC API traffic.
+  # Note: GRPCRoute is GA in Gateway API v1.2.0+. Ensure your Gateway
+  # implementation supports GRPCRoute before enabling this.
+  grpcRoute:
+    # -- If true, creates a GRPCRoute resource for the ZITADEL gRPC API.
+    enabled: false
+    # -- (map[string]string) Annotations to apply to the GRPCRoute resource.
+    annotations: {}
+    # -- (map[string]string) Additional labels to apply to the GRPCRoute resource.
+    labels: {}
+    # -- References to Gateway resources that this route should be attached to.
+    # Example:
+    #   parentRefs:
+    #     - name: my-gateway
+    parentRefs: []  # @schema item: object; itemProperties: {"name": {"type": "string"}, "namespace": {"type": "string"}, "sectionName": {"type": "string"}, "port": {"type": "integer"}}
+    # -- Hostnames for the GRPCRoute. If empty, defaults to ExternalDomain.
+    hostnames: []  # @schema item: string
+    # -- ([]GRPCRouteFilter) Filters to apply to all rules. These define processing
+    # steps for gRPC requests, such as header modification or mirroring.
+    # Ref: https://gateway-api.sigs.k8s.io/reference/spec/#gateway.networking.k8s.io/v1.GRPCRouteFilter
+    filters: []  # @schema item: object; itemProperties: {"type": {"type": "string"}}
 
 # @schema $ref: $k8s/_definitions.json#/definitions/io.k8s.api.core.v1.ResourceRequirements
 # -- (ResourceRequirements) CPU and memory resource requests and limits for the ZITADEL container.
@@ -1333,6 +1386,17 @@ tools:
       #   cpu: 50m
       #   memory: 32Mi
 
+  # Configuration for the busybox image used by the wait-for-postgresql initContainer.
+  # Override when running in air-gapped or restricted-registry environments.
+  busybox:
+    image:
+      # -- The image repository for busybox.
+      repository: "busybox"
+      # -- The busybox image tag.
+      tag: "1.37"
+      # -- Image pull policy. Defaults to the Kubernetes default for the given tag.
+      pullPolicy: ""
+
   # Configuration for the kubectl helper image used by init containers and jobs
   # for lightweight Kubernetes API operations. This image is used by the setup
   # job's machinekey containers and the cleanup job.
@@ -1348,3 +1412,34 @@ tools:
       # -- The pull policy for the kubectl image. If left empty, Kubernetes applies
       # its default policy depending on whether the tag is mutable or fixed.
       pullPolicy: ""
+
+# Optional in-cluster PostgreSQL deployment using the Bitnami PostgreSQL subchart.
+# Set postgresql.enabled=true to deploy a single-node PostgreSQL instance alongside
+# ZITADEL. The chart automatically wires the database host, port, name, and credentials
+# into the ZITADEL configuration — user-supplied configmapConfig.Database values always
+# take priority over the auto-derived ones.
+#
+# WARNING: This is intended for quickstart and development use only.
+# For production, use a managed PostgreSQL service or a dedicated PostgreSQL operator
+# and configure the connection via zitadel.configmapConfig.Database or
+# zitadel.configSecretName.
+# See: https://artifacthub.io/packages/helm/bitnami/postgresql
+postgresql:
+  # -- Deploy a PostgreSQL instance as a subchart. Enables one-command full-stack install.
+  enabled: false
+  auth:
+    # -- Database name to create for ZITADEL.
+    database: zitadel
+    # -- Username for the ZITADEL application user.
+    username: zitadel
+    # -- Password for the ZITADEL application user.
+    # Change this for anything beyond a local quickstart.
+    password: zitadel
+    # -- Password for the PostgreSQL superuser (postgres).
+    # Change this for anything beyond a local quickstart.
+    postgresPassword: zitadel
+  primary:
+    persistence:
+      # -- Enable persistent storage for PostgreSQL data.
+      # Set to true if you want data to survive pod restarts.
+      enabled: false

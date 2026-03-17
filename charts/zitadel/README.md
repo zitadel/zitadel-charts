@@ -2,7 +2,7 @@
 
 # Zitadel
 
-![Version: 9.23.0](https://img.shields.io/badge/Version-9.23.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: v4.10.1](https://img.shields.io/badge/AppVersion-v4.10.1-informational?style=flat-square)
+![Version: 9.27.0](https://img.shields.io/badge/Version-9.27.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: v4.12.1](https://img.shields.io/badge/AppVersion-v4.12.1-informational?style=flat-square)
 
 ## A Better Identity and Access Management Solution
 
@@ -62,6 +62,18 @@ If you use an ingress controller, you can enable the login ingress with `login.i
 To actually use the new login, enable the loginV2 feature on the instance.
 Leave the base URI empty to use the default or explicitly configure it to `/ui/v2/login`.
 If you enable this feature, the login will be used for every application configured in your Zitadel instance.
+
+### NGINX Ingress: Set `ingress.controller: nginx`
+
+Prior to v9.25.0, the `nginx.ingress.kubernetes.io/backend-protocol: GRPC` annotation was included in the default `ingress.annotations` map, so it was applied regardless of the ingress controller in use.
+Starting with v9.25.0, the annotation is only injected when `ingress.controller` is explicitly set to `nginx`.
+
+If you are using the NGINX ingress controller, add the following to your values before upgrading:
+
+```yaml
+ingress:
+  controller: nginx
+```
 
 ### Other Breaking Changes
 
@@ -149,6 +161,10 @@ done
 
 Kubernetes: `>= 1.30.0-0`
 
+| Repository | Name | Version |
+|------------|------|---------|
+| https://charts.bitnami.com/bitnami | postgresql | >=16.0.0 |
+
 ## Values
 
 | Key | Type | Default | Description |
@@ -170,14 +186,28 @@ Kubernetes: `>= 1.30.0-0`
 | extraVolumeMounts | []VolumeMount | `[]` | Additional volume mounts for the main ZITADEL container. Use this to mount volumes defined in extraVolumes into the container filesystem. Common use cases include mounting custom CA certificates, configuration files, or shared data between containers. |
 | extraVolumes | []Volume | `[]` | Additional volumes to add to ZITADEL pods. These volumes can be referenced by extraVolumeMounts to make data available to the ZITADEL container or sidecar containers. Supports all Kubernetes volume types: secrets, configMaps, persistentVolumeClaims, emptyDir, hostPath, etc. |
 | fullnameOverride | string | `""` | Completely override the generated resource names (release-name + chart-name). Takes precedence over nameOverride. Use this when you need full control over resource naming, such as when migrating from another chart. |
+| gateway.grpcRoute.annotations | map[string]string | `{}` | Annotations to apply to the GRPCRoute resource. |
+| gateway.grpcRoute.enabled | bool | `false` | If true, creates a GRPCRoute resource for the ZITADEL gRPC API. |
+| gateway.grpcRoute.filters | []GRPCRouteFilter | `[]` | Filters to apply to all rules. These define processing steps for gRPC requests, such as header modification or mirroring. Ref: https://gateway-api.sigs.k8s.io/reference/spec/#gateway.networking.k8s.io/v1.GRPCRouteFilter |
+| gateway.grpcRoute.hostnames | list | `[]` | Hostnames for the GRPCRoute. If empty, defaults to ExternalDomain. |
+| gateway.grpcRoute.labels | map[string]string | `{}` | Additional labels to apply to the GRPCRoute resource. |
+| gateway.grpcRoute.parentRefs | list | `[]` | References to Gateway resources that this route should be attached to. Example:   parentRefs:     - name: my-gateway |
+| gateway.httpRoute.annotations | map[string]string | `{}` | Annotations to apply to the HTTPRoute resource. |
+| gateway.httpRoute.enabled | bool | `false` | If true, creates an HTTPRoute resource for the ZITADEL service. |
+| gateway.httpRoute.filters | []HTTPRouteFilter | `[]` | Filters to apply to all rules. These define processing steps for requests, such as header modification or URL rewrites. Ref: https://gateway-api.sigs.k8s.io/reference/spec/#gateway.networking.k8s.io/v1.HTTPRouteFilter |
+| gateway.httpRoute.hostnames | list | `[]` | Hostnames for the HTTPRoute. If empty, defaults to ExternalDomain. |
+| gateway.httpRoute.labels | map[string]string | `{}` | Additional labels to apply to the HTTPRoute resource. |
+| gateway.httpRoute.parentRefs | list | `[]` | References to Gateway resources that this route should be attached to. Each entry must include at least a `name` field matching an existing Gateway. Example:   parentRefs:     - name: my-gateway       sectionName: https |
+| gateway.httpRoute.paths | list | `[{"path":"/","pathType":"PathPrefix"}]` | Path matching rules for the HTTPRoute. Each entry generates a separate rule. |
+| gateway.httpRoute.timeouts | HTTPRouteTimeouts | `{}` | Timeouts for HTTP requests routed via this HTTPRoute. Ref: https://gateway-api.sigs.k8s.io/reference/spec/#gateway.networking.k8s.io/v1.HTTPRouteTimeouts |
 | image.pullPolicy | string | `"IfNotPresent"` | Image pull policy. Use "Always" for mutable tags like "latest", or "IfNotPresent" for immutable version tags to reduce network traffic. |
 | image.repository | string | `"ghcr.io/zitadel/zitadel"` | Docker image repository for ZITADEL. The default uses GitHub Container Registry. Change this if using a private registry or mirror. |
 | image.tag | string | `""` | Image tag. Defaults to the chart's appVersion if not specified. Use a specific version tag (e.g., "v2.45.0") for production deployments to ensure reproducibility and controlled upgrades. |
 | imagePullSecrets | []LocalObjectReference | `[]` | References to secrets containing Docker registry credentials for pulling private ZITADEL images. Each entry should be the name of an existing secret of type kubernetes.io/dockerconfigjson. Example:   imagePullSecrets:     - name: my-registry-secret |
 | imageRegistry | string | `""` | Global container registry override for tool images (e.g., wait4x, kubectl). When set, this registry is prepended to tool image repositories for compatibility with CRI-O v1.34+ which enforces fully qualified image names. If left empty, defaults to "docker.io". |
-| ingress.annotations | map[string]string | `{"nginx.ingress.kubernetes.io/backend-protocol":"GRPC"}` | Annotations to apply to the Ingress resource. The default annotation is for NGINX to correctly handle gRPC traffic. |
+| ingress.annotations | map[string]string | `{}` | Annotations to apply to the Ingress resource. |
 | ingress.className | string | `""` | The name of the IngressClass resource to use for this Ingress. Ref: https://kubernetes.io/docs/concepts/services-networking/ingress/#ingress-class |
-| ingress.controller | string | `"generic"` | A chart-specific setting to enable logic for different controllers. Use "aws" to generate AWS ALB-specific annotations and resources. |
+| ingress.controller | string | `"generic"` | A chart-specific setting to enable logic for different controllers. Use "aws" to generate AWS ALB-specific annotations and resources. Use "nginx" to inject the nginx.ingress.kubernetes.io/backend-protocol annotation. |
 | ingress.enabled | bool | `false` | If true, creates an Ingress resource for the ZITADEL service. |
 | ingress.hosts | list | `[{"paths":[{"path":"/","pathType":"Prefix"}]}]` | A list of host rules for the Ingress. Each host can have multiple paths. |
 | ingress.tls | []IngressTLS | `[]` | TLS configuration for the Ingress. This allows you to secure the endpoint with HTTPS by referencing a secret that contains the TLS certificate and key. |
@@ -213,6 +243,14 @@ Kubernetes: `>= 1.30.0-0`
 | login.extraVolumeMounts | []VolumeMount | `[]` | Additional volume mounts for the Login UI container. Use this to mount custom certificates, configuration files, or other data into the container. |
 | login.extraVolumes | []Volume | `[]` | Additional volumes for the Login UI pod. Define volumes here that are referenced by extraVolumeMounts. |
 | login.fullnameOverride | string | `""` | Completely override the generated resource names. Takes precedence over nameOverride when set. |
+| login.gateway.httpRoute.annotations | map[string]string | `{}` | Annotations to apply to the HTTPRoute resource. |
+| login.gateway.httpRoute.enabled | bool | `false` | If true, creates an HTTPRoute resource for the Login UI service. |
+| login.gateway.httpRoute.filters | []HTTPRouteFilter | `[]` | Filters to apply to all rules. These define processing steps for requests, such as header modification or URL rewrites. Ref: https://gateway-api.sigs.k8s.io/reference/spec/#gateway.networking.k8s.io/v1.HTTPRouteFilter |
+| login.gateway.httpRoute.hostnames | list | `[]` | Hostnames for the HTTPRoute. If empty, defaults to ExternalDomain. |
+| login.gateway.httpRoute.labels | map[string]string | `{}` | Additional labels to apply to the HTTPRoute resource. |
+| login.gateway.httpRoute.parentRefs | list | `[]` | References to Gateway resources that this route should be attached to. Example:   parentRefs:     - name: my-gateway |
+| login.gateway.httpRoute.paths | list | `[{"path":"/ui/v2/login","pathType":"PathPrefix"}]` | Path matching rules for the HTTPRoute. Each entry generates a separate rule. |
+| login.gateway.httpRoute.timeouts | HTTPRouteTimeouts | `{}` | Timeouts for HTTP requests routed via this HTTPRoute. Ref: https://gateway-api.sigs.k8s.io/reference/spec/#gateway.networking.k8s.io/v1.HTTPRouteTimeouts |
 | login.image.pullPolicy | string | `"IfNotPresent"` | Image pull policy. Use "Always" for mutable tags like "latest", or "IfNotPresent" for immutable tags. |
 | login.image.repository | string | `"ghcr.io/zitadel/zitadel-login"` | Docker image repository for the Login UI. |
 | login.image.tag | string | `""` | Image tag. Defaults to the chart's appVersion if not specified. Use a specific version tag for production deployments to ensure reproducibility. |
@@ -287,6 +325,12 @@ Kubernetes: `>= 1.30.0-0`
 | podSecurityContext.fsGroup | int | `1000` | Group ID for volume ownership and file creation. Files created in mounted volumes will be owned by this group. |
 | podSecurityContext.runAsNonRoot | bool | `true` | Require containers to run as a non-root user. This is a security best practice that prevents privilege escalation attacks. |
 | podSecurityContext.runAsUser | int | `1000` | User ID to run the container processes. 1000 is a common non-root UID that matches the ZITADEL container's default user. |
+| postgresql.auth.database | string | `"zitadel"` | Database name to create for ZITADEL. |
+| postgresql.auth.password | string | `"zitadel"` | Password for the ZITADEL application user. Change this for anything beyond a local quickstart. |
+| postgresql.auth.postgresPassword | string | `"zitadel"` | Password for the PostgreSQL superuser (postgres). Change this for anything beyond a local quickstart. |
+| postgresql.auth.username | string | `"zitadel"` | Username for the ZITADEL application user. |
+| postgresql.enabled | bool | `false` | Deploy a PostgreSQL instance as a subchart. Enables one-command full-stack install. |
+| postgresql.primary.persistence.enabled | bool | `false` | Enable persistent storage for PostgreSQL data. Set to true if you want data to survive pod restarts. |
 | readinessProbe.enabled | bool | `true` | Enable or disable the readiness probe. |
 | readinessProbe.failureThreshold | int | `3` | Number of consecutive failures before marking the pod as not ready. |
 | readinessProbe.initialDelaySeconds | int | `0` | Seconds to wait before starting readiness checks after container start. Set higher if ZITADEL needs time to initialize before accepting traffic. |
@@ -325,6 +369,9 @@ Kubernetes: `>= 1.30.0-0`
 | startupProbe.failureThreshold | int | `30` | Number of consecutive failures before marking startup as failed and restarting the container. With periodSeconds=1 and failureThreshold=30, the container has 30 seconds to start. |
 | startupProbe.periodSeconds | int | `1` | How often (in seconds) to perform the startup check. |
 | tolerations | []Toleration | `[]` | Tolerations allow pods to be scheduled on nodes with matching taints. Taints are used to repel pods from nodes; tolerations allow exceptions. Ref: https://kubernetes.io/docs/concepts/scheduling-eviction/taint-and-toleration/ |
+| tools.busybox.image.pullPolicy | string | `""` | Image pull policy. Defaults to the Kubernetes default for the given tag. |
+| tools.busybox.image.repository | string | `"busybox"` | The image repository for busybox. |
+| tools.busybox.image.tag | string | `"1.37"` | The busybox image tag. |
 | tools.kubectl.image.pullPolicy | string | `""` | The pull policy for the kubectl image. If left empty, Kubernetes applies its default policy depending on whether the tag is mutable or fixed. |
 | tools.kubectl.image.repository | string | `"alpine/k8s"` | The name of the image repository that contains the kubectl image. The chart automatically prepends the registry (docker.io by default) for compatibility with CRI-O v1.34+ which enforces fully qualified names. |
 | tools.kubectl.image.tag | string | `""` | The image tag to use for the kubectl image. It should be left empty to automatically default to the Kubernetes cluster version |
@@ -355,7 +402,7 @@ Kubernetes: `>= 1.30.0-0`
 | zitadel.debug.initContainers | []Container | `[]` | Init containers to run before the debug container starts. |
 | zitadel.extraContainers | []Container | `[]` | Global sidecar containers added to all ZITADEL workloads (Deployment, init job, setup job, and debug pod when enabled). Use this for shared services like database proxies (e.g., cloud-sql-proxy) that all workloads need to connect to the database. |
 | zitadel.initContainers | []Container | `[]` | Global init containers added to all ZITADEL workloads (Deployment, init job, setup job, and debug pod when enabled). Use this for shared dependencies like database readiness checks or certificate initialization that all workloads need. |
-| zitadel.masterkey | string | `""` | ZITADEL's masterkey for symmetric encryption of sensitive data like private keys and tokens. Must be exactly 32 characters (256 bits). Generate with: tr -dc A-Za-z0-9 </dev/urandom | head -c 32 IMPORTANT: Store this value securely. Loss of the masterkey means loss of all encrypted data. Either set this value or use masterkeySecretName. |
+| zitadel.masterkey | string | `""` | ZITADEL's masterkey for symmetric encryption of sensitive data like private keys and tokens. Must be exactly 32 bytes. Using printable ASCII characters is recommended (alphanumeric). Do NOT use multi-byte Unicode characters, as the key length is measured in bytes, not characters. Generate with: tr -dc A-Za-z0-9 </dev/urandom | head -c 32 IMPORTANT: Store this value securely. Loss of the masterkey means loss of all encrypted data. Either set this value or use masterkeySecretName. |
 | zitadel.masterkeyAnnotations | map[string]string | `{"helm.sh/hook":"pre-install","helm.sh/hook-weight":"0"}` | Annotations for the masterkey Secret when created from zitadel.masterkey. The secret is created once on install and is immutable. |
 | zitadel.masterkeySecretName | string | `""` | Name of an existing Kubernetes Secret containing the masterkey at key "masterkey". Use this for production deployments to avoid storing the masterkey in values files. The secret must exist before chart installation. Note: Either zitadel.masterkey or zitadel.masterkeySecretName must be set. |
 | zitadel.podSecurityContext | PodSecurityContext | `{}` | Optional overrides for the pod security context used by Zitadel pods. If left empty, the chart-wide podSecurityContext defined below is used. |

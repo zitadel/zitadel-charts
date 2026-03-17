@@ -92,8 +92,10 @@ func CheckLogin(t *testing.T, apiBaseURL string) {
 	})
 
 	t.Run("enter password", func(t *testing.T) {
-		runWithScreenshotOnFailure(t, loginCtx, loginFailuresDir, 30*time.Second,
+		runWithScreenshotOnFailure(t, loginCtx, loginFailuresDir, 60*time.Second,
+			chromedp.WaitReady(testIDSelector("password-text-input"), chromedp.ByQuery),
 			chromedp.SendKeys(testIDSelector("password-text-input"), "Password1!", chromedp.ByQuery),
+			chromedp.WaitReady(testIDSelector("submit-button"), chromedp.ByQuery),
 			chromedp.Click(testIDSelector("submit-button"), chromedp.ByQuery),
 		)
 	})
@@ -102,8 +104,10 @@ func CheckLogin(t *testing.T, apiBaseURL string) {
 		var finalURL string
 		runWithScreenshotOnFailure(t, loginCtx, loginFailuresDir, 60*time.Second,
 			waitForPath("/ui/v2/login/password/change", 15*time.Second),
+			chromedp.WaitVisible(testIDSelector("password-change-current-text-input"), chromedp.ByQuery),
 			chromedp.WaitVisible(testIDSelector("password-change-text-input"), chromedp.ByQuery),
 			chromedp.WaitVisible(testIDSelector("password-change-confirm-text-input"), chromedp.ByQuery),
+			chromedp.SendKeys(testIDSelector("password-change-current-text-input"), "Password1!", chromedp.ByQuery),
 			chromedp.SendKeys(testIDSelector("password-change-text-input"), "Password2!", chromedp.ByQuery),
 			chromedp.SendKeys(testIDSelector("password-change-confirm-text-input"), "Password2!", chromedp.ByQuery),
 			chromedp.WaitEnabled(testIDSelector("submit-button"), chromedp.ByQuery),

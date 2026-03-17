@@ -3,6 +3,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: {{ include "zitadel.fullname" . }}-grpc
+  namespace: {{ .Release.Namespace }}
   annotations:
     alb.ingress.kubernetes.io/backend-protocol-version: GRPC
     alb.ingress.kubernetes.io/healthcheck-path: /grpc.health.v1.Health/Check

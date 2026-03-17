@@ -116,6 +116,152 @@
             "description": "Completely override the generated resource names (release-name + chart-name). Takes precedence over nameOverride. Use this when you need full control over resource naming, such as when migrating from another chart.",
             "type": "string"
         },
+        "gateway": {
+            "type": "object",
+            "properties": {
+                "grpcRoute": {
+                    "type": "object",
+                    "properties": {
+                        "annotations": {
+                            "description": "(map[string]string) Annotations to apply to the GRPCRoute resource.",
+                            "type": "object"
+                        },
+                        "enabled": {
+                            "description": "If true, creates a GRPCRoute resource for the ZITADEL gRPC API.",
+                            "type": "boolean"
+                        },
+                        "filters": {
+                            "description": "([]GRPCRouteFilter) Filters to apply to all rules. These define processing steps for gRPC requests, such as header modification or mirroring. Ref: https://gateway-api.sigs.k8s.io/reference/spec/#gateway.networking.k8s.io/v1.GRPCRouteFilter",
+                            "type": "array",
+                            "items": {
+                                "type": "object",
+                                "properties": {
+                                    "type": {
+                                        "type": "string"
+                                    }
+                                }
+                            }
+                        },
+                        "hostnames": {
+                            "description": "Hostnames for the GRPCRoute. If empty, defaults to ExternalDomain.",
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        },
+                        "labels": {
+                            "description": "(map[string]string) Additional labels to apply to the GRPCRoute resource.",
+                            "type": "object"
+                        },
+                        "parentRefs": {
+                            "description": "References to Gateway resources that this route should be attached to. Example: parentRefs: - name: my-gateway",
+                            "type": "array",
+                            "items": {
+                                "type": "object",
+                                "properties": {
+                                    "name": {
+                                        "type": "string"
+                                    },
+                                    "namespace": {
+                                        "type": "string"
+                                    },
+                                    "port": {
+                                        "type": "integer"
+                                    },
+                                    "sectionName": {
+                                        "type": "string"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "httpRoute": {
+                    "type": "object",
+                    "properties": {
+                        "annotations": {
+                            "description": "(map[string]string) Annotations to apply to the HTTPRoute resource.",
+                            "type": "object"
+                        },
+                        "enabled": {
+                            "description": "If true, creates an HTTPRoute resource for the ZITADEL service.",
+                            "type": "boolean"
+                        },
+                        "filters": {
+                            "description": "([]HTTPRouteFilter) Filters to apply to all rules. These define processing steps for requests, such as header modification or URL rewrites. Ref: https://gateway-api.sigs.k8s.io/reference/spec/#gateway.networking.k8s.io/v1.HTTPRouteFilter",
+                            "type": "array",
+                            "items": {
+                                "type": "object",
+                                "properties": {
+                                    "type": {
+                                        "type": "string"
+                                    }
+                                }
+                            }
+                        },
+                        "hostnames": {
+                            "description": "Hostnames for the HTTPRoute. If empty, defaults to ExternalDomain.",
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        },
+                        "labels": {
+                            "description": "(map[string]string) Additional labels to apply to the HTTPRoute resource.",
+                            "type": "object"
+                        },
+                        "parentRefs": {
+                            "description": "References to Gateway resources that this route should be attached to. Each entry must include at least a `name` field matching an existing Gateway. Example: parentRefs: - name: my-gateway sectionName: https",
+                            "type": "array",
+                            "items": {
+                                "type": "object",
+                                "properties": {
+                                    "name": {
+                                        "type": "string"
+                                    },
+                                    "namespace": {
+                                        "type": "string"
+                                    },
+                                    "port": {
+                                        "type": "integer"
+                                    },
+                                    "sectionName": {
+                                        "type": "string"
+                                    }
+                                }
+                            }
+                        },
+                        "paths": {
+                            "description": "Path matching rules for the HTTPRoute. Each entry generates a separate rule.",
+                            "type": "array",
+                            "items": {
+                                "type": "object",
+                                "properties": {
+                                    "path": {
+                                        "type": "string"
+                                    },
+                                    "pathType": {
+                                        "type": "string",
+                                        "enum": [
+                                            "Exact",
+                                            "PathPrefix",
+                                            "RegularExpression"
+                                        ]
+                                    }
+                                }
+                            }
+                        },
+                        "timeouts": {
+                            "description": "Timeouts for HTTP requests routed via this HTTPRoute. Ref: https://gateway-api.sigs.k8s.io/reference/spec/#gateway.networking.k8s.io/v1.HTTPRouteTimeouts",
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "image": {
             "type": "object",
             "properties": {
@@ -148,20 +294,15 @@
             "type": "object",
             "properties": {
                 "annotations": {
-                    "description": "(map[string]string) Annotations to apply to the Ingress resource. The default annotation is for NGINX to correctly handle gRPC traffic.",
-                    "type": "object",
-                    "properties": {
-                        "nginx.ingress.kubernetes.io/backend-protocol": {
-                            "type": "string"
-                        }
-                    }
+                    "description": "(map[string]string) Annotations to apply to the Ingress resource.",
+                    "type": "object"
                 },
                 "className": {
                     "description": "The name of the IngressClass resource to use for this Ingress. Ref: https://kubernetes.io/docs/concepts/services-networking/ingress/#ingress-class",
                     "type": "string"
                 },
                 "controller": {
-                    "description": "A chart-specific setting to enable logic for different controllers. Use \"aws\" to generate AWS ALB-specific annotations and resources.",
+                    "description": "A chart-specific setting to enable logic for different controllers. Use \"aws\" to generate AWS ALB-specific annotations and resources. Use \"nginx\" to inject the nginx.ingress.kubernetes.io/backend-protocol annotation.",
                     "type": "string"
                 },
                 "enabled": {
@@ -404,6 +545,95 @@
                 "fullnameOverride": {
                     "description": "Completely override the generated resource names. Takes precedence over nameOverride when set.",
                     "type": "string"
+                },
+                "gateway": {
+                    "type": "object",
+                    "properties": {
+                        "httpRoute": {
+                            "type": "object",
+                            "properties": {
+                                "annotations": {
+                                    "description": "(map[string]string) Annotations to apply to the HTTPRoute resource.",
+                                    "type": "object"
+                                },
+                                "enabled": {
+                                    "description": "If true, creates an HTTPRoute resource for the Login UI service.",
+                                    "type": "boolean"
+                                },
+                                "filters": {
+                                    "description": "([]HTTPRouteFilter) Filters to apply to all rules. These define processing steps for requests, such as header modification or URL rewrites. Ref: https://gateway-api.sigs.k8s.io/reference/spec/#gateway.networking.k8s.io/v1.HTTPRouteFilter",
+                                    "type": "array",
+                                    "items": {
+                                        "type": "object",
+                                        "properties": {
+                                            "type": {
+                                                "type": "string"
+                                            }
+                                        }
+                                    }
+                                },
+                                "hostnames": {
+                                    "description": "Hostnames for the HTTPRoute. If empty, defaults to ExternalDomain.",
+                                    "type": "array",
+                                    "items": {
+                                        "type": "string"
+                                    }
+                                },
+                                "labels": {
+                                    "description": "(map[string]string) Additional labels to apply to the HTTPRoute resource.",
+                                    "type": "object"
+                                },
+                                "parentRefs": {
+                                    "description": "References to Gateway resources that this route should be attached to. Example: parentRefs: - name: my-gateway",
+                                    "type": "array",
+                                    "items": {
+                                        "type": "object",
+                                        "properties": {
+                                            "name": {
+                                                "type": "string"
+                                            },
+                                            "namespace": {
+                                                "type": "string"
+                                            },
+                                            "port": {
+                                                "type": "integer"
+                                            },
+                                            "sectionName": {
+                                                "type": "string"
+                                            }
+                                        }
+                                    }
+                                },
+                                "paths": {
+                                    "description": "Path matching rules for the HTTPRoute. Each entry generates a separate rule.",
+                                    "type": "array",
+                                    "items": {
+                                        "type": "object",
+                                        "properties": {
+                                            "path": {
+                                                "type": "string"
+                                            },
+                                            "pathType": {
+                                                "type": "string",
+                                                "enum": [
+                                                    "Exact",
+                                                    "PathPrefix",
+                                                    "RegularExpression"
+                                                ]
+                                            }
+                                        }
+                                    }
+                                },
+                                "timeouts": {
+                                    "description": "Timeouts for HTTP requests routed via this HTTPRoute. Ref: https://gateway-api.sigs.k8s.io/reference/spec/#gateway.networking.k8s.io/v1.HTTPRouteTimeouts",
+                                    "type": "object",
+                                    "additionalProperties": {
+                                        "type": "string"
+                                    }
+                                }
+                            }
+                        }
+                    }
                 },
                 "image": {
                     "type": "object",
@@ -845,6 +1075,50 @@
                 }
             }
         },
+        "postgresql": {
+            "type": "object",
+            "properties": {
+                "auth": {
+                    "type": "object",
+                    "properties": {
+                        "database": {
+                            "description": "Database name to create for ZITADEL.",
+                            "type": "string"
+                        },
+                        "password": {
+                            "description": "Password for the ZITADEL application user. Change this for anything beyond a local quickstart.",
+                            "type": "string"
+                        },
+                        "postgresPassword": {
+                            "description": "Password for the PostgreSQL superuser (postgres). Change this for anything beyond a local quickstart.",
+                            "type": "string"
+                        },
+                        "username": {
+                            "description": "Username for the ZITADEL application user.",
+                            "type": "string"
+                        }
+                    }
+                },
+                "enabled": {
+                    "description": "Deploy a PostgreSQL instance as a subchart. Enables one-command full-stack install.",
+                    "type": "boolean"
+                },
+                "primary": {
+                    "type": "object",
+                    "properties": {
+                        "persistence": {
+                            "type": "object",
+                            "properties": {
+                                "enabled": {
+                                    "description": "Enable persistent storage for PostgreSQL data. Set to true if you want data to survive pod restarts.",
+                                    "type": "boolean"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "readinessProbe": {
             "type": "object",
             "properties": {
@@ -1083,6 +1357,28 @@
         "tools": {
             "type": "object",
             "properties": {
+                "busybox": {
+                    "type": "object",
+                    "properties": {
+                        "image": {
+                            "type": "object",
+                            "properties": {
+                                "pullPolicy": {
+                                    "description": "Image pull policy. Defaults to the Kubernetes default for the given tag.",
+                                    "type": "string"
+                                },
+                                "repository": {
+                                    "description": "The image repository for busybox.",
+                                    "type": "string"
+                                },
+                                "tag": {
+                                    "description": "The busybox image tag.",
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    }
+                },
                 "kubectl": {
                     "type": "object",
                     "properties": {
@@ -1441,7 +1737,7 @@
                     }
                 },
                 "masterkey": {
-                    "description": "ZITADEL's masterkey for symmetric encryption of sensitive data like private keys and tokens. Must be exactly 32 characters (256 bits). Generate with: tr -dc A-Za-z0-9 \u003c/dev/urandom | head -c 32 IMPORTANT: Store this value securely. Loss of the masterkey means loss of all encrypted data. Either set this value or use masterkeySecretName.",
+                    "description": "ZITADEL's masterkey for symmetric encryption of sensitive data like private keys and tokens. Must be exactly 32 bytes. Using printable ASCII characters is recommended (alphanumeric). Do NOT use multi-byte Unicode characters, as the key length is measured in bytes, not characters. Generate with: tr -dc A-Za-z0-9 \u003c/dev/urandom | head -c 32 IMPORTANT: Store this value securely. Loss of the masterkey means loss of all encrypted data. Either set this value or use masterkeySecretName.",
                     "type": "string"
                 },
                 "masterkeyAnnotations": {

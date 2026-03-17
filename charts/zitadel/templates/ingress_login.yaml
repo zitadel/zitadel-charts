@@ -5,6 +5,7 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: {{ $fullName }}
+  namespace: {{ .Release.Namespace }}
   labels:
     {{- include "login.labels" . | nindent 4 }}
   annotations:
@@ -15,7 +16,7 @@ metadata:
     {{- toYaml . | nindent 4 }}
     {{- end }}
 spec:
-  ingressClassName: {{ .Values.login.ingress.className }}
+  ingressClassName: {{ include "zitadel.login.ingressClassName" . }}
   {{- with .Values.login.ingress.tls }}
   tls:
   {{- toYaml . | nindent 4 }}

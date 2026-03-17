@@ -27,9 +27,10 @@ jobs:
           fetch-depth: 0
 
       - name: Run Qodana
-        uses: JetBrains/qodana-action@v2025.2
+        uses: JetBrains/qodana-action@v2025.3
         with:
           args: --baseline,.qodana/qodana.sarif.json
           push-fixes: true
         env:
+          GOTOOLCHAIN: auto
           QODANA_TOKEN: ${{ secrets.QODANA_TOKEN }}

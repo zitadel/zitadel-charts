@@ -1,44 +1,28 @@
-package smoke_test
+package smoke_test_test
 
 import (
-	"context"
-	"fmt"
 	"testing"
 
-	"github.com/gruntwork-io/terratest/modules/helm"
-	"github.com/stretchr/testify/require"
-	apierrors "k8s.io/apimachinery/pkg/api/errors"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"github.com/onsi/gomega"
 
-	"github.com/zitadel/zitadel-charts/test/smoke/support"
+	"github.com/zitadel/zitadel-charts/test/assert"
+	setup "github.com/zitadel/zitadel-charts/test/smoke/support"
+	"github.com/zitadel/zitadel-charts/test/support"
 )
 
-type secretExpected struct {
-	machineKeySecret   bool
-	machinePatSecret   bool
-	loginClientSecret  bool
-	machineKeyName     string
-	machinePatName     string
-	loginClientName    string
-	machineKeyContent  string
-	machinePatContent  string
-	loginClientContent string
-}
-
-// TestSecretsMatrix validates secret creation behavior across various configuration
-// combinations. It verifies that the setup job creates the expected Kubernetes
-// secrets for machine keys, PATs, and login client authentication tokens.
 func TestSecretsMatrix(t *testing.T) {
 	t.Parallel()
 
-	cluster := support.ConnectCluster(t)
-
-	chartPath := support.ChartPath(t)
-
 	testCases := []struct {
-		name      string
-		setValues map[string]string
-		expected  secretExpected
+		name             string
+		setValues        map[string]string
+		masterkey        *assert.SecretAssertion
+		machineKey       *assert.SecretAssertion
+		machineKeyName   string
+		machinePat       *assert.SecretAssertion
+		machinePatName   string
+		loginClient      *assert.SecretAssertion
+		loginClientName  string
 	}{
 		{
 			name: "default-all-enabled",
@@ -52,16 +36,28 @@ func TestSecretsMatrix(t *testing.T) {
 				"zitadel.configmapConfig.FirstInstance.Org.LoginClient.Machine.Name":          "Login Client",
 				"zitadel.configmapConfig.FirstInstance.Org.LoginClient.Pat.ExpirationDate":    "2029-01-01T00:00:00Z",
 			},
-			expected: secretExpected{
-				machineKeySecret:   true,
-				machinePatSecret:   true,
-				loginClientSecret:  true,
-				machineKeyName:     "iam-admin",
-				machinePatName:     "iam-admin-pat",
-				loginClientName:    "login-client",
-				machineKeyContent:  "iam-admin.json",
-				machinePatContent:  "pat",
-				loginClientContent: "pat",
+			masterkey: &assert.SecretAssertion{
+				Data: assert.Matching[map[string][]byte](
+					gomega.HaveKeyWithValue("masterkey", gomega.Not(gomega.BeEmpty())),
+				),
+			},
+			machineKeyName: "iam-admin",
+			machineKey: &assert.SecretAssertion{
+				Data: assert.Matching[map[string][]byte](
+					gomega.HaveKeyWithValue("iam-admin.json", gomega.Not(gomega.BeEmpty())),
+				),
+			},
+			machinePatName: "iam-admin-pat",
+			machinePat: &assert.SecretAssertion{
+				Data: assert.Matching[map[string][]byte](
+					gomega.HaveKeyWithValue("pat", gomega.Not(gomega.BeEmpty())),
+				),
+			},
+			loginClientName: "login-client",
+			loginClient: &assert.SecretAssertion{
+				Data: assert.Matching[map[string][]byte](
+					gomega.HaveKeyWithValue("pat", gomega.Not(gomega.BeEmpty())),
+				),
 			},
 		},
 		{
@@ -75,16 +71,22 @@ func TestSecretsMatrix(t *testing.T) {
 				"zitadel.configmapConfig.FirstInstance.Org.LoginClient.Machine.Name":          "Login Client",
 				"zitadel.configmapConfig.FirstInstance.Org.LoginClient.Pat.ExpirationDate":    "2029-01-01T00:00:00Z",
 			},
-			expected: secretExpected{
-				machineKeySecret:   true,
-				machinePatSecret:   false,
-				loginClientSecret:  true,
-				machineKeyName:     "my-machine",
-				machinePatName:     "",
-				loginClientName:    "login-client",
-				machineKeyContent:  "my-machine.json",
-				machinePatContent:  "",
-				loginClientContent: "pat",
+			masterkey: &assert.SecretAssertion{
+				Data: assert.Matching[map[string][]byte](
+					gomega.HaveKeyWithValue("masterkey", gomega.Not(gomega.BeEmpty())),
+				),
+			},
+			machineKeyName: "my-machine",
+			machineKey: &assert.SecretAssertion{
+				Data: assert.Matching[map[string][]byte](
+					gomega.HaveKeyWithValue("my-machine.json", gomega.Not(gomega.BeEmpty())),
+				),
+			},
+			loginClientName: "login-client",
+			loginClient: &assert.SecretAssertion{
+				Data: assert.Matching[map[string][]byte](
+					gomega.HaveKeyWithValue("pat", gomega.Not(gomega.BeEmpty())),
+				),
 			},
 		},
 		{
@@ -94,16 +96,16 @@ func TestSecretsMatrix(t *testing.T) {
 				"zitadel.configmapConfig.FirstInstance.Org.LoginClient.Machine.Name":       "Login Client",
 				"zitadel.configmapConfig.FirstInstance.Org.LoginClient.Pat.ExpirationDate": "2029-01-01T00:00:00Z",
 			},
-			expected: secretExpected{
-				machineKeySecret:   false,
-				machinePatSecret:   false,
-				loginClientSecret:  true,
-				machineKeyName:     "",
-				machinePatName:     "",
-				loginClientName:    "login-client",
-				machineKeyContent:  "",
-				machinePatContent:  "",
-				loginClientContent: "pat",
+			masterkey: &assert.SecretAssertion{
+				Data: assert.Matching[map[string][]byte](
+					gomega.HaveKeyWithValue("masterkey", gomega.Not(gomega.BeEmpty())),
+				),
+			},
+			loginClientName: "login-client",
+			loginClient: &assert.SecretAssertion{
+				Data: assert.Matching[map[string][]byte](
+					gomega.HaveKeyWithValue("pat", gomega.Not(gomega.BeEmpty())),
+				),
 			},
 		},
 		{
@@ -119,131 +121,70 @@ func TestSecretsMatrix(t *testing.T) {
 				"zitadel.configmapConfig.FirstInstance.Org.LoginClient.Pat.ExpirationDate":    "2029-01-01T00:00:00Z",
 				"login.loginClientSecretPrefix":                                               "myapp-",
 			},
-			expected: secretExpected{
-				machineKeySecret:   true,
-				machinePatSecret:   true,
-				loginClientSecret:  true,
-				machineKeyName:     "custom-admin",
-				machinePatName:     "custom-admin-pat",
-				loginClientName:    "myapp-login-client",
-				machineKeyContent:  "custom-admin.json",
-				machinePatContent:  "pat",
-				loginClientContent: "pat",
+			masterkey: &assert.SecretAssertion{
+				Data: assert.Matching[map[string][]byte](
+					gomega.HaveKeyWithValue("masterkey", gomega.Not(gomega.BeEmpty())),
+				),
+			},
+			machineKeyName: "custom-admin",
+			machineKey: &assert.SecretAssertion{
+				Data: assert.Matching[map[string][]byte](
+					gomega.HaveKeyWithValue("custom-admin.json", gomega.Not(gomega.BeEmpty())),
+				),
+			},
+			machinePatName: "custom-admin-pat",
+			machinePat: &assert.SecretAssertion{
+				Data: assert.Matching[map[string][]byte](
+					gomega.HaveKeyWithValue("pat", gomega.Not(gomega.BeEmpty())),
+				),
+			},
+			loginClientName: "myapp-login-client",
+			loginClient: &assert.SecretAssertion{
+				Data: assert.Matching[map[string][]byte](
+					gomega.HaveKeyWithValue("pat", gomega.Not(gomega.BeEmpty())),
+				),
 			},
 		},
 		{
 			name:      "minimal-no-setup",
 			setValues: map[string]string{},
-			expected: secretExpected{
-				machineKeySecret:   false,
-				machinePatSecret:   false,
-				loginClientSecret:  false,
-				machineKeyName:     "",
-				machinePatName:     "",
-				loginClientName:    "",
-				machineKeyContent:  "",
-				machinePatContent:  "",
-				loginClientContent: "",
+			masterkey: &assert.SecretAssertion{
+				Data: assert.Matching[map[string][]byte](
+					gomega.HaveKeyWithValue("masterkey", gomega.Not(gomega.BeEmpty())),
+				),
 			},
 		},
 	}
 
-	for _, testCase := range testCases {
-		testCase := testCase
-		t.Run(testCase.name, func(t *testing.T) {
+	for _, tc := range testCases {
+		tc := tc
+		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
-			support.WithNamespace(t, cluster, func(env *support.Env) {
-				env.Logger.Logf(t, "namespace %q created; installing PostgreSQL…", env.Namespace)
-				support.WithPostgres(t, env)
+			support.WithNamespace(t, func(env *support.Env) {
+				releaseName := setup.InstallZitadel(t, env, tc.name, tc.setValues)
 
-				uniqueDomain := fmt.Sprintf("%s.test.local", env.Namespace)
-				commonSetValues := map[string]string{
-					"zitadel.masterkey":                                         "x123456789012345678901234567891y",
-					"zitadel.configmapConfig.ExternalDomain":                    uniqueDomain,
-					"zitadel.configmapConfig.ExternalPort":                      "443",
-					"zitadel.configmapConfig.TLS.Enabled":                       "false",
-					"zitadel.configmapConfig.Database.Postgres.Host":            "db-postgresql",
-					"zitadel.configmapConfig.Database.Postgres.Port":            "5432",
-					"zitadel.configmapConfig.Database.Postgres.Database":        "zitadel",
-					"zitadel.configmapConfig.Database.Postgres.MaxOpenConns":    "20",
-					"zitadel.configmapConfig.Database.Postgres.MaxIdleConns":    "10",
-					"zitadel.configmapConfig.Database.Postgres.MaxConnLifetime": "30m",
-					"zitadel.configmapConfig.Database.Postgres.MaxConnIdleTime": "5m",
-					"zitadel.configmapConfig.Database.Postgres.User.Username":   "postgres",
-					"zitadel.configmapConfig.Database.Postgres.User.SSL.Mode":   "disable",
-					"zitadel.configmapConfig.Database.Postgres.Admin.Username":  "postgres",
-					"zitadel.configmapConfig.Database.Postgres.Admin.SSL.Mode":  "disable",
-					"image.tag": support.DigestTag,
+				if tc.masterkey != nil {
+					env.AssertPartial(t, releaseName+"-masterkey", *tc.masterkey)
 				}
 
-				releaseName := env.MakeRelease("zitadel-secrets-test", testCase.name)
-
-				mergedSetValues := make(map[string]string)
-				for key, value := range commonSetValues {
-					mergedSetValues[key] = value
-				}
-				for key, value := range testCase.setValues {
-					mergedSetValues[key] = value
+				if tc.machineKey != nil {
+					env.AssertPartial(t, tc.machineKeyName, *tc.machineKey)
+				} else if tc.machineKeyName != "" {
+					env.AssertNone(t, tc.machineKeyName, assert.SecretAssertion{})
 				}
 
-				helmOptions := &helm.Options{
-					KubectlOptions: env.Kube,
-					SetValues:      mergedSetValues,
-					ExtraArgs: map[string][]string{
-						"upgrade": {"--install", "--wait", "--timeout", "30m"},
-					},
+				if tc.machinePat != nil {
+					env.AssertPartial(t, tc.machinePatName, *tc.machinePat)
+				} else if tc.machinePatName != "" {
+					env.AssertNone(t, tc.machinePatName, assert.SecretAssertion{})
 				}
 
-				require.NoError(t, helm.UpgradeE(t, helmOptions, chartPath, releaseName))
-
-				assertSecret(t, env, releaseName+"-masterkey", "masterkey", true, support.ExpectedLabels(
-					releaseName,
-					"zitadel",
-					support.ExpectedVersion,
-					"",
-					nil,
-				))
-
-				if testCase.expected.machineKeySecret {
-					assertSecret(t, env, testCase.expected.machineKeyName, testCase.expected.machineKeyContent, true, nil)
-				} else if testCase.expected.machineKeyName != "" {
-					assertSecret(t, env, testCase.expected.machineKeyName, "", false, nil)
-				}
-
-				if testCase.expected.machinePatSecret {
-					assertSecret(t, env, testCase.expected.machinePatName, testCase.expected.machinePatContent, true, nil)
-				} else if testCase.expected.machinePatName != "" {
-					assertSecret(t, env, testCase.expected.machinePatName, "", false, nil)
-				}
-
-				if testCase.expected.loginClientSecret {
-					assertSecret(t, env, testCase.expected.loginClientName, testCase.expected.loginClientContent, true, nil)
-				} else if testCase.expected.loginClientName != "" {
-					assertSecret(t, env, testCase.expected.loginClientName, "", false, nil)
+				if tc.loginClient != nil {
+					env.AssertPartial(t, tc.loginClientName, *tc.loginClient)
+				} else if tc.loginClientName != "" {
+					env.AssertNone(t, tc.loginClientName, assert.SecretAssertion{})
 				}
 			})
 		})
-	}
-}
-
-// assertSecret verifies secret existence and content based on expectation flags.
-// When shouldExist is true, validates the secret exists with the expected key.
-// When shouldExist is false, validates the secret does not exist.
-func assertSecret(t *testing.T, env *support.Env, secretName, expectedKey string, shouldExist bool, expectedLabels map[string]string) {
-	secret, err := env.Client.CoreV1().Secrets(env.Kube.Namespace).Get(
-		context.Background(),
-		secretName,
-		metav1.GetOptions{},
-	)
-
-	if shouldExist {
-		require.NoError(t, err, "secret %q should exist", secretName)
-		if expectedLabels != nil {
-			support.AssertLabels(t, secret.Labels, expectedLabels)
-		}
-		require.Contains(t, secret.Data, expectedKey, "secret %q should contain key %q", secretName, expectedKey)
-		require.NotEmpty(t, secret.Data[expectedKey], "secret %q key %q should not be empty", secretName, expectedKey)
-	} else {
-		require.True(t, apierrors.IsNotFound(err), "secret %q should not exist, got error: %v", secretName, err)
 	}
 }

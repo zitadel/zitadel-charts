@@ -3,6 +3,7 @@ apiVersion: batch/v1
 kind: Job
 metadata:
   name: "{{ include "zitadel.fullname" . }}-cleanup"
+  namespace: {{ .Release.Namespace }}
   labels:
     {{- include "zitadel.cleanup.labels" . | nindent 4 }}
   {{- with .Values.cleanupJob.annotations }}

@@ -2,6 +2,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: {{ include "zitadel.fullname" . }}
+  namespace: {{ .Release.Namespace }}
   {{- if .Values.service }}
   annotations:
     {{- if eq .Values.ingress.controller "aws" }}

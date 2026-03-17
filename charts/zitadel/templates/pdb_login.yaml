@@ -4,6 +4,7 @@ apiVersion: policy/v1
 kind: PodDisruptionBudget
 metadata:
   name: {{ include "zitadel.login.fullname" . }}
+  namespace: {{ .Release.Namespace }}
   labels:
     {{- include "login.labels" . | nindent 4 }}
   {{- with .Values.login.pdb.annotations }}
