@@ -21,11 +21,11 @@ spec:
     {{- end }}
     {{- if .Values.login.metrics.serviceMonitor.relabellings }}
     relabelings:
-      {{- toYaml .Values.login.metrics.serviceMonitor.relabellings | indent 6 }}
+      {{- toYaml .Values.login.metrics.serviceMonitor.relabellings | nindent 6 }}
     {{- end }}
     {{- if .Values.login.metrics.serviceMonitor.metricRelabellings }}
     metricRelabelings:
-      {{- toYaml .Values.login.metrics.serviceMonitor.metricRelabellings | indent 6 }}
+      {{- toYaml .Values.login.metrics.serviceMonitor.metricRelabellings | nindent 6 }}
     {{- end }}
     path: /metrics
     {{- if .Values.login.metrics.serviceMonitor.scheme }}

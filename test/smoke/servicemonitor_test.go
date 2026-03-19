@@ -117,9 +117,13 @@ func TestServiceMonitorMatrix(t *testing.T) {
 
 				if tc.zitadel != nil {
 					env.AssertPartial(t, releaseName, *tc.zitadel)
+				} else {
+					env.AssertNone(t, releaseName, assert.ServiceMonitorAssertion{})
 				}
 				if tc.login != nil {
 					env.AssertPartial(t, releaseName+"-login", *tc.login)
+				} else {
+					env.AssertNone(t, releaseName+"-login", assert.ServiceMonitorAssertion{})
 				}
 			})
 		})
