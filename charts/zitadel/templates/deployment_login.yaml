@@ -27,6 +27,11 @@ spec:
           {{- toYaml . | nindent 8 }}
         {{- end }}
         checksum/configmap: {{ include (print $.Template.BasePath "/configmap_login.yaml") . | sha256sum }}
+        {{- if .Values.login.metrics.enabled }}
+        prometheus.io/scrape: "true"
+        prometheus.io/path: "/metrics"
+        prometheus.io/port: {{ include "login.containerPort" . | quote }}
+        {{- end }}
       labels:
         {{- include "login.labels" . | nindent 8 }}
         {{- with .Values.podAdditionalLabels }}
