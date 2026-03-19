@@ -122,6 +122,24 @@ func (c *Cluster) ApplyGatewayCRDs(ctx context.Context) error {
 	return nil
 }
 
+// ApplyServiceMonitorCRD registers the ServiceMonitor CRD with the cluster's
+// API server using kubectl apply. This must be called after Start and only by
+// test suites that need ServiceMonitor resources (e.g. smoke tests).
+func (c *Cluster) ApplyServiceMonitorCRD(ctx context.Context) error {
+	path, err := writeEmbeddedFile("servicemonitor-crd.yaml")
+	if err != nil {
+		return fmt.Errorf("extracting ServiceMonitor CRD: %w", err)
+	}
+	defer func() { _ = os.Remove(path) }()
+
+	cmd := exec.CommandContext(ctx, "kubectl", "apply", "-f", path)
+	cmd.Env = append(os.Environ(), "KUBECONFIG="+c.kubeconfigPath)
+	if out, err := cmd.CombinedOutput(); err != nil {
+		return fmt.Errorf("kubectl apply ServiceMonitor CRD: %w\n%s", err, out)
+	}
+	return nil
+}
+
 // Cleanup terminates the K3s container and removes the temporary kubeconfig
 // file. Errors are silently ignored since this is typically called in a defer
 // and the container will be reaped by Ryuk regardless.
