@@ -209,6 +209,45 @@ func TestDeploymentMatrix(t *testing.T) {
 			},
 		},
 		{
+			name: "login-metrics-annotations",
+			setValues: map[string]string{
+				"login.enabled":         "true",
+				"login.metrics.enabled": "true",
+			},
+			login: &assert.DeploymentAssertion{
+				Spec: assert.DeploymentSpecAssertion{
+					Template: assert.PodTemplateSpecAssertion{
+						ObjectMeta: assert.ObjectMetaAssertion{
+							Annotations: assert.Matching[map[string]string](gomega.And(
+								gomega.HaveKeyWithValue("prometheus.io/scrape", "true"),
+								gomega.HaveKeyWithValue("prometheus.io/path", "/metrics"),
+								gomega.HaveKeyWithValue("prometheus.io/port", "3000"),
+							)),
+						},
+					},
+				},
+			},
+		},
+		{
+			name: "login-metrics-disabled-no-annotations",
+			setValues: map[string]string{
+				"login.enabled": "true",
+			},
+			login: &assert.DeploymentAssertion{
+				Spec: assert.DeploymentSpecAssertion{
+					Template: assert.PodTemplateSpecAssertion{
+						ObjectMeta: assert.ObjectMetaAssertion{
+							Annotations: assert.Matching[map[string]string](gomega.And(
+								gomega.Not(gomega.HaveKey("prometheus.io/scrape")),
+								gomega.Not(gomega.HaveKey("prometheus.io/path")),
+								gomega.Not(gomega.HaveKey("prometheus.io/port")),
+							)),
+						},
+					},
+				},
+			},
+		},
+		{
 			name: "component-overrides",
 			setValues: map[string]string{
 				"login.enabled":         "true",
