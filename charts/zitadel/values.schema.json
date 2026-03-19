@@ -1687,50 +1687,15 @@
                     "description": "Name of a Kubernetes Secret containing the application user's client certificate for mutual TLS (mTLS) authentication to the database. The secret must contain keys \"tls.crt\" (certificate) and \"tls.key\" (private key). Used by the main ZITADEL deployment and setup job for normal database operations.",
                     "type": "string"
                 },
-                "debug": {
-                    "type": "object",
-                    "properties": {
-                        "annotations": {
-                            "description": "(map[string]string) Annotations for the debug pod. The Helm hooks ensure it's created during install/upgrade and cleaned up appropriately.",
-                            "type": "object",
-                            "properties": {
-                                "helm.sh/hook": {
-                                    "type": "string"
-                                },
-                                "helm.sh/hook-weight": {
-                                    "type": "string"
-                                }
-                            }
-                        },
-                        "enabled": {
-                            "description": "Enable or disable the debug pod. Only enable for troubleshooting; disable in production environments.",
-                            "type": "boolean"
-                        },
-                        "extraContainers": {
-                            "description": "([]Container) Sidecar containers to run alongside the debug container.",
-                            "type": "array",
-                            "items": {
-                                "$ref": "https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/v1.30.0/_definitions.json#/definitions/io.k8s.api.core.v1.Container"
-                            }
-                        },
-                        "initContainers": {
-                            "description": "([]Container) Init containers to run before the debug container starts.",
-                            "type": "array",
-                            "items": {
-                                "$ref": "https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/v1.30.0/_definitions.json#/definitions/io.k8s.api.core.v1.Container"
-                            }
-                        }
-                    }
-                },
                 "extraContainers": {
-                    "description": "([]Container) Global sidecar containers added to all ZITADEL workloads (Deployment, init job, setup job, and debug pod when enabled). Use this for shared services like database proxies (e.g., cloud-sql-proxy) that all workloads need to connect to the database.",
+                    "description": "([]Container) Global sidecar containers added to all ZITADEL workloads (Deployment, init job, and setup job). Use this for shared services like database proxies (e.g., cloud-sql-proxy) that all workloads need to connect to the database.",
                     "type": "array",
                     "items": {
                         "$ref": "https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/v1.30.0/_definitions.json#/definitions/io.k8s.api.core.v1.Container"
                     }
                 },
                 "initContainers": {
-                    "description": "([]Container) Global init containers added to all ZITADEL workloads (Deployment, init job, setup job, and debug pod when enabled). Use this for shared dependencies like database readiness checks or certificate initialization that all workloads need.",
+                    "description": "([]Container) Global init containers added to all ZITADEL workloads (Deployment, init job, and setup job). Use this for shared dependencies like database readiness checks or certificate initialization that all workloads need.",
                     "type": "array",
                     "items": {
                         "$ref": "https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/v1.30.0/_definitions.json#/definitions/io.k8s.api.core.v1.Container"

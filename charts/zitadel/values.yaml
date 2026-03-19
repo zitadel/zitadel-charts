@@ -255,36 +255,14 @@ zitadel:
     # Example: "my-zitadel.example.com"
     additionalDnsName: ""
 
-  # Debug pod configuration. When enabled, creates a standalone pod with the
-  # ZITADEL binary and configuration mounted, useful for troubleshooting and
-  # running ad-hoc ZITADEL commands. The pod starts in sleep mode, allowing you
-  # to exec into it and run commands interactively.
-  # Usage: kubectl exec -it <debug-pod-name> -- /bin/sh
-  # Then run: zitadel --help
-  debug:
-    # -- Enable or disable the debug pod. Only enable for troubleshooting; disable
-    # in production environments.
-    enabled: false
-    # -- (map[string]string) Annotations for the debug pod. The Helm hooks ensure it's
-    # created during install/upgrade and cleaned up appropriately.
-    annotations:
-      helm.sh/hook: pre-install,pre-upgrade
-      helm.sh/hook-weight: "1"
-    # @schema itemRef: $k8s/_definitions.json#/definitions/io.k8s.api.core.v1.Container
-    # -- ([]Container) Init containers to run before the debug container starts.
-    initContainers: []
-    # @schema itemRef: $k8s/_definitions.json#/definitions/io.k8s.api.core.v1.Container
-    # -- ([]Container) Sidecar containers to run alongside the debug container.
-    extraContainers: []
-
   # @schema itemRef: $k8s/_definitions.json#/definitions/io.k8s.api.core.v1.Container
   # -- ([]Container) Global init containers added to all ZITADEL workloads (Deployment, init job,
-  # setup job, and debug pod when enabled). Use this for shared dependencies like
+  # and setup job). Use this for shared dependencies like
   # database readiness checks or certificate initialization that all workloads need.
   initContainers: []
   # @schema itemRef: $k8s/_definitions.json#/definitions/io.k8s.api.core.v1.Container
   # -- ([]Container) Global sidecar containers added to all ZITADEL workloads (Deployment, init job,
-  # setup job, and debug pod when enabled). Use this for shared services like
+  # and setup job). Use this for shared services like
   # database proxies (e.g., cloud-sql-proxy) that all workloads need to connect
   # to the database.
   extraContainers: []
