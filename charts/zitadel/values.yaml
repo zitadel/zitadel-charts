@@ -255,6 +255,52 @@ zitadel:
     # Example: "my-zitadel.example.com"
     additionalDnsName: ""
 
+  # System user TLS certificate configuration for GRPC API authentication.
+  # When enabled, generates an RSA key pair used for JWT signing (RS256).
+  systemUser:
+    # -- Enable generation of a TLS certificate for system user authentication.
+    # When enabled, the chart automatically detects if cert-manager is available:
+    # - If cert-manager is installed: creates a Certificate resource
+    # - If cert-manager is not installed: generates a self-signed cert using Helm
+    # Ignored if secretName is set.
+    enabled: true
+    # -- Name of an existing Kubernetes Secret containing the TLS certificate
+    # for system user authentication. The secret must be of type kubernetes.io/tls
+    # with keys "tls.crt" and "tls.key". Use this to provide certificates from
+    # external sources. When set, takes precedence over the `enabled` flag.
+    secretName: ""
+    # -- The system user ID to use for authentication. Set to "0" by default,
+    # which typically represents the system/root user context.
+    id: "0"
+    # -- An additional DNS name (SAN) to include in the generated certificate.
+    # Example: "my-zitadel.example.com"
+    additionalDnsName: ""
+    # -- Number of days the generated certificate should be valid.
+    validityDays: 3650
+    # Private key configuration. RSA is required for JWT signing (RS256).
+    privateKey:
+      # @schema enum:[RSA]
+      # -- Key algorithm. Must be RSA for ZITADEL JWT signing.
+      algorithm: RSA
+      # @schema enum:[2048,4096]
+      # -- RSA key size in bits. Only honored when cert-manager is available.
+      # Helm's genSelfSignedCert always generates 2048-bit keys.
+      size: 2048
+    # -- (map[string]string) Annotations for the generated system user secret.
+    # Only used when cert-manager is not available (Helm-generated secret).
+    annotations: {}
+    # cert-manager specific configuration. Only used when cert-manager is detected.
+    certManager:
+      # @schema type:[null,object]
+      # -- Custom issuer reference for cert-manager. If not set, a self-signed
+      # Issuer is automatically created. Use this to reference your own
+      # ClusterIssuer or Issuer (e.g., Let's Encrypt, Vault PKI).
+      # Example:
+      #   issuerRef:
+      #     name: letsencrypt-prod
+      #     kind: ClusterIssuer
+      issuerRef:
+
   # Debug pod configuration. When enabled, creates a standalone pod with the
   # ZITADEL binary and configuration mounted, useful for troubleshooting and
   # running ad-hoc ZITADEL commands. The pod starts in sleep mode, allowing you
