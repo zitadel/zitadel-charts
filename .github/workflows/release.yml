@@ -26,6 +26,11 @@ jobs:
           git config user.name "$GITHUB_ACTOR"
           git config user.email "$GITHUB_ACTOR@users.noreply.github.com"
 
+      - id: 'helm-deps'
+        run: |
+          helm repo add bitnami https://charts.bitnami.com/bitnami
+          helm dependency build charts/zitadel
+
       - id: 'release'
         uses: 'helm/chart-releaser-action@v1.7.0'
         env:
