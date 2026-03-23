@@ -86,7 +86,7 @@ func TestServiceMonitorMatrix(t *testing.T) {
 				Spec: assert.ServiceMonitorSpecAssertion{
 					Endpoints: assert.Some([]assert.EndpointAssertion{
 						{
-							Port:            assert.Some("http-server"),
+							Port:            assert.Some("metrics"),
 							Path:            assert.Some("/metrics"),
 							HonorLabels:     assert.Some(false),
 							HonorTimestamps: assert.SomePtr(true),
@@ -140,7 +140,7 @@ func TestServiceMonitorMatrix(t *testing.T) {
 				Spec: assert.ServiceMonitorSpecAssertion{
 					Endpoints: assert.Some([]assert.EndpointAssertion{
 						{
-							Port: assert.Some("http-server"),
+							Port: assert.Some("metrics"),
 							Path: assert.Some("/metrics"),
 						},
 					}),
@@ -191,7 +191,7 @@ func TestServiceMonitorMatrix(t *testing.T) {
 				Spec: assert.ServiceMonitorSpecAssertion{
 					Endpoints: assert.Some([]assert.EndpointAssertion{
 						{
-							Port:            assert.Some("http-server"),
+							Port:            assert.Some("metrics"),
 							Path:            assert.Some("/metrics"),
 							Interval:        assert.Some(monitoringv1.Duration("15s")),
 							ScrapeTimeout:   assert.Some(monitoringv1.Duration("10s")),

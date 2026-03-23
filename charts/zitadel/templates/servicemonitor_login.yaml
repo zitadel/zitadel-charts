@@ -12,7 +12,7 @@ metadata:
     {{- end }}
 spec:
   endpoints:
-  - port: {{ regexReplaceAll "\\W+" .Values.login.service.protocol "-" }}-server
+  - port: metrics
     {{- if .Values.login.metrics.serviceMonitor.scrapeInterval }}
     interval: {{ .Values.login.metrics.serviceMonitor.scrapeInterval }}
     {{- end }}

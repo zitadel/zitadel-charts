@@ -221,7 +221,7 @@ func TestDeploymentMatrix(t *testing.T) {
 							Annotations: assert.Matching[map[string]string](gomega.And(
 								gomega.HaveKeyWithValue("prometheus.io/scrape", "true"),
 								gomega.HaveKeyWithValue("prometheus.io/path", "/metrics"),
-								gomega.HaveKeyWithValue("prometheus.io/port", "3000"),
+								gomega.HaveKeyWithValue("prometheus.io/port", "9464"),
 							)),
 						},
 					},
