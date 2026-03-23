@@ -181,10 +181,11 @@ func TestCrossContainerTLS(t *testing.T) {
 		ca, err := testcluster.GenerateCA("Cross Container CA")
 		require.NoError(t, err, "failed to generate CA")
 
-		svcName := "zitadel-test"
-		zitadelCert, err := ca.SignCertificate(svcName, []string{svcName, domain})
+		zitadelSvcName := "zitadel-test"
+		zitadelCert, err := ca.SignCertificate(zitadelSvcName, []string{zitadelSvcName, domain})
 		require.NoError(t, err, "failed to generate zitadel certificate")
-		loginCert, err := ca.SignCertificate(svcName, []string{svcName, domain})
+		loginSvcName := "zitadel-test-login"
+		loginCert, err := ca.SignCertificate(loginSvcName, []string{loginSvcName, domain})
 		require.NoError(t, err, "failed to generate login certificate")
 
 		testcluster.CreateTLSSecret(t, k, "zitadel-server-cert", ca.Cert, zitadelCert.Cert, zitadelCert.Key)
