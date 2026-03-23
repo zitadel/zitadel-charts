@@ -51,6 +51,9 @@ func tryMatch(actualVal, assertionVal reflect.Value) (bool, error) {
 		assertionVal = assertionVal.Elem()
 	}
 
+	if actualVal.Kind() != reflect.Struct {
+		return false, fmt.Errorf("actual must be a struct, got %v (%v)", actualVal.Kind(), actualVal.Type())
+	}
 	if assertionVal.Kind() != reflect.Struct {
 		return false, fmt.Errorf("assertion must be a struct, got %v", assertionVal.Kind())
 	}
