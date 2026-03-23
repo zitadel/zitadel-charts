@@ -336,6 +336,7 @@ func TestDeploymentMatrix(t *testing.T) {
 			name: "tls-configuration",
 			setValues: map[string]string{
 				"login.enabled":              "true",
+				"login.serverSslCrtSecret":   "login-tls-cert",
 				"zitadel.serverSslCrtSecret": "zitadel-tls-cert",
 				"caBundleSecret":             "custom-ca-bundle",
 			},
@@ -344,9 +345,12 @@ func TestDeploymentMatrix(t *testing.T) {
 				domain := fmt.Sprintf("%s.test.local", env.Namespace)
 				ca, err := testcluster.GenerateCA("Smoke Test CA")
 				require.NoError(t, err)
-				cert, err := ca.SignCertificate("smoke-test", []string{"smoke-test", domain})
+				zitadelCert, err := ca.SignCertificate("smoke-test", []string{"smoke-test", domain})
 				require.NoError(t, err)
-				testcluster.CreateTLSSecret(t, env.Kube, "zitadel-tls-cert", ca.Cert, cert.Cert, cert.Key)
+				loginCert, err := ca.SignCertificate("smoke-test-login", []string{"smoke-test-login", domain})
+				require.NoError(t, err)
+				testcluster.CreateTLSSecret(t, env.Kube, "zitadel-tls-cert", ca.Cert, zitadelCert.Cert, zitadelCert.Key)
+				testcluster.CreateTLSSecret(t, env.Kube, "login-tls-cert", ca.Cert, loginCert.Cert, loginCert.Key)
 				testcluster.CreateOpaqueSecret(t, env.Kube, "custom-ca-bundle", map[string]string{
 					"ca.crt": string(ca.Cert),
 				})
@@ -413,7 +417,15 @@ func TestDeploymentMatrix(t *testing.T) {
 				Spec: assert.DeploymentSpecAssertion{
 					Template: assert.PodTemplateSpecAssertion{
 						Spec: assert.PodSpecAssertion{
-							Volumes: assert.Matching[[]assert.VolumeAssertion](
+							Volumes: assert.Matching[[]assert.VolumeAssertion](gomega.And(
+								gomega.ContainElement(assert.Partial(assert.VolumeAssertion{
+									Name: assert.Some("server-ssl-crt"),
+									VolumeSource: assert.VolumeSourceAssertion{
+										Secret: assert.SecretVolumeSourceAssertion{
+											SecretName: assert.Some("login-tls-cert"),
+										},
+									},
+								})),
 								gomega.ContainElement(assert.Partial(assert.VolumeAssertion{
 									Name: assert.Some("ca-bundle"),
 									VolumeSource: assert.VolumeSourceAssertion{
@@ -422,24 +434,41 @@ func TestDeploymentMatrix(t *testing.T) {
 										},
 									},
 								})),
-							),
+							)),
 							Containers: assert.Some([]assert.ContainerAssertion{
 								{
 									Name: assert.Some("zitadel-login"),
-									Env: assert.Matching[[]assert.EnvVarAssertion](
+									Env: assert.Matching[[]assert.EnvVarAssertion](gomega.And(
+										gomega.ContainElement(assert.Partial(assert.EnvVarAssertion{
+											Name:  assert.Some("ZITADEL_TLS_ENABLED"),
+											Value: assert.Some("true"),
+										})),
+										gomega.ContainElement(assert.Partial(assert.EnvVarAssertion{
+											Name:  assert.Some("ZITADEL_TLS_CERTPATH"),
+											Value: assert.Some("/server-ssl-crt/tls.crt"),
+										})),
+										gomega.ContainElement(assert.Partial(assert.EnvVarAssertion{
+											Name:  assert.Some("ZITADEL_TLS_KEYPATH"),
+											Value: assert.Some("/server-ssl-crt/tls.key"),
+										})),
 										gomega.ContainElement(assert.Partial(assert.EnvVarAssertion{
 											Name:  assert.Some("SSL_CERT_DIR"),
 											Value: assert.Some("/etc/ssl/certs"),
 										})),
-									),
-									VolumeMounts: assert.Matching[[]assert.VolumeMountAssertion](
+									)),
+									VolumeMounts: assert.Matching[[]assert.VolumeMountAssertion](gomega.And(
+										gomega.ContainElement(assert.Partial(assert.VolumeMountAssertion{
+											Name:      assert.Some("server-ssl-crt"),
+											MountPath: assert.Some("/server-ssl-crt"),
+											ReadOnly:  assert.Some(true),
+										})),
 										gomega.ContainElement(assert.Partial(assert.VolumeMountAssertion{
 											Name:      assert.Some("ca-bundle"),
 											MountPath: assert.Some("/etc/ssl/certs/custom-ca.crt"),
 											SubPath:   assert.Some("ca.crt"),
 											ReadOnly:  assert.Some(true),
 										})),
-									),
+									)),
 								},
 							}),
 						},

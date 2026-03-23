@@ -62,7 +62,7 @@ func tryMatch(actualVal, assertionVal reflect.Value) (bool, error) {
 
 		actualField := actualVal.FieldByName(fieldInfo.Name)
 		if !actualField.IsValid() {
-			return false, nil
+			return false, fmt.Errorf("actual struct %v does not have field %q", actualVal.Type(), fieldInfo.Name)
 		}
 
 		// Nested Assertable struct — recurse if non-zero
@@ -90,7 +90,7 @@ func tryMatch(actualVal, assertionVal reflect.Value) (bool, error) {
 
 		valField := fieldVal.FieldByName("Val")
 		if !valField.IsValid() {
-			return false, nil
+			return false, fmt.Errorf("field %q of type %v is neither Assertable nor Opt[T]", fieldInfo.Name, fieldVal.Type())
 		}
 		if valField.IsNil() {
 			continue

@@ -7,9 +7,12 @@
 # verification. The secret must contain a key "ca.crt" with PEM-encoded CA
 # certificates. When set, the bundle is mounted into /etc/ssl/certs/ in both
 # the ZITADEL and Login containers via subPath, and SSL_CERT_DIR is set to
-# /etc/ssl/certs. This extends the system trust store with custom CAs rather
-# than replacing it, so public CA trust is preserved. Use this to trust custom
-# CAs for internal communication (e.g., when using serverSslCrtSecret with
+# /etc/ssl/certs. For the Go-based ZITADEL container, this extends the system
+# trust store because Go reads all PEM files in SSL_CERT_DIR regardless of
+# naming. For the Login UI container (Node.js with OpenSSL), SSL_CERT_DIR may
+# not discover files without hashed filenames (c_rehash convention), so custom
+# CA trust may not take effect in all runtimes. Use this to trust custom CAs
+# for internal communication (e.g., when using serverSslCrtSecret with
 # certificates signed by a private CA).
 caBundleSecret: ""
 
