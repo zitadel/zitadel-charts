@@ -64,7 +64,7 @@ spec:
             - name: ZITADEL_TLS_KEYPATH
               value: /server-ssl-crt/tls.key
             {{- end }}
-            {{- if .Values.zitadel.caBundleSecret }}
+            {{- if .Values.caBundleSecret }}
             - name: SSL_CERT_FILE
               value: /etc/ssl/certs/custom-ca.crt
             {{- end }}
@@ -130,7 +130,7 @@ spec:
             mountPath: /server-ssl-crt
             readOnly: true
           {{- end }}
-          {{- if .Values.zitadel.caBundleSecret }}
+          {{- if .Values.caBundleSecret }}
           - name: ca-bundle
             mountPath: /etc/ssl/certs/custom-ca.crt
             subPath: ca.crt
@@ -192,10 +192,10 @@ spec:
           secretName: {{ .Values.login.serverSslCrtSecret }}
           defaultMode: 0440
       {{- end }}
-      {{- if .Values.zitadel.caBundleSecret }}
+      {{- if .Values.caBundleSecret }}
       - name: ca-bundle
         secret:
-          secretName: {{ .Values.zitadel.caBundleSecret }}
+          secretName: {{ .Values.caBundleSecret }}
           defaultMode: 0440
       {{- end }}
       {{- with .Values.login.nodeSelector }}

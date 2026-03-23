@@ -3,6 +3,17 @@
 # on each parameter, see the inline comments below or visit:
 # https://zitadel.com/docs/self-hosting/deploy/kubernetes
 
+# -- Name of a Kubernetes Secret containing a custom CA bundle for TLS
+# verification. The secret must contain a key "ca.crt" with PEM-encoded CA
+# certificates. When set, the bundle is mounted into both the ZITADEL and
+# Login containers and SSL_CERT_FILE is configured to use it. This allows
+# containers to trust custom CAs for internal communication (e.g., when
+# using serverSslCrtSecret with certificates signed by a private CA).
+# Note: SSL_CERT_FILE replaces the default system CA bundle for the process.
+# If the containers also need to trust public CAs, "ca.crt" should contain
+# a full CA bundle (system roots + your custom roots), not just the private CA.
+caBundleSecret: ""
+
 zitadel:
   # -- (object) ZITADEL runtime configuration written to a Kubernetes ConfigMap. These
   # values are passed directly to the ZITADEL binary and control its behavior. For the
@@ -238,17 +249,6 @@ zitadel:
   # Requires configmapConfig.TLS.Enabled to be true.
   serverSslCrtSecret: ""
 
-  # -- Name of a Kubernetes Secret containing a custom CA bundle for TLS
-  # verification. The secret must contain a key "ca.crt" with PEM-encoded CA
-  # certificates. When set, the bundle is mounted into both the ZITADEL and
-  # Login containers and SSL_CERT_FILE is configured to use it. This allows
-  # containers to trust custom CAs for internal communication (e.g., when
-  # using serverSslCrtSecret with certificates signed by a private CA).
-  # Note: SSL_CERT_FILE replaces the default system CA bundle for the process.
-  # If the containers also need to trust public CAs, "ca.crt" should contain
-  # a full CA bundle (system roots + your custom roots), not just the private CA.
-  caBundleSecret: ""
-
   # Generate a self-signed TLS certificate using Helm's native functions.
   # If enabled, this creates a Kubernetes secret containing a self-signed
   # certificate and mounts it to /etc/tls/ in the ZITADEL pod.
@@ -380,7 +380,7 @@ login:
   # UI's internal HTTPS server. The secret must contain keys "tls.crt"
   # (certificate) and "tls.key" (private key). The secret is mounted at
   # /server-ssl-crt inside the container. To trust a custom CA for backend
-  # communication, use zitadel.caBundleSecret.
+  # communication, use caBundleSecret.
   serverSslCrtSecret: ""
   # @schema itemRef: $k8s/_definitions.json#/definitions/io.k8s.api.core.v1.VolumeMount
   # -- ([]VolumeMount) Additional volume mounts for the Login UI container. Use this to mount

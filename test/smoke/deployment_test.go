@@ -338,7 +338,7 @@ func TestDeploymentMatrix(t *testing.T) {
 				"login.enabled":                       "true",
 				"zitadel.serverSslCrtSecret":          "zitadel-tls-cert",
 				"login.serverSslCrtSecret":            "login-tls-cert",
-				"zitadel.caBundleSecret":              "custom-ca-bundle",
+				"caBundleSecret":                      "custom-ca-bundle",
 				"zitadel.configmapConfig.TLS.Enabled": "true",
 			},
 			preInstall: func(t *testing.T, env *support.Env) {

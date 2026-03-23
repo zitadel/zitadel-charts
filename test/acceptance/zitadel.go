@@ -209,7 +209,7 @@ func InstallZitadel(t *testing.T, k *k8s.KubectlOptions, opts ...ZitadelOption) 
 		values["login.service.annotations.traefik\\.ingress\\.kubernetes\\.io/service\\.serversscheme"] = "https"
 	}
 	if cfg.caBundleSecret != "" {
-		values["zitadel.caBundleSecret"] = cfg.caBundleSecret
+		values["caBundleSecret"] = cfg.caBundleSecret
 	}
 
 	if cfg.masterkeySecretName != "" {
