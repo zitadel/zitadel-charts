@@ -53,9 +53,6 @@ spec:
           env:
             - name: NEXT_PUBLIC_BASE_PATH
               value: /ui/v2/login
-            {{- with .Values.login.env }}
-              {{- toYaml . | nindent 12 }}
-            {{- end }}
             {{- if .Values.login.serverSslCrtSecret }}
             - name: ZITADEL_TLS_ENABLED
               value: "true"
@@ -67,6 +64,9 @@ spec:
             {{- if .Values.caBundleSecret }}
             - name: SSL_CERT_FILE
               value: /etc/ssl/certs/custom-ca.crt
+            {{- end }}
+            {{- with .Values.login.env }}
+              {{- toYaml . | nindent 12 }}
             {{- end }}
           ports:
           - containerPort: {{ include "login.containerPort" . }}
