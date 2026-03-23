@@ -173,6 +173,7 @@ func TestMachineUser(t *testing.T) {
 //
 //goland:noinspection DuplicatedCode
 func TestCrossContainerTLS(t *testing.T) {
+	t.Skip("Skip until Login UI can verify custom CA certs via SSL_CERT_DIR")
 	domain := "cross-tls.127.0.0.1.sslip.io"
 	apiBaseURL := BuildAPIBaseURL(domain, httpsPort, true)
 	machineUsername := "zitadel-admin-sa"
