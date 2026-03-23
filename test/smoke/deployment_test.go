@@ -355,56 +355,56 @@ func TestDeploymentMatrix(t *testing.T) {
 				Spec: assert.DeploymentSpecAssertion{
 					Template: assert.PodTemplateSpecAssertion{
 						Spec: assert.PodSpecAssertion{
-							Containers: assert.Some([]assert.ContainerAssertion{
-								{
-									Name: assert.Some("zitadel"),
-									Env: assert.Matching[[]assert.EnvVarAssertion](gomega.And(
-										gomega.ContainElement(assert.EnvVarAssertion{
-											Name:  assert.Some("ZITADEL_TLS_CERTPATH"),
-											Value: assert.Some("/server-ssl-crt/tls.crt"),
-										}),
-										gomega.ContainElement(assert.EnvVarAssertion{
-											Name:  assert.Some("ZITADEL_TLS_KEYPATH"),
-											Value: assert.Some("/server-ssl-crt/tls.key"),
-										}),
-										gomega.ContainElement(assert.EnvVarAssertion{
-											Name:  assert.Some("SSL_CERT_DIR"),
-											Value: assert.Some("/etc/ssl/certs"),
-										}),
-									)),
-									VolumeMounts: assert.Matching[[]assert.VolumeMountAssertion](gomega.And(
-										gomega.ContainElement(assert.VolumeMountAssertion{
-											Name:      assert.Some("server-ssl-crt"),
-											MountPath: assert.Some("/server-ssl-crt"),
-											ReadOnly:  assert.Some(true),
-										}),
-										gomega.ContainElement(assert.VolumeMountAssertion{
-											Name:      assert.Some("ca-bundle"),
-											MountPath: assert.Some("/etc/ssl/certs/custom-ca.crt"),
-											SubPath:   assert.Some("ca.crt"),
-											ReadOnly:  assert.Some(true),
-										}),
-									)),
-								},
-							}),
 							Volumes: assert.Matching[[]assert.VolumeAssertion](gomega.And(
-								gomega.ContainElement(assert.VolumeAssertion{
+								gomega.ContainElement(assert.Partial(assert.VolumeAssertion{
 									Name: assert.Some("server-ssl-crt"),
 									VolumeSource: assert.VolumeSourceAssertion{
 										Secret: assert.SecretVolumeSourceAssertion{
 											SecretName: assert.Some("zitadel-tls-cert"),
 										},
 									},
-								}),
-								gomega.ContainElement(assert.VolumeAssertion{
+								})),
+								gomega.ContainElement(assert.Partial(assert.VolumeAssertion{
 									Name: assert.Some("ca-bundle"),
 									VolumeSource: assert.VolumeSourceAssertion{
 										Secret: assert.SecretVolumeSourceAssertion{
 											SecretName: assert.Some("custom-ca-bundle"),
 										},
 									},
-								}),
+								})),
 							)),
+							Containers: assert.Some([]assert.ContainerAssertion{
+								{
+									Name: assert.Some("zitadel"),
+									Env: assert.Matching[[]assert.EnvVarAssertion](gomega.And(
+										gomega.ContainElement(assert.Partial(assert.EnvVarAssertion{
+											Name:  assert.Some("ZITADEL_TLS_CERTPATH"),
+											Value: assert.Some("/server-ssl-crt/tls.crt"),
+										})),
+										gomega.ContainElement(assert.Partial(assert.EnvVarAssertion{
+											Name:  assert.Some("ZITADEL_TLS_KEYPATH"),
+											Value: assert.Some("/server-ssl-crt/tls.key"),
+										})),
+										gomega.ContainElement(assert.Partial(assert.EnvVarAssertion{
+											Name:  assert.Some("SSL_CERT_DIR"),
+											Value: assert.Some("/etc/ssl/certs"),
+										})),
+									)),
+									VolumeMounts: assert.Matching[[]assert.VolumeMountAssertion](gomega.And(
+										gomega.ContainElement(assert.Partial(assert.VolumeMountAssertion{
+											Name:      assert.Some("server-ssl-crt"),
+											MountPath: assert.Some("/server-ssl-crt"),
+											ReadOnly:  assert.Some(true),
+										})),
+										gomega.ContainElement(assert.Partial(assert.VolumeMountAssertion{
+											Name:      assert.Some("ca-bundle"),
+											MountPath: assert.Some("/etc/ssl/certs/custom-ca.crt"),
+											SubPath:   assert.Some("ca.crt"),
+											ReadOnly:  assert.Some(true),
+										})),
+									)),
+								},
+							}),
 						},
 					},
 				},
@@ -413,35 +413,35 @@ func TestDeploymentMatrix(t *testing.T) {
 				Spec: assert.DeploymentSpecAssertion{
 					Template: assert.PodTemplateSpecAssertion{
 						Spec: assert.PodSpecAssertion{
-							Containers: assert.Some([]assert.ContainerAssertion{
-								{
-									Name: assert.Some("zitadel-login"),
-									Env: assert.Matching[[]assert.EnvVarAssertion](
-										gomega.ContainElement(assert.EnvVarAssertion{
-											Name:  assert.Some("SSL_CERT_DIR"),
-											Value: assert.Some("/etc/ssl/certs"),
-										}),
-									),
-									VolumeMounts: assert.Matching[[]assert.VolumeMountAssertion](
-										gomega.ContainElement(assert.VolumeMountAssertion{
-											Name:      assert.Some("ca-bundle"),
-											MountPath: assert.Some("/etc/ssl/certs/custom-ca.crt"),
-											SubPath:   assert.Some("ca.crt"),
-											ReadOnly:  assert.Some(true),
-										}),
-									),
-								},
-							}),
 							Volumes: assert.Matching[[]assert.VolumeAssertion](
-								gomega.ContainElement(assert.VolumeAssertion{
+								gomega.ContainElement(assert.Partial(assert.VolumeAssertion{
 									Name: assert.Some("ca-bundle"),
 									VolumeSource: assert.VolumeSourceAssertion{
 										Secret: assert.SecretVolumeSourceAssertion{
 											SecretName: assert.Some("custom-ca-bundle"),
 										},
 									},
-								}),
+								})),
 							),
+							Containers: assert.Some([]assert.ContainerAssertion{
+								{
+									Name: assert.Some("zitadel-login"),
+									Env: assert.Matching[[]assert.EnvVarAssertion](
+										gomega.ContainElement(assert.Partial(assert.EnvVarAssertion{
+											Name:  assert.Some("SSL_CERT_DIR"),
+											Value: assert.Some("/etc/ssl/certs"),
+										})),
+									),
+									VolumeMounts: assert.Matching[[]assert.VolumeMountAssertion](
+										gomega.ContainElement(assert.Partial(assert.VolumeMountAssertion{
+											Name:      assert.Some("ca-bundle"),
+											MountPath: assert.Some("/etc/ssl/certs/custom-ca.crt"),
+											SubPath:   assert.Some("ca.crt"),
+											ReadOnly:  assert.Some(true),
+										})),
+									),
+								},
+							}),
 						},
 					},
 				},
