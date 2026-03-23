@@ -107,8 +107,8 @@ spec:
               value: /etc/tls/tls.key
             {{- end }}
             {{- if .Values.caBundleSecret }}
-            - name: SSL_CERT_FILE
-              value: /etc/ssl/certs/custom-ca.crt
+            - name: SSL_CERT_DIR
+              value: /etc/ssl/certs
             {{- end }}
             {{- with .Values.env }}
               {{- toYaml . | nindent 12 }}

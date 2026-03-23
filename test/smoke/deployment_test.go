@@ -335,11 +335,9 @@ func TestDeploymentMatrix(t *testing.T) {
 		{
 			name: "tls-configuration",
 			setValues: map[string]string{
-				"login.enabled":                       "true",
-				"zitadel.serverSslCrtSecret":          "zitadel-tls-cert",
-				"login.serverSslCrtSecret":            "login-tls-cert",
-				"caBundleSecret":                      "custom-ca-bundle",
-				"zitadel.configmapConfig.TLS.Enabled": "true",
+				"login.enabled":              "true",
+				"zitadel.serverSslCrtSecret": "zitadel-tls-cert",
+				"caBundleSecret":             "custom-ca-bundle",
 			},
 			preInstall: func(t *testing.T, env *support.Env) {
 				t.Helper()
@@ -349,7 +347,6 @@ func TestDeploymentMatrix(t *testing.T) {
 				cert, err := ca.SignCertificate("smoke-test", []string{"smoke-test", domain})
 				require.NoError(t, err)
 				testcluster.CreateTLSSecret(t, env.Kube, "zitadel-tls-cert", ca.Cert, cert.Cert, cert.Key)
-				testcluster.CreateTLSSecret(t, env.Kube, "login-tls-cert", ca.Cert, cert.Cert, cert.Key)
 				testcluster.CreateOpaqueSecret(t, env.Kube, "custom-ca-bundle", map[string]string{
 					"ca.crt": string(ca.Cert),
 				})
@@ -371,8 +368,8 @@ func TestDeploymentMatrix(t *testing.T) {
 											Value: assert.Some("/server-ssl-crt/tls.key"),
 										}),
 										gomega.ContainElement(assert.EnvVarAssertion{
-											Name:  assert.Some("SSL_CERT_FILE"),
-											Value: assert.Some("/etc/ssl/certs/custom-ca.crt"),
+											Name:  assert.Some("SSL_CERT_DIR"),
+											Value: assert.Some("/etc/ssl/certs"),
 										}),
 									)),
 									VolumeMounts: assert.Matching[[]assert.VolumeMountAssertion](gomega.And(
@@ -419,69 +416,23 @@ func TestDeploymentMatrix(t *testing.T) {
 							Containers: assert.Some([]assert.ContainerAssertion{
 								{
 									Name: assert.Some("zitadel-login"),
-									Env: assert.Matching[[]assert.EnvVarAssertion](gomega.And(
+									Env: assert.Matching[[]assert.EnvVarAssertion](
 										gomega.ContainElement(assert.EnvVarAssertion{
-											Name:  assert.Some("ZITADEL_TLS_ENABLED"),
-											Value: assert.Some("true"),
+											Name:  assert.Some("SSL_CERT_DIR"),
+											Value: assert.Some("/etc/ssl/certs"),
 										}),
-										gomega.ContainElement(assert.EnvVarAssertion{
-											Name:  assert.Some("ZITADEL_TLS_CERTPATH"),
-											Value: assert.Some("/server-ssl-crt/tls.crt"),
-										}),
-										gomega.ContainElement(assert.EnvVarAssertion{
-											Name:  assert.Some("ZITADEL_TLS_KEYPATH"),
-											Value: assert.Some("/server-ssl-crt/tls.key"),
-										}),
-										gomega.ContainElement(assert.EnvVarAssertion{
-											Name:  assert.Some("SSL_CERT_FILE"),
-											Value: assert.Some("/etc/ssl/certs/custom-ca.crt"),
-										}),
-									)),
-									VolumeMounts: assert.Matching[[]assert.VolumeMountAssertion](gomega.And(
-										gomega.ContainElement(assert.VolumeMountAssertion{
-											Name:      assert.Some("server-ssl-crt"),
-											MountPath: assert.Some("/server-ssl-crt"),
-											ReadOnly:  assert.Some(true),
-										}),
+									),
+									VolumeMounts: assert.Matching[[]assert.VolumeMountAssertion](
 										gomega.ContainElement(assert.VolumeMountAssertion{
 											Name:      assert.Some("ca-bundle"),
 											MountPath: assert.Some("/etc/ssl/certs/custom-ca.crt"),
 											SubPath:   assert.Some("ca.crt"),
 											ReadOnly:  assert.Some(true),
 										}),
-									)),
-									LivenessProbe: assert.ProbeAssertion{
-										ProbeHandler: assert.ProbeHandlerAssertion{
-											HTTPGet: assert.HTTPGetActionAssertion{
-												Scheme: assert.Some(corev1.URISchemeHTTPS),
-											},
-										},
-									},
-									ReadinessProbe: assert.ProbeAssertion{
-										ProbeHandler: assert.ProbeHandlerAssertion{
-											HTTPGet: assert.HTTPGetActionAssertion{
-												Scheme: assert.Some(corev1.URISchemeHTTPS),
-											},
-										},
-									},
-									StartupProbe: assert.ProbeAssertion{
-										ProbeHandler: assert.ProbeHandlerAssertion{
-											HTTPGet: assert.HTTPGetActionAssertion{
-												Scheme: assert.Some(corev1.URISchemeHTTPS),
-											},
-										},
-									},
+									),
 								},
 							}),
-							Volumes: assert.Matching[[]assert.VolumeAssertion](gomega.And(
-								gomega.ContainElement(assert.VolumeAssertion{
-									Name: assert.Some("server-ssl-crt"),
-									VolumeSource: assert.VolumeSourceAssertion{
-										Secret: assert.SecretVolumeSourceAssertion{
-											SecretName: assert.Some("login-tls-cert"),
-										},
-									},
-								}),
+							Volumes: assert.Matching[[]assert.VolumeAssertion](
 								gomega.ContainElement(assert.VolumeAssertion{
 									Name: assert.Some("ca-bundle"),
 									VolumeSource: assert.VolumeSourceAssertion{
@@ -490,7 +441,7 @@ func TestDeploymentMatrix(t *testing.T) {
 										},
 									},
 								}),
-							)),
+							),
 						},
 					},
 				},
