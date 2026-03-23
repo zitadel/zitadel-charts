@@ -760,6 +760,7 @@
                                     "type": "object"
                                 },
                                 "enabled": {
+                                    "description": "Create a ServiceMonitor resource for Prometheus Operator integration. The Prometheus community Helm chart (kube-prometheus-stack) installs this operator. To allow discovery across all namespaces, set: prometheus.prometheusSpec.serviceMonitorSelectorNilUsesHelmValues=false",
                                     "type": "boolean"
                                 },
                                 "honorLabels": {

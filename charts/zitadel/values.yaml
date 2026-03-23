@@ -646,7 +646,7 @@ login:
     # the Login UI. Requires the Prometheus Operator to be installed in the cluster.
     # Ref: https://github.com/prometheus-operator/prometheus-operator
     serviceMonitor:
-      # Create a ServiceMonitor resource for Prometheus Operator integration.
+      # -- Create a ServiceMonitor resource for Prometheus Operator integration.
       # The Prometheus community Helm chart (kube-prometheus-stack) installs
       # this operator. To allow discovery across all namespaces, set:
       # prometheus.prometheusSpec.serviceMonitorSelectorNilUsesHelmValues=false

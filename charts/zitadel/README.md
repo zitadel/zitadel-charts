@@ -269,7 +269,7 @@ Kubernetes: `>= 1.30.0-0`
 | login.loginClientSecretPrefix | string | `nil` | Prefix for the login client secret name. Use this when deploying multiple ZITADEL instances in the same namespace to avoid secret name collisions. When set, the login client secret will be named "{prefix}login-client". |
 | login.metrics.enabled | bool | `false` | Enable metrics scraping annotations on Login UI pods. When true, adds prometheus.io/* annotations that enable automatic discovery by Prometheus. |
 | login.metrics.serviceMonitor.additionalLabels | map[string]string | `{}` | Additional labels to add to the ServiceMonitor. Use this to match Prometheus Operator's serviceMonitorSelector if configured. |
-| login.metrics.serviceMonitor.enabled | bool | `false` |  |
+| login.metrics.serviceMonitor.enabled | bool | `false` | Create a ServiceMonitor resource for Prometheus Operator integration. The Prometheus community Helm chart (kube-prometheus-stack) installs this operator. To allow discovery across all namespaces, set: prometheus.prometheusSpec.serviceMonitorSelectorNilUsesHelmValues=false |
 | login.metrics.serviceMonitor.honorLabels | bool | `false` | If true, use metric labels from the Login UI instead of relabeling them to match Prometheus conventions. |
 | login.metrics.serviceMonitor.honorTimestamps | bool | `true` | If true, preserve original scrape timestamps from the Login UI instead of using Prometheus server time. |
 | login.metrics.serviceMonitor.metricRelabellings | []RelabelConfig | `[]` | Relabeling rules applied to individual metrics. Use to rename metrics, drop expensive metrics, or modify metric labels. |
