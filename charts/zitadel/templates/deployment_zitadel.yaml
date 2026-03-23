@@ -106,6 +106,10 @@ spec:
             - name: ZITADEL_TLS_KEYPATH
               value: /etc/tls/tls.key
             {{- end }}
+            {{- if .Values.caBundleSecret }}
+            - name: SSL_CERT_DIR
+              value: /etc/ssl/certs
+            {{- end }}
             {{- with .Values.env }}
               {{- toYaml . | nindent 12 }}
             {{- end }}
@@ -208,6 +212,12 @@ spec:
           - name: tls
             mountPath: /etc/tls
           {{- end }}
+          {{- if .Values.caBundleSecret }}
+          - name: ca-bundle
+            mountPath: /etc/ssl/certs/custom-ca.crt
+            subPath: ca.crt
+            readOnly: true
+          {{- end }}
           {{- with .Values.extraVolumeMounts }}
           {{- toYaml . | nindent 10 }}
           {{- end }}
@@ -291,6 +301,12 @@ spec:
       - name: tls
         secret:
           secretName: {{ include "zitadel.fullname" . }}-self-signed-tls
+      {{- end }}
+      {{- if .Values.caBundleSecret }}
+      - name: ca-bundle
+        secret:
+          secretName: {{ .Values.caBundleSecret }}
+          defaultMode: 0440
       {{- end }}
       {{- with .Values.extraVolumes }}
       {{- toYaml . | nindent 6 }}

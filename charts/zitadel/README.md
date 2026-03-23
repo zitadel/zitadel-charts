@@ -2,7 +2,7 @@
 
 # Zitadel
 
-![Version: 9.27.0](https://img.shields.io/badge/Version-9.27.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: v4.12.1](https://img.shields.io/badge/AppVersion-v4.12.1-informational?style=flat-square)
+![Version: 9.28.0](https://img.shields.io/badge/Version-9.28.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: v4.12.1](https://img.shields.io/badge/AppVersion-v4.12.1-informational?style=flat-square)
 
 ## A Better Identity and Access Management Solution
 
@@ -171,6 +171,7 @@ Kubernetes: `>= 1.30.0-0`
 |-----|------|---------|-------------|
 | affinity | Affinity | `{}` | Affinity rules for pod scheduling. Use for advanced pod placement strategies like co-locating pods on the same node (pod affinity), spreading pods across zones (pod anti-affinity), or preferring certain nodes (node affinity). Ref: https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#affinity-and-anti-affinity |
 | annotations | map[string]string | `{}` | Annotations to add to the ZITADEL Deployment resource. Use this for integration with tools like ArgoCD, Flux, or external monitoring systems. |
+| caBundleSecret | string | `""` | Name of a Kubernetes Secret containing a custom CA bundle for TLS verification. The secret must contain a key "ca.crt" with PEM-encoded CA certificates. When set, the bundle is mounted into /etc/ssl/certs/ in both the ZITADEL and Login containers via subPath, and SSL_CERT_DIR is set to /etc/ssl/certs. For the Go-based ZITADEL container, this extends the system trust store because Go reads all PEM files in SSL_CERT_DIR regardless of naming. For the Login UI container (Node.js with OpenSSL), SSL_CERT_DIR may not discover files without hashed filenames (c_rehash convention), so custom CA trust may not take effect in all runtimes. Use this to trust custom CAs for internal communication (e.g., when using serverSslCrtSecret with certificates signed by a private CA). |
 | cleanupJob.activeDeadlineSeconds | int | `60` | Maximum time in seconds for the cleanup job to complete. After this deadline, the job is terminated even if still running. |
 | cleanupJob.annotations | map[string]string | `{"helm.sh/hook":"post-delete","helm.sh/hook-delete-policy":"hook-succeeded","helm.sh/hook-weight":"-1"}` | Annotations for the cleanup job. The post-delete hook ensures this runs on helm uninstall, and the delete policy removes the job after completion. |
 | cleanupJob.backoffLimit | int | `3` | Number of retries before marking the cleanup job as failed. |
@@ -284,6 +285,7 @@ Kubernetes: `>= 1.30.0-0`
 | login.resources | ResourceRequirements | `{}` | CPU and memory resource requests and limits for the Login UI container. Ref: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/ |
 | login.revisionHistoryLimit | int | `10` | Number of old ReplicaSets to retain for rollback purposes. Set to 0 to disable rollback capability and save cluster resources. |
 | login.securityContext | SecurityContext | `{}` | Optional container-level security context overrides for the Login UI container. If left empty, the chart-wide securityContext defined below is used instead. Use this to customize security settings specifically for the Login UI container. Ref: https://kubernetes.io/docs/tasks/configure-pod-container/security-context/ |
+| login.serverSslCrtSecret | string | `""` | Name of a Kubernetes Secret containing the TLS certificate for the Login UI's internal HTTPS server. The secret must contain keys "tls.crt" (certificate) and "tls.key" (private key). The secret is mounted at /server-ssl-crt inside the container. To trust a custom CA for backend communication, use caBundleSecret. |
 | login.service.annotations | map[string]string | `{}` | Annotations to add to the Service resource. |
 | login.service.appProtocol | string | `"kubernetes.io/http"` | Application protocol hint for ingress controllers and service meshes. Helps with protocol detection and routing decisions. |
 | login.service.clusterIP | string | `""` | Fixed cluster IP address for ClusterIP services. Leave empty for automatic assignment. Only applicable when type is "ClusterIP". |

@@ -3,6 +3,19 @@
 # on each parameter, see the inline comments below or visit:
 # https://zitadel.com/docs/self-hosting/deploy/kubernetes
 
+# -- Name of a Kubernetes Secret containing a custom CA bundle for TLS
+# verification. The secret must contain a key "ca.crt" with PEM-encoded CA
+# certificates. When set, the bundle is mounted into /etc/ssl/certs/ in both
+# the ZITADEL and Login containers via subPath, and SSL_CERT_DIR is set to
+# /etc/ssl/certs. For the Go-based ZITADEL container, this extends the system
+# trust store because Go reads all PEM files in SSL_CERT_DIR regardless of
+# naming. For the Login UI container (Node.js with OpenSSL), SSL_CERT_DIR may
+# not discover files without hashed filenames (c_rehash convention), so custom
+# CA trust may not take effect in all runtimes. Use this to trust custom CAs
+# for internal communication (e.g., when using serverSslCrtSecret with
+# certificates signed by a private CA).
+caBundleSecret: ""
+
 zitadel:
   # -- (object) ZITADEL runtime configuration written to a Kubernetes ConfigMap. These
   # values are passed directly to the ZITADEL binary and control its behavior. For the
@@ -365,6 +378,12 @@ login:
   # ZITADEL instances in the same namespace to avoid secret name collisions.
   # When set, the login client secret will be named "{prefix}login-client".
   loginClientSecretPrefix:
+  # -- Name of a Kubernetes Secret containing the TLS certificate for the Login
+  # UI's internal HTTPS server. The secret must contain keys "tls.crt"
+  # (certificate) and "tls.key" (private key). The secret is mounted at
+  # /server-ssl-crt inside the container. To trust a custom CA for backend
+  # communication, use caBundleSecret.
+  serverSslCrtSecret: ""
   # @schema itemRef: $k8s/_definitions.json#/definitions/io.k8s.api.core.v1.VolumeMount
   # -- ([]VolumeMount) Additional volume mounts for the Login UI container. Use this to mount
   # custom certificates, configuration files, or other data into the container.

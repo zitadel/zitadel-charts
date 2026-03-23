@@ -19,11 +19,14 @@ const (
 type ZitadelOption func(*zitadelConfig)
 
 type zitadelConfig struct {
-	externalDomain      string
-	externalPort        string
-	tlsEnabled          bool
-	selfSignedCert      bool
-	masterkeySecretName string
+	externalDomain       string
+	externalPort         string
+	tlsEnabled           bool
+	selfSignedCert       bool
+	serverSslCrtSecret   string
+	loginServerSslCrtSecret string
+	caBundleSecret       string
+	masterkeySecretName  string
 	configSecretName    string
 	configSecretKey     string
 	dbSSLMode           string
@@ -64,6 +67,31 @@ func WithSelfSignedCert(additionalDNSName string) ZitadelOption {
 		if additionalDNSName != "" {
 			c.additionalValues["zitadel.selfSignedCert.additionalDnsName"] = additionalDNSName
 		}
+	}
+}
+
+// WithServerSslCrtSecret references an existing TLS secret for ZITADEL's
+// internal HTTPS server. This also enables TLS on the main container.
+func WithServerSslCrtSecret(secretName string) ZitadelOption {
+	return func(c *zitadelConfig) {
+		c.serverSslCrtSecret = secretName
+		c.tlsEnabled = true
+	}
+}
+
+// WithLoginServerSslCrtSecret references an existing TLS secret for the Login
+// UI's internal HTTPS server.
+func WithLoginServerSslCrtSecret(secretName string) ZitadelOption {
+	return func(c *zitadelConfig) {
+		c.loginServerSslCrtSecret = secretName
+	}
+}
+
+// WithCaBundleSecret references an existing secret containing a custom CA
+// bundle for TLS verification in both ZITADEL and Login containers.
+func WithCaBundleSecret(secretName string) ZitadelOption {
+	return func(c *zitadelConfig) {
+		c.caBundleSecret = secretName
 	}
 }
 
@@ -170,6 +198,18 @@ func InstallZitadel(t *testing.T, k *k8s.KubectlOptions, opts ...ZitadelOption) 
 	if cfg.selfSignedCert {
 		values["zitadel.selfSignedCert.enabled"] = "true"
 		values["service.annotations.traefik\\.ingress\\.kubernetes\\.io/service\\.serversscheme"] = "https"
+	}
+
+	if cfg.serverSslCrtSecret != "" {
+		values["zitadel.serverSslCrtSecret"] = cfg.serverSslCrtSecret
+		values["service.annotations.traefik\\.ingress\\.kubernetes\\.io/service\\.serversscheme"] = "https"
+	}
+	if cfg.loginServerSslCrtSecret != "" {
+		values["login.serverSslCrtSecret"] = cfg.loginServerSslCrtSecret
+		values["login.service.annotations.traefik\\.ingress\\.kubernetes\\.io/service\\.serversscheme"] = "https"
+	}
+	if cfg.caBundleSecret != "" {
+		values["caBundleSecret"] = cfg.caBundleSecret
 	}
 
 	if cfg.masterkeySecretName != "" {

@@ -53,6 +53,18 @@ spec:
           env:
             - name: NEXT_PUBLIC_BASE_PATH
               value: /ui/v2/login
+            {{- if .Values.login.serverSslCrtSecret }}
+            - name: ZITADEL_TLS_ENABLED
+              value: "true"
+            - name: ZITADEL_TLS_CERTPATH
+              value: /server-ssl-crt/tls.crt
+            - name: ZITADEL_TLS_KEYPATH
+              value: /server-ssl-crt/tls.key
+            {{- end }}
+            {{- if .Values.caBundleSecret }}
+            - name: SSL_CERT_DIR
+              value: /etc/ssl/certs
+            {{- end }}
             {{- with .Values.login.env }}
               {{- toYaml . | nindent 12 }}
             {{- end }}
@@ -65,7 +77,11 @@ spec:
             httpGet:
               path: {{ include "login.livenessProbePath" . }}
               port: {{ .Values.login.service.protocol }}-server
+              {{- if .Values.login.serverSslCrtSecret }}
+              scheme: HTTPS
+              {{- else }}
               scheme: {{ .Values.login.service.scheme }}
+              {{- end }}
             initialDelaySeconds: {{ .Values.login.livenessProbe.initialDelaySeconds }}
             periodSeconds: {{ .Values.login.livenessProbe.periodSeconds }}
             failureThreshold: {{ .Values.login.livenessProbe.failureThreshold }}
@@ -75,7 +91,11 @@ spec:
             httpGet:
               path: {{ include "login.readinessProbePath" . }}
               port: {{ .Values.login.service.protocol }}-server
+              {{- if .Values.login.serverSslCrtSecret }}
+              scheme: HTTPS
+              {{- else }}
               scheme: {{ .Values.login.service.scheme }}
+              {{- end }}
             initialDelaySeconds: {{ .Values.login.readinessProbe.initialDelaySeconds }}
             periodSeconds: {{ .Values.login.readinessProbe.periodSeconds }}
             failureThreshold: {{ .Values.login.readinessProbe.failureThreshold }}
@@ -85,7 +105,11 @@ spec:
             httpGet:
               path: {{ include "login.startupProbePath" . }}
               port: {{ .Values.login.service.protocol }}-server
+              {{- if .Values.login.serverSslCrtSecret }}
+              scheme: HTTPS
+              {{- else }}
               scheme: {{ .Values.login.service.scheme }}
+              {{- end }}
             periodSeconds: {{ .Values.login.startupProbe.periodSeconds }}
             failureThreshold: {{ .Values.login.startupProbe.failureThreshold }}
           {{- end }}
@@ -100,6 +124,17 @@ spec:
           {{- end }}
           {{- with .Values.login.extraVolumeMounts }}
           {{- toYaml . | nindent 10 }}
+          {{- end }}
+          {{- if .Values.login.serverSslCrtSecret }}
+          - name: server-ssl-crt
+            mountPath: /server-ssl-crt
+            readOnly: true
+          {{- end }}
+          {{- if .Values.caBundleSecret }}
+          - name: ca-bundle
+            mountPath: /etc/ssl/certs/custom-ca.crt
+            subPath: ca.crt
+            readOnly: true
           {{- end }}
           resources:
             {{- toYaml .Values.login.resources | nindent 14 }}
@@ -121,8 +156,10 @@ spec:
             - http
             - {{ include "zitadel.clusterEndpoint" . }}
             - --insecure-skip-tls-verify
+            {{- if not ((((.Values.zitadel).configmapConfig).TLS).Enabled) }}
             - --h2c
             - --no-redirect
+            {{- end }}
             - --expect-status-code
             - "200"
             - --timeout
@@ -150,6 +187,18 @@ spec:
       {{- end }}
       {{- with .Values.login.extraVolumes }}
       {{- toYaml . | nindent 6 }}
+      {{- end }}
+      {{- if .Values.login.serverSslCrtSecret }}
+      - name: server-ssl-crt
+        secret:
+          secretName: {{ .Values.login.serverSslCrtSecret }}
+          defaultMode: 0440
+      {{- end }}
+      {{- if .Values.caBundleSecret }}
+      - name: ca-bundle
+        secret:
+          secretName: {{ .Values.caBundleSecret }}
+          defaultMode: 0440
       {{- end }}
       {{- with .Values.login.nodeSelector }}
       nodeSelector:
