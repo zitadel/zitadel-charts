@@ -29,6 +29,12 @@ For more sophisticated production-ready configurations, follow one of the follow
 
 All the configurations from the examples above are guaranteed to work, because they are directly used in automatic acceptance tests.
 
+## Upgrade From V9 to V10
+
+- The `zitadel.debug.enabled` value and the associated debug ReplicaSet have been removed.
+  If your `values.yaml` contains any `zitadel.debug.*` entries, remove them before upgrading.
+- For troubleshooting, use `kubectl exec` to run commands directly in ZITADEL pods instead.
+
 ## Upgrade From V8 to V9
 
 The v9 charts default Zitadel and login versions reference [Zitadel v4](https://github.com/zitadel/zitadel/releases/tag/v4.0.0).
@@ -166,6 +172,11 @@ done
 ### migration already started, will check again in 5 seconds
 
 If you see this error message in the logs of the setup job, you need to reset the last migration step once you resolved the issue.
+To do so, exec into a running ZITADEL pod and run the cleanup command:
+
+```bash
+kubectl exec -it deploy/my-zitadel -c zitadel -- zitadel setup cleanup --config /config/zitadel-config-yaml
+```
 
 ### Multiple Releases in Single Namespace
 

@@ -2,7 +2,7 @@
 
 # Zitadel
 
-![Version: 9.27.0](https://img.shields.io/badge/Version-9.27.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: v4.12.1](https://img.shields.io/badge/AppVersion-v4.12.1-informational?style=flat-square)
+![Version: 10.0.0](https://img.shields.io/badge/Version-10.0.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: v4.12.1](https://img.shields.io/badge/AppVersion-v4.12.1-informational?style=flat-square)
 
 ## A Better Identity and Access Management Solution
 
@@ -28,6 +28,12 @@ For more sophisticated production-ready configurations, follow one of the follow
 - [Internal TLS Example](/examples/5-internal-tls/README.md)
 
 All the configurations from the examples above are guaranteed to work, because they are directly used in automatic acceptance tests.
+
+## Upgrade From V9 to V10
+
+- The `zitadel.debug.enabled` value and the associated debug ReplicaSet have been removed.
+  If your `values.yaml` contains any `zitadel.debug.*` entries, remove them before upgrading.
+- For troubleshooting, use `kubectl exec` to run commands directly in ZITADEL pods instead.
 
 ## Upgrade From V8 to V9
 
@@ -415,6 +421,11 @@ Kubernetes: `>= 1.30.0-0`
 ### migration already started, will check again in 5 seconds
 
 If you see this error message in the logs of the setup job, you need to reset the last migration step once you resolved the issue.
+To do so, exec into a running ZITADEL pod and run the cleanup command:
+
+```bash
+kubectl exec -it deploy/my-zitadel -c zitadel -- zitadel setup cleanup --config /config/zitadel-config-yaml
+```
 
 ### Multiple Releases in Single Namespace
 
