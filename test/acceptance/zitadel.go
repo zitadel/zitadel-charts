@@ -24,7 +24,8 @@ type zitadelConfig struct {
 	tlsEnabled           bool
 	selfSignedCert       bool
 	serverSslCrtSecret   string
-	loginServerCrtSecret string
+	loginServerSslCrtSecret string
+	caBundleSecret       string
 	masterkeySecretName  string
 	configSecretName    string
 	configSecretKey     string
@@ -82,7 +83,15 @@ func WithServerSslCrtSecret(secretName string) ZitadelOption {
 // UI's internal HTTPS server.
 func WithLoginServerSslCrtSecret(secretName string) ZitadelOption {
 	return func(c *zitadelConfig) {
-		c.loginServerCrtSecret = secretName
+		c.loginServerSslCrtSecret = secretName
+	}
+}
+
+// WithCaBundleSecret references an existing secret containing a custom CA
+// bundle for TLS verification in both ZITADEL and Login containers.
+func WithCaBundleSecret(secretName string) ZitadelOption {
+	return func(c *zitadelConfig) {
+		c.caBundleSecret = secretName
 	}
 }
 
@@ -195,9 +204,12 @@ func InstallZitadel(t *testing.T, k *k8s.KubectlOptions, opts ...ZitadelOption) 
 		values["zitadel.serverSslCrtSecret"] = cfg.serverSslCrtSecret
 		values["service.annotations.traefik\\.ingress\\.kubernetes\\.io/service\\.serversscheme"] = "https"
 	}
-	if cfg.loginServerCrtSecret != "" {
-		values["login.serverSslCrtSecret"] = cfg.loginServerCrtSecret
+	if cfg.loginServerSslCrtSecret != "" {
+		values["login.serverSslCrtSecret"] = cfg.loginServerSslCrtSecret
 		values["login.service.annotations.traefik\\.ingress\\.kubernetes\\.io/service\\.serversscheme"] = "https"
+	}
+	if cfg.caBundleSecret != "" {
+		values["zitadel.caBundleSecret"] = cfg.caBundleSecret
 	}
 
 	if cfg.masterkeySecretName != "" {

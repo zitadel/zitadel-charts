@@ -835,7 +835,7 @@
                     "type": "object"
                 },
                 "serverSslCrtSecret": {
-                    "description": "Name of a Kubernetes Secret containing the TLS certificate for the Login UI's internal HTTPS server. The secret must contain keys \"tls.crt\" (certificate) and \"tls.key\" (private key). When the secret also contains \"ca.crt\", it is mounted into /etc/ssl/certs/ for backend trust.",
+                    "description": "Name of a Kubernetes Secret containing the TLS certificate for the Login UI's internal HTTPS server. The secret must contain keys \"tls.crt\" (certificate) and \"tls.key\" (private key). The secret is mounted at /server-ssl-crt inside the container. To trust a custom CA for backend communication, use zitadel.caBundleSecret.",
                     "type": "string"
                 },
                 "service": {
@@ -1490,6 +1490,10 @@
                             ]
                         }
                     }
+                },
+                "caBundleSecret": {
+                    "description": "Name of a Kubernetes Secret containing a custom CA bundle for TLS verification. The secret must contain a key \"ca.crt\" with PEM-encoded CA certificates. When set, the bundle is mounted into both the ZITADEL and Login containers and SSL_CERT_FILE is configured to use it. This allows containers to trust custom CAs for internal communication (e.g., when using serverSslCrtSecret with certificates signed by a private CA).",
+                    "type": "string"
                 },
                 "configSecretKey": {
                     "description": "The key within the configSecretName secret that contains the ZITADEL configuration YAML. The default \"config-yaml\" matches the expected format.",

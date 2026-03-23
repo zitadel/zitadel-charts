@@ -2,7 +2,7 @@
 
 # Zitadel
 
-![Version: 9.27.1](https://img.shields.io/badge/Version-9.27.1-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: v4.12.1](https://img.shields.io/badge/AppVersion-v4.12.1-informational?style=flat-square)
+![Version: 9.28.0](https://img.shields.io/badge/Version-9.28.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: v4.12.1](https://img.shields.io/badge/AppVersion-v4.12.1-informational?style=flat-square)
 
 ## A Better Identity and Access Management Solution
 
@@ -284,7 +284,7 @@ Kubernetes: `>= 1.30.0-0`
 | login.resources | ResourceRequirements | `{}` | CPU and memory resource requests and limits for the Login UI container. Ref: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/ |
 | login.revisionHistoryLimit | int | `10` | Number of old ReplicaSets to retain for rollback purposes. Set to 0 to disable rollback capability and save cluster resources. |
 | login.securityContext | SecurityContext | `{}` | Optional container-level security context overrides for the Login UI container. If left empty, the chart-wide securityContext defined below is used instead. Use this to customize security settings specifically for the Login UI container. Ref: https://kubernetes.io/docs/tasks/configure-pod-container/security-context/ |
-| login.serverSslCrtSecret | string | `""` | Name of a Kubernetes Secret containing the TLS certificate for the Login UI's internal HTTPS server. The secret must contain keys "tls.crt" (certificate) and "tls.key" (private key). When the secret also contains "ca.crt", it is mounted into /etc/ssl/certs/ for backend trust. |
+| login.serverSslCrtSecret | string | `""` | Name of a Kubernetes Secret containing the TLS certificate for the Login UI's internal HTTPS server. The secret must contain keys "tls.crt" (certificate) and "tls.key" (private key). The secret is mounted at /server-ssl-crt inside the container. To trust a custom CA for backend communication, use zitadel.caBundleSecret. |
 | login.service.annotations | map[string]string | `{}` | Annotations to add to the Service resource. |
 | login.service.appProtocol | string | `"kubernetes.io/http"` | Application protocol hint for ingress controllers and service meshes. Helps with protocol detection and routing decisions. |
 | login.service.clusterIP | string | `""` | Fixed cluster IP address for ClusterIP services. Leave empty for automatic assignment. Only applicable when type is "ClusterIP". |
@@ -389,6 +389,7 @@ Kubernetes: `>= 1.30.0-0`
 | zitadel.autoscaling.minReplicas | int | `3` | The minimum number of pod replicas. |
 | zitadel.autoscaling.targetCPU | string | `nil` | The target average CPU utilization percentage. |
 | zitadel.autoscaling.targetMemory | string | `nil` | The target average memory utilization percentage. |
+| zitadel.caBundleSecret | string | `""` | Name of a Kubernetes Secret containing a custom CA bundle for TLS verification. The secret must contain a key "ca.crt" with PEM-encoded CA certificates. When set, the bundle is mounted into both the ZITADEL and Login containers and SSL_CERT_FILE is configured to use it. This allows containers to trust custom CAs for internal communication (e.g., when using serverSslCrtSecret with certificates signed by a private CA). |
 | zitadel.configSecretKey | string | `"config-yaml"` | The key within the configSecretName secret that contains the ZITADEL configuration YAML. The default "config-yaml" matches the expected format. |
 | zitadel.configSecretName | string | `nil` | Name of an existing Kubernetes Secret containing ZITADEL configuration. Use this when you want to manage ZITADEL configuration externally (e.g., via External Secrets Operator, Sealed Secrets, or GitOps). The secret should contain YAML configuration in the same format as configmapConfig. |
 | zitadel.configmapConfig | object | `{"Database":{"Postgres":{"Host":"","Port":5432}},"ExternalDomain":"","ExternalSecure":true,"FirstInstance":{"LoginClientPatPath":null,"MachineKeyPath":null,"Org":{"LoginClient":{"Machine":{"Name":"Automatically Initialized IAM Login Client","Username":"login-client"},"Pat":{"ExpirationDate":"2029-01-01T00:00:00Z"}},"Machine":{"Machine":{"Name":"Automatically Initialized IAM Admin","Username":"iam-admin"},"MachineKey":{"ExpirationDate":"2029-01-01T00:00:00Z","Type":1},"Pat":{"ExpirationDate":"2029-01-01T00:00:00Z"}},"Skip":null},"PatPath":null,"Skip":false},"Machine":{"Identification":{"Hostname":{"Enabled":true},"Webhook":{"Enabled":false}}},"TLS":{"Enabled":false}}` | ZITADEL runtime configuration written to a Kubernetes ConfigMap. These values are passed directly to the ZITADEL binary and control its behavior. For the complete list of available configuration options, see: https://github.com/zitadel/zitadel/blob/main/cmd/defaults.yaml |

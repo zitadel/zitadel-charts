@@ -63,8 +63,10 @@ spec:
               value: /server-ssl-crt/tls.crt
             - name: ZITADEL_TLS_KEYPATH
               value: /server-ssl-crt/tls.key
+            {{- end }}
+            {{- if .Values.zitadel.caBundleSecret }}
             - name: SSL_CERT_FILE
-              value: /server-ssl-crt/ca.crt
+              value: /etc/ssl/certs/custom-ca.crt
             {{- end }}
           ports:
           - containerPort: {{ include "login.containerPort" . }}
@@ -128,6 +130,12 @@ spec:
             mountPath: /server-ssl-crt
             readOnly: true
           {{- end }}
+          {{- if .Values.zitadel.caBundleSecret }}
+          - name: ca-bundle
+            mountPath: /etc/ssl/certs/custom-ca.crt
+            subPath: ca.crt
+            readOnly: true
+          {{- end }}
           resources:
             {{- toYaml .Values.login.resources | nindent 14 }}
       initContainers:
@@ -182,6 +190,12 @@ spec:
       - name: server-ssl-crt
         secret:
           secretName: {{ .Values.login.serverSslCrtSecret }}
+          defaultMode: 0440
+      {{- end }}
+      {{- if .Values.zitadel.caBundleSecret }}
+      - name: ca-bundle
+        secret:
+          secretName: {{ .Values.zitadel.caBundleSecret }}
           defaultMode: 0440
       {{- end }}
       {{- with .Values.login.nodeSelector }}

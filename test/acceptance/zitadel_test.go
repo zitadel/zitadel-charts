@@ -166,10 +166,10 @@ func TestMachineUser(t *testing.T) {
 // TestCrossContainerTLS validates that both the ZITADEL backend and Login UI
 // containers can serve HTTPS using pre-generated TLS certificates. A test CA
 // signs certificates for both containers, which are loaded from Kubernetes TLS
-// secrets. The CA is also mounted into the Login container's system trust store
-// (/etc/ssl/certs/) so that Login can verify the ZITADEL backend's certificate
-// when making API calls. This tests end-to-end internal TLS without relying on
-// the chart's self-signed certificate generation.
+// secrets. The CA bundle is provided via caBundleSecret and mounted into both
+// containers, allowing the Login UI to verify the ZITADEL backend's certificate
+// when making internal API calls. This tests end-to-end internal TLS without
+// relying on the chart's self-signed certificate generation.
 //
 //goland:noinspection DuplicatedCode
 func TestCrossContainerTLS(t *testing.T) {
@@ -189,6 +189,9 @@ func TestCrossContainerTLS(t *testing.T) {
 
 		testcluster.CreateTLSSecret(t, k, "zitadel-server-cert", ca.Cert, zitadelCert.Cert, zitadelCert.Key)
 		testcluster.CreateTLSSecret(t, k, "login-server-cert", ca.Cert, loginCert.Cert, loginCert.Key)
+		testcluster.CreateOpaqueSecret(t, k, "ca-bundle", map[string]string{
+			"ca.crt": string(ca.Cert),
+		})
 
 		InstallPostgres(t, k)
 		InstallZitadel(t, k,
@@ -196,6 +199,7 @@ func TestCrossContainerTLS(t *testing.T) {
 			WithExternalPort(httpsPort),
 			WithServerSslCrtSecret("zitadel-server-cert"),
 			WithLoginServerSslCrtSecret("login-server-cert"),
+			WithCaBundleSecret("ca-bundle"),
 			WithMachineUser("Admin", machineUsername),
 		)
 
