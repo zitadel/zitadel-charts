@@ -19,11 +19,13 @@ const (
 type ZitadelOption func(*zitadelConfig)
 
 type zitadelConfig struct {
-	externalDomain      string
-	externalPort        string
-	tlsEnabled          bool
-	selfSignedCert      bool
-	masterkeySecretName string
+	externalDomain       string
+	externalPort         string
+	tlsEnabled           bool
+	selfSignedCert       bool
+	serverSslCrtSecret   string
+	loginServerCrtSecret string
+	masterkeySecretName  string
 	configSecretName    string
 	configSecretKey     string
 	dbSSLMode           string
@@ -64,6 +66,23 @@ func WithSelfSignedCert(additionalDNSName string) ZitadelOption {
 		if additionalDNSName != "" {
 			c.additionalValues["zitadel.selfSignedCert.additionalDnsName"] = additionalDNSName
 		}
+	}
+}
+
+// WithServerSslCrtSecret references an existing TLS secret for ZITADEL's
+// internal HTTPS server. This also enables TLS on the main container.
+func WithServerSslCrtSecret(secretName string) ZitadelOption {
+	return func(c *zitadelConfig) {
+		c.serverSslCrtSecret = secretName
+		c.tlsEnabled = true
+	}
+}
+
+// WithLoginServerSslCrtSecret references an existing TLS secret for the Login
+// UI's internal HTTPS server.
+func WithLoginServerSslCrtSecret(secretName string) ZitadelOption {
+	return func(c *zitadelConfig) {
+		c.loginServerCrtSecret = secretName
 	}
 }
 
@@ -170,6 +189,15 @@ func InstallZitadel(t *testing.T, k *k8s.KubectlOptions, opts ...ZitadelOption) 
 	if cfg.selfSignedCert {
 		values["zitadel.selfSignedCert.enabled"] = "true"
 		values["service.annotations.traefik\\.ingress\\.kubernetes\\.io/service\\.serversscheme"] = "https"
+	}
+
+	if cfg.serverSslCrtSecret != "" {
+		values["zitadel.serverSslCrtSecret"] = cfg.serverSslCrtSecret
+		values["service.annotations.traefik\\.ingress\\.kubernetes\\.io/service\\.serversscheme"] = "https"
+	}
+	if cfg.loginServerCrtSecret != "" {
+		values["login.serverSslCrtSecret"] = cfg.loginServerCrtSecret
+		values["login.service.annotations.traefik\\.ingress\\.kubernetes\\.io/service\\.serversscheme"] = "https"
 	}
 
 	if cfg.masterkeySecretName != "" {

@@ -2,7 +2,7 @@
 
 # Zitadel
 
-![Version: 9.27.0](https://img.shields.io/badge/Version-9.27.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: v4.12.1](https://img.shields.io/badge/AppVersion-v4.12.1-informational?style=flat-square)
+![Version: 9.27.1](https://img.shields.io/badge/Version-9.27.1-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: v4.12.1](https://img.shields.io/badge/AppVersion-v4.12.1-informational?style=flat-square)
 
 ## A Better Identity and Access Management Solution
 
@@ -284,6 +284,7 @@ Kubernetes: `>= 1.30.0-0`
 | login.resources | ResourceRequirements | `{}` | CPU and memory resource requests and limits for the Login UI container. Ref: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/ |
 | login.revisionHistoryLimit | int | `10` | Number of old ReplicaSets to retain for rollback purposes. Set to 0 to disable rollback capability and save cluster resources. |
 | login.securityContext | SecurityContext | `{}` | Optional container-level security context overrides for the Login UI container. If left empty, the chart-wide securityContext defined below is used instead. Use this to customize security settings specifically for the Login UI container. Ref: https://kubernetes.io/docs/tasks/configure-pod-container/security-context/ |
+| login.serverSslCrtSecret | string | `""` | Name of a Kubernetes Secret containing the TLS certificate for the Login UI's internal HTTPS server. The secret must contain keys "tls.crt" (certificate) and "tls.key" (private key). When the secret also contains "ca.crt", it is mounted into /etc/ssl/certs/ for backend trust. |
 | login.service.annotations | map[string]string | `{}` | Annotations to add to the Service resource. |
 | login.service.appProtocol | string | `"kubernetes.io/http"` | Application protocol hint for ingress controllers and service meshes. Helps with protocol detection and routing decisions. |
 | login.service.clusterIP | string | `""` | Fixed cluster IP address for ClusterIP services. Leave empty for automatic assignment. Only applicable when type is "ClusterIP". |

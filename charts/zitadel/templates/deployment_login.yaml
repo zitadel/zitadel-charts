@@ -56,6 +56,16 @@ spec:
             {{- with .Values.login.env }}
               {{- toYaml . | nindent 12 }}
             {{- end }}
+            {{- if .Values.login.serverSslCrtSecret }}
+            - name: ZITADEL_TLS_ENABLED
+              value: "true"
+            - name: ZITADEL_TLS_CERTPATH
+              value: /server-ssl-crt/tls.crt
+            - name: ZITADEL_TLS_KEYPATH
+              value: /server-ssl-crt/tls.key
+            - name: SSL_CERT_FILE
+              value: /server-ssl-crt/ca.crt
+            {{- end }}
           ports:
           - containerPort: {{ include "login.containerPort" . }}
             name: {{ .Values.login.service.protocol }}-server
@@ -65,7 +75,11 @@ spec:
             httpGet:
               path: {{ include "login.livenessProbePath" . }}
               port: {{ .Values.login.service.protocol }}-server
+              {{- if .Values.login.serverSslCrtSecret }}
+              scheme: HTTPS
+              {{- else }}
               scheme: {{ .Values.login.service.scheme }}
+              {{- end }}
             initialDelaySeconds: {{ .Values.login.livenessProbe.initialDelaySeconds }}
             periodSeconds: {{ .Values.login.livenessProbe.periodSeconds }}
             failureThreshold: {{ .Values.login.livenessProbe.failureThreshold }}
@@ -75,7 +89,11 @@ spec:
             httpGet:
               path: {{ include "login.readinessProbePath" . }}
               port: {{ .Values.login.service.protocol }}-server
+              {{- if .Values.login.serverSslCrtSecret }}
+              scheme: HTTPS
+              {{- else }}
               scheme: {{ .Values.login.service.scheme }}
+              {{- end }}
             initialDelaySeconds: {{ .Values.login.readinessProbe.initialDelaySeconds }}
             periodSeconds: {{ .Values.login.readinessProbe.periodSeconds }}
             failureThreshold: {{ .Values.login.readinessProbe.failureThreshold }}
@@ -85,7 +103,11 @@ spec:
             httpGet:
               path: {{ include "login.startupProbePath" . }}
               port: {{ .Values.login.service.protocol }}-server
+              {{- if .Values.login.serverSslCrtSecret }}
+              scheme: HTTPS
+              {{- else }}
               scheme: {{ .Values.login.service.scheme }}
+              {{- end }}
             periodSeconds: {{ .Values.login.startupProbe.periodSeconds }}
             failureThreshold: {{ .Values.login.startupProbe.failureThreshold }}
           {{- end }}
@@ -100,6 +122,11 @@ spec:
           {{- end }}
           {{- with .Values.login.extraVolumeMounts }}
           {{- toYaml . | nindent 10 }}
+          {{- end }}
+          {{- if .Values.login.serverSslCrtSecret }}
+          - name: server-ssl-crt
+            mountPath: /server-ssl-crt
+            readOnly: true
           {{- end }}
           resources:
             {{- toYaml .Values.login.resources | nindent 14 }}
@@ -150,6 +177,12 @@ spec:
       {{- end }}
       {{- with .Values.login.extraVolumes }}
       {{- toYaml . | nindent 6 }}
+      {{- end }}
+      {{- if .Values.login.serverSslCrtSecret }}
+      - name: server-ssl-crt
+        secret:
+          secretName: {{ .Values.login.serverSslCrtSecret }}
+          defaultMode: 0440
       {{- end }}
       {{- with .Values.login.nodeSelector }}
       nodeSelector:

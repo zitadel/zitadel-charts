@@ -834,6 +834,10 @@
                     "$ref": "https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/v1.30.0/_definitions.json#/definitions/io.k8s.api.core.v1.SecurityContext",
                     "type": "object"
                 },
+                "serverSslCrtSecret": {
+                    "description": "Name of a Kubernetes Secret containing the TLS certificate for the Login UI's internal HTTPS server. The secret must contain keys \"tls.crt\" (certificate) and \"tls.key\" (private key). When the secret also contains \"ca.crt\", it is mounted into /etc/ssl/certs/ for backend trust.",
+                    "type": "string"
+                },
                 "service": {
                     "type": "object",
                     "properties": {
