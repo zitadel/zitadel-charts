@@ -2,7 +2,7 @@
 
 # Zitadel
 
-![Version: 9.27.0](https://img.shields.io/badge/Version-9.27.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: v4.12.1](https://img.shields.io/badge/AppVersion-v4.12.1-informational?style=flat-square)
+![Version: 10.0.0](https://img.shields.io/badge/Version-10.0.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: v4.12.1](https://img.shields.io/badge/AppVersion-v4.12.1-informational?style=flat-square)
 
 ## A Better Identity and Access Management Solution
 
@@ -28,6 +28,12 @@ For more sophisticated production-ready configurations, follow one of the follow
 - [Internal TLS Example](/examples/5-internal-tls/README.md)
 
 All the configurations from the examples above are guaranteed to work, because they are directly used in automatic acceptance tests.
+
+## Upgrade From V9 to V10
+
+- The `zitadel.debug.enabled` value and the associated debug ReplicaSet have been removed.
+  If your `values.yaml` contains any `zitadel.debug.*` entries, remove them before upgrading.
+- For troubleshooting, use `kubectl exec` to run commands directly in ZITADEL pods instead.
 
 ## Upgrade From V8 to V9
 
@@ -396,12 +402,8 @@ Kubernetes: `>= 1.30.0-0`
 | zitadel.dbSslCaCrtAnnotations | map[string]string | `{"helm.sh/hook":"pre-install,pre-upgrade","helm.sh/hook-delete-policy":"before-hook-creation","helm.sh/hook-weight":"0"}` | Annotations for the dbSslCaCrt Secret when created from the inline certificate. The default Helm hooks ensure the secret exists before pods start. |
 | zitadel.dbSslCaCrtSecret | string | `""` | Name of an existing Kubernetes Secret containing the database CA certificate at key "ca.crt". Use this instead of dbSslCaCrt when the certificate is managed externally (e.g., by cert-manager or an operator). The secret must exist in the same namespace as the ZITADEL release. |
 | zitadel.dbSslUserCrtSecret | string | `""` | Name of a Kubernetes Secret containing the application user's client certificate for mutual TLS (mTLS) authentication to the database. The secret must contain keys "tls.crt" (certificate) and "tls.key" (private key). Used by the main ZITADEL deployment and setup job for normal database operations. |
-| zitadel.debug.annotations | map[string]string | `{"helm.sh/hook":"pre-install,pre-upgrade","helm.sh/hook-weight":"1"}` | Annotations for the debug pod. The Helm hooks ensure it's created during install/upgrade and cleaned up appropriately. |
-| zitadel.debug.enabled | bool | `false` | Enable or disable the debug pod. Only enable for troubleshooting; disable in production environments. |
-| zitadel.debug.extraContainers | []Container | `[]` | Sidecar containers to run alongside the debug container. |
-| zitadel.debug.initContainers | []Container | `[]` | Init containers to run before the debug container starts. |
-| zitadel.extraContainers | []Container | `[]` | Global sidecar containers added to all ZITADEL workloads (Deployment, init job, setup job, and debug pod when enabled). Use this for shared services like database proxies (e.g., cloud-sql-proxy) that all workloads need to connect to the database. |
-| zitadel.initContainers | []Container | `[]` | Global init containers added to all ZITADEL workloads (Deployment, init job, setup job, and debug pod when enabled). Use this for shared dependencies like database readiness checks or certificate initialization that all workloads need. |
+| zitadel.extraContainers | []Container | `[]` | Global sidecar containers added to all ZITADEL workloads (Deployment, init job, and setup job). Use this for shared services like database proxies (e.g., cloud-sql-proxy) that all workloads need to connect to the database. |
+| zitadel.initContainers | []Container | `[]` | Global init containers added to all ZITADEL workloads (Deployment, init job, and setup job). Use this for shared dependencies like database readiness checks or certificate initialization that all workloads need. |
 | zitadel.masterkey | string | `""` | ZITADEL's masterkey for symmetric encryption of sensitive data like private keys and tokens. Must be exactly 32 bytes. Using printable ASCII characters is recommended (alphanumeric). Do NOT use multi-byte Unicode characters, as the key length is measured in bytes, not characters. Generate with: tr -dc A-Za-z0-9 </dev/urandom | head -c 32 IMPORTANT: Store this value securely. Loss of the masterkey means loss of all encrypted data. Either set this value or use masterkeySecretName. |
 | zitadel.masterkeyAnnotations | map[string]string | `{"helm.sh/hook":"pre-install","helm.sh/hook-weight":"0"}` | Annotations for the masterkey Secret when created from zitadel.masterkey. The secret is created once on install and is immutable. |
 | zitadel.masterkeySecretName | string | `""` | Name of an existing Kubernetes Secret containing the masterkey at key "masterkey". Use this for production deployments to avoid storing the masterkey in values files. The secret must exist before chart installation. Note: Either zitadel.masterkey or zitadel.masterkeySecretName must be set. |
@@ -416,23 +418,13 @@ Kubernetes: `>= 1.30.0-0`
 
 ## Troubleshooting
 
-### Debug Pod
-
-For troubleshooting, you can deploy a debug pod by setting the `zitadel.debug.enabled` property to `true`.
-You can then use this pod to inspect the Zitadel configuration and run zitadel commands using the zitadel binary.
-For more information, print the debug pods logs using something like the following command:
-
-```bash
-kubectl logs rs/my-zitadel-debug
-```
-
 ### migration already started, will check again in 5 seconds
 
 If you see this error message in the logs of the setup job, you need to reset the last migration step once you resolved the issue.
-To do so, start a [debug pod](#debug-pod) and run something like the following command:
+To do so, exec into a running ZITADEL pod and run the cleanup command:
 
 ```bash
-kubectl exec -it my-zitadel-debug -- zitadel setup cleanup --config /config/zitadel-config-yaml
+kubectl exec -it deploy/my-zitadel -c zitadel -- zitadel setup cleanup --config /config/zitadel-config-yaml
 ```
 
 ### Multiple Releases in Single Namespace

@@ -100,13 +100,6 @@ Start component labels
 {{ include "componentSelectorLabel" "start" }}
 {{- end }}
 
-{{/*
-Debug component labels
-*/}}
-{{- define "zitadel.debug.labels" -}}
-{{ include "zitadel.labels" . }}
-{{ include "componentSelectorLabel" "debug" }}
-{{- end }}
 
 {{/*
 Zitadel service labels
@@ -162,13 +155,6 @@ Start component selector labels
 {{ include "componentSelectorLabel" "start" }}
 {{- end }}
 
-{{/*
-Debug component selector labels
-*/}}
-{{- define "zitadel.debug.selectorLabels" -}}
-{{ include "zitadel.commonSelectorLabels" . }}
-{{ include "componentSelectorLabel" "debug" }}
-{{- end }}
 
 {{/*
 Login component selector labels
