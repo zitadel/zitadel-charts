@@ -19,8 +19,11 @@ import (
 // exposure, port-forwarding, or tools inside the container.
 //
 //   - ZITADEL: /debug/metrics on port 8080
-//   - Login:   /metrics on port 3000
-func CheckMetrics(ctx context.Context, t *testing.T, k *k8s.KubectlOptions) {
+//   - Login:   /metrics on port 9464
+//
+// When useTLS is true, the ZITADEL proxy request uses HTTPS (required when
+// the server has internal TLS enabled via selfSignedCert).
+func CheckMetrics(ctx context.Context, t *testing.T, k *k8s.KubectlOptions, useTLS bool) {
 	t.Helper()
 	ctx, cancel := context.WithTimeout(ctx, 2*time.Minute)
 	defer cancel()
@@ -39,8 +42,13 @@ func CheckMetrics(ctx context.Context, t *testing.T, k *k8s.KubectlOptions) {
 				return fmt.Errorf("no zitadel pods found")
 			}
 
+			scheme := ""
+			if useTLS {
+				scheme = "https"
+			}
+
 			body, err := clientset.CoreV1().Pods(k.Namespace).
-				ProxyGet("", pods[0].Name, "8080", "/debug/metrics", nil).
+				ProxyGet(scheme, pods[0].Name, "8080", "/debug/metrics", nil).
 				DoRaw(ctx)
 			if err != nil {
 				return fmt.Errorf("proxy request failed: %w", err)

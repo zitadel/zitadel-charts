@@ -29,7 +29,7 @@ func TestPostgresInsecure(t *testing.T) {
 		)
 
 		t.Run("accessibility", func(t *testing.T) { CheckAccessibility(ctx, t, k, apiBaseURL) })
-		t.Run("metrics", func(t *testing.T) { CheckMetrics(ctx, t, k) })
+		t.Run("metrics", func(t *testing.T) { CheckMetrics(ctx, t, k, false) })
 		t.Run("login", func(t *testing.T) { CheckLogin(t, apiBaseURL) })
 		t.Run("authenticated-api", func(t *testing.T) {
 			CheckAuthenticatedAPI(ctx, t, k, apiBaseURL, machineUsername, machineUsername+".json")
@@ -78,7 +78,7 @@ func TestPostgresSecure(t *testing.T) {
 		)
 
 		t.Run("accessibility", func(t *testing.T) { CheckAccessibility(ctx, t, k, apiBaseURL) })
-		t.Run("metrics", func(t *testing.T) { CheckMetrics(ctx, t, k) })
+		t.Run("metrics", func(t *testing.T) { CheckMetrics(ctx, t, k, false) })
 		t.Run("login", func(t *testing.T) { CheckLogin(t, apiBaseURL) })
 		t.Run("authenticated-api", func(t *testing.T) {
 			CheckAuthenticatedAPI(ctx, t, k, apiBaseURL, machineUsername, machineUsername+".json")
@@ -123,7 +123,7 @@ func TestReferencedSecrets(t *testing.T) {
 		)
 
 		t.Run("accessibility", func(t *testing.T) { CheckAccessibility(ctx, t, k, apiBaseURL) })
-		t.Run("metrics", func(t *testing.T) { CheckMetrics(ctx, t, k) })
+		t.Run("metrics", func(t *testing.T) { CheckMetrics(ctx, t, k, false) })
 		t.Run("login", func(t *testing.T) { CheckLogin(t, apiBaseURL) })
 		t.Run("authenticated-api", func(t *testing.T) {
 			CheckAuthenticatedAPI(ctx, t, k, apiBaseURL, machineUsername, machineUsername+".json")
@@ -156,7 +156,7 @@ func TestMachineUser(t *testing.T) {
 		)
 
 		t.Run("accessibility", func(t *testing.T) { CheckAccessibility(ctx, t, k, apiBaseURL) })
-		t.Run("metrics", func(t *testing.T) { CheckMetrics(ctx, t, k) })
+		t.Run("metrics", func(t *testing.T) { CheckMetrics(ctx, t, k, false) })
 		t.Run("login", func(t *testing.T) { CheckLogin(t, apiBaseURL) })
 		t.Run("authenticated-api", func(t *testing.T) {
 			CheckAuthenticatedAPI(ctx, t, k, apiBaseURL, machineUsername, machineUsername+".json")
@@ -189,7 +189,7 @@ func TestInternalTLS(t *testing.T) {
 		)
 
 		t.Run("accessibility", func(t *testing.T) { CheckAccessibility(ctx, t, k, apiBaseURL) })
-		t.Run("metrics", func(t *testing.T) { CheckMetrics(ctx, t, k) })
+		t.Run("metrics", func(t *testing.T) { CheckMetrics(ctx, t, k, true) })
 		t.Run("login", func(t *testing.T) { CheckLogin(t, apiBaseURL) })
 		t.Run("authenticated-api", func(t *testing.T) {
 			CheckAuthenticatedAPI(ctx, t, k, apiBaseURL, machineUsername, machineUsername+".json")
