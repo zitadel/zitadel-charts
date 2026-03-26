@@ -116,6 +116,13 @@ func WithMachineUser(name, username string) ZitadelOption {
 	}
 }
 
+// WithValue sets an arbitrary Helm value for ZITADEL installation.
+func WithValue(key, value string) ZitadelOption {
+	return func(c *zitadelConfig) {
+		c.additionalValues[key] = value
+	}
+}
+
 // WithoutDBHost skips setting the database host, useful when the host is
 // provided via a config secret instead of Helm values.
 func WithoutDBHost() ZitadelOption {

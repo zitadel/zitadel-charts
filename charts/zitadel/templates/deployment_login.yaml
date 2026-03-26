@@ -27,6 +27,7 @@ spec:
           {{- toYaml . | nindent 8 }}
         {{- end }}
         checksum/configmap: {{ include (print $.Template.BasePath "/configmap_login.yaml") . | sha256sum }}
+        checksum/secret-login-service-key: {{ include (print $.Template.BasePath "/secret_login-service-key.yaml") . | sha256sum }}
       labels:
         {{- include "login.labels" . | nindent 8 }}
         {{- with .Values.podAdditionalLabels }}
@@ -93,11 +94,9 @@ spec:
           - name: login-config-dotenv
             mountPath: /.env-file/
             readOnly: true
-          {{- if and (((((.Values.zitadel).configmapConfig).FirstInstance).Org).LoginClient) (not (((((.Values.zitadel).configmapConfig).FirstInstance).Skip))) }}
-          - name: login-client
-            mountPath: /login-client
+          - name: login-service-key
+            mountPath: /login-service-key
             readOnly: true
-          {{- end }}
           {{- with .Values.login.extraVolumeMounts }}
           {{- toYaml . | nindent 10 }}
           {{- end }}
@@ -142,12 +141,13 @@ spec:
       - name: login-config-dotenv
         configMap:
           name: {{ include "login.configmapName" . }}
-      {{- if and (((((.Values.zitadel).configmapConfig).FirstInstance).Org).LoginClient) (not (((.Values.zitadel).configmapConfig).FirstInstance).Skip) }}
-      - name: login-client
+      - name: login-service-key
         secret:
-          defaultMode: 444
-          secretName: {{ .Values.login.loginClientSecretPrefix }}login-client
-      {{- end }}
+          secretName: {{ include "zitadel.fullname" . }}-login-service-key
+          defaultMode: 0440
+          items:
+            - key: tls.key
+              path: tls.key
       {{- with .Values.login.extraVolumes }}
       {{- toYaml . | nindent 6 }}
       {{- end }}

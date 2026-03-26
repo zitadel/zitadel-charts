@@ -14,15 +14,14 @@ func TestSecretsMatrix(t *testing.T) {
 	t.Parallel()
 
 	testCases := []struct {
-		name             string
-		setValues        map[string]string
-		masterkey        *assert.SecretAssertion
-		machineKey       *assert.SecretAssertion
-		machineKeyName   string
-		machinePat       *assert.SecretAssertion
-		machinePatName   string
-		loginClient      *assert.SecretAssertion
-		loginClientName  string
+		name           string
+		setValues      map[string]string
+		masterkey      *assert.SecretAssertion
+		machineKey     *assert.SecretAssertion
+		machineKeyName string
+		machinePat     *assert.SecretAssertion
+		machinePatName string
+		loginServiceKey *assert.SecretAssertion
 	}{
 		{
 			name: "default-all-enabled",
@@ -32,9 +31,6 @@ func TestSecretsMatrix(t *testing.T) {
 				"zitadel.configmapConfig.FirstInstance.Org.Machine.MachineKey.ExpirationDate": "2029-01-01T00:00:00Z",
 				"zitadel.configmapConfig.FirstInstance.Org.Machine.MachineKey.Type":           "1",
 				"zitadel.configmapConfig.FirstInstance.Org.Machine.Pat.ExpirationDate":        "2029-01-01T00:00:00Z",
-				"zitadel.configmapConfig.FirstInstance.Org.LoginClient.Machine.Username":      "login-client",
-				"zitadel.configmapConfig.FirstInstance.Org.LoginClient.Machine.Name":          "Login Client",
-				"zitadel.configmapConfig.FirstInstance.Org.LoginClient.Pat.ExpirationDate":    "2029-01-01T00:00:00Z",
 			},
 			masterkey: &assert.SecretAssertion{
 				Data: assert.Matching[map[string][]byte](
@@ -53,11 +49,11 @@ func TestSecretsMatrix(t *testing.T) {
 					gomega.HaveKeyWithValue("pat", gomega.Not(gomega.BeEmpty())),
 				),
 			},
-			loginClientName: "login-client",
-			loginClient: &assert.SecretAssertion{
-				Data: assert.Matching[map[string][]byte](
-					gomega.HaveKeyWithValue("pat", gomega.Not(gomega.BeEmpty())),
-				),
+			loginServiceKey: &assert.SecretAssertion{
+				Data: assert.Matching[map[string][]byte](gomega.And(
+					gomega.HaveKeyWithValue("tls.crt", gomega.Not(gomega.BeEmpty())),
+					gomega.HaveKeyWithValue("tls.key", gomega.Not(gomega.BeEmpty())),
+				)),
 			},
 		},
 		{
@@ -67,9 +63,6 @@ func TestSecretsMatrix(t *testing.T) {
 				"zitadel.configmapConfig.FirstInstance.Org.Machine.Machine.Name":              "My Machine",
 				"zitadel.configmapConfig.FirstInstance.Org.Machine.MachineKey.ExpirationDate": "2029-01-01T00:00:00Z",
 				"zitadel.configmapConfig.FirstInstance.Org.Machine.MachineKey.Type":           "1",
-				"zitadel.configmapConfig.FirstInstance.Org.LoginClient.Machine.Username":      "login-client",
-				"zitadel.configmapConfig.FirstInstance.Org.LoginClient.Machine.Name":          "Login Client",
-				"zitadel.configmapConfig.FirstInstance.Org.LoginClient.Pat.ExpirationDate":    "2029-01-01T00:00:00Z",
 			},
 			masterkey: &assert.SecretAssertion{
 				Data: assert.Matching[map[string][]byte](
@@ -82,44 +75,21 @@ func TestSecretsMatrix(t *testing.T) {
 					gomega.HaveKeyWithValue("my-machine.json", gomega.Not(gomega.BeEmpty())),
 				),
 			},
-			loginClientName: "login-client",
-			loginClient: &assert.SecretAssertion{
-				Data: assert.Matching[map[string][]byte](
-					gomega.HaveKeyWithValue("pat", gomega.Not(gomega.BeEmpty())),
-				),
+			loginServiceKey: &assert.SecretAssertion{
+				Data: assert.Matching[map[string][]byte](gomega.And(
+					gomega.HaveKeyWithValue("tls.crt", gomega.Not(gomega.BeEmpty())),
+					gomega.HaveKeyWithValue("tls.key", gomega.Not(gomega.BeEmpty())),
+				)),
 			},
 		},
 		{
-			name: "login-client-only",
-			setValues: map[string]string{
-				"zitadel.configmapConfig.FirstInstance.Org.LoginClient.Machine.Username":   "login-client",
-				"zitadel.configmapConfig.FirstInstance.Org.LoginClient.Machine.Name":       "Login Client",
-				"zitadel.configmapConfig.FirstInstance.Org.LoginClient.Pat.ExpirationDate": "2029-01-01T00:00:00Z",
-			},
-			masterkey: &assert.SecretAssertion{
-				Data: assert.Matching[map[string][]byte](
-					gomega.HaveKeyWithValue("masterkey", gomega.Not(gomega.BeEmpty())),
-				),
-			},
-			loginClientName: "login-client",
-			loginClient: &assert.SecretAssertion{
-				Data: assert.Matching[map[string][]byte](
-					gomega.HaveKeyWithValue("pat", gomega.Not(gomega.BeEmpty())),
-				),
-			},
-		},
-		{
-			name: "custom-names-with-prefix",
+			name: "custom-machine-names",
 			setValues: map[string]string{
 				"zitadel.configmapConfig.FirstInstance.Org.Machine.Machine.Username":          "custom-admin",
 				"zitadel.configmapConfig.FirstInstance.Org.Machine.Machine.Name":              "Custom Admin",
 				"zitadel.configmapConfig.FirstInstance.Org.Machine.MachineKey.ExpirationDate": "2029-01-01T00:00:00Z",
 				"zitadel.configmapConfig.FirstInstance.Org.Machine.MachineKey.Type":           "1",
 				"zitadel.configmapConfig.FirstInstance.Org.Machine.Pat.ExpirationDate":        "2029-01-01T00:00:00Z",
-				"zitadel.configmapConfig.FirstInstance.Org.LoginClient.Machine.Username":      "login-client",
-				"zitadel.configmapConfig.FirstInstance.Org.LoginClient.Machine.Name":          "Login Client",
-				"zitadel.configmapConfig.FirstInstance.Org.LoginClient.Pat.ExpirationDate":    "2029-01-01T00:00:00Z",
-				"login.loginClientSecretPrefix":                                               "myapp-",
 			},
 			masterkey: &assert.SecretAssertion{
 				Data: assert.Matching[map[string][]byte](
@@ -138,16 +108,50 @@ func TestSecretsMatrix(t *testing.T) {
 					gomega.HaveKeyWithValue("pat", gomega.Not(gomega.BeEmpty())),
 				),
 			},
-			loginClientName: "myapp-login-client",
-			loginClient: &assert.SecretAssertion{
-				Data: assert.Matching[map[string][]byte](
-					gomega.HaveKeyWithValue("pat", gomega.Not(gomega.BeEmpty())),
-				),
+			loginServiceKey: &assert.SecretAssertion{
+				Data: assert.Matching[map[string][]byte](gomega.And(
+					gomega.HaveKeyWithValue("tls.crt", gomega.Not(gomega.BeEmpty())),
+					gomega.HaveKeyWithValue("tls.key", gomega.Not(gomega.BeEmpty())),
+				)),
 			},
 		},
 		{
 			name:      "minimal-no-setup",
 			setValues: map[string]string{},
+			masterkey: &assert.SecretAssertion{
+				Data: assert.Matching[map[string][]byte](
+					gomega.HaveKeyWithValue("masterkey", gomega.Not(gomega.BeEmpty())),
+				),
+			},
+			loginServiceKey: &assert.SecretAssertion{
+				Data: assert.Matching[map[string][]byte](gomega.And(
+					gomega.HaveKeyWithValue("tls.crt", gomega.Not(gomega.BeEmpty())),
+					gomega.HaveKeyWithValue("tls.key", gomega.Not(gomega.BeEmpty())),
+				)),
+			},
+		},
+		{
+			name: "x509-login-default",
+			setValues: map[string]string{
+				"login.enabled": "true",
+			},
+			masterkey: &assert.SecretAssertion{
+				Data: assert.Matching[map[string][]byte](
+					gomega.HaveKeyWithValue("masterkey", gomega.Not(gomega.BeEmpty())),
+				),
+			},
+			loginServiceKey: &assert.SecretAssertion{
+				Data: assert.Matching[map[string][]byte](gomega.And(
+					gomega.HaveKeyWithValue("tls.crt", gomega.Not(gomega.BeEmpty())),
+					gomega.HaveKeyWithValue("tls.key", gomega.Not(gomega.BeEmpty())),
+				)),
+			},
+		},
+		{
+			name: "x509-disabled-when-login-disabled",
+			setValues: map[string]string{
+				"login.enabled": "false",
+			},
 			masterkey: &assert.SecretAssertion{
 				Data: assert.Matching[map[string][]byte](
 					gomega.HaveKeyWithValue("masterkey", gomega.Not(gomega.BeEmpty())),
@@ -179,10 +183,8 @@ func TestSecretsMatrix(t *testing.T) {
 					env.AssertNone(t, tc.machinePatName, assert.SecretAssertion{})
 				}
 
-				if tc.loginClient != nil {
-					env.AssertPartial(t, tc.loginClientName, *tc.loginClient)
-				} else if tc.loginClientName != "" {
-					env.AssertNone(t, tc.loginClientName, assert.SecretAssertion{})
+				if tc.loginServiceKey != nil {
+					env.AssertPartial(t, releaseName+"-login-service-key", *tc.loginServiceKey)
 				}
 			})
 		})
