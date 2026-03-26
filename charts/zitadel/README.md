@@ -266,6 +266,7 @@ Kubernetes: `>= 1.30.0-0`
 | login.livenessProbe.failureThreshold | int | `3` | Number of consecutive failures before restarting the container. |
 | login.livenessProbe.initialDelaySeconds | int | `0` | Seconds to wait before starting liveness checks after container start. |
 | login.livenessProbe.periodSeconds | int | `5` | How often (in seconds) to perform the liveness check. |
+| login.loginServiceKeySecretName | string | `""` | Name of an existing Kubernetes Secret containing the login service keypair. The secret must contain keys "tls.crt" (RSA public certificate) and "tls.key" (RSA private key). When set, the chart skips auto-generating a keypair and uses this secret instead. Useful for cert-manager or external secret operators. Note: the keypair must be RSA (the login container signs JWTs using RS256). |
 | login.nameOverride | string | `""` | Override the "login" portion of resource names. Useful when the default naming conflicts with existing resources. |
 | login.nodeSelector | map[string]string | `{}` | Node labels for pod assignment. Pods will only be scheduled on nodes with matching labels. Ref: https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/ |
 | login.pdb.annotations | map[string]string | `{}` | Additional annotations to apply to the Pod Disruption Budget resource. |

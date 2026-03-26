@@ -323,6 +323,12 @@ login:
   # -- Enable or disable the Login UI deployment. When disabled, ZITADEL uses its
   # built-in login interface instead of the separate Login UI application.
   enabled: true
+  # -- Name of an existing Kubernetes Secret containing the login service keypair.
+  # The secret must contain keys "tls.crt" (RSA public certificate) and "tls.key"
+  # (RSA private key). When set, the chart skips auto-generating a keypair and
+  # uses this secret instead. Useful for cert-manager or external secret operators.
+  # Note: the keypair must be RSA (the login container signs JWTs using RS256).
+  loginServiceKeySecretName: ""
   # Pod Disruption Budget configuration for the Login UI deployment.
   # Ensures high availability by limiting the number of pods that can be
   # simultaneously unavailable during voluntary disruptions (e.g., node drains,

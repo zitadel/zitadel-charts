@@ -143,7 +143,7 @@ spec:
           name: {{ include "login.configmapName" . }}
       - name: login-service-key
         secret:
-          secretName: {{ include "zitadel.fullname" . }}-login-service-key
+          secretName: {{ include "zitadel.loginServiceKeySecretName" . }}
           defaultMode: 0440
           items:
             - key: tls.key

@@ -322,6 +322,17 @@ ZITADEL masterkey Secret name
 {{- end -}}
 
 {{/*
+Login service key Secret name
+*/}}
+{{- define "zitadel.loginServiceKeySecretName" -}}
+{{- if .Values.login.loginServiceKeySecretName -}}
+{{ .Values.login.loginServiceKeySecretName }}
+{{- else -}}
+{{ include "zitadel.fullname" . }}-login-service-key
+{{- end -}}
+{{- end -}}
+
+{{/*
 Database SSL CA certificate Secret name
 */}}
 {{- define "zitadel.dbSslCaCrtSecretName" -}}
