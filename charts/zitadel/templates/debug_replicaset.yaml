@@ -60,8 +60,6 @@ spec:
                 secretKeyRef:
                   name: {{ include "zitadel.masterkeySecretName" . }}
                   key: masterkey
-            - name: ZITADEL_FIRSTINSTANCE_MACHINEKEYPATH
-              value: "/machinekey/sa.json"
             {{- $dbEnv := get (include "zitadel.dbkey.json" . | fromJson) "env" }}
             {{- if (or .Values.zitadel.dbSslCaCrt .Values.zitadel.dbSslCaCrtSecret) }}
             - name: ZITADEL_DATABASE_{{ $dbEnv }}_USER_SSL_ROOTCERT
