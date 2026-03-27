@@ -47,36 +47,10 @@ zitadel:
     # defined here are used to bootstrap the first organization and its users.
     FirstInstance:
       Skip: false
-      # IMPORTANT: The following fields are managed automatically by the Helm chart.
-      # Setting these manually is not supported and will cause the deployment to fail.
-      # The chart automatically generates and manages these paths internally.
-      MachineKeyPath: null  # @schema type:[null,string]
-      PatPath: null  # @schema type:[null,string]
       Org:
         # IMPORTANT: Setting Skip here is not supported. Use FirstInstance.Skip instead.
         # This field exists for validation purposes only.
         Skip: null  # @schema type:[null,boolean]
-        # Defines an administrative machine user created with the IAM_OWNER role.
-        # This user is intended for initial automation and administrative tasks
-        # right after the Helm chart is deployed.
-        #
-        # By default, a JWT Machine Key is generated and stored in a Kubernetes
-        # secret named after the `Username` (e.g., 'iam-admin').
-        #
-        # If the `Pat` block below is defined, a Personal Access Token (PAT) is
-        # also generated and stored in a separate Kubernetes secret. This secret
-        # will be named after the `Username` with a '-pat' suffix (e.g.,
-        # 'iam-admin-pat').
-        Machine:
-          Machine:
-            Username: 'iam-admin'
-            Name: 'Automatically Initialized IAM Admin'
-          MachineKey:
-            ExpirationDate: '2029-01-01T00:00:00Z'
-            Type: 1
-          # If this Pat object is present, a PAT will also be created.
-          Pat:
-            ExpirationDate: '2029-01-01T00:00:00Z'
 
         # Login UI authentication is handled via X.509 certificate-based JWT
         # authentication. When login.enabled=true, the chart auto-generates an
@@ -228,6 +202,15 @@ zitadel:
   # instead of relying on TLS termination at an ingress controller or load balancer.
   # Requires configmapConfig.TLS.Enabled to be true.
   serverSslCrtSecret: ""
+
+  # -- Name of an existing Kubernetes Secret containing the admin service keypair.
+  # The secret must contain keys "tls.crt" (RSA public certificate) and "tls.key"
+  # (RSA private key). When set, the chart skips auto-generating a keypair and
+  # uses this secret instead. Useful for cert-manager or external secret operators.
+  # The public cert is mounted as ZITADEL_ADMINCLIENT_KEYFILE to register an
+  # admin-client system user with IAM_OWNER role. The private key can be extracted
+  # by operators to sign JWTs for admin API access.
+  adminServiceKeySecretName: ""
 
   # Generate a self-signed TLS certificate using Helm's native functions.
   # If enabled, this creates a Kubernetes secret containing a self-signed
@@ -1005,44 +988,9 @@ initJob:
   # such as when the database is managed by an external operator.
   command: ""
 
-# Cleanup Job configuration for removing imperatively created resources on
-# helm uninstall. The setup job creates secrets using kubectl that aren't
-# tracked by Helm's lifecycle, causing them to persist after chart removal.
-# This job runs as a post-delete hook to clean up those orphaned resources.
-cleanupJob:
-  # -- Enable the cleanup job to remove secrets created by the setup job.
-  # Set to false if you want to preserve secrets across reinstalls.
-  enabled: true
-  # -- (map[string]string) Annotations for the cleanup job. The post-delete hook ensures
-  # this runs on helm uninstall, and the delete policy removes the job after completion.
-  annotations:
-    helm.sh/hook: post-delete
-    helm.sh/hook-delete-policy: hook-succeeded
-    helm.sh/hook-weight: "-1"
-  # -- Number of retries before marking the cleanup job as failed.
-  backoffLimit: 3
-  # -- Maximum time in seconds for the cleanup job to complete.
-  # After this deadline, the job is terminated even if still running.
-  activeDeadlineSeconds: 60
-  # @schema $ref: $k8s/_definitions.json#/definitions/io.k8s.api.core.v1.ResourceRequirements
-  # -- (ResourceRequirements) Resource limits and requests for the cleanup job container.
-  # Keep minimal as this job only runs kubectl delete commands.
-  resources: {}
-    # limits:
-    #   cpu: 100m
-    #   memory: 128Mi
-    # requests:
-    #   cpu: 50m
-    #   memory: 64Mi
-  # -- (map[string]string) Additional annotations to add to cleanup job pods.
-  podAnnotations: {}
-  # -- (map[string]string) Additional labels to add to cleanup job pods.
-  podAdditionalLabels: {}
-
 # Setup Job configuration for ZITADEL application setup. This Kubernetes Job
 # runs as a Helm pre-install/pre-upgrade hook after the init job to configure
-# ZITADEL itself. It creates the first organization, admin user, machine users,
-# and generates authentication credentials stored as Kubernetes Secrets.
+# ZITADEL itself. It creates the first organization and bootstraps the instance.
 setupJob:
   # -- (map[string]string) Annotations for the setup job. The Helm hooks ensure this job
   # runs after the init job (weight "2" > "1") and before the main deployment.
@@ -1082,24 +1030,6 @@ setupJob:
   # The default enables projection initialization for better startup performance.
   additionalArgs:
     - "--init-projections=true"
-  # Configuration for the sidecar container that writes machine keys and PATs
-  # to Kubernetes Secrets. This container runs alongside the setup container
-  # and uses kubectl to create secrets from the generated credentials.
-  machinekeyWriter:
-    # Image configuration for the machinekey writer container.
-    image:
-      # -- Override the default kubectl image repository. Leave empty to use the
-      # value from tools.kubectl.image.repository.
-      repository: ""
-      # -- Override the default kubectl image tag. Leave empty to use the value
-      # from tools.kubectl.image.tag (which defaults to cluster version).
-      tag: ""
-    # @schema $ref: $k8s/_definitions.json#/definitions/io.k8s.api.core.v1.ResourceRequirements
-    # -- (ResourceRequirements) CPU and memory resource requests and limits for the machinekey writer
-    # container. This container only runs kubectl commands and needs minimal
-    # resources.
-    resources: {}
-
 # Readiness probe configuration for ZITADEL. The readiness probe determines
 # when a pod is ready to receive traffic. Failed probes remove the pod from
 # service endpoints, preventing traffic from being routed to unhealthy pods.
@@ -1338,22 +1268,6 @@ tools:
       # -- The busybox image tag.
       tag: "1.37"
       # -- Image pull policy. Defaults to the Kubernetes default for the given tag.
-      pullPolicy: ""
-
-  # Configuration for the kubectl helper image used by init containers and jobs
-  # for lightweight Kubernetes API operations. This image is used by the setup
-  # job's machinekey containers and the cleanup job.
-  kubectl:
-    image:
-      # -- The name of the image repository that contains the kubectl image. The
-      # chart automatically prepends the registry (docker.io by default) for
-      # compatibility with CRI-O v1.34+ which enforces fully qualified names.
-      repository: "alpine/k8s"
-      # -- The image tag to use for the kubectl image. It should be left empty to
-      # automatically default to the Kubernetes cluster version
-      tag: ""
-      # -- The pull policy for the kubectl image. If left empty, Kubernetes applies
-      # its default policy depending on whether the tag is mutable or fixed.
       pullPolicy: ""
 
 # Optional in-cluster PostgreSQL deployment using the Bitnami PostgreSQL subchart.

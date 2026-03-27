@@ -85,14 +85,6 @@ Setup component labels
 {{- end }}
 
 {{/*
-Cleanup component labels
-*/}}
-{{- define "zitadel.cleanup.labels" -}}
-{{ include "zitadel.labels" . }}
-{{ include "componentSelectorLabel" "cleanup" }}
-{{- end }}
-
-{{/*
 Start component labels
 */}}
 {{- define "zitadel.start.labels" -}}
@@ -333,6 +325,17 @@ Login service key Secret name
 {{- end -}}
 
 {{/*
+Admin service key Secret name
+*/}}
+{{- define "zitadel.adminServiceKeySecretName" -}}
+{{- if .Values.zitadel.adminServiceKeySecretName -}}
+{{ .Values.zitadel.adminServiceKeySecretName }}
+{{- else -}}
+{{ include "zitadel.fullname" . }}-admin-service-key
+{{- end -}}
+{{- end -}}
+
+{{/*
 Database SSL CA certificate Secret name
 */}}
 {{- define "zitadel.dbSslCaCrtSecretName" -}}
@@ -452,37 +455,6 @@ initialization, especially connecting to the database, before other probes begin
 */}}
 {{- define "zitadel.startupProbePath" -}}
 /debug/ready
-{{- end -}}
-
-{{/*
-Return the image for the machinekeyWriter (Standardized kubectl image).
-Backward Compatibility Logic:
-1. IF the legacy "setupJob.machinekeyWriter.image.repository" is set, use it (Legacy Mode).
-2. ELSE use the new "tools.kubectl.image" with Global Registry support (New Mode).
-*/}}
-{{- define "kubectl.image" -}}
-{{- /* Safely check if the legacy value exists without crashing on nil pointers */ -}}
-{{- $legacyRepo := "" -}}
-{{- if .Values.setupJob -}}
-  {{- if .Values.setupJob.machinekeyWriter -}}
-    {{- if .Values.setupJob.machinekeyWriter.image -}}
-      {{- $legacyRepo = .Values.setupJob.machinekeyWriter.image.repository -}}
-    {{- end -}}
-  {{- end -}}
-{{- end -}}
-
-{{- if $legacyRepo -}}
-  {{- /* 1. Legacy Mode: Use specific config, ignore global registry */ -}}
-  {{- $tag := .Values.setupJob.machinekeyWriter.image.tag | default (include "zitadel.kubeVersion" .) -}}
-  {{- printf "%s:%s" $legacyRepo $tag -}}
-{{- else -}}
-  {{- /* 2. New Mode: Use tools.kubectl with Global Registry */ -}}
-  {{- /* Uses fully qualified image names for CRI-O v1.34+ compatibility */ -}}
-  {{- $registry := .Values.imageRegistry | default "docker.io" -}}
-  {{- $repo := .Values.tools.kubectl.image.repository | default "alpine/k8s" -}}
-  {{- $tag := .Values.tools.kubectl.image.tag | default (include "zitadel.kubeVersion" .) -}}
-  {{- printf "%s/%s:%s" $registry $repo $tag -}}
-{{- end -}}
 {{- end -}}
 
 {{/*

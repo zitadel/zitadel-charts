@@ -11,51 +11,6 @@
             "description": "(map[string]string) Annotations to add to the ZITADEL Deployment resource. Use this for integration with tools like ArgoCD, Flux, or external monitoring systems.",
             "type": "object"
         },
-        "cleanupJob": {
-            "type": "object",
-            "properties": {
-                "activeDeadlineSeconds": {
-                    "description": "Maximum time in seconds for the cleanup job to complete. After this deadline, the job is terminated even if still running.",
-                    "type": "integer"
-                },
-                "annotations": {
-                    "description": "(map[string]string) Annotations for the cleanup job. The post-delete hook ensures this runs on helm uninstall, and the delete policy removes the job after completion.",
-                    "type": "object",
-                    "properties": {
-                        "helm.sh/hook": {
-                            "type": "string"
-                        },
-                        "helm.sh/hook-delete-policy": {
-                            "type": "string"
-                        },
-                        "helm.sh/hook-weight": {
-                            "type": "string"
-                        }
-                    }
-                },
-                "backoffLimit": {
-                    "description": "Number of retries before marking the cleanup job as failed.",
-                    "type": "integer"
-                },
-                "enabled": {
-                    "description": "Enable the cleanup job to remove secrets created by the setup job. Set to false if you want to preserve secrets across reinstalls.",
-                    "type": "boolean"
-                },
-                "podAdditionalLabels": {
-                    "description": "(map[string]string) Additional labels to add to cleanup job pods.",
-                    "type": "object"
-                },
-                "podAnnotations": {
-                    "description": "(map[string]string) Additional annotations to add to cleanup job pods.",
-                    "type": "object"
-                },
-                "resources": {
-                    "description": "Resource limits and requests for the cleanup job container. Keep minimal as this job only runs kubectl delete commands.",
-                    "$ref": "https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/v1.30.0/_definitions.json#/definitions/io.k8s.api.core.v1.ResourceRequirements",
-                    "type": "object"
-                }
-            }
-        },
         "configMap": {
             "type": "object",
             "properties": {
@@ -1289,29 +1244,6 @@
                         "$ref": "https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/v1.30.0/_definitions.json#/definitions/io.k8s.api.core.v1.Container"
                     }
                 },
-                "machinekeyWriter": {
-                    "type": "object",
-                    "properties": {
-                        "image": {
-                            "type": "object",
-                            "properties": {
-                                "repository": {
-                                    "description": "Override the default kubectl image repository. Leave empty to use the value from tools.kubectl.image.repository.",
-                                    "type": "string"
-                                },
-                                "tag": {
-                                    "description": "Override the default kubectl image tag. Leave empty to use the value from tools.kubectl.image.tag (which defaults to cluster version).",
-                                    "type": "string"
-                                }
-                            }
-                        },
-                        "resources": {
-                            "description": "CPU and memory resource requests and limits for the machinekey writer container. This container only runs kubectl commands and needs minimal resources.",
-                            "$ref": "https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/v1.30.0/_definitions.json#/definitions/io.k8s.api.core.v1.ResourceRequirements",
-                            "type": "object"
-                        }
-                    }
-                },
                 "podAdditionalLabels": {
                     "description": "(map[string]string) Additional labels to add to setup job pods.",
                     "type": "object"
@@ -1376,28 +1308,6 @@
                         }
                     }
                 },
-                "kubectl": {
-                    "type": "object",
-                    "properties": {
-                        "image": {
-                            "type": "object",
-                            "properties": {
-                                "pullPolicy": {
-                                    "description": "The pull policy for the kubectl image. If left empty, Kubernetes applies its default policy depending on whether the tag is mutable or fixed.",
-                                    "type": "string"
-                                },
-                                "repository": {
-                                    "description": "The name of the image repository that contains the kubectl image. The chart automatically prepends the registry (docker.io by default) for compatibility with CRI-O v1.34+ which enforces fully qualified names.",
-                                    "type": "string"
-                                },
-                                "tag": {
-                                    "description": "The image tag to use for the kubectl image. It should be left empty to automatically default to the Kubernetes cluster version",
-                                    "type": "string"
-                                }
-                            }
-                        }
-                    }
-                },
                 "wait4x": {
                     "type": "object",
                     "properties": {
@@ -1437,6 +1347,10 @@
         "zitadel": {
             "type": "object",
             "properties": {
+                "adminServiceKeySecretName": {
+                    "description": "Name of an existing Kubernetes Secret containing the admin service keypair. The secret must contain keys \"tls.crt\" (RSA public certificate) and \"tls.key\" (RSA private key). When set, the chart skips auto-generating a keypair and uses this secret instead. Useful for cert-manager or external secret operators. The public cert is mounted as ZITADEL_ADMINCLIENT_KEYFILE to register an admin-client system user with IAM_OWNER role. The private key can be extracted by operators to sign JWTs for admin API access.",
+                    "type": "string"
+                },
                 "autoscaling": {
                     "type": "object",
                     "properties": {
@@ -1524,50 +1438,9 @@
                         "FirstInstance": {
                             "type": "object",
                             "properties": {
-                                "MachineKeyPath": {
-                                    "type": [
-                                        "null",
-                                        "string"
-                                    ]
-                                },
                                 "Org": {
                                     "type": "object",
                                     "properties": {
-                                        "Machine": {
-                                            "type": "object",
-                                            "properties": {
-                                                "Machine": {
-                                                    "type": "object",
-                                                    "properties": {
-                                                        "Name": {
-                                                            "type": "string"
-                                                        },
-                                                        "Username": {
-                                                            "type": "string"
-                                                        }
-                                                    }
-                                                },
-                                                "MachineKey": {
-                                                    "type": "object",
-                                                    "properties": {
-                                                        "ExpirationDate": {
-                                                            "type": "string"
-                                                        },
-                                                        "Type": {
-                                                            "type": "integer"
-                                                        }
-                                                    }
-                                                },
-                                                "Pat": {
-                                                    "type": "object",
-                                                    "properties": {
-                                                        "ExpirationDate": {
-                                                            "type": "string"
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                        },
                                         "Skip": {
                                             "type": [
                                                 "null",
@@ -1575,12 +1448,6 @@
                                             ]
                                         }
                                     }
-                                },
-                                "PatPath": {
-                                    "type": [
-                                        "null",
-                                        "string"
-                                    ]
                                 },
                                 "Skip": {
                                     "type": "boolean"

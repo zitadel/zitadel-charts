@@ -31,6 +31,7 @@ spec:
         {{- if .Values.login.enabled }}
         checksum/secret-login-service-key: {{ include (print $.Template.BasePath "/secret_login-service-key.yaml") . | sha256sum }}
         {{- end }}
+        checksum/secret-admin-service-key: {{ include (print $.Template.BasePath "/secret_admin-service-key.yaml") . | sha256sum }}
         {{- if .Values.metrics.enabled }}
         prometheus.io/scrape: "true"
         prometheus.io/path: "/debug/metrics"
@@ -113,6 +114,8 @@ spec:
             - name: ZITADEL_LOGINCLIENT_KEYFILE
               value: /login-service-key/tls.crt
             {{- end }}
+            - name: ZITADEL_ADMINCLIENT_KEYFILE
+              value: /admin-service-key/tls.crt
             {{- with .Values.env }}
               {{- toYaml . | nindent 12 }}
             {{- end }}
@@ -220,6 +223,9 @@ spec:
             mountPath: /login-service-key
             readOnly: true
           {{- end }}
+          - name: admin-service-key
+            mountPath: /admin-service-key
+            readOnly: true
           {{- with .Values.extraVolumeMounts }}
           {{- toYaml . | nindent 10 }}
           {{- end }}
@@ -313,6 +319,13 @@ spec:
             - key: tls.crt
               path: tls.crt
       {{- end }}
+      - name: admin-service-key
+        secret:
+          secretName: {{ include "zitadel.adminServiceKeySecretName" . }}
+          defaultMode: 0440
+          items:
+            - key: tls.crt
+              path: tls.crt
       {{- with .Values.extraVolumes }}
       {{- toYaml . | nindent 6 }}
       {{- end }}
