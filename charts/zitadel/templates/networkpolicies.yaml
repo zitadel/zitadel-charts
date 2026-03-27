@@ -133,7 +133,7 @@ metadata:
 spec:
   podSelector:
     matchLabels:
-      {{- include "zitadel.login.labels" . | nindent 6 }}
+      {{- include "login.labels" . | nindent 6 }}
   policyTypes:
     - Ingress
     - Egress

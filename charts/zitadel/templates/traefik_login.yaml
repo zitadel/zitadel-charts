@@ -1,0 +1,127 @@
+{{- /* Traefik Ingress and Middlewares for the Login UI service. */ -}}
+{{- if and .Values.login.enabled .Values.login.ingress.traefik.enabled -}}
+{{- $fullName := include "zitadel.login.fullname" . -}}
+{{- $svcPort := .Values.login.service.port -}}
+{{- $ns := .Release.Namespace -}}
+{{- $mwPrefix := printf "%s-%s-traefik" $ns $fullName -}}
+{{- $mwList := list -}}
+{{- if .Values.login.ingress.traefik.middlewares.redirectHttps.enabled -}}
+{{- $mwList = append $mwList (printf "%s-redirect-https@kubernetescrd" $mwPrefix) -}}
+{{- end -}}
+{{- if .Values.login.ingress.traefik.middlewares.cors.enabled -}}
+{{- $mwList = append $mwList (printf "%s-cors@kubernetescrd" $mwPrefix) -}}
+{{- end -}}
+{{- if .Values.login.ingress.traefik.middlewares.inFlightReq.enabled -}}
+{{- $mwList = append $mwList (printf "%s-inflight@kubernetescrd" $mwPrefix) -}}
+{{- end -}}
+{{- if .Values.login.ingress.traefik.middlewares.rateLimit.enabled -}}
+{{- $mwList = append $mwList (printf "%s-ratelimit@kubernetescrd" $mwPrefix) -}}
+{{- end -}}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ $fullName }}-traefik
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "login.labels" . | nindent 4 }}
+  annotations:
+    traefik.ingress.kubernetes.io/router.entrypoints: {{ .Values.login.ingress.traefik.entrypoints }}
+    {{- if .Values.login.ingress.traefik.serversSchemeH2c }}
+    traefik.ingress.kubernetes.io/service.serversscheme: h2c
+    {{- end }}
+    {{- if $mwList }}
+    traefik.ingress.kubernetes.io/router.middlewares: {{ join ",\n      " $mwList }}
+    {{- end }}
+    {{- with .Values.login.ingress.traefik.annotations }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  ingressClassName: {{ .Values.login.ingress.traefik.className }}
+  rules:
+    {{- $values := .Values -}}
+    {{- range .Values.login.ingress.traefik.hosts }}
+    - host: {{ .host | default $values.zitadel.configmapConfig.ExternalDomain | quote }}
+      http:
+        paths:
+          - path: /ui/v2/login
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ $fullName }}
+                port:
+                  number: {{ $svcPort }}
+    {{- end }}
+  {{- with .Values.login.ingress.traefik.tls }}
+  tls:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+{{- if .Values.login.ingress.traefik.middlewares.cors.enabled }}
+---
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: {{ $fullName }}-traefik-cors
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "login.labels" . | nindent 4 }}
+spec:
+  headers:
+    accessControlAllowCredentials: {{ .Values.login.ingress.traefik.middlewares.cors.accessControlAllowCredentials }}
+    {{- with .Values.login.ingress.traefik.middlewares.cors.accessControlAllowOriginListRegex }}
+    accessControlAllowOriginListRegex:
+      {{- toYaml . | nindent 6 }}
+    {{- end }}
+    accessControlAllowMethods:
+      {{- toYaml .Values.login.ingress.traefik.middlewares.cors.accessControlAllowMethods | nindent 6 }}
+    accessControlMaxAge: {{ int64 .Values.login.ingress.traefik.middlewares.cors.accessControlMaxAge }}
+    accessControlAllowHeaders:
+      {{- toYaml .Values.login.ingress.traefik.middlewares.cors.accessControlAllowHeaders | nindent 6 }}
+    addVaryHeader: {{ .Values.login.ingress.traefik.middlewares.cors.addVaryHeader }}
+{{- end }}
+{{- if .Values.login.ingress.traefik.middlewares.rateLimit.enabled }}
+---
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: {{ $fullName }}-traefik-ratelimit
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "login.labels" . | nindent 4 }}
+spec:
+  rateLimit:
+    average: {{ .Values.login.ingress.traefik.middlewares.rateLimit.average }}
+    burst: {{ .Values.login.ingress.traefik.middlewares.rateLimit.burst }}
+    period: {{ .Values.login.ingress.traefik.middlewares.rateLimit.period }}
+    sourceCriterion:
+      {{- toYaml .Values.login.ingress.traefik.middlewares.rateLimit.sourceCriterion | nindent 6 }}
+{{- end }}
+{{- if .Values.login.ingress.traefik.middlewares.inFlightReq.enabled }}
+---
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: {{ $fullName }}-traefik-inflight
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "login.labels" . | nindent 4 }}
+spec:
+  inFlightReq:
+    amount: {{ .Values.login.ingress.traefik.middlewares.inFlightReq.amount }}
+    sourceCriterion:
+      {{- toYaml .Values.login.ingress.traefik.middlewares.inFlightReq.sourceCriterion | nindent 6 }}
+{{- end }}
+{{- if .Values.login.ingress.traefik.middlewares.redirectHttps.enabled }}
+---
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: {{ $fullName }}-traefik-redirect-https
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "login.labels" . | nindent 4 }}
+spec:
+  redirectScheme:
+    scheme: {{ .Values.login.ingress.traefik.middlewares.redirectHttps.scheme }}
+    permanent: {{ .Values.login.ingress.traefik.middlewares.redirectHttps.permanent }}
+{{- end }}
+{{- end }}
