@@ -54,8 +54,6 @@ func CheckUninstall(ctx context.Context, t *testing.T, k *k8s.KubectlOptions, wh
 	hookResources := []string{
 		"Secret/zitadel-test-masterkey",
 		"Secret/zitadel-test-secrets-yaml",
-		"Secret/zitadel-test-admin-service-key",
-		"Secret/zitadel-test-login-service-key",
 		"ConfigMap/zitadel-test-config-yaml",
 		"ConfigMap/zitadel-test-login-config-dotenv",
 		"Job/zitadel-test-init",

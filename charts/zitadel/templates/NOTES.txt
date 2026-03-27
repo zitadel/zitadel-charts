@@ -1,15 +1,6 @@
 Thank you for installing {{ .Chart.Name }}.
 
-An admin service key secret has been created as part of this installation.
+An admin service key has been configured for this installation.
+To extract the private key for signing admin API JWTs:
 
-To locate the admin service key secret in the release namespace:
-
-  kubectl get secrets -n {{ .Release.Namespace }} -l "app.kubernetes.io/instance={{ .Release.Name }}"
-
-After identifying the admin service key secret, you can decode the key value with:
-
-  kubectl get secret <secret-name> -n {{ .Release.Namespace }} -o jsonpath='{.data.admin-service-key}' | base64 -d
-
-Replace <secret-name> with the name of the admin service key secret listed in the first command.
-
-For more detailed usage instructions and configuration options, please refer to the chart documentation/README or the project documentation linked from: {{ .Chart.Home }}.
+  kubectl -n {{ .Release.Namespace }} get secret {{ include "zitadel.adminServiceKeySecretName" . }} -o jsonpath='{.data.tls\.key}' | base64 -d
