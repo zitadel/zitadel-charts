@@ -1,0 +1,28 @@
+# HelmChartConfig to customize the built-in k3s Traefik.
+# k3s picks this up automatically from /var/lib/rancher/k3s/server/manifests/.
+# DO NOT use these values for any non-local deployment.
+apiVersion: helm.cattle.io/v1
+kind: HelmChartConfig
+metadata:
+  name: traefik
+  namespace: kube-system
+spec:
+  valuesContent: |-
+    logs:
+      general:
+        level: DEBUG
+    additionalArguments:
+      - "--serverstransport.insecureskipverify=true"
+    api:
+      dashboard: true
+      insecure: true
+    ports:
+      web:
+        redirections:
+          entryPoint:
+            to: websecure
+            scheme: https
+            permanent: true
+      websecure:
+        tls:
+          enabled: true

@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Running Zitadel Locally with Kubernetes</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.css" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/theme/black.min.css" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/plugin/highlight/monokai.min.css" />
+<style>
+  :root {
+    --z-bg:      #0a0c10;
+    --z-surface: #111318;
+    --z-border:  #1e2330;
+    --z-accent:  #7c6af7;
+    --z-accent2: #3ecfb2;
+    --z-text:    #e2e6f0;
+    --z-muted:   #6b7280;
+    --z-code-bg: #0d1117;
+  }
+  .reveal-viewport { background: var(--z-bg); }
+  .reveal { font-family: 'Inter', sans-serif; font-size: 34px; color: var(--z-text); }
+  .reveal .slides section { text-align: left; padding: 0 56px; }
+  .reveal h1, .reveal h2, .reveal h3 { font-family: 'Inter', sans-serif; font-weight: 800; letter-spacing: -0.02em; text-transform: none; color: #fff; margin-bottom: 0.4em; }
+  .reveal h1 { font-size: 2.2em; line-height: 1.1; }
+  .reveal h2 { font-size: 1.2em; color: var(--z-accent); margin-bottom: 0.5em; }
+  .badge { display: inline-block; background: rgba(124,106,247,0.15); border: 1px solid rgba(124,106,247,0.4); color: var(--z-accent); font-family: 'DM Mono', monospace; font-size: 0.34em; letter-spacing: 0.1em; text-transform: uppercase; padding: 0.3em 0.8em; border-radius: 3px; margin-bottom: 0.5em; }
+  .divider { width: 40px; height: 3px; background: linear-gradient(90deg, var(--z-accent), var(--z-accent2)); border-radius: 2px; margin: 0.4em 0 0.8em; }
+  .reveal ul { list-style: none; padding: 0; margin: 0 0 0.5em 0; }
+  .reveal ul li { padding: 0.22em 0 0.22em 1.4em; position: relative; font-size: 0.68em; color: var(--z-text); line-height: 1.5; }
+  .reveal ul li::before { content: '▸'; position: absolute; left: 0; color: var(--z-accent); }
+  .reveal pre { background: var(--z-code-bg) !important; border: 1px solid var(--z-border); border-left: 3px solid var(--z-accent); border-radius: 6px; padding: 0.65em 1em; font-size: 0.42em; box-shadow: 0 4px 20px rgba(0,0,0,0.4); width: 100%; margin: 0.35em 0; }
+  .reveal code { font-family: 'DM Mono', monospace; color: var(--z-accent2); }
+  .reveal pre code { color: #cdd6f4; font-size: 1em; line-height: 1.5; }
+  .reveal p code, .reveal li code { background: var(--z-code-bg); border: 1px solid var(--z-border); border-radius: 3px; padding: 0.1em 0.35em; font-size: 0.82em; }
+  .reveal blockquote { background: rgba(124,106,247,0.08); border-left: 3px solid var(--z-accent); border-radius: 4px; padding: 0.4em 0.9em; font-size: 0.56em; color: var(--z-muted); margin: 0.4em 0 0.1em; width: 100%; box-shadow: none; }
+  .footnote { font-family: 'DM Mono', monospace; font-size: 0.35em; color: var(--z-muted); margin-top: 0.3em; }
+  .footnote a { color: var(--z-accent2); text-decoration: none; }
+  .title-slide { text-align: center !important; }
+  .title-slide h1 { font-size: 2.5em; margin-bottom: 0.2em; }
+  .title-slide .subtitle { font-family: 'DM Mono', monospace; font-size: 0.44em; color: var(--z-muted); margin-top: 0.4em; }
+  .title-slide .pills { display: flex; justify-content: center; gap: 1.2em; margin-top: 1.4em; flex-wrap: wrap; }
+  .pill { font-family: 'DM Mono', monospace; font-size: 0.36em; background: var(--z-surface); border: 1px solid var(--z-border); padding: 0.5em 1.2em; border-radius: 100px; color: var(--z-accent2); }
+  .arch { font-family: 'DM Mono', monospace; font-size: 0.52em; color: var(--z-accent2); margin: 0.6em 0; line-height: 1.6; }
+  .prereq-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.6em; margin-top: 0.8em; }
+  .prereq-item { background: var(--z-surface); border: 1px solid var(--z-border); border-radius: 6px; padding: 0.6em 1em; font-family: 'DM Mono', monospace; font-size: 0.42em; }
+  .prereq-item .pn { color: var(--z-accent2); font-weight: 600; font-size: 1.1em; }
+  .prereq-item .pd { color: var(--z-muted); margin-top: 0.2em; font-size: 0.9em; }
+  .prereq-item .pd a { color: var(--z-accent2); text-decoration: none; }
+  .step { display: flex; align-items: flex-start; gap: 0.6em; margin: 0.25em 0; font-size: 0.66em; }
+  .step-num { flex-shrink: 0; background: linear-gradient(135deg, var(--z-accent), var(--z-accent2)); color: #fff; font-family: 'DM Mono', monospace; font-size: 0.75em; width: 1.8em; height: 1.8em; line-height: 1.8em; text-align: center; border-radius: 50%; font-weight: 700; }
+  .link-list { display: flex; flex-direction: column; gap: 0.4em; margin-top: 0.8em; }
+  .link-item { background: var(--z-surface); border: 1px solid var(--z-border); border-radius: 6px; padding: 0.45em 0.9em; font-family: 'DM Mono', monospace; font-size: 0.4em; display: flex; gap: 0.8em; align-items: center; }
+  .link-item .ll { color: var(--z-muted); min-width: 100px; }
+  .link-item .lu a { color: var(--z-accent2); text-decoration: none; }
+  .qa-big { font-size: 2.8em; font-weight: 800; background: linear-gradient(135deg, var(--z-accent), var(--z-accent2)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; text-align: center; margin-top: 0.5em; }
+  .glow-orb { position: absolute; width: 500px; height: 500px; border-radius: 50%; background: radial-gradient(circle, rgba(124,106,247,0.1) 0%, transparent 70%); top: 50%; left: 50%; transform: translate(-50%, -60%); pointer-events: none; }
+  .reveal .slides::before { content: ''; position: fixed; inset: 0; background-image: linear-gradient(rgba(124,106,247,0.025) 1px, transparent 1px), linear-gradient(90deg, rgba(124,106,247,0.025) 1px, transparent 1px); background-size: 48px 48px; pointer-events: none; z-index: -1; }
+  .reveal .progress { background: var(--z-border); height: 2px; }
+  .reveal .progress span { background: linear-gradient(90deg, var(--z-accent), var(--z-accent2)); }
+  .reveal .slide-number { font-family: 'DM Mono', monospace; font-size: 0.55em; color: var(--z-muted); background: transparent; }
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 1em; align-items: start; }
+  .section-slide { display: flex; flex-direction: column; justify-content: center; height: 100%; text-align: center !important; }
+  .section-slide h1 { font-size: 2.8em; }
+  .section-slide p { font-size: 0.65em; color: var(--z-muted); margin-top: 0.5em; }
+  .intro { font-size: 0.65em; color: var(--z-muted); margin-bottom: 0.6em; line-height: 1.5; }
+</style>
+</head>
+<body>
+<div class="reveal">
+<div class="slides">
+
+<!-- 1. TITLE -->
+<section class="title-slide">
+  <div class="glow-orb"></div>
+  <div class="badge">20-min demo</div>
+  <h1>Running Zitadel Locally</h1>
+  <p class="subtitle">Kubernetes · Helm · k3d · 2026</p>
+  <div class="pills">
+    <span class="pill">k3d</span>
+    <span class="pill">Helm</span>
+    <span class="pill">Zitadel</span>
+    <span class="pill">open-source IAM</span>
+  </div>
+</section>
+
+<!-- 2. WHAT IS ZITADEL -->
+<section>
+  <div class="badge">Overview</div>
+  <h1>What is Zitadel?</h1>
+  <div class="divider"></div>
+  <ul>
+    <li>Open-source identity &amp; access management</li>
+    <li>OIDC, OAuth2, SAML2, passkeys, MFA — out of the box</li>
+    <li>API-first, runs on Kubernetes or bare metal</li>
+    <li>Postgres is the only external dependency</li>
+    <li>SaaS alternative to Auth0 — self-hosted, no per-MAU pricing</li>
+    <li>Modern alternative to Keycloak — API-first, built-in multi-tenancy</li>
+  </ul>
+</section>
+
+<!-- 3. WHAT WE'RE BUILDING -->
+<section>
+  <div class="badge">Architecture</div>
+  <h1>What we're building</h1>
+  <div class="divider"></div>
+  <div class="arch">
+    <div>Docker → k3d → Traefik → Zitadel → PostgreSQL</div>
+    <div style="padding-left:9.5em;">└── Login UI</div>
+  </div>
+  <ul>
+    <li>k3d runs k3s inside Docker — no VMs, Traefik built in</li>
+    <li>Traefik configured via a mounted config file — no separate install</li>
+    <li>Zitadel deploys two pods: core API and Login UI</li>
+    <li>PostgreSQL as a Helm dependency</li>
+  </ul>
+</section>
+
+<!-- 4. PREREQUISITES -->
+<section>
+  <div class="badge">Before we start</div>
+  <h1>Prerequisites</h1>
+  <div class="divider"></div>
+  <div class="prereq-grid">
+    <div class="prereq-item"><div class="pn">Docker</div><div class="pd">Required</div></div>
+    <div class="prereq-item"><div class="pn">k3d</div><div class="pd"><a href="https://k3d.io/stable/#installation">k3d.io/stable/#installation</a></div></div>
+    <div class="prereq-item"><div class="pn">kubectl</div><div class="pd"><a href="https://kubernetes.io/docs/tasks/tools">kubernetes.io/docs/tasks/tools</a></div></div>
+    <div class="prereq-item"><div class="pn">helm</div><div class="pd"><a href="https://helm.sh/docs/intro/install">helm.sh/docs/intro/install</a></div></div>
+  </div>
+</section>
+
+<!-- 5. THE MAKEFILE -->
+<section>
+  <div class="badge">The demo</div>
+  <h1>The Makefile</h1>
+  <div class="divider"></div>
+  <pre><code class="language-bash">make -C demo deploy   # spin everything up
+make -C demo destroy  # tear it all down</code></pre>
+  <p class="intro"><code>deploy</code> runs two steps under the hood:</p>
+  <pre><code class="language-makefile">init:
+	k3d cluster create zitadel-demo \
+		--port "80:80@loadbalancer" \
+		--port "443:443@loadbalancer" \
+		--volume "$(pwd)/traefik-config.yaml:/var/lib/rancher/k3s/server/manifests/traefik-config.yaml@server:0"
+
+install:
+	helm upgrade --install zitadel zitadel/zitadel \
+		--values zitadel-values.yaml \
+		--wait --timeout 10m</code></pre>
+</section>
+
+<!-- 6. VALUES.YAML -->
+<section>
+  <div class="badge">The demo</div>
+  <h1>The values.yaml</h1>
+  <div class="divider"></div>
+  <p class="intro">All chart defaults are inherited — only what differs is set here.</p>
+  <pre><code class="language-yaml">postgresql:
+  enabled: true
+
+zitadel:
+  masterkey: "MasterkeyNeedsToHave32Characters"  # 32 chars, dev only
+
+  configmapConfig:
+    ExternalDomain: zitadeldemo.dev.mrida.ng
+    ExternalPort: 443
+    ExternalSecure: true
+    FirstInstance:
+      Org:
+        Human:
+          UserName: zitadel-admin
+          Email: zitadel-admin@zitadel.zitadeldemo.dev.mrida.ng
+          Password: "Password1!"
+          PasswordChangeRequired: false
+
+ingress:
+  enabled: true
+  className: traefik
+
+login:
+  ingress:
+    enabled: true
+    className: traefik</code></pre>
+</section>
+
+<!-- 7. WHAT JUST HAPPENED -->
+<section>
+  <div class="badge">Under the hood</div>
+  <h1>What just happened</h1>
+  <div class="divider"></div>
+  <div class="step"><div class="step-num">1</div><span>k3d cluster up — Traefik configured via mounted config file</span></div>
+  <div class="step"><div class="step-num">2</div><span>Helm installed Zitadel chart + PostgreSQL subchart</span></div>
+  <div class="step"><div class="step-num">3</div><span>Init containers waited for DB readiness</span></div>
+  <div class="step"><div class="step-num">4</div><span>Zitadel ran schema migration on first boot</span></div>
+  <div class="step"><div class="step-num">5</div><span>Traefik routing <code>zitadeldemo.dev.mrida.ng</code> → Zitadel pods</span></div>
+  <pre><code class="language-bash">kubectl get pods -n default
+# zitadel-xxxxxxxxx-xxxxx    1/1   Running
+# zitadel-login-xxxx         1/1   Running
+# zitadel-postgresql-0       1/1   Running</code></pre>
+</section>
+
+<!-- 8. PRODUCTION DIVIDER -->
+<section class="section-slide">
+  <div class="badge">Next</div>
+  <h1>Running Zitadel<br/>in Production</h1>
+  <p>The demo is up. Here's what changes when you go to production.</p>
+</section>
+
+<!-- 9. DATABASE -->
+<section>
+  <div class="badge">Production</div>
+  <h1>Database</h1>
+  <div class="divider"></div>
+  <p class="intro">The bundled PostgreSQL chart is for local use only — in production, point Zitadel at any Postgres-compatible database:</p>
+  <ul>
+    <li>Postgres Helm chart — self-managed</li>
+    <li>Postgres Operator — CloudNativePG or Zalando</li>
+    <li>AWS RDS / Aurora</li>
+    <li>Google Cloud SQL</li>
+    <li>Azure Database for PostgreSQL</li>
+  </ul>
+  <blockquote>CockroachDB support was dropped in Zitadel v3</blockquote>
+</section>
+
+<!-- 10. INGRESS -->
+<section>
+  <div class="badge">Production</div>
+  <h1>Ingress</h1>
+  <div class="divider"></div>
+  <p class="intro">Zitadel must run behind an ingress controller — TLS terminates there, and the ingress forwards h2c (HTTP/2 cleartext) traffic to the pods. Both the core pod and Login UI need their own ingress rules.</p>
+  <ul>
+    <li>Traefik — handled automatically, the chart adds the h2c annotation by default</li>
+    <li>Other ingress controllers must be configured manually — each has its own quirks</li>
+  </ul>
+  <pre><code class="language-yaml"># Traefik
+ingress:
+  enabled: true
+  className: traefik
+login:
+  ingress:
+    enabled: true
+    className: traefik</code></pre>
+  <p class="footnote">¹ Gateway API support added in chart v9.26.0 — <a href="https://github.com/zitadel/zitadel-charts/releases/tag/zitadel-9.26.0">github.com/zitadel/zitadel-charts/releases/tag/zitadel-9.26.0</a></p>
+</section>
+
+<!-- 11. TLS -->
+<section>
+  <div class="badge">Production</div>
+  <h1>TLS</h1>
+  <div class="divider"></div>
+  <p class="intro">TLS is terminated at the ingress controller — Zitadel speaks plain HTTP/2 internally. You need a valid certificate on your ingress; how you get it depends on your setup.</p>
+  <ul>
+    <li>cert-manager — the universal option, works with any ingress controller. Supports Let's Encrypt, Vault, Venafi, and more</li>
+    <li>Ingress-native — some controllers handle certs themselves: Traefik has built-in ACME, AWS ALB uses ACM, GKE uses Google-managed certs</li>
+    <li>Bring your own — manually create a Kubernetes TLS secret and reference it in the ingress</li>
+  </ul>
+</section>
+
+<!-- 12. SECRET MANAGEMENT -->
+<section>
+  <div class="badge">Production</div>
+  <h1>Secret Management</h1>
+  <div class="divider"></div>
+  <p class="intro">Never store secrets in <code>values.yaml</code> — use External Secrets Operator (ESO)<sup>¹</sup> to pull from your existing secret store. Supports AWS Secrets Manager, GCP Secret Manager, Azure Key Vault, Vault, and more.</p>
+  <ul>
+    <li>Master key: inline (<code>zitadel.masterkey</code>) or reference an existing secret (<code>zitadel.masterkeySecretName</code>)</li>
+    <li>Master key cannot be changed after first run — store it safely</li>
+    <li>Use ESO for all secrets: master key, DB credentials, and any other sensitive config</li>
+    <li>Never commit secrets to Git</li>
+  </ul>
+  <p class="footnote">¹ <a href="https://external-secrets.io/latest/provider">external-secrets.io/latest/provider</a></p>
+</section>
+
+<!-- 13. POD SECURITY -->
+<section>
+  <div class="badge">Production</div>
+  <h1>Pod Security</h1>
+  <div class="divider"></div>
+  <p class="intro">Principle of least privilege — Zitadel pods should only have the permissions they need to run, nothing more. Configured in <code>values.yaml</code> and applies to both the core and Login UI pods.</p>
+  <ul>
+    <li><code>podSecurityContext</code> — pod-level settings, applied before any container starts</li>
+    <li><code>securityContext</code> — container-level settings, applied to each container</li>
+  </ul>
+  <pre><code class="language-yaml">podSecurityContext:
+  runAsNonRoot: true          # refuse to run as root
+  runAsUser: 1000             # run as unprivileged user
+  fsGroup: 1000               # volume mounts owned by this group
+  seccompProfile:
+    type: RuntimeDefault      # restrict syscalls to the runtime default
+
+securityContext:
+  runAsNonRoot: true          # redundant but explicit — belt and braces
+  runAsUser: 1000             # container process UID
+  readOnlyRootFilesystem: true        # no writes to the container filesystem
+  privileged: false                   # no access to host devices
+  allowPrivilegeEscalation: false     # cannot gain more privileges than parent process
+  capabilities:
+    drop:
+      - ALL                   # drop all Linux capabilities</code></pre>
+</section>
+
+<!-- 14. RATE LIMITING -->
+<section>
+  <div class="badge">Production</div>
+  <h1>Rate Limiting</h1>
+  <div class="divider"></div>
+  <p class="intro">Zitadel does not rate limit itself — configure it at the ingress layer to protect auth endpoints from brute-force attacks. Traefik supports this natively per source IP, no WAF required.</p>
+  <ul>
+    <li>Counts requests per client IP — excess requests are dropped</li>
+    <li>Applied via a <code>RateLimit</code> middleware attached to the Zitadel ingress</li>
+  </ul>
+  <pre><code class="language-yaml">apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: zitadel-rate-limit
+spec:
+  rateLimit:
+    average: 10   # requests per second per IP
+    burst: 20     # allowed burst above average</code></pre>
+</section>
+
+<!-- 15. NETWORK POLICIES -->
+<section>
+  <div class="badge">Production</div>
+  <h1>Network Policies</h1>
+  <div class="divider"></div>
+  <p class="intro">Use Network Policies to limit blast radius if any pod is compromised. Applied separately from the Helm chart; requires a CNI that supports NetworkPolicy (Calico, Cilium).</p>
+  <ul>
+    <li>Core pod: allow ingress from Traefik, egress to PostgreSQL only</li>
+    <li>Login UI pod: allow ingress from Traefik, egress to the core pod only</li>
+  </ul>
+  <div class="two-col">
+  <pre><code class="language-yaml"># Core pod
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: zitadel
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: zitadel
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: traefik
+  egress:
+    - to:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: postgresql</code></pre>
+  <pre><code class="language-yaml"># Login UI pod
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: zitadel-login
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: zitadel-login
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: traefik
+  egress:
+    - to:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: zitadel</code></pre>
+  </div>
+</section>
+
+<!-- 16. HIGH AVAILABILITY -->
+<section>
+  <div class="badge">Production</div>
+  <h1>High Availability</h1>
+  <div class="divider"></div>
+  <p class="intro">Zitadel is stateless and scales horizontally — configure both the core and Login UI deployments independently or the Login UI becomes a single point of failure.</p>
+  <ul>
+    <li>HPA overrides <code>replicaCount</code> when enabled</li>
+    <li><code>minAvailable</code> and <code>maxUnavailable</code> are mutually exclusive in <code>pdb</code></li>
+  </ul>
+  <pre><code class="language-yaml"># Main Zitadel container
+replicaCount: 3
+pdb:
+  enabled: true
+  minAvailable: 1
+topologySpreadConstraints:
+  - maxSkew: 1
+    topologyKey: topology.kubernetes.io/zone
+    whenUnsatisfiable: DoNotSchedule
+zitadel:
+  autoscaling:
+    enabled: true
+    minReplicas: 3
+    maxReplicas: 10
+    targetCPU: 80
+
+# Login UI container
+login:
+  replicaCount: 3
+  pdb:
+    enabled: true
+    minAvailable: 1
+  topologySpreadConstraints:
+    - maxSkew: 1
+      topologyKey: topology.kubernetes.io/zone
+      whenUnsatisfiable: DoNotSchedule
+  autoscaling:
+    enabled: true
+    minReplicas: 3
+    maxReplicas: 10
+    targetCPU: 80</code></pre>
+</section>
+
+<!-- 17. CACHING -->
+<section>
+  <div class="badge">Production</div>
+  <h1>Caching</h1>
+  <div class="divider"></div>
+  <p class="intro">Add a shared Redis or Valkey cache to reduce database load and keep session state consistent across replicas. Any Redis-compatible service works.</p>
+  <ul>
+    <li>Self-hosted Redis or Valkey</li>
+    <li>AWS Elasticache</li>
+    <li>Redis Enterprise</li>
+    <li>Upstash</li>
+    <li>Google Cloud Memorystore</li>
+  </ul>
+  <pre><code class="language-bash">ZITADEL_CACHES_CONNECTORS_REDIS_ENABLED=true
+ZITADEL_CACHES_CONNECTORS_REDIS_URL=redis://user:password@redis:6379/0
+# Use rediss:// for TLS</code></pre>
+</section>
+
+<!-- 18. OBSERVABILITY -->
+<section>
+  <div class="badge">Production</div>
+  <h1>Observability</h1>
+  <div class="divider"></div>
+  <p class="intro">Zitadel emits all three OpenTelemetry signals out of the box — no instrumentation required.</p>
+  <ul>
+    <li>Traces, metrics, and logs — all three signals via standard OTLP</li>
+    <li>Log export is newly added — no Fluentd, no Vector, no log shipper needed</li>
+    <li>Works with any OpenTelemetry-compatible backend (Grafana, Datadog, Honeycomb, etc.)</li>
+  </ul>
+  <pre><code class="language-bash">OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
+OTEL_EXPORTER_OTLP_PROTOCOL=grpc
+OTEL_SERVICE_NAME=zitadel</code></pre>
+  <blockquote>Both the core pod and the Login UI pod generate telemetry — configure these env vars on both deployments.<sup>¹</sup></blockquote>
+  <p class="footnote">¹ <a href="https://opentelemetry.io/docs/specs/otel/configuration/sdk-environment-variables/">Full list of OTLP env vars</a></p>
+</section>
+
+<!-- 19. Q&A -->
+<section>
+  <div class="badge">That's a wrap</div>
+  <h1>Resources</h1>
+  <div class="divider"></div>
+  <div class="link-list">
+    <div class="link-item"><span class="ll">Helm chart</span><span class="lu"><a href="https://github.com/zitadel/zitadel-charts">github.com/zitadel/zitadel-charts</a></span></div>
+    <div class="link-item"><span class="ll">Docs</span><span class="lu"><a href="https://zitadel.com/docs">zitadel.com/docs</a></span></div>
+    <div class="link-item"><span class="ll">Demo repo</span><span class="lu"><a href="https://github.com/zitadel/zitadel-charts/tree/demo">github.com/zitadel/zitadel-charts/tree/demo</a></span></div>
+    <div class="link-item"><span class="ll">Community</span><span class="lu"><a href="https://discord.com/invite/zitadel">discord.com/invite/zitadel</a></span></div>
+  </div>
+  <div class="qa-big">Q&amp;A</div>
+</section>
+
+</div>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/plugin/highlight/highlight.min.js"></script>
+<script>
+  Reveal.initialize({
+    hash: true,
+    slideNumber: true,
+    progress: true,
+    transition: 'fade',
+    transitionSpeed: 'fast',
+    plugins: [ RevealHighlight ],
+    width: 1200,
+    height: 700,
+    margin: 0.05,
+  });
+</script>
+</body>
+</html>

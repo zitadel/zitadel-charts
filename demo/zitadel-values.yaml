@@ -1,0 +1,46 @@
+# Minimal ZITADEL overrides for the demo environment.
+# Only values that differ from chart defaults are set here.
+# Domain: zitadeldemo.dev.mrida.ng (loopback domain resolving to 127.0.0.1)
+# DO NOT use these values for any non-local deployment.
+
+# Deploy PostgreSQL as a subchart. The chart auto-populates the ZITADEL
+# database host, port, credentials, and SSL mode from the defaults
+# (database: zitadel, username: zitadel, password: zitadel).
+postgresql:
+  enabled: true
+  # Make postgresql resources pre-install hooks so they are created BEFORE
+  # the init/setup jobs (which run at hook weights 1 and 2).
+  commonAnnotations:
+    helm.sh/hook: pre-install
+    helm.sh/hook-weight: "-1"
+
+zitadel:
+  # Dev-only masterkey (must be exactly 32 bytes).
+  # Generate a real one before any non-local deployment:
+  #   tr -dc A-Za-z0-9 </dev/urandom | head -c 32
+  masterkey: "MasterkeyNeedsToHave32Characters"
+
+  configmapConfig:
+    ExternalDomain: zitadeldemo.dev.mrida.ng
+    ExternalPort: 443
+    FirstInstance:
+      Org:
+        Human:
+          UserName: zitadel-admin
+          # The login name becomes {UserName}@{OrgName}.{ExternalDomain},
+          # i.e. zitadel-admin@zitadel.zitadeldemo.dev.mrida.ng
+          Email: zitadel-admin@zitadel.zitadeldemo.dev.mrida.ng
+          Password: "Password1!"
+          PasswordChangeRequired: false
+
+# Enable ingress — default paths (/ and /ui/v2/login) and pathType
+# (Prefix) are inherited. No host filter needed for a single-purpose
+# demo cluster; Traefik is the default IngressClass.
+ingress:
+  enabled: true
+  className: traefik
+
+login:
+  ingress:
+    enabled: true
+    className: traefik
