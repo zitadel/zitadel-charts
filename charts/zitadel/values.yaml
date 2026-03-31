@@ -79,9 +79,34 @@ zitadel:
             ExpirationDate: '2029-01-01T00:00:00Z'
 
         # Login UI authentication is handled via X.509 certificate-based JWT
-        # authentication. When login.enabled=true, the chart auto-generates an
-        # RSA keypair and configures ZITADEL_LOGINCLIENT_KEYFILE on both the
-        # ZITADEL server (public cert) and Login container (private key).
+        # authentication using ZITADEL's SystemAPIUsers mechanism. When
+        # login.enabled=true, the chart auto-generates an RSA keypair and:
+        #   - Injects a SystemAPIUsers.login-client entry into the ConfigMap
+        #     (public cert mounted at /secrets/login-client/tls.crt)
+        #   - Sets ZITADEL_LOGINCLIENT_KEYFILE on the Login container (private key)
+        #
+        # To add additional system API users (e.g. an admin-client with
+        # IAM_OWNER role), add entries to configmapConfig.SystemAPIUsers and
+        # mount the corresponding certificates via extraVolumes/extraVolumeMounts:
+        #   configmapConfig:
+        #     SystemAPIUsers:
+        #       admin-client:
+        #         Path: /secrets/admin-client/tls.crt
+        #         Memberships:
+        #           - MemberType: System
+        #             Roles:
+        #               - IAM_OWNER
+        #   extraVolumes:
+        #     - name: admin-client-cert
+        #       secret:
+        #         secretName: admin-client-tls
+        #         items:
+        #           - key: tls.crt
+        #             path: tls.crt
+        #   extraVolumeMounts:
+        #     - name: admin-client-cert
+        #       mountPath: /secrets/admin-client
+        #       readOnly: true
 
   # @schema type:[null,object]
   # -- Sensitive ZITADEL configuration values written to a Kubernetes Secret instead

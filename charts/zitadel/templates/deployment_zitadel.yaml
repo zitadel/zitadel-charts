@@ -109,10 +109,6 @@ spec:
             - name: ZITADEL_TLS_KEYPATH
               value: /etc/tls/tls.key
             {{- end }}
-            {{- if .Values.login.enabled }}
-            - name: ZITADEL_LOGINCLIENT_KEYFILE
-              value: /login-service-key/tls.crt
-            {{- end }}
             {{- with .Values.env }}
               {{- toYaml . | nindent 12 }}
             {{- end }}
@@ -217,7 +213,7 @@ spec:
           {{- end }}
           {{- if .Values.login.enabled }}
           - name: login-service-key
-            mountPath: /login-service-key
+            mountPath: /secrets/login-client
             readOnly: true
           {{- end }}
           {{- with .Values.extraVolumeMounts }}

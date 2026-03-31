@@ -32,6 +32,14 @@ func TestConfigMapMatrix(t *testing.T) {
 						"helm.sh/hook-weight":        "0",
 					}),
 				},
+				Data: assert.Matching[map[string]string](gomega.And(
+					gomega.HaveKeyWithValue("zitadel-config-yaml",
+						gomega.ContainSubstring("SystemAPIUsers")),
+					gomega.HaveKeyWithValue("zitadel-config-yaml",
+						gomega.ContainSubstring("login-client")),
+					gomega.HaveKeyWithValue("zitadel-config-yaml",
+						gomega.ContainSubstring("IAM_LOGIN_CLIENT")),
+				)),
 			},
 			login: &assert.ConfigMapAssertion{
 				ObjectMeta: assert.ObjectMetaAssertion{
@@ -86,6 +94,10 @@ func TestConfigMapMatrix(t *testing.T) {
 						"helm.sh/hook-weight":        "0",
 					}),
 				},
+				Data: assert.Matching[map[string]string](gomega.And(
+					gomega.HaveKeyWithValue("zitadel-config-yaml",
+						gomega.Not(gomega.ContainSubstring("SystemAPIUsers"))),
+				)),
 			},
 		},
 		{

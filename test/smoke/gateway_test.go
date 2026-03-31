@@ -26,13 +26,13 @@ func TestGatewayHTTPRouteMatrix(t *testing.T) {
 		{
 			name: "labels",
 			setValues: map[string]string{
-				"gateway.httpRoute.enabled":                   "true",
-				"gateway.httpRoute.parentRefs[0].name":        "my-gateway",
-				"gateway.httpRoute.hostnames[0]":              "zitadel.example.local",
-				"login.enabled":                               "true",
-				"login.gateway.httpRoute.enabled":              "true",
-				"login.gateway.httpRoute.parentRefs[0].name":  "my-gateway",
-				"login.gateway.httpRoute.hostnames[0]":        "zitadel.example.local",
+				"gateway.httpRoute.enabled":                  "true",
+				"gateway.httpRoute.parentRefs[0].name":       "my-gateway",
+				"gateway.httpRoute.hostnames[0]":             "zitadel.example.local",
+				"login.enabled":                              "true",
+				"login.gateway.httpRoute.enabled":            "true",
+				"login.gateway.httpRoute.parentRefs[0].name": "my-gateway",
+				"login.gateway.httpRoute.hostnames[0]":       "zitadel.example.local",
 			},
 			zitadel: &assert.HTTPRouteAssertion{
 				ObjectMeta: assert.ObjectMetaAssertion{
@@ -122,11 +122,11 @@ func TestGatewayHTTPRouteMatrix(t *testing.T) {
 		{
 			name: "default-path",
 			setValues: map[string]string{
-				"gateway.httpRoute.enabled":                   "true",
-				"gateway.httpRoute.parentRefs[0].name":        "my-gw",
-				"login.enabled":                               "true",
-				"login.gateway.httpRoute.enabled":              "true",
-				"login.gateway.httpRoute.parentRefs[0].name":  "my-gw",
+				"gateway.httpRoute.enabled":                  "true",
+				"gateway.httpRoute.parentRefs[0].name":       "my-gw",
+				"login.enabled":                              "true",
+				"login.gateway.httpRoute.enabled":            "true",
+				"login.gateway.httpRoute.parentRefs[0].name": "my-gw",
 			},
 			zitadel: &assert.HTTPRouteAssertion{
 				Spec: assert.HTTPRouteSpecAssertion{
@@ -354,8 +354,8 @@ func TestGatewayHTTPRouteEmptyPathsFails(t *testing.T) {
 			SetValues: map[string]string{
 				"zitadel.configmapConfig.ExternalDomain": "zitadel.example.local",
 				"zitadel.masterkey":                      "01234567890123456789012345678901",
-				"gateway.httpRoute.enabled":               "true",
-				"gateway.httpRoute.parentRefs[0].name":    "my-gw",
+				"gateway.httpRoute.enabled":              "true",
+				"gateway.httpRoute.parentRefs[0].name":   "my-gw",
 			},
 			SetJsonValues: map[string]string{
 				"gateway.httpRoute.paths": "[]",
@@ -371,10 +371,10 @@ func TestGatewayHTTPRouteEmptyPathsFails(t *testing.T) {
 	t.Run("login-empty-paths", func(t *testing.T) {
 		options := &helm.Options{
 			SetValues: map[string]string{
-				"zitadel.configmapConfig.ExternalDomain":    "zitadel.example.local",
+				"zitadel.configmapConfig.ExternalDomain":     "zitadel.example.local",
 				"zitadel.masterkey":                          "01234567890123456789012345678901",
 				"login.enabled":                              "true",
-				"login.gateway.httpRoute.enabled":             "true",
+				"login.gateway.httpRoute.enabled":            "true",
 				"login.gateway.httpRoute.parentRefs[0].name": "my-gw",
 			},
 			SetJsonValues: map[string]string{

@@ -534,10 +534,13 @@ Database:
 {{- end -}}
 
 {{/*
-Build the effective configmap config. When postgresql.enabled=true, the auto-derived
-database connection block is merged as a base and user-supplied configmapConfig values
-are applied on top (user values always win). When postgresql is disabled, the behavior
-is identical to the previous direct toYaml rendering.
+Build the effective configmap config. Merges multiple auto-derived config layers
+with user-supplied configmapConfig values (user values always win).
+
+Merge layers (in order, each subsequent layer wins):
+1. Auto-derived PostgreSQL config (when postgresql.enabled=true)
+2. Auto-derived SystemAPIUsers for login-client (when login.enabled=true)
+3. User-supplied configmapConfig values (always win)
 
 The default values.yaml ships with Database.Postgres.Host: "" as documentation. To
 prevent that empty default from overriding the auto-derived host, we strip the
@@ -545,17 +548,20 @@ Database key from the user config when the host is empty (i.e. not explicitly se
 An explicitly-set non-empty host is always respected and takes full precedence.
 */}}
 {{- define "zitadel.mergedConfigmapConfig" -}}
+{{- $config := deepCopy .Values.zitadel.configmapConfig -}}
 {{- if .Values.postgresql.enabled -}}
 {{- $autoConfig := include "zitadel.postgresqlAutoConfig" . | fromYaml -}}
-{{- $userConfig := deepCopy .Values.zitadel.configmapConfig -}}
-{{- $userHost := dig "Database" "Postgres" "Host" "" $userConfig -}}
+{{- $userHost := dig "Database" "Postgres" "Host" "" $config -}}
 {{- if not $userHost -}}
-{{- $_ := unset $userConfig "Database" -}}
+{{- $_ := unset $config "Database" -}}
 {{- end -}}
-{{- mergeOverwrite $autoConfig $userConfig | toYaml -}}
-{{- else -}}
-{{- .Values.zitadel.configmapConfig | toYaml -}}
+{{- $config = mergeOverwrite $autoConfig $config -}}
 {{- end -}}
+{{- if .Values.login.enabled -}}
+{{- $loginUser := dict "SystemAPIUsers" (dict "login-client" (dict "Path" "/secrets/login-client/tls.crt" "Memberships" (list (dict "MemberType" "System" "Roles" (list "IAM_LOGIN_CLIENT"))))) -}}
+{{- $config = mergeOverwrite $loginUser $config -}}
+{{- end -}}
+{{- $config | toYaml -}}
 {{- end -}}
 
 {{/*
