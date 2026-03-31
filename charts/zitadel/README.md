@@ -2,7 +2,7 @@
 
 # Zitadel
 
-![Version: 9.28.0](https://img.shields.io/badge/Version-9.28.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 1f74a0959ab172c7ea00beee122e8ef062d77eef](https://img.shields.io/badge/AppVersion-1f74a0959ab172c7ea00beee122e8ef062d77eef-informational?style=flat-square)
+![Version: 9.28.0](https://img.shields.io/badge/Version-9.28.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 743f39b7259d72a0618850bae99d3012e5813de8](https://img.shields.io/badge/AppVersion-743f39b7259d72a0618850bae99d3012e5813de8-informational?style=flat-square)
 
 ## A Better Identity and Access Management Solution
 
