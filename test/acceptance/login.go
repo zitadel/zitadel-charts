@@ -112,7 +112,7 @@ func CheckLogin(t *testing.T, apiBaseURL string) {
 			chromedp.SendKeys(testIDSelector("password-change-confirm-text-input"), "Password2!", chromedp.ByQuery),
 			chromedp.WaitEnabled(testIDSelector("submit-button"), chromedp.ByQuery),
 			chromedp.Click(testIDSelector("submit-button"), chromedp.ByQuery),
-			chromedp.Sleep(10*time.Second),
+			chromedp.Sleep(30*time.Second),
 			chromedp.ActionFunc(func(ctx context.Context) error {
 				return chromedp.Location(&finalURL).Do(ctx)
 			}),

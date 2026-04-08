@@ -27,6 +27,11 @@ spec:
           {{- toYaml . | nindent 8 }}
         {{- end }}
         checksum/configmap: {{ include (print $.Template.BasePath "/configmap_login.yaml") . | sha256sum }}
+        {{- if .Values.login.metrics.enabled }}
+        prometheus.io/scrape: "true"
+        prometheus.io/path: "/metrics"
+        prometheus.io/port: "9464"
+        {{- end }}
       labels:
         {{- include "login.labels" . | nindent 8 }}
         {{- with .Values.podAdditionalLabels }}
@@ -53,6 +58,12 @@ spec:
           env:
             - name: NEXT_PUBLIC_BASE_PATH
               value: /ui/v2/login
+            {{- if .Values.login.metrics.enabled }}
+            - name: OTEL_METRICS_EXPORTER
+              value: prometheus
+            - name: OTEL_EXPORTER_PROMETHEUS_PORT
+              value: "9464"
+            {{- end }}
             {{- with .Values.login.env }}
               {{- toYaml . | nindent 12 }}
             {{- end }}
@@ -60,6 +71,11 @@ spec:
           - containerPort: {{ include "login.containerPort" . }}
             name: {{ .Values.login.service.protocol }}-server
             protocol: TCP
+          {{- if .Values.login.metrics.enabled }}
+          - containerPort: 9464
+            name: metrics
+            protocol: TCP
+          {{- end }}
           {{- if .Values.login.livenessProbe.enabled }}
           livenessProbe:
             httpGet:

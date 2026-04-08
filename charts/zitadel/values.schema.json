@@ -745,6 +745,83 @@
                         "string"
                     ]
                 },
+                "metrics": {
+                    "type": "object",
+                    "properties": {
+                        "enabled": {
+                            "description": "Enable metrics scraping annotations on Login UI pods. When true, adds prometheus.io/* annotations that enable automatic discovery by Prometheus.",
+                            "type": "boolean"
+                        },
+                        "serviceMonitor": {
+                            "type": "object",
+                            "properties": {
+                                "additionalLabels": {
+                                    "description": "(map[string]string) Additional labels to add to the ServiceMonitor. Use this to match Prometheus Operator's serviceMonitorSelector if configured.",
+                                    "type": "object"
+                                },
+                                "enabled": {
+                                    "description": "Create a ServiceMonitor resource for Prometheus Operator integration. The Prometheus community Helm chart (kube-prometheus-stack) installs this operator. To allow discovery across all namespaces, set: prometheus.prometheusSpec.serviceMonitorSelectorNilUsesHelmValues=false",
+                                    "type": "boolean"
+                                },
+                                "honorLabels": {
+                                    "description": "If true, use metric labels from the Login UI instead of relabeling them to match Prometheus conventions.",
+                                    "type": "boolean"
+                                },
+                                "honorTimestamps": {
+                                    "description": "If true, preserve original scrape timestamps from the Login UI instead of using Prometheus server time.",
+                                    "type": "boolean"
+                                },
+                                "metricRelabellings": {
+                                    "description": "([]RelabelConfig) Relabeling rules applied to individual metrics. Use to rename metrics, drop expensive metrics, or modify metric labels.",
+                                    "type": "array"
+                                },
+                                "namespace": {
+                                    "description": "Namespace where the ServiceMonitor should be created. If null, uses the release namespace. Set this if Prometheus watches a specific namespace.",
+                                    "type": [
+                                        "null",
+                                        "string"
+                                    ]
+                                },
+                                "proxyUrl": {
+                                    "description": "HTTP proxy URL for scraping. Use if Prometheus needs to access the Login UI through a proxy.",
+                                    "type": [
+                                        "null",
+                                        "string"
+                                    ]
+                                },
+                                "relabellings": {
+                                    "description": "([]RelabelConfig) Relabeling rules applied before ingestion. Use to modify, filter, or drop labels before metrics are stored.",
+                                    "type": "array"
+                                },
+                                "scheme": {
+                                    "description": "HTTP scheme to use for scraping. Set to \"https\" if the Login UI has internal TLS enabled. If null, defaults to \"http\".",
+                                    "type": [
+                                        "null",
+                                        "string"
+                                    ]
+                                },
+                                "scrapeInterval": {
+                                    "description": "How often Prometheus should scrape metrics from the Login UI. If null, uses Prometheus's default scrape interval (typically 30s).",
+                                    "type": [
+                                        "null",
+                                        "string"
+                                    ]
+                                },
+                                "scrapeTimeout": {
+                                    "description": "Timeout for scrape requests. If null, uses Prometheus's default timeout. Should be less than scrapeInterval.",
+                                    "type": [
+                                        "null",
+                                        "string"
+                                    ]
+                                },
+                                "tlsConfig": {
+                                    "description": "TLS configuration for scraping HTTPS endpoints. Configure this if the Login UI has internal TLS enabled and you need to verify certificates.",
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
                 "nameOverride": {
                     "description": "Override the \"login\" portion of resource names. Useful when the default naming conflicts with existing resources.",
                     "type": "string"

@@ -45,5 +45,10 @@ func run(m *testing.M) int {
 		return 1
 	}
 
+	if err := cluster.ApplyServiceMonitorCRD(ctx); err != nil {
+		log.Printf("failed to apply ServiceMonitor CRD: %v", err)
+		return 1
+	}
+
 	return m.Run()
 }
