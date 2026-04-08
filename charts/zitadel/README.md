@@ -267,6 +267,19 @@ Kubernetes: `>= 1.30.0-0`
 | login.livenessProbe.initialDelaySeconds | int | `0` | Seconds to wait before starting liveness checks after container start. |
 | login.livenessProbe.periodSeconds | int | `5` | How often (in seconds) to perform the liveness check. |
 | login.loginServiceKeySecretName | string | `""` | Name of an existing Kubernetes Secret containing the login service keypair. The secret must contain keys "tls.crt" (RSA public certificate) and "tls.key" (RSA private key). When set, the chart skips auto-generating a keypair and uses this secret instead. Useful for cert-manager or external secret operators. Note: the keypair must be RSA (the login container signs JWTs using RS256). |
+| login.metrics.enabled | bool | `false` | Enable metrics scraping annotations on Login UI pods. When true, adds prometheus.io/* annotations that enable automatic discovery by Prometheus. |
+| login.metrics.serviceMonitor.additionalLabels | map[string]string | `{}` | Additional labels to add to the ServiceMonitor. Use this to match Prometheus Operator's serviceMonitorSelector if configured. |
+| login.metrics.serviceMonitor.enabled | bool | `false` | Create a ServiceMonitor resource for Prometheus Operator integration. The Prometheus community Helm chart (kube-prometheus-stack) installs this operator. To allow discovery across all namespaces, set: prometheus.prometheusSpec.serviceMonitorSelectorNilUsesHelmValues=false |
+| login.metrics.serviceMonitor.honorLabels | bool | `false` | If true, use metric labels from the Login UI instead of relabeling them to match Prometheus conventions. |
+| login.metrics.serviceMonitor.honorTimestamps | bool | `true` | If true, preserve original scrape timestamps from the Login UI instead of using Prometheus server time. |
+| login.metrics.serviceMonitor.metricRelabellings | []RelabelConfig | `[]` | Relabeling rules applied to individual metrics. Use to rename metrics, drop expensive metrics, or modify metric labels. |
+| login.metrics.serviceMonitor.namespace | string | `nil` | Namespace where the ServiceMonitor should be created. If null, uses the release namespace. Set this if Prometheus watches a specific namespace. |
+| login.metrics.serviceMonitor.proxyUrl | string | `nil` | HTTP proxy URL for scraping. Use if Prometheus needs to access the Login UI through a proxy. |
+| login.metrics.serviceMonitor.relabellings | []RelabelConfig | `[]` | Relabeling rules applied before ingestion. Use to modify, filter, or drop labels before metrics are stored. |
+| login.metrics.serviceMonitor.scheme | string | `nil` | HTTP scheme to use for scraping. Set to "https" if the Login UI has internal TLS enabled. If null, defaults to "http". |
+| login.metrics.serviceMonitor.scrapeInterval | string | `nil` | How often Prometheus should scrape metrics from the Login UI. If null, uses Prometheus's default scrape interval (typically 30s). |
+| login.metrics.serviceMonitor.scrapeTimeout | string | `nil` | Timeout for scrape requests. If null, uses Prometheus's default timeout. Should be less than scrapeInterval. |
+| login.metrics.serviceMonitor.tlsConfig | TLSConfig | `{}` | TLS configuration for scraping HTTPS endpoints. Configure this if the Login UI has internal TLS enabled and you need to verify certificates. |
 | login.nameOverride | string | `""` | Override the "login" portion of resource names. Useful when the default naming conflicts with existing resources. |
 | login.nodeSelector | map[string]string | `{}` | Node labels for pod assignment. Pods will only be scheduled on nodes with matching labels. Ref: https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/ |
 | login.pdb.annotations | map[string]string | `{}` | Additional annotations to apply to the Pod Disruption Budget resource. |

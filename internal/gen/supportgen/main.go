@@ -30,7 +30,8 @@ var assertgenPkgs = map[string]bool{
 }
 
 type resource struct {
-	Name         string // e.g. "Deployment"
+	Name         string // possibly disambiguated, e.g. "AdmissionregistrationV1alpha1MutatingAdmissionPolicy"
+	TypeName     string // original Go type name in the package, e.g. "MutatingAdmissionPolicy"
 	TypePkgPath  string // e.g. "k8s.io/api/apps/v1"
 	GroupMethod  string // e.g. "AppsV1"
 	Plural       string // e.g. "Deployments" (the method name on the group interface)
@@ -178,6 +179,7 @@ func main() {
 
 			resources = append(resources, resource{
 				Name:         typeName,
+				TypeName:     typeName,
 				TypePkgPath:  typePkgPath,
 				GroupMethod:  groupMethod.Name(),
 				Plural:       fn.Name(),
@@ -248,7 +250,7 @@ func main() {
 		f.Func().Params(Id("env").Op("*").Id("Env")).Id("Get"+r.Name).Params(
 			Id("t").Op("*").Qual("testing", "T"),
 			Id("name").String(),
-		).Op("*").Qual(r.TypePkgPath, r.Name).Block(
+		).Op("*").Qual(r.TypePkgPath, r.TypeName).Block(
 			Id("t").Dot("Helper").Call(),
 			getClientCall(r, false),
 			Qual("github.com/stretchr/testify/require", "NoError").Call(
@@ -264,7 +266,7 @@ func main() {
 			Id("t").Op("*").Qual("testing", "T"),
 			Id("name").String(),
 		).Parens(List(
-			Op("*").Qual(r.TypePkgPath, r.Name),
+			Op("*").Qual(r.TypePkgPath, r.TypeName),
 			Error(),
 		)).Block(
 			Id("t").Dot("Helper").Call(),

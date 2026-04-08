@@ -8,6 +8,7 @@ require (
 	github.com/docker/go-connections v0.6.0
 	github.com/gruntwork-io/terratest v0.52.0
 	github.com/onsi/gomega v1.39.1
+	github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring v0.89.0
 	github.com/stretchr/testify v1.11.1
 	github.com/testcontainers/testcontainers-go v0.41.0
 	github.com/testcontainers/testcontainers-go/modules/k3s v0.41.0

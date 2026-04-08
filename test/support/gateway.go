@@ -86,6 +86,10 @@ func (env *Env) assertPartialFallback(t *testing.T, name string, assertion asser
 		assert.AssertPartial(t, env.GetGRPCRoute(t, name), a, name)
 	case *assert.GRPCRouteAssertion:
 		assert.AssertPartial(t, env.GetGRPCRoute(t, name), *a, name)
+	case assert.ServiceMonitorAssertion:
+		assert.AssertPartial(t, env.GetServiceMonitor(t, name), a, name)
+	case *assert.ServiceMonitorAssertion:
+		assert.AssertPartial(t, env.GetServiceMonitor(t, name), *a, name)
 	default:
 		t.Fatalf("env.AssertPartial: unsupported assertion type %T", assertion)
 	}
@@ -102,6 +106,9 @@ func (env *Env) assertNoneFallback(t *testing.T, name string, assertion assert.A
 	case assert.GRPCRouteAssertion, *assert.GRPCRouteAssertion:
 		_, err := env.GetGRPCRouteE(t, name)
 		require.True(t, errors.IsNotFound(err), "GRPCRoute %q should not exist (err: %v)", name, err)
+	case assert.ServiceMonitorAssertion, *assert.ServiceMonitorAssertion:
+		_, err := env.GetServiceMonitorE(t, name)
+		require.True(t, errors.IsNotFound(err), "ServiceMonitor %q should not exist (err: %v)", name, err)
 	default:
 		t.Fatalf("env.AssertNone: unsupported assertion type %T", assertion)
 	}

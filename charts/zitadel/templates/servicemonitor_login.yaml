@@ -1,0 +1,50 @@
+#file: noinspection KubernetesUnknownResourcesInspection
+{{- if and .Values.login.enabled .Values.login.metrics.enabled .Values.login.metrics.serviceMonitor.enabled }}
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ include "zitadel.login.fullname" . }}
+  namespace: {{ .Values.login.metrics.serviceMonitor.namespace | default .Release.Namespace }}
+  labels:
+    {{- include "login.labels" . | nindent 4 }}
+    {{- if .Values.login.metrics.serviceMonitor.additionalLabels }}
+        {{- toYaml .Values.login.metrics.serviceMonitor.additionalLabels | nindent 4 }}
+    {{- end }}
+spec:
+  endpoints:
+  - port: metrics
+    {{- if .Values.login.metrics.serviceMonitor.scrapeInterval }}
+    interval: {{ .Values.login.metrics.serviceMonitor.scrapeInterval }}
+    {{- end }}
+    {{- if .Values.login.metrics.serviceMonitor.scrapeTimeout }}
+    scrapeTimeout: {{ .Values.login.metrics.serviceMonitor.scrapeTimeout }}
+    {{- end }}
+    {{- if .Values.login.metrics.serviceMonitor.relabellings }}
+    relabelings:
+      {{- toYaml .Values.login.metrics.serviceMonitor.relabellings | nindent 6 }}
+    {{- end }}
+    {{- if .Values.login.metrics.serviceMonitor.metricRelabellings }}
+    metricRelabelings:
+      {{- toYaml .Values.login.metrics.serviceMonitor.metricRelabellings | nindent 6 }}
+    {{- end }}
+    path: /metrics
+    {{- if .Values.login.metrics.serviceMonitor.scheme }}
+    scheme: {{ .Values.login.metrics.serviceMonitor.scheme }}
+    {{- end }}
+    {{- if .Values.login.metrics.serviceMonitor.tlsConfig }}
+    tlsConfig:
+      {{- toYaml .Values.login.metrics.serviceMonitor.tlsConfig | nindent 6 }}
+    {{- end }}
+    {{- if .Values.login.metrics.serviceMonitor.proxyUrl }}
+    proxyUrl: {{ .Values.login.metrics.serviceMonitor.proxyUrl }}
+    {{- end }}
+    honorLabels: {{ .Values.login.metrics.serviceMonitor.honorLabels }}
+    honorTimestamps: {{ .Values.login.metrics.serviceMonitor.honorTimestamps }}
+  jobLabel: {{ include "zitadel.login.fullname" . }}
+  namespaceSelector:
+    matchNames:
+    - "{{ $.Release.Namespace }}"
+  selector:
+    matchLabels:
+    {{- include "login.selectorLabels" . | nindent 6 }}
+{{- end }}

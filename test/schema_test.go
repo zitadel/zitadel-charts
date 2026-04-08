@@ -69,9 +69,12 @@ func TestSchemaFullyTyped(t *testing.T) {
 		"/zitadel/configmapConfig":                   true,
 		"/zitadel/secretConfig":                      true,
 		"/extraManifests":                            true,
-		"/metrics/serviceMonitor/tlsConfig":          true,
-		"/metrics/serviceMonitor/relabellings":       true,
-		"/metrics/serviceMonitor/metricRelabellings": true,
+		"/metrics/serviceMonitor/tlsConfig":              true,
+		"/metrics/serviceMonitor/relabellings":           true,
+		"/metrics/serviceMonitor/metricRelabellings":     true,
+		"/login/metrics/serviceMonitor/tlsConfig":        true,
+		"/login/metrics/serviceMonitor/relabellings":     true,
+		"/login/metrics/serviceMonitor/metricRelabellings": true,
 	}
 
 	properties := schema["properties"].(map[string]any)

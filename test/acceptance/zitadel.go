@@ -154,11 +154,13 @@ func InstallZitadel(t *testing.T, k *k8s.KubectlOptions, opts ...ZitadelOption) 
 	chartPath := filepath.Join(repoRoot, "charts", "zitadel")
 
 	values := map[string]string{
-		"replicaCount":          "1",
-		"login.replicaCount":    "1",
-		"pdb.enabled":           "true",
-		"ingress.enabled":       "true",
-		"login.ingress.enabled": "true",
+		"replicaCount":           "1",
+		"login.replicaCount":     "1",
+		"pdb.enabled":            "true",
+		"ingress.enabled":        "true",
+		"login.ingress.enabled":  "true",
+		"metrics.enabled":        "true",
+		"login.metrics.enabled":  "true",
 	}
 
 	if cfg.externalDomain != "" {

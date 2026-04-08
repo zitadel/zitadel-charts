@@ -649,6 +649,61 @@ login:
     # Ref: https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale/#configurable-scaling-behavior
     behavior: {}
 
+  # Metrics configuration for Login UI monitoring. When enabled, the Login UI
+  # exposes Prometheus-compatible metrics on the service port.
+  metrics:
+    # -- Enable metrics scraping annotations on Login UI pods. When true, adds
+    # prometheus.io/* annotations that enable automatic discovery by Prometheus.
+    enabled: false
+    # ServiceMonitor configuration for Prometheus Operator. A ServiceMonitor is a
+    # custom resource that tells Prometheus Operator how to scrape metrics from
+    # the Login UI. Requires the Prometheus Operator to be installed in the cluster.
+    # Ref: https://github.com/prometheus-operator/prometheus-operator
+    serviceMonitor:
+      # -- Create a ServiceMonitor resource for Prometheus Operator integration.
+      # The Prometheus community Helm chart (kube-prometheus-stack) installs
+      # this operator. To allow discovery across all namespaces, set:
+      # prometheus.prometheusSpec.serviceMonitorSelectorNilUsesHelmValues=false
+      enabled: false
+      # -- If true, use metric labels from the Login UI instead of relabeling them to
+      # match Prometheus conventions.
+      honorLabels: false
+      # -- If true, preserve original scrape timestamps from the Login UI instead of
+      # using Prometheus server time.
+      honorTimestamps: true
+      # @schema type:[null,string]
+      # -- Namespace where the ServiceMonitor should be created. If null, uses the
+      # release namespace. Set this if Prometheus watches a specific namespace.
+      namespace: null
+      # -- (map[string]string) Additional labels to add to the ServiceMonitor. Use this
+      # to match Prometheus Operator's serviceMonitorSelector if configured.
+      additionalLabels: {}
+      # @schema type:[null,string]
+      # -- How often Prometheus should scrape metrics from the Login UI. If null, uses
+      # Prometheus's default scrape interval (typically 30s).
+      scrapeInterval: null
+      # @schema type:[null,string]
+      # -- Timeout for scrape requests. If null, uses Prometheus's default timeout.
+      # Should be less than scrapeInterval.
+      scrapeTimeout: null
+      # -- ([]RelabelConfig) Relabeling rules applied before ingestion. Use to modify, filter, or
+      # drop labels before metrics are stored.
+      relabellings: []
+      # -- ([]RelabelConfig) Relabeling rules applied to individual metrics. Use to rename metrics,
+      # drop expensive metrics, or modify metric labels.
+      metricRelabellings: []
+      # @schema type:[null,string]
+      # -- HTTP scheme to use for scraping. Set to "https" if the Login UI has internal
+      # TLS enabled. If null, defaults to "http".
+      scheme: null
+      # -- (TLSConfig) TLS configuration for scraping HTTPS endpoints. Configure this if the Login UI
+      # has internal TLS enabled and you need to verify certificates.
+      tlsConfig: {}
+      # @schema type:[null,string]
+      # -- HTTP proxy URL for scraping. Use if Prometheus needs to access the Login UI
+      # through a proxy.
+      proxyUrl: null
+
 # -- Number of ZITADEL pod replicas. While a single replica is fine for testing,
 # production environments should use 3 or more to prevent downtime during
 # rolling updates, node failures, and ensure high availability.
