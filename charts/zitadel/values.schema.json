@@ -1499,7 +1499,7 @@
                             }
                         },
                         "resources": {
-                            "description": "CPU and memory resource requests and limits for wait4x init containers. These resources apply to all init containers using the wait4x tool, including wait-for-zitadel and wait-for-postgres. Setting equal requests and limits enables the \"Guaranteed\" QoS class when combined with resource settings on the main container. Ref: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/",
+                            "description": "CPU and memory resource requests and limits for wait4x init containers. These resources apply to init containers using the wait4x tool (e.g. wait-for-zitadel). Setting equal requests and limits enables the \"Guaranteed\" QoS class when combined with resource settings on the main container. Ref: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/",
                             "$ref": "https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/v1.30.0/_definitions.json#/definitions/io.k8s.api.core.v1.ResourceRequirements",
                             "type": "object"
                         }
