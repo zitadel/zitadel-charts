@@ -199,3 +199,36 @@ func TestInternalTLS(t *testing.T) {
 		})
 	})
 }
+
+// TestGatewayAPI validates that ZITADEL is accessible through Gateway API
+// HTTPRoute and GRPCRoute resources instead of traditional Kubernetes
+// Ingress. This test verifies that the chart's Gateway API integration works
+// correctly with Traefik as the Gateway controller, including proper
+// appProtocol handling for HTTP/2 backends (issue #580).
+//
+//goland:noinspection DuplicatedCode
+func TestGatewayAPI(t *testing.T) {
+	domain := "gateway.127.0.0.1.sslip.io"
+	apiBaseURL := BuildAPIBaseURL(domain, httpPort, false)
+	machineUsername := "zitadel-admin-sa"
+
+	testcluster.WithNamespace(t, func(ctx context.Context, k *k8s.KubectlOptions) {
+		InstallPostgres(t, k)
+		InstallZitadel(t, k,
+			WithExternalDomain(domain),
+			WithExternalPort(httpPort),
+			WithExternalSecure(false),
+			WithGateway("traefik-gateway", "kube-system"),
+			WithMachineUser("Admin", machineUsername),
+		)
+
+		t.Run("accessibility", func(t *testing.T) { CheckAccessibility(ctx, t, k, apiBaseURL) })
+		t.Run("metrics", func(t *testing.T) { CheckMetrics(ctx, t, k, false) })
+		t.Run("authenticated-api", func(t *testing.T) {
+			CheckAuthenticatedAPI(ctx, t, k, apiBaseURL, machineUsername, machineUsername+".json")
+		})
+		t.Run("uninstall", func(t *testing.T) {
+			CheckUninstall(ctx, t, k, nil)
+		})
+	})
+}
