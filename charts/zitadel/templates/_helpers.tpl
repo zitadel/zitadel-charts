@@ -353,26 +353,6 @@ http://{{ include "zitadel.fullname" . }}:{{ .Values.service.port }}/debug/ready
 
 
 {{/*
-Returns the PostgreSQL TCP endpoint for wait4x health checks.
-Extracts the database host and port from ZITADEL configuration.
-Format: tcp://<host>:<port>
-Example: tcp://db-postgresql:5432
-*/}}
-{{- define "zitadel.postgresEndpoint" -}}
-{{- if .Values.zitadel -}}
-  {{- if .Values.zitadel.configmapConfig -}}
-    {{- if .Values.zitadel.configmapConfig.Database -}}
-      {{- with .Values.zitadel.configmapConfig.Database.Postgres -}}
-        {{- if .Host }}
-          {{- .Host }}:{{ .Port | default 5432 }}
-        {{- end -}}
-      {{- end -}}
-    {{- end -}}
-  {{- end -}}
-{{- end -}}
-{{- end -}}
-
-{{/*
 This helper template takes the Kubernetes cluster's version string, which
 can be complex (e.g., "v1.28.5+k3s1"), and returns a sanitized, clean
 version string in the "MAJOR.MINOR.PATCH" format. This is crucial for

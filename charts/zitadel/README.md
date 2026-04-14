@@ -2,7 +2,7 @@
 
 # Zitadel
 
-![Version: 9.29.0](https://img.shields.io/badge/Version-9.29.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: v4.13.0](https://img.shields.io/badge/AppVersion-v4.13.0-informational?style=flat-square)
+![Version: 9.30.0](https://img.shields.io/badge/Version-9.30.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: v4.13.0](https://img.shields.io/badge/AppVersion-v4.13.0-informational?style=flat-square)
 
 ## A Better Identity and Access Management Solution
 
@@ -391,7 +391,7 @@ Kubernetes: `>= 1.30.0-0`
 | tools.wait4x.image.pullPolicy | string | `""` | The pull policy for the wait4x image. If left empty, the chart defaults to the Kubernetes default pull policy for the given tag. |
 | tools.wait4x.image.repository | string | `"wait4x/wait4x"` | The name of the image repository that contains the wait4x image. The chart automatically prepends the registry (docker.io by default) for compatibility with CRI-O v1.34+ which enforces fully qualified names. |
 | tools.wait4x.image.tag | string | `"3.6"` | The image tag to use for the wait4x image. Leave empty to require the user to set a specific version explicitly. |
-| tools.wait4x.resources | ResourceRequirements | `{}` | CPU and memory resource requests and limits for wait4x init containers. These resources apply to all init containers using the wait4x tool, including wait-for-zitadel and wait-for-postgres. Setting equal requests and limits enables the "Guaranteed" QoS class when combined with resource settings on the main container. Ref: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/ |
+| tools.wait4x.resources | ResourceRequirements | `{}` | CPU and memory resource requests and limits for wait4x init containers. These resources apply to all init containers using the wait4x tool, such as wait-for-zitadel. Setting equal requests and limits enables the "Guaranteed" QoS class when combined with resource settings on the main container. Ref: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/ |
 | topologySpreadConstraints | []TopologySpreadConstraint | `[]` | Topology spread constraints control how pods are distributed across topology domains (e.g., zones, nodes, regions) for high availability. Unlike affinity, these constraints provide more granular control over pod distribution. Ref: https://kubernetes.io/docs/concepts/scheduling-eviction/topology-spread-constraints/ |
 | zitadel.autoscaling.annotations | map[string]string | `{}` | Annotations applied to the HPA object. |
 | zitadel.autoscaling.behavior | HorizontalPodAutoscalerBehavior | `{}` | Configures the scaling behavior for scaling up and down. See: https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale/#configurable-scaling-behavior |

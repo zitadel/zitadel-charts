@@ -60,21 +60,6 @@ func TestDeploymentMatrix(t *testing.T) {
 								RunAsUser:    assert.SomePtr(int64(1000)),
 								FSGroup:      assert.SomePtr(int64(1000)),
 							},
-							InitContainers: assert.Some([]assert.ContainerAssertion{
-								{
-									Name: assert.Some("wait-for-postgres"),
-									Resources: assert.ResourceRequirementsAssertion{
-										Requests: assert.Some(corev1.ResourceList{}),
-										Limits:   assert.Some(corev1.ResourceList{}),
-									},
-									SecurityContext: assert.SecurityContextAssertion{
-										RunAsNonRoot:           assert.SomePtr(true),
-										RunAsUser:              assert.SomePtr(int64(1000)),
-										ReadOnlyRootFilesystem: assert.SomePtr(true),
-										Privileged:             assert.SomePtr(false),
-									},
-								},
-							}),
 							Containers: assert.Some([]assert.ContainerAssertion{
 								{
 									Name: assert.Some("zitadel"),
@@ -160,29 +145,6 @@ func TestDeploymentMatrix(t *testing.T) {
 				"tools.wait4x.resources.requests.memory": "32Mi",
 				"tools.wait4x.resources.limits.cpu":      "100m",
 				"tools.wait4x.resources.limits.memory":   "64Mi",
-			},
-			zitadel: &assert.DeploymentAssertion{
-				Spec: assert.DeploymentSpecAssertion{
-					Template: assert.PodTemplateSpecAssertion{
-						Spec: assert.PodSpecAssertion{
-							InitContainers: assert.Some([]assert.ContainerAssertion{
-								{
-									Name: assert.Some("wait-for-postgres"),
-									Resources: assert.ResourceRequirementsAssertion{
-										Requests: assert.Some(corev1.ResourceList{
-											corev1.ResourceCPU:    resource.MustParse("50m"),
-											corev1.ResourceMemory: resource.MustParse("32Mi"),
-										}),
-										Limits: assert.Some(corev1.ResourceList{
-											corev1.ResourceCPU:    resource.MustParse("100m"),
-											corev1.ResourceMemory: resource.MustParse("64Mi"),
-										}),
-									},
-								},
-							}),
-						},
-					},
-				},
 			},
 			login: &assert.DeploymentAssertion{
 				Spec: assert.DeploymentSpecAssertion{
@@ -286,21 +248,6 @@ func TestDeploymentMatrix(t *testing.T) {
 									Type: assert.Some(corev1.SeccompProfileTypeRuntimeDefault),
 								},
 							},
-							InitContainers: assert.Some([]assert.ContainerAssertion{
-								{
-									Name: assert.Some("wait-for-postgres"),
-									SecurityContext: assert.SecurityContextAssertion{
-										RunAsNonRoot:             assert.SomePtr(true),
-										RunAsUser:                assert.SomePtr(int64(2000)),
-										ReadOnlyRootFilesystem:   assert.SomePtr(true),
-										Privileged:               assert.SomePtr(false),
-										AllowPrivilegeEscalation: assert.SomePtr(false),
-										Capabilities: assert.CapabilitiesAssertion{
-											Drop: assert.Some([]corev1.Capability{"ALL"}),
-										},
-									},
-								},
-							}),
 							Containers: assert.Some([]assert.ContainerAssertion{
 								{
 									Name: assert.Some("zitadel"),
