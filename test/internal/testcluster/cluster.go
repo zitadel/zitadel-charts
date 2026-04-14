@@ -5,7 +5,7 @@
 // discover the cluster automatically.
 //
 // Traefik is configured via a HelmChartConfig manifest to use NodePort with
-// ports 30080 (HTTP) and 30443 (HTTPS). The HTTP port redirects to HTTPS.
+// ports 30080 (HTTP) and 30443 (HTTPS).
 // The Gateway API provider is enabled and Traefik automatically creates a
 // GatewayClass and Gateway. The dynamically mapped host ports are available
 // via Cluster.HTTPSPort and Cluster.HTTPPort.

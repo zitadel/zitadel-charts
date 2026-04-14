@@ -31,7 +31,9 @@ spec:
       targetPort: {{ include "zitadel.containerPort" . }}
       protocol: TCP
       name: {{ regexReplaceAll "\\W+" .Values.service.protocol "-" }}-server
-      appProtocol: {{ .Values.service.appProtocol }}
+      {{- with .Values.service.appProtocol }}
+      appProtocol: {{ . }}
+      {{- end }}
   selector:
     {{- include "zitadel.start.selectorLabels" . | nindent 4 }}
 {{- end }}

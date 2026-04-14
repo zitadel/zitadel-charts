@@ -201,10 +201,10 @@ func TestInternalTLS(t *testing.T) {
 }
 
 // TestGatewayAPI validates that ZITADEL is accessible through Gateway API
-// HTTPRoute resources instead of traditional Kubernetes Ingress. This test
-// verifies that the chart's Gateway API integration works correctly with
-// Traefik as the Gateway controller, including proper appProtocol handling
-// for HTTP/2 backends (issue #580).
+// HTTPRoute and GRPCRoute resources instead of traditional Kubernetes
+// Ingress. This test verifies that the chart's Gateway API integration works
+// correctly with Traefik as the Gateway controller, including proper
+// appProtocol handling for HTTP/2 backends (issue #580).
 //
 //goland:noinspection DuplicatedCode
 func TestGatewayAPI(t *testing.T) {
