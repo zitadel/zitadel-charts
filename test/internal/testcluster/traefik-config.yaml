@@ -11,16 +11,18 @@ spec:
         level: DEBUG
     additionalArguments:
       - "--serverstransport.insecureskipverify=true"
+    providers:
+      kubernetesGateway:
+        enabled: true
+    gateway:
+      listeners:
+        web:
+          namespacePolicy: All
     service:
       type: NodePort
     ports:
       web:
         nodePort: 30080
-        redirections:
-          entryPoint:
-            to: websecure
-            scheme: https
-            permanent: true
       websecure:
         nodePort: 30443
     ingressClass:
