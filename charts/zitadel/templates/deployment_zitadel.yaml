@@ -94,8 +94,6 @@ spec:
             - name: ZITADEL_DATABASE_{{ $dbEnv }}_USER_SSL_KEY
               value: /db-ssl-user-crt/tls.key
             {{- end }}
-            - name: ZITADEL_DATABASE_{{ $dbEnv }}_AWAITINITIALCONN
-              value: "5m"
             {{- if .Values.zitadel.serverSslCrtSecret }}
             - name: ZITADEL_TLS_CERTPATH
               value: /server-ssl-crt/tls.crt
