@@ -21,8 +21,10 @@ type ZitadelOption func(*zitadelConfig)
 type zitadelConfig struct {
 	externalDomain      string
 	externalPort        string
+	externalSecure      *bool
 	tlsEnabled          bool
 	selfSignedCert      bool
+	useGateway          bool
 	masterkeySecretName string
 	configSecretName    string
 	configSecretKey     string
@@ -142,6 +144,38 @@ func WithoutDBHost() ZitadelOption {
 	}
 }
 
+// WithGateway configures ZITADEL to use Gateway API HTTPRoute and GRPCRoute
+// instead of Ingress. This disables Ingress, enables HTTPRoute and GRPCRoute
+// for ZITADEL and HTTPRoute for Login, with parentRefs pointing to the
+// specified Gateway. It also clears appProtocol on all services so that the
+// Gateway controller infers the backend protocol from the route type.
+func WithGateway(gatewayName, gatewayNamespace string) ZitadelOption {
+	return func(c *zitadelConfig) {
+		c.useGateway = true
+		c.additionalValues["service.appProtocol"] = ""
+		c.additionalValues["login.service.appProtocol"] = ""
+		c.additionalValues["gateway.httpRoute.enabled"] = "true"
+		c.additionalValues["gateway.httpRoute.parentRefs[0].name"] = gatewayName
+		c.additionalValues["gateway.httpRoute.parentRefs[0].namespace"] = gatewayNamespace
+		c.additionalValues["gateway.httpRoute.parentRefs[0].sectionName"] = "web"
+		c.additionalValues["gateway.grpcRoute.enabled"] = "true"
+		c.additionalValues["gateway.grpcRoute.parentRefs[0].name"] = gatewayName
+		c.additionalValues["gateway.grpcRoute.parentRefs[0].namespace"] = gatewayNamespace
+		c.additionalValues["gateway.grpcRoute.parentRefs[0].sectionName"] = "web"
+		c.additionalValues["login.gateway.httpRoute.enabled"] = "true"
+		c.additionalValues["login.gateway.httpRoute.parentRefs[0].name"] = gatewayName
+		c.additionalValues["login.gateway.httpRoute.parentRefs[0].namespace"] = gatewayNamespace
+		c.additionalValues["login.gateway.httpRoute.parentRefs[0].sectionName"] = "web"
+	}
+}
+
+// WithExternalSecure explicitly sets whether external URLs use HTTPS.
+func WithExternalSecure(secure bool) ZitadelOption {
+	return func(c *zitadelConfig) {
+		c.externalSecure = &secure
+	}
+}
+
 // InstallZitadel installs ZITADEL via Helm with the provided options. The chart
 // is installed from the local filesystem relative to this test file location.
 // The install blocks until all resources are ready (--wait --timeout 10m).
@@ -165,13 +199,19 @@ func InstallZitadel(t *testing.T, k *k8s.KubectlOptions, opts ...ZitadelOption) 
 	chartPath := filepath.Join(repoRoot, "charts", "zitadel")
 
 	values := map[string]string{
-		"replicaCount":           "1",
-		"login.replicaCount":     "1",
-		"pdb.enabled":            "true",
-		"ingress.enabled":        "true",
-		"login.ingress.enabled":  "true",
-		"metrics.enabled":        "true",
-		"login.metrics.enabled":  "true",
+		"replicaCount":       "1",
+		"login.replicaCount": "1",
+		"pdb.enabled":        "true",
+		"metrics.enabled":    "true",
+		"login.metrics.enabled": "true",
+	}
+
+	if cfg.useGateway {
+		values["ingress.enabled"] = "false"
+		values["login.ingress.enabled"] = "false"
+	} else {
+		values["ingress.enabled"] = "true"
+		values["login.ingress.enabled"] = "true"
 	}
 
 	if cfg.externalDomain != "" {
@@ -185,6 +225,14 @@ func InstallZitadel(t *testing.T, k *k8s.KubectlOptions, opts ...ZitadelOption) 
 		values["zitadel.configmapConfig.TLS.Enabled"] = "true"
 	} else {
 		values["zitadel.configmapConfig.TLS.Enabled"] = "false"
+	}
+
+	if cfg.externalSecure != nil {
+		if *cfg.externalSecure {
+			values["zitadel.configmapConfig.ExternalSecure"] = "true"
+		} else {
+			values["zitadel.configmapConfig.ExternalSecure"] = "false"
+		}
 	}
 
 	if cfg.selfSignedCert {

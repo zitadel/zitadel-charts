@@ -5,8 +5,10 @@
 // discover the cluster automatically.
 //
 // Traefik is configured via a HelmChartConfig manifest to use NodePort with
-// ports 30080 (HTTP) and 30443 (HTTPS). The HTTP port redirects to HTTPS.
-// The dynamically mapped host port for HTTPS is available via Cluster.HTTPSPort.
+// ports 30080 (HTTP) and 30443 (HTTPS).
+// The Gateway API provider is enabled and Traefik automatically creates a
+// GatewayClass and Gateway. The dynamically mapped host ports are available
+// via Cluster.HTTPSPort and Cluster.HTTPPort.
 package testcluster
 
 import (
@@ -32,7 +34,11 @@ const k3sImage = "rancher/k3s:v1.34.1-k3s1"
 type Cluster struct {
 	// HTTPSPort is the dynamically mapped host port for the Traefik HTTPS
 	// NodePort (30443).
-	HTTPSPort      string
+	HTTPSPort string
+	// HTTPPort is the dynamically mapped host port for the Traefik HTTP
+	// NodePort (30080). This is also the port used by the Gateway API
+	// listener ("web" entrypoint).
+	HTTPPort  string
 	container      *k3s.K3sContainer
 	kubeconfigPath string
 }
@@ -40,8 +46,10 @@ type Cluster struct {
 // Start creates a K3s cluster with Traefik enabled, extracts its kubeconfig
 // into a temporary file, and sets the KUBECONFIG environment variable. The
 // bundled Traefik ingress controller is customized via a HelmChartConfig
-// manifest to use NodePort with dynamically mapped ports. Call Cleanup when
-// the cluster is no longer needed.
+// manifest to use NodePort with dynamically mapped ports. The Gateway API
+// provider is enabled and Traefik creates a GatewayClass ("traefik") and
+// Gateway ("traefik-gateway") automatically. Call Cleanup when the cluster
+// is no longer needed.
 func Start(ctx context.Context) (*Cluster, error) {
 	traefikPath, err := writeEmbeddedFile("traefik-config.yaml")
 	if err != nil {
@@ -88,7 +96,14 @@ func Start(ctx context.Context) (*Cluster, error) {
 		return nil, err
 	}
 
-	mapped, err := container.MappedPort(ctx, nat.Port("30443/tcp"))
+	httpsMapped, err := container.MappedPort(ctx, nat.Port("30443/tcp"))
+	if err != nil {
+		_ = os.Remove(kubeconfigFile.Name())
+		_ = container.Terminate(context.Background())
+		return nil, err
+	}
+
+	httpMapped, err := container.MappedPort(ctx, nat.Port("30080/tcp"))
 	if err != nil {
 		_ = os.Remove(kubeconfigFile.Name())
 		_ = container.Terminate(context.Background())
@@ -96,17 +111,17 @@ func Start(ctx context.Context) (*Cluster, error) {
 	}
 
 	return &Cluster{
-		HTTPSPort:      mapped.Port(),
+		HTTPSPort:      httpsMapped.Port(),
+		HTTPPort:       httpMapped.Port(),
 		container:      container,
 		kubeconfigPath: kubeconfigFile.Name(),
 	}, nil
 }
 
 // ApplyGatewayCRDs registers the Gateway API CRDs with the cluster's API
-// server using kubectl apply. This must be called after Start and only by
-// test suites that need Gateway API resources (e.g. smoke tests). The CRDs
-// are not loaded at startup to avoid interfering with Traefik's ingress
-// routing, which acceptance tests depend on.
+// server using kubectl apply. The K3s bundled traefik-crd chart already
+// installs these CRDs, so this call is idempotent. It is kept for test
+// suites (e.g. smoke tests) that call it explicitly.
 func (c *Cluster) ApplyGatewayCRDs(ctx context.Context) error {
 	path, err := writeEmbeddedFile("gateway-crds.yaml")
 	if err != nil {
