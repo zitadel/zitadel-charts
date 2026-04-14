@@ -1360,9 +1360,9 @@ extraManifests: []
   #       - Ingress
 
 # Configuration for helper tools used by init containers and jobs. These images
-# are used by components such as wait-for-zitadel, wait-for-postgres, and the
-# setup and cleanup jobs. Each tool follows the standard image configuration
-# pattern with registry, repository, tag, pull policy, and pull secrets.
+# are used by components such as wait-for-zitadel and the setup and cleanup
+# jobs. Each tool follows the standard image configuration pattern with
+# registry, repository, tag, pull policy, and pull secrets.
 tools:
   # Configuration for the wait4x image used for readiness and dependency checks
   # in init containers. Values are intentionally left empty and should be set by
@@ -1382,9 +1382,9 @@ tools:
     # @schema $ref: $k8s/_definitions.json#/definitions/io.k8s.api.core.v1.ResourceRequirements
     # -- (ResourceRequirements) CPU and memory resource requests and limits for wait4x init containers.
     # These resources apply to all init containers using the wait4x tool,
-    # including wait-for-zitadel and wait-for-postgres. Setting equal requests
-    # and limits enables the "Guaranteed" QoS class when combined with resource
-    # settings on the main container.
+    # such as wait-for-zitadel. Setting equal requests and limits enables the
+    # "Guaranteed" QoS class when combined with resource settings on the main
+    # container.
     # Ref: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
     resources: {}
       # Example for Guaranteed QoS class:
