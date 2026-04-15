@@ -119,13 +119,6 @@ func WithMachineUser(name, username string) ZitadelOption {
 	}
 }
 
-// WithValue sets an arbitrary Helm value for ZITADEL installation.
-func WithValue(key, value string) ZitadelOption {
-	return func(c *zitadelConfig) {
-		c.additionalValues[key] = value
-	}
-}
-
 // WithDSN configures ZITADEL in DSN mode: the database connection is supplied
 // as a single connection string via the ZITADEL_DATABASE_POSTGRES_DSN env var
 // instead of discrete Database.Postgres.* configmap fields.
