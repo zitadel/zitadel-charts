@@ -494,10 +494,9 @@ dsn
 
 {{/*
 Constructs the DSN for the bundled PostgreSQL subchart using libpq key=value format.
-The password uses $(VAR) substitution from the POSTGRES_PASSWORD env var.
 */}}
 {{- define "zitadel.bundledPostgresDsn" -}}
-host={{ include "zitadel.postgresqlHost" . }} port=5432 user=postgres password=$(POSTGRES_PASSWORD) dbname={{ .Values.postgresql.auth.database }} sslmode=disable
+host={{ include "zitadel.postgresqlHost" . }} port=5432 user=postgres password={{ .Values.postgresql.auth.postgresPassword }} dbname={{ .Values.postgresql.auth.database }} sslmode=disable
 {{- end -}}
 
 {{/*
@@ -506,11 +505,6 @@ user-supplied .Values.env.
 */}}
 {{- define "zitadel.dbEnv" -}}
 {{- if and .Values.postgresql.enabled (eq (include "zitadel.dbMode" .) "dsn") }}
-- name: POSTGRES_PASSWORD
-  valueFrom:
-    secretKeyRef:
-      name: {{ include "zitadel.postgresqlHost" . }}
-      key: postgres-password
 - name: ZITADEL_DATABASE_POSTGRES_DSN
   value: {{ include "zitadel.bundledPostgresDsn" . | quote }}
 {{- end }}
