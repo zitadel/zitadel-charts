@@ -268,18 +268,6 @@ Returns the database config from the secretConfig or else from the configmapConf
     {{- end -}}
 {{- end -}}
 
-{{/*
-Returns a dict with the databases key in the yaml and the environment variable part, either COCKROACH or POSTGRES, in uppercase letters.
-*/}}
-{{- define "zitadel.dbkey.json" -}}
-  {{- range $i, $key := (include "zitadel.dbconfig.json" . | fromJson | keys ) -}}
-    {{- if or (eq (lower $key) "postgres" ) (eq (lower $key) "pg" ) -}}
-        {"key": "{{ $key }}", "env": "POSTGRES" }
-    {{- else if or (eq (lower $key) "cockroach" ) (eq (lower $key) "crdb" ) -}}
-        {"key": "{{ $key }}", "env": "COCKROACH" }
-    {{- end -}}
-  {{- end -}}
-{{- end -}}
 
 {{- define "zitadel.containerPort" -}}
 8080

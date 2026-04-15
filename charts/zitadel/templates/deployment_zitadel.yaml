@@ -83,18 +83,17 @@ spec:
                 secretKeyRef:
                   name: {{ include "zitadel.masterkeySecretName" . }}
                   key: masterkey
-            {{- $dbEnv := get (include "zitadel.dbkey.json" . | fromJson) "env" }}
             {{- if (or .Values.zitadel.dbSslCaCrt .Values.zitadel.dbSslCaCrtSecret) }}
-            - name: ZITADEL_DATABASE_{{ $dbEnv }}_USER_SSL_ROOTCERT
+            - name: ZITADEL_DATABASE_POSTGRES_USER_SSL_ROOTCERT
               value: /db-ssl-ca-crt/ca.crt
             {{- end }}
             {{- if .Values.zitadel.dbSslUserCrtSecret }}
-            - name: ZITADEL_DATABASE_{{ $dbEnv }}_USER_SSL_CERT
+            - name: ZITADEL_DATABASE_POSTGRES_USER_SSL_CERT
               value: /db-ssl-user-crt/tls.crt
-            - name: ZITADEL_DATABASE_{{ $dbEnv }}_USER_SSL_KEY
+            - name: ZITADEL_DATABASE_POSTGRES_USER_SSL_KEY
               value: /db-ssl-user-crt/tls.key
             {{- end }}
-            - name: ZITADEL_DATABASE_{{ $dbEnv }}_AWAITINITIALCONN
+            - name: ZITADEL_DATABASE_POSTGRES_AWAITINITIALCONN
               value: "5m"
             {{- if .Values.zitadel.serverSslCrtSecret }}
             - name: ZITADEL_TLS_CERTPATH

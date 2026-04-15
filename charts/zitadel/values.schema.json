@@ -1716,7 +1716,7 @@
                     "type": "string"
                 },
                 "dbSslCaCrt": {
-                    "description": "PEM-encoded CA certificate for verifying the database server's TLS certificate. Use this when your PostgreSQL/CockroachDB server uses a self-signed certificate or a certificate signed by a private CA. The certificate is stored in a Kubernetes Secret and mounted into ZITADEL pods at /db-ssl-ca-crt/ca.crt. Either provide the certificate inline here, or reference an existing secret using dbSslCaCrtSecret instead.",
+                    "description": "PEM-encoded CA certificate for verifying the database server's TLS certificate. Use this when your PostgreSQL server uses a self-signed certificate or a certificate signed by a private CA. The certificate is stored in a Kubernetes Secret and mounted into ZITADEL pods at /db-ssl-ca-crt/ca.crt. Either provide the certificate inline here, or reference an existing secret using dbSslCaCrtSecret instead.",
                     "type": "string"
                 },
                 "dbSslCaCrtAnnotations": {
