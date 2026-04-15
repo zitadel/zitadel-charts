@@ -40,6 +40,37 @@ func TestPostgresInsecure(t *testing.T) {
 	})
 }
 
+// TestPostgresDSN validates a ZITADEL deployment using a single DSN connection
+// string instead of discrete Database.Postgres.* configmap fields. The DSN is
+// passed via the ZITADEL_DATABASE_POSTGRES_DSN environment variable. The target
+// database must be pre-created because DSN mode has no admin/user split — there
+// is no separate admin connection that creates the database on first run.
+func TestPostgresDSN(t *testing.T) {
+	domain := "pg-dsn.127.0.0.1.sslip.io"
+	apiBaseURL := BuildAPIBaseURL(domain, httpsPort, true)
+	machineUsername := "zitadel-admin-sa"
+
+	testcluster.WithNamespace(t, func(ctx context.Context, k *k8s.KubectlOptions) {
+		InstallPostgres(t, k, WithPostgresDatabase("zitadel"))
+		InstallZitadel(t, k,
+			WithExternalDomain(domain),
+			WithExternalPort(httpsPort),
+			WithDSN("host=db-postgresql port=5432 user=postgres dbname=zitadel sslmode=disable"),
+			WithMachineUser("Admin", machineUsername),
+		)
+
+		t.Run("accessibility", func(t *testing.T) { CheckAccessibility(ctx, t, k, apiBaseURL) })
+		t.Run("metrics", func(t *testing.T) { CheckMetrics(ctx, t, k, false) })
+		t.Run("login", func(t *testing.T) { CheckLogin(t, apiBaseURL) })
+		t.Run("authenticated-api", func(t *testing.T) {
+			CheckAuthenticatedAPI(ctx, t, k, apiBaseURL, machineUsername, machineUsername+".json")
+		})
+		t.Run("uninstall", func(t *testing.T) {
+			CheckUninstall(ctx, t, k, nil)
+		})
+	})
+}
+
 // TestPostgresSecure validates ZITADEL deployment with TLS-encrypted PostgreSQL
 // connections using verify-full SSL mode. This test generates a CA and server
 // certificates for both PostgreSQL and ZITADEL, creates the corresponding TLS

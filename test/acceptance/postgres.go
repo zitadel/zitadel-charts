@@ -24,6 +24,7 @@ type postgresConfig struct {
 	tlsEnabled       bool
 	tlsSecretName    string
 	postgresPassword string
+	database         string
 }
 
 // WithPostgresTLS enables TLS for PostgreSQL with the given secret name.
@@ -31,6 +32,13 @@ func WithPostgresTLS(secretName string) PostgresOption {
 	return func(c *postgresConfig) {
 		c.tlsEnabled = true
 		c.tlsSecretName = secretName
+	}
+}
+
+// WithPostgresDatabase sets the default database name created on init.
+func WithPostgresDatabase(database string) PostgresOption {
+	return func(c *postgresConfig) {
+		c.database = database
 	}
 }
 
@@ -74,6 +82,10 @@ func InstallPostgres(t *testing.T, k *k8s.KubectlOptions, opts ...PostgresOption
 		values["volumePermissions.enabled"] = "true"
 	} else {
 		values["primary.pgHbaConfiguration"] = "host all all all trust"
+	}
+
+	if cfg.database != "" {
+		values["auth.database"] = cfg.database
 	}
 
 	if cfg.postgresPassword != "" {

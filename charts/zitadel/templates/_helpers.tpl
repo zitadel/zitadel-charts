@@ -441,65 +441,28 @@ Uses fully qualified image names for CRI-O v1.34+ compatibility.
 {{- end -}}
 
 {{/*
-Return the PostgreSQL service hostname for the bundled subchart.
-Respects fullnameOverride and nameOverride on the postgresql dependency.
+Env vars for DB-talking containers: auto-generates a bundled PostgreSQL DSN
+when the subchart is enabled and no explicit Database.Postgres.Host is set,
+then appends any user-supplied .Values.env entries.
 */}}
-{{- define "zitadel.postgresqlHost" -}}
+{{- define "zitadel.dbEnv" -}}
+{{- $host := "" -}}
+{{- if (((.Values.zitadel).configmapConfig).Database) -}}
+  {{- $host = dig "Postgres" "Host" "" .Values.zitadel.configmapConfig.Database -}}
+{{- end -}}
+{{- if and .Values.postgresql.enabled (not $host) }}
+{{- $pgHost := printf "%s-postgresql" .Release.Name -}}
 {{- if .Values.postgresql.fullnameOverride -}}
-{{- .Values.postgresql.fullnameOverride -}}
+{{- $pgHost = .Values.postgresql.fullnameOverride -}}
 {{- else if .Values.postgresql.nameOverride -}}
-{{- printf "%s-%s" .Release.Name .Values.postgresql.nameOverride -}}
-{{- else -}}
-{{- printf "%s-postgresql" .Release.Name -}}
-{{- end -}}
-{{- end -}}
-
-{{/*
-Auto-generate ZITADEL database configuration from the bundled PostgreSQL subchart.
-Only used when postgresql.enabled=true. User-supplied configmapConfig.Database values
-take priority over these auto-generated values via zitadel.mergedConfigmapConfig.
-*/}}
-{{- define "zitadel.postgresqlAutoConfig" -}}
-Database:
-  Postgres:
-    Host: {{ include "zitadel.postgresqlHost" . }}
-    Port: 5432
-    Database: {{ .Values.postgresql.auth.database }}
-    User:
-      Username: {{ .Values.postgresql.auth.username }}
-      Password: {{ .Values.postgresql.auth.password }}
-      SSL:
-        Mode: disable
-    Admin:
-      Username: postgres
-      Password: {{ .Values.postgresql.auth.postgresPassword }}
-      SSL:
-        Mode: disable
-{{- end -}}
-
-{{/*
-Build the effective configmap config. When postgresql.enabled=true, the auto-derived
-database connection block is merged as a base and user-supplied configmapConfig values
-are applied on top (user values always win). When postgresql is disabled, the behavior
-is identical to the previous direct toYaml rendering.
-
-The default values.yaml ships with Database.Postgres.Host: "" as documentation. To
-prevent that empty default from overriding the auto-derived host, we strip the
-Database key from the user config when the host is empty (i.e. not explicitly set).
-An explicitly-set non-empty host is always respected and takes full precedence.
-*/}}
-{{- define "zitadel.mergedConfigmapConfig" -}}
-{{- if .Values.postgresql.enabled -}}
-{{- $autoConfig := include "zitadel.postgresqlAutoConfig" . | fromYaml -}}
-{{- $userConfig := deepCopy .Values.zitadel.configmapConfig -}}
-{{- $userHost := dig "Database" "Postgres" "Host" "" $userConfig -}}
-{{- if not $userHost -}}
-{{- $_ := unset $userConfig "Database" -}}
-{{- end -}}
-{{- mergeOverwrite $autoConfig $userConfig | toYaml -}}
-{{- else -}}
-{{- .Values.zitadel.configmapConfig | toYaml -}}
-{{- end -}}
+{{- $pgHost = printf "%s-%s" .Release.Name .Values.postgresql.nameOverride -}}
+{{- end }}
+- name: ZITADEL_DATABASE_POSTGRES_DSN
+  value: "host={{ $pgHost }} port=5432 user=postgres password={{ .Values.postgresql.auth.postgresPassword }} dbname={{ .Values.postgresql.auth.database }} sslmode=disable"
+{{- end }}
+{{- with .Values.env }}
+{{ toYaml . }}
+{{- end }}
 {{- end -}}
 
 {{/*
