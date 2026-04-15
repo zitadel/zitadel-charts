@@ -255,38 +255,6 @@ Prefers login.securityContext; falls back to the chart-wide securityContext.
 {{- end }}
 {{- end }}
 
-{{/*
-Returns the database config from the secretConfig or else from the configmapConfig
-*/}}
-{{- define "zitadel.dbconfig.json" -}}
-    {{- if (((.Values.zitadel).secretConfig).Database) -}}
-    {{- .Values.zitadel.secretConfig.Database | toJson -}}
-    {{- else if (((.Values.zitadel).configmapConfig).Database) -}}
-    {{- .Values.zitadel.configmapConfig.Database | toJson -}}
-    {{- else -}}
-    {{- dict | toJson -}}
-    {{- end -}}
-{{- end -}}
-
-{{/*
-Returns a dict with the databases key in the yaml and the environment variable part, either COCKROACH or POSTGRES, in uppercase letters.
-Defaults to POSTGRES when no Database section is present in the chart values (i.e. DSN mode).
-*/}}
-{{- define "zitadel.dbkey.json" -}}
-  {{- $found := false -}}
-  {{- range $i, $key := (include "zitadel.dbconfig.json" . | fromJson | keys ) -}}
-    {{- if or (eq (lower $key) "postgres" ) (eq (lower $key) "pg" ) -}}
-        {"key": "{{ $key }}", "env": "POSTGRES" }
-        {{- $found = true -}}
-    {{- else if or (eq (lower $key) "cockroach" ) (eq (lower $key) "crdb" ) -}}
-        {"key": "{{ $key }}", "env": "COCKROACH" }
-        {{- $found = true -}}
-    {{- end -}}
-  {{- end -}}
-  {{- if not $found -}}
-    {"key": "Postgres", "env": "POSTGRES" }
-  {{- end -}}
-{{- end -}}
 
 {{- define "zitadel.containerPort" -}}
 8080
@@ -533,13 +501,10 @@ host={{ include "zitadel.postgresqlHost" . }} port=5432 user=postgres password=$
 {{- end -}}
 
 {{/*
-Env vars for all DB-talking containers: AwaitInitialConn, bundled DSN (when
-applicable), and user-supplied .Values.env.
+Env vars for DB-talking containers: bundled DSN (when applicable) and
+user-supplied .Values.env.
 */}}
 {{- define "zitadel.dbEnv" -}}
-{{- $dbEnv := get (include "zitadel.dbkey.json" . | fromJson) "env" -}}
-- name: ZITADEL_DATABASE_{{ $dbEnv }}_AWAITINITIALCONN
-  value: "5m"
 {{- if and .Values.postgresql.enabled (eq (include "zitadel.dbMode" .) "dsn") }}
 - name: POSTGRES_PASSWORD
   valueFrom:
