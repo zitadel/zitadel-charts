@@ -441,49 +441,24 @@ Uses fully qualified image names for CRI-O v1.34+ compatibility.
 {{- end -}}
 
 {{/*
-Return the PostgreSQL service hostname for the bundled subchart.
-Respects fullnameOverride and nameOverride on the postgresql dependency.
+Env vars for DB-talking containers: auto-generates a bundled PostgreSQL DSN
+when the subchart is enabled and no explicit Database.Postgres.Host is set,
+then appends any user-supplied .Values.env entries.
 */}}
-{{- define "zitadel.postgresqlHost" -}}
-{{- if .Values.postgresql.fullnameOverride -}}
-{{- .Values.postgresql.fullnameOverride -}}
-{{- else if .Values.postgresql.nameOverride -}}
-{{- printf "%s-%s" .Release.Name .Values.postgresql.nameOverride -}}
-{{- else -}}
-{{- printf "%s-postgresql" .Release.Name -}}
-{{- end -}}
-{{- end -}}
-
-{{/*
-Returns "configmap" or "dsn" depending on whether Database.Postgres.Host is set.
-*/}}
-{{- define "zitadel.dbMode" -}}
+{{- define "zitadel.dbEnv" -}}
 {{- $host := "" -}}
 {{- if (((.Values.zitadel).configmapConfig).Database) -}}
   {{- $host = dig "Postgres" "Host" "" .Values.zitadel.configmapConfig.Database -}}
 {{- end -}}
-{{- if $host -}}
-configmap
-{{- else -}}
-dsn
-{{- end -}}
-{{- end -}}
-
-{{/*
-Constructs the DSN for the bundled PostgreSQL subchart using libpq key=value format.
-*/}}
-{{- define "zitadel.bundledPostgresDsn" -}}
-host={{ include "zitadel.postgresqlHost" . }} port=5432 user=postgres password={{ .Values.postgresql.auth.postgresPassword }} dbname={{ .Values.postgresql.auth.database }} sslmode=disable
-{{- end -}}
-
-{{/*
-Env vars for DB-talking containers: bundled DSN (when applicable) and
-user-supplied .Values.env.
-*/}}
-{{- define "zitadel.dbEnv" -}}
-{{- if and .Values.postgresql.enabled (eq (include "zitadel.dbMode" .) "dsn") }}
+{{- if and .Values.postgresql.enabled (not $host) }}
+{{- $pgHost := printf "%s-postgresql" .Release.Name -}}
+{{- if .Values.postgresql.fullnameOverride -}}
+{{- $pgHost = .Values.postgresql.fullnameOverride -}}
+{{- else if .Values.postgresql.nameOverride -}}
+{{- $pgHost = printf "%s-%s" .Release.Name .Values.postgresql.nameOverride -}}
+{{- end }}
 - name: ZITADEL_DATABASE_POSTGRES_DSN
-  value: {{ include "zitadel.bundledPostgresDsn" . | quote }}
+  value: "host={{ $pgHost }} port=5432 user=postgres password={{ .Values.postgresql.auth.postgresPassword }} dbname={{ .Values.postgresql.auth.database }} sslmode=disable"
 {{- end }}
 {{- with .Values.env }}
 {{ toYaml . }}
