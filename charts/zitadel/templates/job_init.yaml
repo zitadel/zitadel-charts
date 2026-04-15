@@ -99,6 +99,8 @@ spec:
             - name: ZITADEL_DATABASE_{{ $dbEnv }}_USER_SSL_KEY
               value: /db-ssl-user-crt/tls.key
             {{- end}}
+            - name: ZITADEL_DATABASE_{{ $dbEnv }}_AWAITINITIALCONN
+              value: "5m"
             {{- include "zitadel.dbEnv" . | nindent 12 }}
           {{- if .Values.envVarsSecret }}
           envFrom:
