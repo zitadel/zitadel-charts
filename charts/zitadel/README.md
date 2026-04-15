@@ -382,9 +382,6 @@ Kubernetes: `>= 1.30.0-0`
 | startupProbe.failureThreshold | int | `30` | Number of consecutive failures before marking startup as failed and restarting the container. With periodSeconds=1 and failureThreshold=30, the container has 30 seconds to start. |
 | startupProbe.periodSeconds | int | `1` | How often (in seconds) to perform the startup check. |
 | tolerations | []Toleration | `[]` | Tolerations allow pods to be scheduled on nodes with matching taints. Taints are used to repel pods from nodes; tolerations allow exceptions. Ref: https://kubernetes.io/docs/concepts/scheduling-eviction/taint-and-toleration/ |
-| tools.busybox.image.pullPolicy | string | `""` | Image pull policy. Defaults to the Kubernetes default for the given tag. |
-| tools.busybox.image.repository | string | `"busybox"` | The image repository for busybox. |
-| tools.busybox.image.tag | string | `"1.37"` | The busybox image tag. |
 | tools.kubectl.image.pullPolicy | string | `""` | The pull policy for the kubectl image. If left empty, Kubernetes applies its default policy depending on whether the tag is mutable or fixed. |
 | tools.kubectl.image.repository | string | `"alpine/k8s"` | The name of the image repository that contains the kubectl image. The chart automatically prepends the registry (docker.io by default) for compatibility with CRI-O v1.34+ which enforces fully qualified names. |
 | tools.kubectl.image.tag | string | `""` | The image tag to use for the kubectl image. It should be left empty to automatically default to the Kubernetes cluster version |
