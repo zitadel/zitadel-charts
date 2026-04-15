@@ -1849,5 +1849,10 @@
                 }
             }
         }
+    },
+    "$defs": {
+        "_definitions.json": {
+            "$id": "https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/v1.30.0/_definitions.json"
+        }
     }
 }
