@@ -255,19 +255,6 @@ Prefers login.securityContext; falls back to the chart-wide securityContext.
 {{- end }}
 {{- end }}
 
-{{/*
-Returns the database config from the secretConfig or else from the configmapConfig
-*/}}
-{{- define "zitadel.dbconfig.json" -}}
-    {{- if (((.Values.zitadel).secretConfig).Database) -}}
-    {{- .Values.zitadel.secretConfig.Database | toJson -}}
-    {{- else if (((.Values.zitadel).configmapConfig).Database) -}}
-    {{- .Values.zitadel.configmapConfig.Database | toJson -}}
-    {{- else -}}
-    {{- dict | toJson -}}
-    {{- end -}}
-{{- end -}}
-
 
 {{- define "zitadel.containerPort" -}}
 8080
