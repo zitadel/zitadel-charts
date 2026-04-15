@@ -122,6 +122,8 @@ spec:
             - name: ZITADEL_DATABASE_{{ $dbEnv }}_USER_SSL_KEY
               value: /db-ssl-user-crt/tls.key
             {{- end}}
+            - name: ZITADEL_DATABASE_{{ $dbEnv }}_AWAITINITIALCONN
+              value: "5m"
             {{- with .Values.env }}
               {{- toYaml . | nindent 12 }}
             {{- end }}
