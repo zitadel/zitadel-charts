@@ -31,7 +31,9 @@ spec:
       targetPort: {{ include "login.containerPort" . }}
       protocol: TCP
       name: {{ regexReplaceAll "\\W+" .Values.login.service.protocol "-" }}-server
-      appProtocol: {{ .Values.login.service.appProtocol }}
+      {{- with .Values.login.service.appProtocol }}
+      appProtocol: {{ . }}
+      {{- end }}
     {{- if .Values.login.metrics.enabled }}
     - port: 9464
       targetPort: 9464

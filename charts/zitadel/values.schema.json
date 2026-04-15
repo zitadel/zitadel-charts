@@ -1431,28 +1431,6 @@
         "tools": {
             "type": "object",
             "properties": {
-                "busybox": {
-                    "type": "object",
-                    "properties": {
-                        "image": {
-                            "type": "object",
-                            "properties": {
-                                "pullPolicy": {
-                                    "description": "Image pull policy. Defaults to the Kubernetes default for the given tag.",
-                                    "type": "string"
-                                },
-                                "repository": {
-                                    "description": "The image repository for busybox.",
-                                    "type": "string"
-                                },
-                                "tag": {
-                                    "description": "The busybox image tag.",
-                                    "type": "string"
-                                }
-                            }
-                        }
-                    }
-                },
                 "kubectl": {
                     "type": "object",
                     "properties": {
@@ -1496,7 +1474,7 @@
                             }
                         },
                         "resources": {
-                            "description": "CPU and memory resource requests and limits for wait4x init containers. These resources apply to all init containers using the wait4x tool, including wait-for-zitadel and wait-for-postgres. Setting equal requests and limits enables the \"Guaranteed\" QoS class when combined with resource settings on the main container. Ref: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/",
+                            "description": "CPU and memory resource requests and limits for wait4x init containers. These resources apply to all init containers using the wait4x tool, such as wait-for-zitadel. Setting equal requests and limits enables the \"Guaranteed\" QoS class when combined with resource settings on the main container. Ref: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/",
                             "$ref": "https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/v1.30.0/_definitions.json#/definitions/io.k8s.api.core.v1.ResourceRequirements",
                             "type": "object"
                         }
@@ -1705,7 +1683,7 @@
                     "type": "string"
                 },
                 "dbSslCaCrt": {
-                    "description": "PEM-encoded CA certificate for verifying the database server's TLS certificate. Use this when your PostgreSQL/CockroachDB server uses a self-signed certificate or a certificate signed by a private CA. The certificate is stored in a Kubernetes Secret and mounted into ZITADEL pods at /db-ssl-ca-crt/ca.crt. Either provide the certificate inline here, or reference an existing secret using dbSslCaCrtSecret instead.",
+                    "description": "PEM-encoded CA certificate for verifying the database server's TLS certificate. Use this when your PostgreSQL server uses a self-signed certificate or a certificate signed by a private CA. The certificate is stored in a Kubernetes Secret and mounted into ZITADEL pods at /db-ssl-ca-crt/ca.crt. Either provide the certificate inline here, or reference an existing secret using dbSslCaCrtSecret instead.",
                     "type": "string"
                 },
                 "dbSslCaCrtAnnotations": {

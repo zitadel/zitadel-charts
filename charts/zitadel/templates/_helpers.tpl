@@ -255,31 +255,6 @@ Prefers login.securityContext; falls back to the chart-wide securityContext.
 {{- end }}
 {{- end }}
 
-{{/*
-Returns the database config from the secretConfig or else from the configmapConfig
-*/}}
-{{- define "zitadel.dbconfig.json" -}}
-    {{- if (((.Values.zitadel).secretConfig).Database) -}}
-    {{- .Values.zitadel.secretConfig.Database | toJson -}}
-    {{- else if (((.Values.zitadel).configmapConfig).Database) -}}
-    {{- .Values.zitadel.configmapConfig.Database | toJson -}}
-    {{- else -}}
-    {{- dict | toJson -}}
-    {{- end -}}
-{{- end -}}
-
-{{/*
-Returns a dict with the databases key in the yaml and the environment variable part, either COCKROACH or POSTGRES, in uppercase letters.
-*/}}
-{{- define "zitadel.dbkey.json" -}}
-  {{- range $i, $key := (include "zitadel.dbconfig.json" . | fromJson | keys ) -}}
-    {{- if or (eq (lower $key) "postgres" ) (eq (lower $key) "pg" ) -}}
-        {"key": "{{ $key }}", "env": "POSTGRES" }
-    {{- else if or (eq (lower $key) "cockroach" ) (eq (lower $key) "crdb" ) -}}
-        {"key": "{{ $key }}", "env": "COCKROACH" }
-    {{- end -}}
-  {{- end -}}
-{{- end -}}
 
 {{- define "zitadel.containerPort" -}}
 8080
@@ -362,26 +337,6 @@ http://{{ include "zitadel.fullname" . }}:{{ .Values.service.port }}/debug/ready
 {{- end -}}
 {{- end -}}
 
-
-{{/*
-Returns the PostgreSQL TCP endpoint for wait4x health checks.
-Extracts the database host and port from ZITADEL configuration.
-Format: tcp://<host>:<port>
-Example: tcp://db-postgresql:5432
-*/}}
-{{- define "zitadel.postgresEndpoint" -}}
-{{- if .Values.zitadel -}}
-  {{- if .Values.zitadel.configmapConfig -}}
-    {{- if .Values.zitadel.configmapConfig.Database -}}
-      {{- with .Values.zitadel.configmapConfig.Database.Postgres -}}
-        {{- if .Host }}
-          {{- .Host }}:{{ .Port | default 5432 }}
-        {{- end -}}
-      {{- end -}}
-    {{- end -}}
-  {{- end -}}
-{{- end -}}
-{{- end -}}
 
 {{/*
 This helper template takes the Kubernetes cluster's version string, which

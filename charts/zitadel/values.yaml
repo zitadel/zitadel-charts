@@ -23,8 +23,8 @@ zitadel:
       # Enable HTTPS on ZITADEL's internal server. Requires serverSslCrtSecret or
       # selfSignedCert to be configured with valid certificates.
       Enabled: false
-    # Database connection configuration. ZITADEL requires PostgreSQL 14+ or
-    # CockroachDB 22+ as its backing database.
+    # Database connection configuration. ZITADEL requires PostgreSQL 14+ as
+    # its backing database.
     Database:
       Postgres:
         # PostgreSQL server hostname or IP address. Leave empty if providing via
@@ -215,7 +215,7 @@ zitadel:
     helm.sh/hook-weight: "0"
 
   # -- PEM-encoded CA certificate for verifying the database server's TLS certificate.
-  # Use this when your PostgreSQL/CockroachDB server uses a self-signed certificate
+  # Use this when your PostgreSQL server uses a self-signed certificate
   # or a certificate signed by a private CA. The certificate is stored in a
   # Kubernetes Secret and mounted into ZITADEL pods at /db-ssl-ca-crt/ca.crt.
   # Either provide the certificate inline here, or reference an existing secret
@@ -1374,9 +1374,9 @@ extraManifests: []
   #       - Ingress
 
 # Configuration for helper tools used by init containers and jobs. These images
-# are used by components such as wait-for-zitadel, wait-for-postgres, and the
-# setup and cleanup jobs. Each tool follows the standard image configuration
-# pattern with registry, repository, tag, pull policy, and pull secrets.
+# are used by components such as wait-for-zitadel and the setup and cleanup
+# jobs. Each tool follows the standard image configuration pattern with
+# registry, repository, tag, pull policy, and pull secrets.
 tools:
   # Configuration for the wait4x image used for readiness and dependency checks
   # in init containers. Values are intentionally left empty and should be set by
@@ -1396,9 +1396,9 @@ tools:
     # @schema $ref: $k8s/_definitions.json#/definitions/io.k8s.api.core.v1.ResourceRequirements
     # -- (ResourceRequirements) CPU and memory resource requests and limits for wait4x init containers.
     # These resources apply to all init containers using the wait4x tool,
-    # including wait-for-zitadel and wait-for-postgres. Setting equal requests
-    # and limits enables the "Guaranteed" QoS class when combined with resource
-    # settings on the main container.
+    # such as wait-for-zitadel. Setting equal requests and limits enables the
+    # "Guaranteed" QoS class when combined with resource settings on the main
+    # container.
     # Ref: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
     resources: {}
       # Example for Guaranteed QoS class:
@@ -1408,17 +1408,6 @@ tools:
       # limits:
       #   cpu: 50m
       #   memory: 32Mi
-
-  # Configuration for the busybox image used by the wait-for-postgresql initContainer.
-  # Override when running in air-gapped or restricted-registry environments.
-  busybox:
-    image:
-      # -- The image repository for busybox.
-      repository: "busybox"
-      # -- The busybox image tag.
-      tag: "1.37"
-      # -- Image pull policy. Defaults to the Kubernetes default for the given tag.
-      pullPolicy: ""
 
   # Configuration for the kubectl helper image used by init containers and jobs
   # for lightweight Kubernetes API operations. This image is used by the setup

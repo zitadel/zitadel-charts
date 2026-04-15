@@ -34,23 +34,8 @@ spec:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
       enableServiceLinks: false
       restartPolicy: Never
-      {{- if or .Values.postgresql.enabled .Values.zitadel.initContainers .Values.initJob.initContainers }}
+      {{- if or .Values.zitadel.initContainers .Values.initJob.initContainers }}
       initContainers:
-      {{- if .Values.postgresql.enabled }}
-        - name: wait-for-postgresql
-          image: {{ .Values.tools.busybox.image.repository }}:{{ .Values.tools.busybox.image.tag }}
-          command:
-            - sh
-            - -c
-            - |
-              TIMEOUT=300; elapsed=0
-              until nc -z {{ include "zitadel.postgresqlHost" . }} 5432; do
-                if [ "$elapsed" -ge "$TIMEOUT" ]; then
-                  echo "ERROR: timed out waiting for postgresql after ${TIMEOUT}s"; exit 1
-                fi
-                echo "waiting for postgresql... (${elapsed}s elapsed)"; sleep 2; elapsed=$((elapsed + 2))
-              done
-      {{- end }}
       {{- with .Values.zitadel.initContainers }}
         {{- toYaml . | nindent 8 }}
       {{- end }}
@@ -95,25 +80,26 @@ spec:
                 fieldRef:
                   apiVersion: v1
                   fieldPath: status.podIP
-            {{- $dbEnv := get (include "zitadel.dbkey.json" . | fromJson) "env" }}
             {{- if (or .Values.zitadel.dbSslCaCrt .Values.zitadel.dbSslCaCrtSecret) }}
-            - name: ZITADEL_DATABASE_{{ $dbEnv }}_USER_SSL_ROOTCERT
+            - name: ZITADEL_DATABASE_POSTGRES_USER_SSL_ROOTCERT
               value: /db-ssl-ca-crt/ca.crt
-            - name: ZITADEL_DATABASE_{{ $dbEnv }}_ADMIN_SSL_ROOTCERT
+            - name: ZITADEL_DATABASE_POSTGRES_ADMIN_SSL_ROOTCERT
               value: /db-ssl-ca-crt/ca.crt
             {{- end}}
             {{- if .Values.zitadel.dbSslAdminCrtSecret }}
-            - name: ZITADEL_DATABASE_{{ $dbEnv }}_ADMIN_SSL_CERT
+            - name: ZITADEL_DATABASE_POSTGRES_ADMIN_SSL_CERT
               value: /db-ssl-admin-crt/tls.crt
-            - name: ZITADEL_DATABASE_{{ $dbEnv }}_ADMIN_SSL_KEY
+            - name: ZITADEL_DATABASE_POSTGRES_ADMIN_SSL_KEY
               value: /db-ssl-admin-crt/tls.key
             {{- end}}
             {{- if .Values.zitadel.dbSslUserCrtSecret }}
-            - name: ZITADEL_DATABASE_{{ $dbEnv }}_USER_SSL_CERT
+            - name: ZITADEL_DATABASE_POSTGRES_USER_SSL_CERT
               value: /db-ssl-user-crt/tls.crt
-            - name: ZITADEL_DATABASE_{{ $dbEnv }}_USER_SSL_KEY
+            - name: ZITADEL_DATABASE_POSTGRES_USER_SSL_KEY
               value: /db-ssl-user-crt/tls.key
             {{- end}}
+            - name: ZITADEL_DATABASE_POSTGRES_AWAITINITIALCONN
+              value: "5m"
             {{- with .Values.env }}
               {{- toYaml . | nindent 12 }}
             {{- end }}
