@@ -455,28 +455,6 @@ Respects fullnameOverride and nameOverride on the postgresql dependency.
 {{- end -}}
 
 {{/*
-Auto-generate ZITADEL database configuration from the bundled PostgreSQL subchart.
-Only used in configmap mode; user-supplied values take priority via mergedConfigmapConfig.
-*/}}
-{{- define "zitadel.postgresqlAutoConfig" -}}
-Database:
-  Postgres:
-    Host: {{ include "zitadel.postgresqlHost" . }}
-    Port: 5432
-    Database: {{ .Values.postgresql.auth.database }}
-    User:
-      Username: {{ .Values.postgresql.auth.username }}
-      Password: {{ .Values.postgresql.auth.password }}
-      SSL:
-        Mode: disable
-    Admin:
-      Username: postgres
-      Password: {{ .Values.postgresql.auth.postgresPassword }}
-      SSL:
-        Mode: disable
-{{- end -}}
-
-{{/*
 Returns "configmap" or "dsn" depending on whether Database.Postgres.Host is set.
 */}}
 {{- define "zitadel.dbMode" -}}
@@ -514,17 +492,12 @@ user-supplied .Values.env.
 
 {{/*
 Build the effective configmap config. In DSN mode the Database section is
-stripped; in configmap mode the bundled postgresql config is merged as a base.
-User-supplied configmapConfig values always win.
+stripped so it doesn't conflict with the ZITADEL_DATABASE_POSTGRES_DSN env var.
 */}}
 {{- define "zitadel.mergedConfigmapConfig" -}}
 {{- $config := deepCopy .Values.zitadel.configmapConfig -}}
-{{- $mode := include "zitadel.dbMode" . -}}
-{{- if eq $mode "dsn" -}}
+{{- if eq (include "zitadel.dbMode" .) "dsn" -}}
 {{- $_ := unset $config "Database" -}}
-{{- else if .Values.postgresql.enabled -}}
-{{- $autoConfig := include "zitadel.postgresqlAutoConfig" . | fromYaml -}}
-{{- $config = mergeOverwrite $autoConfig $config -}}
 {{- end -}}
 {{- $config | toYaml -}}
 {{- end -}}
