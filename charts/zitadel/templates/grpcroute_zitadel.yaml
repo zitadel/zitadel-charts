@@ -40,4 +40,9 @@ spec:
       filters:
         {{- toYaml . | nindent 8 }}
       {{- end }}
+      matches:
+        - headers:
+            - name: "content-type"
+              type: "RegularExpression"
+              value: "application/grpc.*"
 {{- end }}
