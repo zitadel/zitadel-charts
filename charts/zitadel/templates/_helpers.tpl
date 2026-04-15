@@ -327,7 +327,6 @@ http://{{ include "zitadel.fullname" . }}:{{ .Values.service.port }}/debug/ready
 {{- end -}}
 
 
-
 {{/*
 This helper template takes the Kubernetes cluster's version string, which
 can be complex (e.g., "v1.28.5+k3s1"), and returns a sanitized, clean

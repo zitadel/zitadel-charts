@@ -77,7 +77,7 @@
             }
         },
         "env": {
-            "description": "([]EnvVar) Additional environment variables for the ZITADEL container. Use this to pass configuration that isn't available through configmapConfig or secretConfig, or to inject values from other Kubernetes resources like ConfigMaps or Secrets. ZITADEL environment variables follow the pattern ZITADEL_<SECTION>_<KEY>. Ref: https://zitadel.com/docs/self-hosting/manage/configure#configure-by-environment-variables",
+            "description": "([]EnvVar) Additional environment variables for the ZITADEL container. Use this to pass configuration that isn't available through configmapConfig or secretConfig, or to inject values from other Kubernetes resources like ConfigMaps or Secrets. ZITADEL environment variables follow the pattern ZITADEL_\u003cSECTION\u003e_\u003cKEY\u003e. Ref: https://zitadel.com/docs/self-hosting/manage/configure#configure-by-environment-variables",
             "type": "array",
             "items": {
                 "$ref": "https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/v1.30.0/_definitions.json#/definitions/io.k8s.api.core.v1.EnvVar"
@@ -504,7 +504,7 @@
                     }
                 },
                 "customConfigmapConfig": {
-                    "description": "Custom environment variables for the Login UI ConfigMap. These override the default values which configure the service user token path, API URL, and custom request headers. Only set this if you need to customize the Login UI behavior beyond the defaults. The defaults are: ZITADEL_SERVICE_USER_TOKEN_FILE=\"/login-client/pat\" ZITADEL_API_URL=\"http://<release>-zitadel:<port>\" CUSTOM_REQUEST_HEADERS=\"Host:<ExternalDomain>\"",
+                    "description": "Custom environment variables for the Login UI ConfigMap. These override the default values which configure the service user token path, API URL, and custom request headers. Only set this if you need to customize the Login UI behavior beyond the defaults. The defaults are: ZITADEL_SERVICE_USER_TOKEN_FILE=\"/login-client/pat\" ZITADEL_API_URL=\"http://\u003crelease\u003e-zitadel:\u003cport\u003e\" CUSTOM_REQUEST_HEADERS=\"Host:\u003cExternalDomain\u003e\"",
                     "type": [
                         "null",
                         "string"
@@ -1337,7 +1337,7 @@
                     }
                 },
                 "annotations": {
-                    "description": "(map[string]string) Annotations for the setup job. The Helm hooks ensure this job runs after the init job (weight \"2\" > \"1\") and before the main deployment.",
+                    "description": "(map[string]string) Annotations for the setup job. The Helm hooks ensure this job runs after the init job (weight \"2\" \u003e \"1\") and before the main deployment.",
                     "type": "object",
                     "properties": {
                         "helm.sh/hook": {
@@ -1776,7 +1776,7 @@
                     }
                 },
                 "masterkey": {
-                    "description": "ZITADEL's masterkey for symmetric encryption of sensitive data like private keys and tokens. Must be exactly 32 bytes. Using printable ASCII characters is recommended (alphanumeric). Do NOT use multi-byte Unicode characters, as the key length is measured in bytes, not characters. Generate with: tr -dc A-Za-z0-9 </dev/urandom | head -c 32 IMPORTANT: Store this value securely. Loss of the masterkey means loss of all encrypted data. Either set this value or use masterkeySecretName.",
+                    "description": "ZITADEL's masterkey for symmetric encryption of sensitive data like private keys and tokens. Must be exactly 32 bytes. Using printable ASCII characters is recommended (alphanumeric). Do NOT use multi-byte Unicode characters, as the key length is measured in bytes, not characters. Generate with: tr -dc A-Za-z0-9 \u003c/dev/urandom | head -c 32 IMPORTANT: Store this value securely. Loss of the masterkey means loss of all encrypted data. Either set this value or use masterkeySecretName.",
                     "type": "string"
                 },
                 "masterkeyAnnotations": {
