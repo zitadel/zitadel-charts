@@ -1434,28 +1434,6 @@
         "tools": {
             "type": "object",
             "properties": {
-                "busybox": {
-                    "type": "object",
-                    "properties": {
-                        "image": {
-                            "type": "object",
-                            "properties": {
-                                "pullPolicy": {
-                                    "description": "Image pull policy. Defaults to the Kubernetes default for the given tag.",
-                                    "type": "string"
-                                },
-                                "repository": {
-                                    "description": "The image repository for busybox.",
-                                    "type": "string"
-                                },
-                                "tag": {
-                                    "description": "The busybox image tag.",
-                                    "type": "string"
-                                }
-                            }
-                        }
-                    }
-                },
                 "kubectl": {
                     "type": "object",
                     "properties": {
