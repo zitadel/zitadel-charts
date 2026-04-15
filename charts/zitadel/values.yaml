@@ -833,10 +833,9 @@ securityContext:
 # ZITADEL environment variables follow the pattern ZITADEL_<SECTION>_<KEY>.
 # Ref: https://zitadel.com/docs/self-hosting/manage/configure#configure-by-environment-variables
 env: []
-  # Example: Pass the full PostgreSQL connection string as a DSN. This is the
-  # recommended way to wire ZITADEL up to an external Postgres — leave
-  # zitadel.configmapConfig.Database.Postgres.Host unset and the chart will
-  # automatically run in DSN mode (no Database section in the ConfigMap).
+  # Example: Pass the full PostgreSQL connection string as a DSN. When a DSN
+  # is set, ZITADEL ignores any discrete Database.Postgres.* fields in the
+  # ConfigMap.
   # - name: ZITADEL_DATABASE_POSTGRES_DSN
   #   valueFrom:
   #     secretKeyRef:
