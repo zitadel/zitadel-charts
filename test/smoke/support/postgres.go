@@ -27,6 +27,11 @@ func WithPostgres(testing *testing.T, env *testsupport.Env) {
 		SetValues: map[string]string{
 			"image.repository":                   "bitnamilegacy/postgresql",
 			"volumePermissions.image.repository": "bitnamilegacy/os-shell",
+			// Pre-create the "zitadel" database. Configmap-mode tests don't
+			// need this (ZITADEL's admin connection creates it), but DSN-mode
+			// tests do: the DSN must point to an existing database because
+			// ZITADEL's init command uses it directly without CREATE DATABASE.
+			"auth.database": "zitadel",
 		},
 		ExtraArgs: map[string][]string{
 			"upgrade": {

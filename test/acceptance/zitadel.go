@@ -28,6 +28,7 @@ type zitadelConfig struct {
 	masterkeySecretName string
 	configSecretName    string
 	configSecretKey     string
+	dsn                 string
 	dbSSLMode           string
 	dbHost              string
 	skipDBHost          bool
@@ -122,6 +123,15 @@ func WithMachineUser(name, username string) ZitadelOption {
 func WithValue(key, value string) ZitadelOption {
 	return func(c *zitadelConfig) {
 		c.additionalValues[key] = value
+	}
+}
+
+// WithDSN configures ZITADEL in DSN mode: the database connection is supplied
+// as a single connection string via the ZITADEL_DATABASE_POSTGRES_DSN env var
+// instead of discrete Database.Postgres.* configmap fields.
+func WithDSN(dsn string) ZitadelOption {
+	return func(c *zitadelConfig) {
+		c.dsn = dsn
 	}
 }
 
@@ -242,25 +252,32 @@ func InstallZitadel(t *testing.T, k *k8s.KubectlOptions, opts ...ZitadelOption) 
 		}
 	}
 
-	if !cfg.skipDBHost {
-		values["zitadel.configmapConfig.Database.Postgres.Host"] = cfg.dbHost
-	}
-	values["zitadel.configmapConfig.Database.Postgres.Port"] = "5432"
-	values["zitadel.configmapConfig.Database.Postgres.Database"] = "zitadel"
-	values["zitadel.configmapConfig.Database.Postgres.MaxOpenConns"] = "20"
-	values["zitadel.configmapConfig.Database.Postgres.MaxIdleConns"] = "10"
-	values["zitadel.configmapConfig.Database.Postgres.MaxConnLifetime"] = "30m"
-	values["zitadel.configmapConfig.Database.Postgres.MaxConnIdleTime"] = "5m"
-	values["zitadel.configmapConfig.Database.Postgres.User.Username"] = cfg.dbUser
-	values["zitadel.configmapConfig.Database.Postgres.User.SSL.Mode"] = cfg.dbSSLMode
-	values["zitadel.configmapConfig.Database.Postgres.Admin.Username"] = cfg.dbAdminUser
-	values["zitadel.configmapConfig.Database.Postgres.Admin.SSL.Mode"] = cfg.dbSSLMode
+	if cfg.dsn != "" {
+		// DSN mode: pass the connection string as an env var and skip all
+		// discrete Database.Postgres.* fields so the chart enters DSN mode.
+		values["env[0].name"] = "ZITADEL_DATABASE_POSTGRES_DSN"
+		values["env[0].value"] = cfg.dsn
+	} else {
+		if !cfg.skipDBHost {
+			values["zitadel.configmapConfig.Database.Postgres.Host"] = cfg.dbHost
+		}
+		values["zitadel.configmapConfig.Database.Postgres.Port"] = "5432"
+		values["zitadel.configmapConfig.Database.Postgres.Database"] = "zitadel"
+		values["zitadel.configmapConfig.Database.Postgres.MaxOpenConns"] = "20"
+		values["zitadel.configmapConfig.Database.Postgres.MaxIdleConns"] = "10"
+		values["zitadel.configmapConfig.Database.Postgres.MaxConnLifetime"] = "30m"
+		values["zitadel.configmapConfig.Database.Postgres.MaxConnIdleTime"] = "5m"
+		values["zitadel.configmapConfig.Database.Postgres.User.Username"] = cfg.dbUser
+		values["zitadel.configmapConfig.Database.Postgres.User.SSL.Mode"] = cfg.dbSSLMode
+		values["zitadel.configmapConfig.Database.Postgres.Admin.Username"] = cfg.dbAdminUser
+		values["zitadel.configmapConfig.Database.Postgres.Admin.SSL.Mode"] = cfg.dbSSLMode
 
-	if cfg.dbPassword != "" {
-		values["zitadel.secretConfig.Database.Postgres.User.Password"] = cfg.dbPassword
-	}
-	if cfg.dbAdminPassword != "" {
-		values["zitadel.secretConfig.Database.Postgres.Admin.Password"] = cfg.dbAdminPassword
+		if cfg.dbPassword != "" {
+			values["zitadel.secretConfig.Database.Postgres.User.Password"] = cfg.dbPassword
+		}
+		if cfg.dbAdminPassword != "" {
+			values["zitadel.secretConfig.Database.Postgres.Admin.Password"] = cfg.dbAdminPassword
+		}
 	}
 
 	if cfg.dbSslCaCrtSecret != "" {

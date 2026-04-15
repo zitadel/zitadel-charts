@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"path/filepath"
 	"runtime"
+	"strings"
 	"testing"
 
 	"github.com/gruntwork-io/terratest/modules/helm"
@@ -41,23 +42,29 @@ func InstallZitadel(t *testing.T, env *testsupport.Env, testName string, setValu
 
 	uniqueDomain := fmt.Sprintf("%s.test.local", env.Namespace)
 	commonSetValues := map[string]string{
-		"zitadel.masterkey":                                         "x123456789012345678901234567891y",
-		"zitadel.configmapConfig.ExternalDomain":                    uniqueDomain,
-		"zitadel.configmapConfig.ExternalPort":                      "443",
-		"zitadel.configmapConfig.TLS.Enabled":                       "false",
-		"zitadel.configmapConfig.Database.Postgres.Host":            "db-postgresql",
-		"zitadel.configmapConfig.Database.Postgres.Port":            "5432",
-		"zitadel.configmapConfig.Database.Postgres.Database":        "zitadel",
-		"zitadel.configmapConfig.Database.Postgres.MaxOpenConns":    "20",
-		"zitadel.configmapConfig.Database.Postgres.MaxIdleConns":    "10",
-		"zitadel.configmapConfig.Database.Postgres.MaxConnLifetime": "30m",
-		"zitadel.configmapConfig.Database.Postgres.MaxConnIdleTime": "5m",
-		"zitadel.configmapConfig.Database.Postgres.User.Username":   "postgres",
-		"zitadel.configmapConfig.Database.Postgres.User.SSL.Mode":   "disable",
-		"zitadel.configmapConfig.Database.Postgres.Admin.Username":  "postgres",
-		"zitadel.configmapConfig.Database.Postgres.Admin.SSL.Mode":  "disable",
-		"ingress.enabled":       "true",
-		"login.ingress.enabled": "true",
+		"zitadel.masterkey":                      "x123456789012345678901234567891y",
+		"zitadel.configmapConfig.ExternalDomain": uniqueDomain,
+		"zitadel.configmapConfig.ExternalPort":   "443",
+		"zitadel.configmapConfig.TLS.Enabled":    "false",
+		"ingress.enabled":                        "true",
+		"login.ingress.enabled":                  "true",
+	}
+	// Hardcoded discrete Database.Postgres.* fields put the chart in legacy
+	// "configmap mode". Skip them if the caller is exercising DSN mode (either
+	// via an env var ZITADEL_DATABASE_POSTGRES_DSN or by enabling the bundled
+	// postgresql subchart) so the chart's DSN code paths are actually tested.
+	if !setValuesUseDSNMode(setValues) {
+		commonSetValues["zitadel.configmapConfig.Database.Postgres.Host"] = "db-postgresql"
+		commonSetValues["zitadel.configmapConfig.Database.Postgres.Port"] = "5432"
+		commonSetValues["zitadel.configmapConfig.Database.Postgres.Database"] = "zitadel"
+		commonSetValues["zitadel.configmapConfig.Database.Postgres.MaxOpenConns"] = "20"
+		commonSetValues["zitadel.configmapConfig.Database.Postgres.MaxIdleConns"] = "10"
+		commonSetValues["zitadel.configmapConfig.Database.Postgres.MaxConnLifetime"] = "30m"
+		commonSetValues["zitadel.configmapConfig.Database.Postgres.MaxConnIdleTime"] = "5m"
+		commonSetValues["zitadel.configmapConfig.Database.Postgres.User.Username"] = "postgres"
+		commonSetValues["zitadel.configmapConfig.Database.Postgres.User.SSL.Mode"] = "disable"
+		commonSetValues["zitadel.configmapConfig.Database.Postgres.Admin.Username"] = "postgres"
+		commonSetValues["zitadel.configmapConfig.Database.Postgres.Admin.SSL.Mode"] = "disable"
 	}
 
 	releaseName := env.MakeRelease("zitadel-test", testName)
@@ -84,6 +91,24 @@ func InstallZitadel(t *testing.T, env *testsupport.Env, testName string, setValu
 	}
 
 	return releaseName
+}
+
+// setValuesUseDSNMode returns true if the caller's setValues opt into DSN mode,
+// either by setting an env entry whose name is ZITADEL_DATABASE_POSTGRES_DSN
+// or by enabling the bundled postgresql subchart. Helm --set encodes list
+// entries as e.g. "env[0].name=ZITADEL_DATABASE_POSTGRES_DSN" so we have to
+// scan the keys for that pattern.
+func setValuesUseDSNMode(setValues map[string]string) bool {
+	if setValues["postgresql.enabled"] == "true" {
+		return true
+	}
+	for key, value := range setValues {
+		if strings.HasPrefix(key, "env[") && strings.HasSuffix(key, "].name") &&
+			value == "ZITADEL_DATABASE_POSTGRES_DSN" {
+			return true
+		}
+	}
+	return false
 }
 
 func dumpSetupAndInitJobLogs(t *testing.T, env *testsupport.Env, releaseName string) {

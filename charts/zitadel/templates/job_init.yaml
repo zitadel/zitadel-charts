@@ -100,9 +100,7 @@ spec:
             {{- end}}
             - name: ZITADEL_DATABASE_POSTGRES_AWAITINITIALCONN
               value: "5m"
-            {{- with .Values.env }}
-              {{- toYaml . | nindent 12 }}
-            {{- end }}
+            {{- include "zitadel.dbEnv" . | nindent 12 }}
           {{- if .Values.envVarsSecret }}
           envFrom:
             - secretRef:

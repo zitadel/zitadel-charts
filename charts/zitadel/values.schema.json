@@ -1554,22 +1554,6 @@
                     "description": "ZITADEL runtime configuration written to a Kubernetes ConfigMap. These values are passed directly to the ZITADEL binary and control its behavior. For the complete list of available configuration options, see: https://github.com/zitadel/zitadel/blob/main/cmd/defaults.yaml",
                     "type": "object",
                     "properties": {
-                        "Database": {
-                            "type": "object",
-                            "properties": {
-                                "Postgres": {
-                                    "type": "object",
-                                    "properties": {
-                                        "Host": {
-                                            "type": "string"
-                                        },
-                                        "Port": {
-                                            "type": "integer"
-                                        }
-                                    }
-                                }
-                            }
-                        },
                         "ExternalDomain": {
                             "type": "string"
                         },
