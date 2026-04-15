@@ -491,18 +491,6 @@ user-supplied .Values.env.
 {{- end -}}
 
 {{/*
-Build the effective configmap config. In DSN mode the Database section is
-stripped so it doesn't conflict with the ZITADEL_DATABASE_POSTGRES_DSN env var.
-*/}}
-{{- define "zitadel.mergedConfigmapConfig" -}}
-{{- $config := deepCopy .Values.zitadel.configmapConfig -}}
-{{- if eq (include "zitadel.dbMode" .) "dsn" -}}
-{{- $_ := unset $config "Database" -}}
-{{- end -}}
-{{- $config | toYaml -}}
-{{- end -}}
-
-{{/*
 Return the effective ingress className for the ZITADEL API ingress.
 */}}
 {{- define "zitadel.ingressClassName" -}}

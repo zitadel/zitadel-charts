@@ -3,7 +3,6 @@ package smoke_test_test
 import (
 	"testing"
 
-	"github.com/onsi/gomega"
 	"github.com/zitadel/zitadel-charts/test/assert"
 	setup "github.com/zitadel/zitadel-charts/test/smoke/support"
 	"github.com/zitadel/zitadel-charts/test/support"
@@ -85,27 +84,6 @@ func TestConfigMapMatrix(t *testing.T) {
 						"helm.sh/hook-weight":        "0",
 					}),
 				},
-			},
-		},
-		{
-			// In DSN mode the chart strips the entire Database section out of
-			// the rendered configmap. ZITADEL picks up its database connection
-			// from the ZITADEL_DATABASE_POSTGRES_DSN env var instead. The
-			// install helper detects DSN mode and skips its hardcoded
-			// Database.Postgres.* set values, so the chart sees only the DSN.
-			name: "dsn-mode-strips-database",
-			setValues: map[string]string{
-				"login.enabled": "true",
-				"env[0].name":   "ZITADEL_DATABASE_POSTGRES_DSN",
-				"env[0].value":  "host=db-postgresql port=5432 user=postgres dbname=zitadel sslmode=disable",
-			},
-			zitadel: &assert.ConfigMapAssertion{
-				Data: assert.Matching[map[string]string](gomega.And(
-					gomega.HaveKeyWithValue("zitadel-config-yaml",
-						gomega.Not(gomega.ContainSubstring("Database:"))),
-					gomega.HaveKeyWithValue("zitadel-config-yaml",
-						gomega.Not(gomega.ContainSubstring("Postgres:"))),
-				)),
 			},
 		},
 	}
