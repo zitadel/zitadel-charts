@@ -3,6 +3,8 @@ package smoke_test_test
 import (
 	"testing"
 
+	"github.com/onsi/gomega"
+
 	"github.com/zitadel/zitadel-charts/test/assert"
 	setup "github.com/zitadel/zitadel-charts/test/smoke/support"
 	"github.com/zitadel/zitadel-charts/test/support"
@@ -30,6 +32,14 @@ func TestConfigMapMatrix(t *testing.T) {
 						"helm.sh/hook-weight":        "0",
 					}),
 				},
+				Data: assert.Matching[map[string]string](gomega.And(
+					gomega.HaveKeyWithValue("zitadel-config-yaml",
+						gomega.ContainSubstring("SystemAPIUsers")),
+					gomega.HaveKeyWithValue("zitadel-config-yaml",
+						gomega.ContainSubstring("login-client")),
+					gomega.HaveKeyWithValue("zitadel-config-yaml",
+						gomega.ContainSubstring("IAM_LOGIN_CLIENT")),
+				)),
 			},
 			login: &assert.ConfigMapAssertion{
 				ObjectMeta: assert.ObjectMetaAssertion{
@@ -84,6 +94,24 @@ func TestConfigMapMatrix(t *testing.T) {
 						"helm.sh/hook-weight":        "0",
 					}),
 				},
+				Data: assert.Matching[map[string]string](gomega.And(
+					gomega.HaveKeyWithValue("zitadel-config-yaml",
+						gomega.Not(gomega.ContainSubstring("SystemAPIUsers"))),
+				)),
+			},
+		},
+		{
+			name: "x509-login-env-vars",
+			setValues: map[string]string{
+				"login.enabled": "true",
+			},
+			login: &assert.ConfigMapAssertion{
+				Data: assert.Matching[map[string]string](gomega.And(
+					gomega.HaveKeyWithValue(".env",
+						gomega.ContainSubstring("ZITADEL_LOGINCLIENT_KEYFILE")),
+					gomega.HaveKeyWithValue(".env",
+						gomega.ContainSubstring("AUDIENCE")),
+				)),
 			},
 		},
 	}

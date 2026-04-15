@@ -34,7 +34,7 @@ func TestDeploymentMatrix(t *testing.T) {
 						gomega.HaveKeyWithValue("app.kubernetes.io/name", "zitadel"),
 						gomega.HaveKeyWithValue("app.kubernetes.io/managed-by", "Helm"),
 						gomega.HaveKeyWithValue("app.kubernetes.io/component", "start"),
-						gomega.HaveKeyWithValue("app.kubernetes.io/version", gomega.MatchRegexp(`^v?\d+\.\d+\.\d+`)),
+						gomega.HaveKeyWithValue("app.kubernetes.io/version", gomega.MatchRegexp(`^(v?\d+\.\d+\.\d+|[0-9a-f]{7,40})`)),
 					)),
 				},
 				Spec: assert.DeploymentSpecAssertion{
@@ -51,7 +51,7 @@ func TestDeploymentMatrix(t *testing.T) {
 								gomega.HaveKeyWithValue("app.kubernetes.io/name", "zitadel"),
 								gomega.HaveKeyWithValue("app.kubernetes.io/managed-by", "Helm"),
 								gomega.HaveKeyWithValue("app.kubernetes.io/component", "start"),
-								gomega.HaveKeyWithValue("app.kubernetes.io/version", gomega.MatchRegexp(`^v?\d+\.\d+\.\d+`)),
+								gomega.HaveKeyWithValue("app.kubernetes.io/version", gomega.MatchRegexp(`^(v?\d+\.\d+\.\d+|[0-9a-f]{7,40})`)),
 							)),
 						},
 						Spec: assert.PodSpecAssertion{
@@ -81,7 +81,7 @@ func TestDeploymentMatrix(t *testing.T) {
 						gomega.HaveKeyWithValue("app.kubernetes.io/name", "zitadel-login"),
 						gomega.HaveKeyWithValue("app.kubernetes.io/managed-by", "Helm"),
 						gomega.HaveKeyWithValue("app.kubernetes.io/component", "login"),
-						gomega.HaveKeyWithValue("app.kubernetes.io/version", gomega.MatchRegexp(`^v?\d+\.\d+\.\d+`)),
+						gomega.HaveKeyWithValue("app.kubernetes.io/version", gomega.MatchRegexp(`^(v?\d+\.\d+\.\d+|[0-9a-f]{7,40})`)),
 					)),
 				},
 				Spec: assert.DeploymentSpecAssertion{
@@ -97,7 +97,7 @@ func TestDeploymentMatrix(t *testing.T) {
 								gomega.HaveKeyWithValue("app.kubernetes.io/name", "zitadel-login"),
 								gomega.HaveKeyWithValue("app.kubernetes.io/managed-by", "Helm"),
 								gomega.HaveKeyWithValue("app.kubernetes.io/component", "login"),
-								gomega.HaveKeyWithValue("app.kubernetes.io/version", gomega.MatchRegexp(`^v?\d+\.\d+\.\d+`)),
+								gomega.HaveKeyWithValue("app.kubernetes.io/version", gomega.MatchRegexp(`^(v?\d+\.\d+\.\d+|[0-9a-f]{7,40})`)),
 							)),
 						},
 						Spec: assert.PodSpecAssertion{

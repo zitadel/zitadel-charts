@@ -504,7 +504,7 @@
                     }
                 },
                 "customConfigmapConfig": {
-                    "description": "Custom environment variables for the Login UI ConfigMap. These override the default values which configure the service user token path, API URL, and custom request headers. Only set this if you need to customize the Login UI behavior beyond the defaults. The defaults are: ZITADEL_SERVICE_USER_TOKEN_FILE=\"/login-client/pat\" ZITADEL_API_URL=\"http://\u003crelease\u003e-zitadel:\u003cport\u003e\" CUSTOM_REQUEST_HEADERS=\"Host:\u003cExternalDomain\u003e\"",
+                    "description": "Custom environment variables for the Login UI ConfigMap. These override the default values which configure the login service key path, audience, API URL, and custom request headers. Only set this if you need to customize the Login UI behavior beyond the defaults.",
                     "type": [
                         "null",
                         "string"
@@ -738,12 +738,9 @@
                         }
                     }
                 },
-                "loginClientSecretPrefix": {
-                    "description": "Prefix for the login client secret name. Use this when deploying multiple ZITADEL instances in the same namespace to avoid secret name collisions. When set, the login client secret will be named \"{prefix}login-client\".",
-                    "type": [
-                        "null",
-                        "string"
-                    ]
+                "loginServiceKeySecretName": {
+                    "description": "Name of an existing Kubernetes Secret containing the login service keypair. The secret must contain keys \"tls.crt\" (RSA public certificate) and \"tls.key\" (RSA private key). When set, the chart skips auto-generating a keypair and uses this secret instead. Useful for cert-manager or external secret operators. Note: the keypair must be RSA (the login container signs JWTs using RS256).",
+                    "type": "string"
                 },
                 "metrics": {
                     "type": "object",
@@ -1566,12 +1563,6 @@
                         "FirstInstance": {
                             "type": "object",
                             "properties": {
-                                "LoginClientPatPath": {
-                                    "type": [
-                                        "null",
-                                        "string"
-                                    ]
-                                },
                                 "MachineKeyPath": {
                                     "type": [
                                         "null",
@@ -1581,30 +1572,6 @@
                                 "Org": {
                                     "type": "object",
                                     "properties": {
-                                        "LoginClient": {
-                                            "type": "object",
-                                            "properties": {
-                                                "Machine": {
-                                                    "type": "object",
-                                                    "properties": {
-                                                        "Name": {
-                                                            "type": "string"
-                                                        },
-                                                        "Username": {
-                                                            "type": "string"
-                                                        }
-                                                    }
-                                                },
-                                                "Pat": {
-                                                    "type": "object",
-                                                    "properties": {
-                                                        "ExpirationDate": {
-                                                            "type": "string"
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                        },
                                         "Machine": {
                                             "type": "object",
                                             "properties": {

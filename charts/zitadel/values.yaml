@@ -68,7 +68,6 @@ zitadel:
       # The chart automatically generates and manages these paths internally.
       MachineKeyPath: null  # @schema type:[null,string]
       PatPath: null  # @schema type:[null,string]
-      LoginClientPatPath: null  # @schema type:[null,string]
       Org:
         # IMPORTANT: Setting Skip here is not supported. Use FirstInstance.Skip instead.
         # This field exists for validation purposes only.
@@ -95,18 +94,35 @@ zitadel:
           Pat:
             ExpirationDate: '2029-01-01T00:00:00Z'
 
-        # Defines the internal machine user required by the ZITADEL Login UI.
-        # This user communicates with the main ZITADEL API to handle login flows.
-        # It is a specialized, internal-use-only account and is not intended for
-        # general administrative use. A PAT is generated and stored in a
-        # Kubernetes secret named 'login-client'.
-        LoginClient:
-          Machine:
-            Username: 'login-client'
-            Name: 'Automatically Initialized IAM Login Client'
-          # The expiration date for the Login UI's Personal Access Token (PAT).
-          Pat:
-            ExpirationDate: '2029-01-01T00:00:00Z'
+        # Login UI authentication is handled via X.509 certificate-based JWT
+        # authentication using ZITADEL's SystemAPIUsers mechanism. When
+        # login.enabled=true, the chart auto-generates an RSA keypair and:
+        #   - Injects a SystemAPIUsers.login-client entry into the ConfigMap
+        #     (public cert mounted at /secrets/login-client/tls.crt)
+        #   - Sets ZITADEL_LOGINCLIENT_KEYFILE on the Login container (private key)
+        #
+        # To add additional system API users (e.g. an admin-client with
+        # IAM_OWNER role), add entries to configmapConfig.SystemAPIUsers and
+        # mount the corresponding certificates via extraVolumes/extraVolumeMounts:
+        #   configmapConfig:
+        #     SystemAPIUsers:
+        #       admin-client:
+        #         Path: /secrets/admin-client/tls.crt
+        #         Memberships:
+        #           - MemberType: System
+        #             Roles:
+        #               - IAM_OWNER
+        #   extraVolumes:
+        #     - name: admin-client-cert
+        #       secret:
+        #         secretName: admin-client-tls
+        #         items:
+        #           - key: tls.crt
+        #             path: tls.crt
+        #   extraVolumeMounts:
+        #     - name: admin-client-cert
+        #       mountPath: /secrets/admin-client
+        #       readOnly: true
 
   # @schema type:[null,object]
   # -- Sensitive ZITADEL configuration values written to a Kubernetes Secret instead
@@ -348,6 +364,12 @@ login:
   # -- Enable or disable the Login UI deployment. When disabled, ZITADEL uses its
   # built-in login interface instead of the separate Login UI application.
   enabled: true
+  # -- Name of an existing Kubernetes Secret containing the login service keypair.
+  # The secret must contain keys "tls.crt" (RSA public certificate) and "tls.key"
+  # (RSA private key). When set, the chart skips auto-generating a keypair and
+  # uses this secret instead. Useful for cert-manager or external secret operators.
+  # Note: the keypair must be RSA (the login container signs JWTs using RS256).
+  loginServiceKeySecretName: ""
   # Pod Disruption Budget configuration for the Login UI deployment.
   # Ensures high availability by limiting the number of pods that can be
   # simultaneously unavailable during voluntary disruptions (e.g., node drains,
@@ -369,18 +391,10 @@ login:
 
   # @schema type:[null,string]
   # -- Custom environment variables for the Login UI ConfigMap. These override the
-  # default values which configure the service user token path, API URL, and
-  # custom request headers. Only set this if you need to customize the Login UI
-  # behavior beyond the defaults. The defaults are:
-  #   ZITADEL_SERVICE_USER_TOKEN_FILE="/login-client/pat"
-  #   ZITADEL_API_URL="http://<release>-zitadel:<port>"
-  #   CUSTOM_REQUEST_HEADERS="Host:<ExternalDomain>"
+  # default values which configure the login service key path, audience, API URL,
+  # and custom request headers. Only set this if you need to customize the Login UI
+  # behavior beyond the defaults.
   customConfigmapConfig:
-  # @schema type:[null,string]
-  # -- Prefix for the login client secret name. Use this when deploying multiple
-  # ZITADEL instances in the same namespace to avoid secret name collisions.
-  # When set, the login client secret will be named "{prefix}login-client".
-  loginClientSecretPrefix:
   # @schema itemRef: $k8s/_definitions.json#/definitions/io.k8s.api.core.v1.VolumeMount
   # -- ([]VolumeMount) Additional volume mounts for the Login UI container. Use this to mount
   # custom certificates, configuration files, or other data into the container.
