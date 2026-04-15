@@ -135,7 +135,6 @@ func WithDSN(dsn string) ZitadelOption {
 	}
 }
 
-
 // WithoutDBHost skips setting the database host, useful when the host is
 // provided via a config secret instead of Helm values.
 func WithoutDBHost() ZitadelOption {

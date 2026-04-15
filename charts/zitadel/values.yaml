@@ -36,8 +36,8 @@ zitadel:
     #    Leave Database.Postgres.Host unset and instead pass the connection
     #    string via the env var ZITADEL_DATABASE_POSTGRES_DSN, either through
     #    .Values.env (with valueFrom.secretKeyRef) or .Values.envVarsSecret.
-    #    The chart auto-detects this and skips rendering Database fields into
-    #    the ConfigMap. Example:
+    #    When a DSN is set, ZITADEL ignores any discrete Database.Postgres.*
+    #    fields in the ConfigMap, so both can safely coexist. Example:
     #      env:
     #        - name: ZITADEL_DATABASE_POSTGRES_DSN
     #          valueFrom:
