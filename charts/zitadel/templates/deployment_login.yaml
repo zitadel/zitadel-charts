@@ -50,7 +50,7 @@ spec:
       {{- if .Values.login.extraContainers }}
         {{- toYaml .Values.login.extraContainers | nindent 8 }}
       {{- end }}
-        - name: {{ .Chart.Name }}-login
+        - name: {{ include "zitadel.login.name" . }}
           securityContext:
             {{- include "login.securityContext" . | nindent 14 }}
           image: "{{ .Values.login.image.repository }}:{{ .Values.login.image.tag | default .Chart.AppVersion }}"
