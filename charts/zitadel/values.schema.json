@@ -153,6 +153,13 @@
                             "description": "(map[string]string) Additional labels to apply to the GRPCRoute resource.",
                             "type": "object"
                         },
+                        "matches": {
+                            "description": "([]GRPCRouteMatch) Matches to apply to the GRPCRoute rule. If empty, the route matches all gRPC requests per the Gateway API spec. Some implementations (e.g. Cilium) may require explicit matches to correctly prioritize GRPCRoute over HTTPRoute when both share the same hostname. Ref: https://gateway-api.sigs.k8s.io/reference/spec/#gateway.networking.k8s.io/v1.GRPCRouteMatch",
+                            "type": "array",
+                            "items": {
+                                "type": "object"
+                            }
+                        },
                         "parentRefs": {
                             "description": "References to Gateway resources that this route should be attached to. Example: parentRefs: - name: my-gateway",
                             "type": "array",
