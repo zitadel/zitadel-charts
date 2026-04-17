@@ -54,7 +54,7 @@ spec:
       {{- if .Values.extraContainers }}
         {{- toYaml .Values.extraContainers | nindent 8 }}
       {{- end }}
-        - name: {{ .Chart.Name }}
+        - name: {{ include "zitadel.name" . | quote }}
           securityContext:
             {{- include "zitadel.securityContext" . | nindent 14 }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
