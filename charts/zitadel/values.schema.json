@@ -157,7 +157,40 @@
                             "description": "([]GRPCRouteMatch) Matches to apply to the GRPCRoute rule. If empty, the route matches all gRPC requests per the Gateway API spec. Some implementations (e.g. Cilium) may require explicit matches to correctly prioritize GRPCRoute over HTTPRoute when both share the same hostname. Ref: https://gateway-api.sigs.k8s.io/reference/spec/#gateway.networking.k8s.io/v1.GRPCRouteMatch",
                             "type": "array",
                             "items": {
-                                "type": "object"
+                                "type": "object",
+                                "properties": {
+                                    "headers": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "object",
+                                            "properties": {
+                                                "name": {
+                                                    "type": "string"
+                                                },
+                                                "type": {
+                                                    "type": "string"
+                                                },
+                                                "value": {
+                                                    "type": "string"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    "method": {
+                                        "type": "object",
+                                        "properties": {
+                                            "method": {
+                                                "type": "string"
+                                            },
+                                            "service": {
+                                                "type": "string"
+                                            },
+                                            "type": {
+                                                "type": "string"
+                                            }
+                                        }
+                                    }
+                                }
                             }
                         },
                         "parentRefs": {
