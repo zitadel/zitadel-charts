@@ -284,6 +284,34 @@ func TestGatewayGRPCRouteMatrix(t *testing.T) {
 			},
 		},
 		{
+			name: "matches",
+			setValues: map[string]string{
+				"gateway.grpcRoute.enabled":                   "true",
+				"gateway.grpcRoute.parentRefs[0].name":        "my-gw",
+				"gateway.grpcRoute.matches[0].headers[0].name":  "content-type",
+				"gateway.grpcRoute.matches[0].headers[0].type":  "RegularExpression",
+				"gateway.grpcRoute.matches[0].headers[0].value": "application/grpc.*",
+			},
+			zitadel: &assert.GRPCRouteAssertion{
+				Spec: assert.GRPCRouteSpecAssertion{
+					Rules: assert.Some([]assert.GRPCRouteRuleAssertion{
+						{
+							Matches: assert.Some([]assert.GRPCRouteMatchAssertion{
+								{
+									Headers: assert.Some([]assert.GRPCHeaderMatchAssertion{
+										{
+											Name:  assert.Some(gatewayv1.GRPCHeaderName("content-type")),
+											Value: assert.Some("application/grpc.*"),
+										},
+									}),
+								},
+							}),
+						},
+					}),
+				},
+			},
+		},
+		{
 			name: "filters",
 			setValues: map[string]string{
 				"gateway.grpcRoute.enabled":                                       "true",

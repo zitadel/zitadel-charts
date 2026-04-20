@@ -2,7 +2,7 @@
 
 # Zitadel
 
-![Version: 9.33.2](https://img.shields.io/badge/Version-9.33.2-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: v4.13.0](https://img.shields.io/badge/AppVersion-v4.13.0-informational?style=flat-square)
+![Version: 9.34.0](https://img.shields.io/badge/Version-9.34.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: v4.13.0](https://img.shields.io/badge/AppVersion-v4.13.0-informational?style=flat-square)
 
 ## A Better Identity and Access Management Solution
 
@@ -191,6 +191,7 @@ Kubernetes: `>= 1.30.0-0`
 | gateway.grpcRoute.filters | []GRPCRouteFilter | `[]` | Filters to apply to all rules. These define processing steps for gRPC requests, such as header modification or mirroring. Ref: https://gateway-api.sigs.k8s.io/reference/spec/#gateway.networking.k8s.io/v1.GRPCRouteFilter |
 | gateway.grpcRoute.hostnames | list | `[]` | Hostnames for the GRPCRoute. If empty, defaults to ExternalDomain. |
 | gateway.grpcRoute.labels | map[string]string | `{}` | Additional labels to apply to the GRPCRoute resource. |
+| gateway.grpcRoute.matches | []GRPCRouteMatch | `[]` | Matches to apply to the GRPCRoute rule. If empty, the route matches all gRPC requests per the Gateway API spec. Some implementations (e.g. Cilium) may require explicit matches to correctly prioritize GRPCRoute over HTTPRoute when both share the same hostname. Ref: https://gateway-api.sigs.k8s.io/reference/spec/#gateway.networking.k8s.io/v1.GRPCRouteMatch |
 | gateway.grpcRoute.parentRefs | list | `[]` | References to Gateway resources that this route should be attached to. Example:   parentRefs:     - name: my-gateway |
 | gateway.httpRoute.annotations | map[string]string | `{}` | Annotations to apply to the HTTPRoute resource. |
 | gateway.httpRoute.enabled | bool | `false` | If true, creates an HTTPRoute resource for the ZITADEL service. |

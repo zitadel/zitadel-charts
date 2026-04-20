@@ -977,6 +977,12 @@ gateway:
     # steps for gRPC requests, such as header modification or mirroring.
     # Ref: https://gateway-api.sigs.k8s.io/reference/spec/#gateway.networking.k8s.io/v1.GRPCRouteFilter
     filters: []  # @schema item: object; itemProperties: {"type": {"type": "string"}}
+    # -- ([]GRPCRouteMatch) Matches to apply to the GRPCRoute rule. If empty, the
+    # route matches all gRPC requests per the Gateway API spec. Some implementations
+    # (e.g. Cilium) may require explicit matches to correctly prioritize GRPCRoute
+    # over HTTPRoute when both share the same hostname.
+    # Ref: https://gateway-api.sigs.k8s.io/reference/spec/#gateway.networking.k8s.io/v1.GRPCRouteMatch
+    matches: []  # @schema item: object; itemProperties: {"headers": {"type": "array", "items": {"type": "object", "properties": {"name": {"type": "string"}, "type": {"type": "string"}, "value": {"type": "string"}}}}, "method": {"type": "object", "properties": {"type": {"type": "string"}, "service": {"type": "string"}, "method": {"type": "string"}}}}
 
 # @schema $ref: $k8s/_definitions.json#/definitions/io.k8s.api.core.v1.ResourceRequirements
 # -- (ResourceRequirements) CPU and memory resource requests and limits for the ZITADEL container.
