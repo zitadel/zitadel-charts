@@ -312,6 +312,32 @@ func TestGatewayGRPCRouteMatrix(t *testing.T) {
 			},
 		},
 		{
+			name: "backend-refs",
+			setValues: map[string]string{
+				"gateway.grpcRoute.enabled":            "true",
+				"gateway.grpcRoute.parentRefs[0].name": "my-gw",
+			},
+			zitadel: &assert.GRPCRouteAssertion{
+				Spec: assert.GRPCRouteSpecAssertion{
+					Rules: assert.Some([]assert.GRPCRouteRuleAssertion{
+						{
+							BackendRefs: assert.Some([]assert.GRPCBackendRefAssertion{
+								{
+									BackendRef: assert.BackendRefAssertion{
+										BackendObjectReference: assert.BackendObjectReferenceAssertion{
+											Group: assert.SomePtr(gatewayv1.Group("")),
+											Kind:  assert.SomePtr(gatewayv1.Kind("Service")),
+										},
+										Weight: assert.SomePtr(int32(1)),
+									},
+								},
+							}),
+						},
+					}),
+				},
+			},
+		},
+		{
 			name: "filters",
 			setValues: map[string]string{
 				"gateway.grpcRoute.enabled":                                       "true",
