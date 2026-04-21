@@ -35,8 +35,11 @@ spec:
   {{- end }}
   rules:
     - backendRefs:
-        - name: {{ $fullName }}
+        - group: ''
+          kind: Service
+          name: {{ $fullName }}
           port: {{ $svcPort }}
+          weight: 1
       {{- with $filters }}
       filters:
         {{- toYaml . | nindent 8 }}
