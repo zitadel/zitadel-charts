@@ -359,7 +359,7 @@ performs a more thorough check to verify that the service is fully ready to
 accept user traffic and can connect to its required backend dependencies.
 */}}
 {{- define "login.readinessProbePath" -}}
-/ui/v2/login/security
+/ui/v2/login/ready
 {{- end -}}
 
 {{/*
@@ -368,7 +368,7 @@ thorough check as the readiness probe to ensure the application is fully
 initialized before its other probes (liveness, readiness) take over.
 */}}
 {{- define "login.startupProbePath" -}}
-/ui/v2/login/security
+/ui/v2/login/ready
 {{- end -}}
 
 {{/*
