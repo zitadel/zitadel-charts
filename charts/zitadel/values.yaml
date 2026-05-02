@@ -374,7 +374,7 @@ login:
   # behavior beyond the defaults. The defaults are:
   #   ZITADEL_SERVICE_USER_TOKEN_FILE="/login-client/pat"
   #   ZITADEL_API_URL="http://<release>-zitadel:<port>"
-  #   CUSTOM_REQUEST_HEADERS="Host:<ExternalDomain>"
+  #   CUSTOM_REQUEST_HEADERS="Host:<ExternalDomain>,X-Zitadel-Instance-Host:<ExternalDomain>,X-Zitadel-Public-Host:<ExternalDomain>"
   customConfigmapConfig:
   # @schema type:[null,string]
   # -- Prefix for the login client secret name. Use this when deploying multiple
