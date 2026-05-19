@@ -29,6 +29,27 @@ For more sophisticated production-ready configurations, follow one of the follow
 
 All the configurations from the examples above are guaranteed to work, because they are directly used in automatic acceptance tests.
 
+## Upgrade From V9 to V10
+
+The v10 charts require [Zitadel v4.14.0](https://github.com/zitadel/zitadel/releases/tag/v4.14.0) or later. Older Zitadel versions are not supported.
+
+### Login Client Authentication
+
+The login UI now authenticates to the Zitadel backend using an X.509/RSA keypair registered as a `SystemAPIUser`, replacing the Personal Access Token flow used in v9.
+Helm generates a self-signed RSA keypair on install, stores it in a `kubernetes.io/tls` Secret named `<release>-login-service-key`, and reuses it across upgrades.
+The public certificate is mounted into the Zitadel container for JWT verification; the private key is mounted into the login container for JWT signing.
+No manual setup is required for new or existing installations — `helm upgrade` switches the flow automatically.
+
+The following values are removed:
+
+- `zitadel.configmapConfig.FirstInstance.Org.LoginClient`
+- `zitadel.configmapConfig.FirstInstance.LoginClientPatPath`
+- `login.loginClientSecretPrefix`
+
+Existing v9 installations carry a `login-client` Secret containing the now-unused PAT. It is harmless and can be deleted at any time.
+
+To bring your own keypair (for example from cert-manager), set `login.loginServiceKeySecretName` to the name of a `kubernetes.io/tls` Secret containing `tls.crt` and `tls.key`. The keypair must be RSA — the login container signs JWTs using RS256.
+
 ## Upgrade From V8 to V9
 
 The v9 charts default Zitadel and login versions reference [Zitadel v4](https://github.com/zitadel/zitadel/releases/tag/v4.0.0).
@@ -40,16 +61,6 @@ Use `login.enabled: false` to omit deploying the new login.
 ### Switch to the New Login Deployment
 
 By default, a new deployment for the login v2 is configured and created.
-For new installations, the setup job automatically creates a user of type machine with role `IAM_LOGIN_CLIENT`.
-It writes the users personal access token into a Kubernetes secret which is then mounted into the login pods.
-
-For existing installations, the setup job doesn't create this login client user.
-Therefore, the Kubernetes secret has to be created manually before upgrading to v9:
-
-1. Create a user of type machine
-2. Make the user an instance administrator with role `IAM_LOGIN_CLIENT`
-3. Create a personal access token for the user
-4. Create a secret with that token: `kubectl --namespace <my-namespace> create secret generic login-client --from-file=pat=<my-local-path-to-the-downloaded-pat-file>`
 
 To make the login externally accessible, you need to route traffic with the path prefix `/ui/v2/login` to the login service.
 If you use an ingress controller, you can enable the login ingress with `login.ingress.enabled: true`
@@ -181,10 +192,6 @@ To do so, start a [debug pod](#debug-pod) and run something like the following c
 ```bash
 kubectl exec -it my-zitadel-debug -- zitadel setup cleanup --config /config/zitadel-config-yaml
 ```
-
-### Multiple Releases in Single Namespace
-
-Read the comment for the value login.loginClientSecretPrefix
 
 ## Contributing
 
