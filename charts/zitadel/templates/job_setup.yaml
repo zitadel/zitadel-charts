@@ -100,14 +100,10 @@ spec:
                   key: masterkey
             - name: ZITADEL_FIRSTINSTANCE_MACHINEKEYPATH
               value: "/machinekey/sa.json"
-            - name: ZITADEL_FIRSTINSTANCE_LOGINCLIENTPATPATH
-              value: "/login-client/pat"
             {{- if and (not $skipFirstInstance) $hasMachinePat }}
             - name: ZITADEL_FIRSTINSTANCE_PATPATH
               value: "/machinekey/pat"
             {{- end }}
-            - name: ZITADEL_FIRSTINSTANCE_LOGINCLIENTPATPATH
-              value: "/login-client/pat"
             {{- if (or .Values.zitadel.dbSslCaCrt .Values.zitadel.dbSslCaCrtSecret) }}
             - name: ZITADEL_DATABASE_POSTGRES_USER_SSL_ROOTCERT
               value: /db-ssl-ca-crt/ca.crt
