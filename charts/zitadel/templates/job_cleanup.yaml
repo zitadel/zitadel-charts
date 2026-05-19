@@ -35,7 +35,7 @@ spec:
       enableServiceLinks: false
       restartPolicy: Never
       containers:
-        - name: "{{ .Chart.Name }}-cleanup"
+        - name: {{ printf "%s-cleanup" ((include "zitadel.name" .) | trunc 55 | trimSuffix "-") }}
           securityContext:
             {{- toYaml .Values.securityContext | nindent 14 }}
           image: {{ include "kubectl.image" . }}

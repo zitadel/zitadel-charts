@@ -50,7 +50,7 @@ spec:
       {{- if .Values.initJob.extraContainers }}
         {{- toYaml .Values.initJob.extraContainers | nindent 8 }}
       {{- end }}
-        - name: "{{ .Chart.Name }}-init"
+        - name: {{ printf "%s-init" (include "zitadel.name" . | trunc 58 | trimSuffix "-") }}
           securityContext:
             {{- toYaml .Values.securityContext | nindent 14 }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
