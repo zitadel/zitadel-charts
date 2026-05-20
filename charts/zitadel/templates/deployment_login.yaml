@@ -65,6 +65,26 @@ spec:
             - name: OTEL_EXPORTER_PROMETHEUS_PORT
               value: "9464"
             {{- end }}
+            {{- /* ZITADEL_EXTERNALDOMAIN is consumed by the login container's
+                   entrypoint.sh as a shell variable expanded into the .env
+                   file (see configmap_login.yaml: ${ZITADEL_EXTERNALDOMAIN}
+                   in AUDIENCE and CUSTOM_REQUEST_HEADERS). We auto-default it
+                   from .Values.zitadel.configmapConfig.ExternalDomain so the
+                   common case (chart-value path) works unchanged. Users who
+                   instead source the domain at runtime (e.g. valueFrom a
+                   ConfigMap or Secret) mirror the same entry into login.env;
+                   we skip the auto-default in that case to avoid the K8s
+                   duplicate-env-name validation error. */ -}}
+            {{- $userHasExternalDomain := false -}}
+            {{- range .Values.login.env -}}
+              {{- if eq .name "ZITADEL_EXTERNALDOMAIN" -}}
+                {{- $userHasExternalDomain = true -}}
+              {{- end -}}
+            {{- end }}
+            {{- if and .Values.zitadel.configmapConfig.ExternalDomain (not $userHasExternalDomain) }}
+            - name: ZITADEL_EXTERNALDOMAIN
+              value: {{ .Values.zitadel.configmapConfig.ExternalDomain | quote }}
+            {{- end }}
             {{- with .Values.login.env }}
               {{- toYaml . | nindent 12 }}
             {{- end }}

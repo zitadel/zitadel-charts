@@ -19,9 +19,9 @@ data:
       {{- $extPort := int (.Values.zitadel.configmapConfig.ExternalPort | default .Values.service.port) }}
       {{- $extSecure := .Values.zitadel.configmapConfig.ExternalSecure }}
       {{- $isDefaultPort := or (and $extSecure (eq $extPort 443)) (and (not $extSecure) (eq $extPort 80)) (eq $extPort 0) }}
-      AUDIENCE="http{{ if $extSecure }}s{{ end }}://{{ .Values.zitadel.configmapConfig.ExternalDomain }}{{ if not $isDefaultPort }}:{{ $extPort }}{{ end }}"
+      AUDIENCE="http{{ if $extSecure }}s{{ end }}://${ZITADEL_EXTERNALDOMAIN}{{ if not $isDefaultPort }}:{{ $extPort }}{{ end }}"
       ZITADEL_API_URL="http{{ if and .Values.zitadel.configmapConfig.TLS .Values.zitadel.configmapConfig.TLS.Enabled }}s{{ end }}://{{ include "zitadel.fullname" . }}:{{ .Values.service.port }}"
-      CUSTOM_REQUEST_HEADERS="Host:{{ .Values.zitadel.configmapConfig.ExternalDomain }},X-Zitadel-Public-Host:{{ .Values.zitadel.configmapConfig.ExternalDomain }}"
+      CUSTOM_REQUEST_HEADERS="Host:${ZITADEL_EXTERNALDOMAIN},X-Zitadel-Public-Host:${ZITADEL_EXTERNALDOMAIN}"
       {{- if .Values.zitadel.selfSignedCert.enabled }}
       NODE_TLS_REJECT_UNAUTHORIZED=0
       {{- end }}
