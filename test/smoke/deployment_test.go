@@ -327,7 +327,7 @@ func TestDeploymentMatrix(t *testing.T) {
 							Containers: assert.Some([]assert.ContainerAssertion{
 								{
 									Name: assert.Some("zitadel-login"),
-									Env: assert.Matching[[]corev1.EnvVar](gomega.SatisfyAll(
+									Env: assert.Matching[[]assert.EnvVarAssertion](gomega.SatisfyAll(
 										gomega.ContainElement(gomega.SatisfyAll(
 											gomega.HaveField("Name", gomega.Equal("ZITADEL_EXTERNALDOMAIN")),
 											gomega.HaveField("Value", gomega.Equal("auth.example.com")),
@@ -364,7 +364,7 @@ func TestDeploymentMatrix(t *testing.T) {
 							Containers: assert.Some([]assert.ContainerAssertion{
 								{
 									Name: assert.Some("zitadel-login"),
-									Env: assert.Matching[[]corev1.EnvVar](gomega.SatisfyAll(
+									Env: assert.Matching[[]assert.EnvVarAssertion](gomega.SatisfyAll(
 										gomega.ContainElement(gomega.SatisfyAll(
 											gomega.HaveField("Name", gomega.Equal("ZITADEL_EXTERNALDOMAIN")),
 											gomega.HaveField("Value", gomega.Equal("custom.auth.example.com")),
