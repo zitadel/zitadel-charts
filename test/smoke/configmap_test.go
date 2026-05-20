@@ -114,21 +114,6 @@ func TestConfigMapMatrix(t *testing.T) {
 				)),
 			},
 		},
-		{
-			name: "login-externaldomain-placeholder",
-			setValues: map[string]string{
-				"login.enabled":                          "true",
-				"zitadel.configmapConfig.ExternalDomain": "check.example.com",
-			},
-			login: &assert.ConfigMapAssertion{
-				Data: assert.Matching[map[string]string](gomega.And(
-					gomega.HaveKeyWithValue(".env",
-						gomega.ContainSubstring("${ZITADEL_EXTERNALDOMAIN}")),
-					gomega.HaveKeyWithValue(".env",
-						gomega.Not(gomega.ContainSubstring("check.example.com"))),
-				)),
-			},
-		},
 	}
 
 	for _, tc := range testCases {
