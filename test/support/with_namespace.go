@@ -7,10 +7,9 @@ import (
 	"testing"
 
 	"github.com/gruntwork-io/terratest/modules/k8s"
-	"github.com/gruntwork-io/terratest/modules/logger"
 	"github.com/gruntwork-io/terratest/modules/random"
 	"github.com/stretchr/testify/require"
-	"k8s.io/client-go/dynamic"
+	wenv "github.com/mridang/wilhelm/env"
 	"k8s.io/client-go/tools/clientcmd"
 
 	"github.com/zitadel/zitadel-charts/test/internal/testcluster"
@@ -24,23 +23,13 @@ func WithNamespace(t *testing.T, fn func(*Env)) {
 	t.Helper()
 
 	testcluster.WithNamespace(t, func(ctx context.Context, k *k8s.KubectlOptions) {
-		client, err := k8s.GetKubernetesClientFromOptionsE(t, k)
-		require.NoError(t, err)
-
 		config, err := clientcmd.BuildConfigFromFlags("", k.ConfigPath)
 		require.NoError(t, err)
-		dynClient, err := dynamic.NewForConfig(config)
+
+		e, err := wenv.NewEnvWithContext(ctx, config, k.Namespace)
 		require.NoError(t, err)
 
-		env := &Env{
-			Ctx:           ctx,
-			Namespace:     k.Namespace,
-			Kube:          k,
-			Client:        client,
-			DynamicClient: dynClient,
-			Logger:        logger.New(logger.Terratest),
-		}
-		fn(env)
+		fn(&Env{Env: e})
 	})
 }
 

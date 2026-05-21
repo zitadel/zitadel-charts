@@ -5,7 +5,7 @@ import (
 
 	"k8s.io/apimachinery/pkg/util/intstr"
 
-	"github.com/zitadel/zitadel-charts/test/assert"
+	"github.com/mridang/wilhelm/assert"
 	setup "github.com/zitadel/zitadel-charts/test/smoke/support"
 	"github.com/zitadel/zitadel-charts/test/support"
 )
