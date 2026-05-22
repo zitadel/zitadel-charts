@@ -2,8 +2,8 @@ package support
 
 import wenv "github.com/mridang/wilhelm/env"
 
-// Env wraps Wilhelm's Env and adds Zitadel-specific CRD getters
-// (Gateway API, ServiceMonitor) not covered by Wilhelm's generated dispatch.
+// Env is a thin wrapper around Wilhelm's Env, providing a Zitadel-specific
+// handle for namespace-scoped test helpers.
 type Env struct {
 	*wenv.Env
 }
