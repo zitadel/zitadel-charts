@@ -182,7 +182,7 @@ spec:
                   app.kubernetes.io/name={{ include "zitadel.name" . }} \
                   app.kubernetes.io/instance={{ .Release.Name }} \
                   --output=yaml | \
-                kubectl apply --filename=-;
+                kubectl apply --server-side --field-manager=zitadel-setup --filename=-;
               fi;
           env:
             - name: POD_NAME
@@ -227,7 +227,7 @@ spec:
                   app.kubernetes.io/name={{ include "zitadel.name" . }} \
                   app.kubernetes.io/instance={{ .Release.Name }} \
                   --output=yaml | \
-                kubectl apply --filename=-;
+                kubectl apply --server-side --field-manager=zitadel-setup --filename=-;
               fi;
           env:
             - name: POD_NAME
