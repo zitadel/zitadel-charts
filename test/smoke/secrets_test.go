@@ -72,12 +72,22 @@ func TestSecretsMatrix(t *testing.T) {
 			},
 			machineKeyName: "iam-admin",
 			machineKey: &assert.SecretAssertion{
+				ObjectMeta: assert.ObjectMetaAssertion{
+					Annotations: assert.Matching[map[string]string](
+						gomega.Not(gomega.HaveKey("kubectl.kubernetes.io/last-applied-configuration")),
+					),
+				},
 				Data: assert.Matching[map[string][]byte](
 					gomega.HaveKeyWithValue("iam-admin.json", gomega.Not(gomega.BeEmpty())),
 				),
 			},
 			machinePatName: "iam-admin-pat",
 			machinePat: &assert.SecretAssertion{
+				ObjectMeta: assert.ObjectMetaAssertion{
+					Annotations: assert.Matching[map[string]string](
+						gomega.Not(gomega.HaveKey("kubectl.kubernetes.io/last-applied-configuration")),
+					),
+				},
 				Data: assert.Matching[map[string][]byte](
 					gomega.HaveKeyWithValue("pat", gomega.Not(gomega.BeEmpty())),
 				),
@@ -104,6 +114,11 @@ func TestSecretsMatrix(t *testing.T) {
 			},
 			machineKeyName: "my-machine",
 			machineKey: &assert.SecretAssertion{
+				ObjectMeta: assert.ObjectMetaAssertion{
+					Annotations: assert.Matching[map[string]string](
+						gomega.Not(gomega.HaveKey("kubectl.kubernetes.io/last-applied-configuration")),
+					),
+				},
 				Data: assert.Matching[map[string][]byte](
 					gomega.HaveKeyWithValue("my-machine.json", gomega.Not(gomega.BeEmpty())),
 				),
@@ -131,12 +146,22 @@ func TestSecretsMatrix(t *testing.T) {
 			},
 			machineKeyName: "custom-admin",
 			machineKey: &assert.SecretAssertion{
+				ObjectMeta: assert.ObjectMetaAssertion{
+					Annotations: assert.Matching[map[string]string](
+						gomega.Not(gomega.HaveKey("kubectl.kubernetes.io/last-applied-configuration")),
+					),
+				},
 				Data: assert.Matching[map[string][]byte](
 					gomega.HaveKeyWithValue("custom-admin.json", gomega.Not(gomega.BeEmpty())),
 				),
 			},
 			machinePatName: "custom-admin-pat",
 			machinePat: &assert.SecretAssertion{
+				ObjectMeta: assert.ObjectMetaAssertion{
+					Annotations: assert.Matching[map[string]string](
+						gomega.Not(gomega.HaveKey("kubectl.kubernetes.io/last-applied-configuration")),
+					),
+				},
 				Data: assert.Matching[map[string][]byte](
 					gomega.HaveKeyWithValue("pat", gomega.Not(gomega.BeEmpty())),
 				),
