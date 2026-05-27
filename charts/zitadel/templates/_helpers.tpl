@@ -297,6 +297,17 @@ ZITADEL masterkey Secret name
 {{- end -}}
 
 {{/*
+Login service key Secret name
+*/}}
+{{- define "zitadel.loginServiceKeySecretName" -}}
+{{- if .Values.login.loginServiceKeySecretName -}}
+{{ .Values.login.loginServiceKeySecretName }}
+{{- else -}}
+{{ include "zitadel.fullname" . }}-login-service-key
+{{- end -}}
+{{- end -}}
+
+{{/*
 Database SSL CA certificate Secret name
 */}}
 {{- define "zitadel.dbSslCaCrtSecretName" -}}
@@ -463,6 +474,21 @@ then appends any user-supplied .Values.env entries.
 {{- with .Values.env }}
 {{ toYaml . }}
 {{- end }}
+{{- end -}}
+
+{{/*
+Build the effective configmap config. When login.enabled=true, injects a
+SystemAPIUsers entry for the login-client that references the X.509 public
+certificate mounted into the ZITADEL container. User-supplied configmapConfig
+values always win.
+*/}}
+{{- define "zitadel.mergedConfigmapConfig" -}}
+{{- $config := deepCopy .Values.zitadel.configmapConfig -}}
+{{- if .Values.login.enabled -}}
+{{- $loginUser := dict "SystemAPIUsers" (dict "login-client" (dict "Path" "/secrets/login-client/tls.crt" "Memberships" (list (dict "MemberType" "System" "Roles" (list "IAM_LOGIN_CLIENT"))))) -}}
+{{- $config = mergeOverwrite $loginUser $config -}}
+{{- end -}}
+{{- $config | toYaml -}}
 {{- end -}}
 
 {{/*

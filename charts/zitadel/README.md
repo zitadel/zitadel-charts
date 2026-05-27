@@ -2,7 +2,7 @@
 
 # Zitadel
 
-![Version: 9.34.1](https://img.shields.io/badge/Version-9.34.1-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: v4.13.1](https://img.shields.io/badge/AppVersion-v4.13.1-informational?style=flat-square)
+![Version: 10.0.3](https://img.shields.io/badge/Version-10.0.3-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: v4.14.0](https://img.shields.io/badge/AppVersion-v4.14.0-informational?style=flat-square)
 
 ## A Better Identity and Access Management Solution
 
@@ -29,6 +29,27 @@ For more sophisticated production-ready configurations, follow one of the follow
 
 All the configurations from the examples above are guaranteed to work, because they are directly used in automatic acceptance tests.
 
+## Upgrade From V9 to V10
+
+The v10 charts require [Zitadel v4.14.0](https://github.com/zitadel/zitadel/releases/tag/v4.14.0) or later. Older Zitadel versions are not supported.
+
+### Login Client Authentication
+
+The login UI now authenticates to the Zitadel backend using an X.509/RSA keypair registered as a `SystemAPIUser`, replacing the Personal Access Token flow used in v9.
+Helm generates a self-signed RSA keypair on install, stores it in a `kubernetes.io/tls` Secret named `<release>-login-service-key`, and reuses it across upgrades.
+The public certificate is mounted into the Zitadel container for JWT verification; the private key is mounted into the login container for JWT signing.
+No manual setup is required for new or existing installations — `helm upgrade` switches the flow automatically.
+
+The following values are removed:
+
+- `zitadel.configmapConfig.FirstInstance.Org.LoginClient`
+- `zitadel.configmapConfig.FirstInstance.LoginClientPatPath`
+- `login.loginClientSecretPrefix`
+
+Existing v9 installations carry a `login-client` Secret containing the now-unused PAT. It is harmless and can be deleted at any time.
+
+To bring your own keypair (for example from cert-manager), set `login.loginServiceKeySecretName` to the name of a `kubernetes.io/tls` Secret containing `tls.crt` and `tls.key`. The keypair must be RSA — the login container signs JWTs using RS256.
+
 ## Upgrade From V8 to V9
 
 The v9 charts default Zitadel and login versions reference [Zitadel v4](https://github.com/zitadel/zitadel/releases/tag/v4.0.0).
@@ -40,16 +61,6 @@ Use `login.enabled: false` to omit deploying the new login.
 ### Switch to the New Login Deployment
 
 By default, a new deployment for the login v2 is configured and created.
-For new installations, the setup job automatically creates a user of type machine with role `IAM_LOGIN_CLIENT`.
-It writes the users personal access token into a Kubernetes secret which is then mounted into the login pods.
-
-For existing installations, the setup job doesn't create this login client user.
-Therefore, the Kubernetes secret has to be created manually before upgrading to v9:
-
-1. Create a user of type machine
-2. Make the user an instance administrator with role `IAM_LOGIN_CLIENT`
-3. Create a personal access token for the user
-4. Create a secret with that token: `kubectl --namespace <my-namespace> create secret generic login-client --from-file=pat=<my-local-path-to-the-downloaded-pat-file>`
 
 To make the login externally accessible, you need to route traffic with the path prefix `/ui/v2/login` to the login service.
 If you use an ingress controller, you can enable the login ingress with `login.ingress.enabled: true`
@@ -237,7 +248,7 @@ Kubernetes: `>= 1.30.0-0`
 | login.autoscaling.targetCPU | string | `nil` | The target average CPU utilization percentage. |
 | login.autoscaling.targetMemory | string | `nil` | The target average memory utilization percentage. |
 | login.configMap.annotations | map[string]string | `{"helm.sh/hook":"pre-install,pre-upgrade","helm.sh/hook-delete-policy":"before-hook-creation","helm.sh/hook-weight":"0"}` | Annotations for the Login UI ConfigMap. The default hooks ensure the ConfigMap is created before the deployment and recreated on upgrades. |
-| login.customConfigmapConfig | string | `nil` | Custom environment variables for the Login UI ConfigMap. These override the default values which configure the service user token path, API URL, and custom request headers. Only set this if you need to customize the Login UI behavior beyond the defaults. The defaults are:   ZITADEL_SERVICE_USER_TOKEN_FILE="/login-client/pat"   ZITADEL_API_URL="http://<release>-zitadel:<port>"   CUSTOM_REQUEST_HEADERS="Host:<ExternalDomain>,X-Zitadel-Instance-Host:<ExternalDomain>,X-Zitadel-Public-Host:<ExternalDomain>" |
+| login.customConfigmapConfig | string | `nil` | Custom environment variables for the Login UI ConfigMap. These override the default values which configure the login service key path, audience, API URL, and custom request headers. Only set this if you need to customize the Login UI behavior beyond the defaults. |
 | login.enabled | bool | `true` | Enable or disable the Login UI deployment. When disabled, ZITADEL uses its built-in login interface instead of the separate Login UI application. |
 | login.env | []EnvVar | `[]` | Additional environment variables for the Login UI container. Use this to pass configuration that isn't available through customConfigmapConfig. |
 | login.extraContainers | []Container | `[]` | Sidecar containers to run alongside the Login UI container. Useful for logging agents, proxies, or other supporting services. |
@@ -267,7 +278,7 @@ Kubernetes: `>= 1.30.0-0`
 | login.livenessProbe.failureThreshold | int | `3` | Number of consecutive failures before restarting the container. |
 | login.livenessProbe.initialDelaySeconds | int | `0` | Seconds to wait before starting liveness checks after container start. |
 | login.livenessProbe.periodSeconds | int | `5` | How often (in seconds) to perform the liveness check. |
-| login.loginClientSecretPrefix | string | `nil` | Prefix for the login client secret name. Use this when deploying multiple ZITADEL instances in the same namespace to avoid secret name collisions. When set, the login client secret will be named "{prefix}login-client". |
+| login.loginServiceKeySecretName | string | `""` | Name of an existing Kubernetes Secret containing the login service keypair. The secret must contain keys "tls.crt" (RSA public certificate) and "tls.key" (RSA private key). When set, the chart skips auto-generating a keypair and uses this secret instead. Useful for cert-manager or external secret operators. Note: the keypair must be RSA (the login container signs JWTs using RS256). |
 | login.metrics.enabled | bool | `false` | Enable metrics scraping annotations on Login UI pods. When true, adds prometheus.io/* annotations that enable automatic discovery by Prometheus. |
 | login.metrics.serviceMonitor.additionalLabels | map[string]string | `{}` | Additional labels to add to the ServiceMonitor. Use this to match Prometheus Operator's serviceMonitorSelector if configured. |
 | login.metrics.serviceMonitor.enabled | bool | `false` | Create a ServiceMonitor resource for Prometheus Operator integration. The Prometheus community Helm chart (kube-prometheus-stack) installs this operator. To allow discovery across all namespaces, set: prometheus.prometheusSpec.serviceMonitorSelectorNilUsesHelmValues=false |
@@ -401,7 +412,7 @@ Kubernetes: `>= 1.30.0-0`
 | zitadel.autoscaling.targetMemory | string | `nil` | The target average memory utilization percentage. |
 | zitadel.configSecretKey | string | `"config-yaml"` | The key within the configSecretName secret that contains the ZITADEL configuration YAML. The default "config-yaml" matches the expected format. |
 | zitadel.configSecretName | string | `nil` | Name of an existing Kubernetes Secret containing ZITADEL configuration. Use this when you want to manage ZITADEL configuration externally (e.g., via External Secrets Operator, Sealed Secrets, or GitOps). The secret should contain YAML configuration in the same format as configmapConfig. |
-| zitadel.configmapConfig | object | `{"ExternalDomain":"","ExternalSecure":true,"FirstInstance":{"LoginClientPatPath":null,"MachineKeyPath":null,"Org":{"LoginClient":{"Machine":{"Name":"Automatically Initialized IAM Login Client","Username":"login-client"},"Pat":{"ExpirationDate":"2029-01-01T00:00:00Z"}},"Machine":{"Machine":{"Name":"Automatically Initialized IAM Admin","Username":"iam-admin"},"MachineKey":{"ExpirationDate":"2029-01-01T00:00:00Z","Type":1},"Pat":{"ExpirationDate":"2029-01-01T00:00:00Z"}},"Skip":null},"PatPath":null,"Skip":false},"Machine":{"Identification":{"Hostname":{"Enabled":true},"Webhook":{"Enabled":false}}},"TLS":{"Enabled":false}}` | ZITADEL runtime configuration written to a Kubernetes ConfigMap. These values are passed directly to the ZITADEL binary and control its behavior. For the complete list of available configuration options, see: https://github.com/zitadel/zitadel/blob/main/cmd/defaults.yaml |
+| zitadel.configmapConfig | object | `{"ExternalDomain":"","ExternalSecure":true,"FirstInstance":{"MachineKeyPath":null,"Org":{"Machine":{"Machine":{"Name":"Automatically Initialized IAM Admin","Username":"iam-admin"},"MachineKey":{"ExpirationDate":"2029-01-01T00:00:00Z","Type":1},"Pat":{"ExpirationDate":"2029-01-01T00:00:00Z"}},"Skip":null},"PatPath":null,"Skip":false},"Machine":{"Identification":{"Hostname":{"Enabled":true},"Webhook":{"Enabled":false}}},"TLS":{"Enabled":false}}` | ZITADEL runtime configuration written to a Kubernetes ConfigMap. These values are passed directly to the ZITADEL binary and control its behavior. For the complete list of available configuration options, see: https://github.com/zitadel/zitadel/blob/main/cmd/defaults.yaml |
 | zitadel.dbSslAdminCrtSecret | string | `""` | Name of a Kubernetes Secret containing the admin user's client certificate for mutual TLS (mTLS) authentication to the database. The secret must contain keys "tls.crt" (certificate) and "tls.key" (private key). Used by the init job for database setup operations that require elevated privileges. |
 | zitadel.dbSslCaCrt | string | `""` | PEM-encoded CA certificate for verifying the database server's TLS certificate. Use this when your PostgreSQL server uses a self-signed certificate or a certificate signed by a private CA. The certificate is stored in a Kubernetes Secret and mounted into ZITADEL pods at /db-ssl-ca-crt/ca.crt. Either provide the certificate inline here, or reference an existing secret using dbSslCaCrtSecret instead. |
 | zitadel.dbSslCaCrtAnnotations | map[string]string | `{"helm.sh/hook":"pre-install,pre-upgrade","helm.sh/hook-delete-policy":"before-hook-creation","helm.sh/hook-weight":"0"}` | Annotations for the dbSslCaCrt Secret when created from the inline certificate. The default Helm hooks ensure the secret exists before pods start. |
@@ -445,10 +456,6 @@ To do so, start a [debug pod](#debug-pod) and run something like the following c
 ```bash
 kubectl exec -it my-zitadel-debug -- zitadel setup cleanup --config /config/zitadel-config-yaml
 ```
-
-### Multiple Releases in Single Namespace
-
-Read the comment for the value login.loginClientSecretPrefix
 
 ## Contributing
 

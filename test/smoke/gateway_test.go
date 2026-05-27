@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/require"
 	gatewayv1 "sigs.k8s.io/gateway-api/apis/v1"
 
-	"github.com/zitadel/zitadel-charts/test/assert"
+	"github.com/mridang/wilhelm/assert"
 	setup "github.com/zitadel/zitadel-charts/test/smoke/support"
 	"github.com/zitadel/zitadel-charts/test/support"
 )
@@ -26,20 +26,20 @@ func TestGatewayHTTPRouteMatrix(t *testing.T) {
 		{
 			name: "labels",
 			setValues: map[string]string{
-				"gateway.httpRoute.enabled":                   "true",
-				"gateway.httpRoute.parentRefs[0].name":        "my-gateway",
-				"gateway.httpRoute.hostnames[0]":              "zitadel.example.local",
-				"login.enabled":                               "true",
-				"login.gateway.httpRoute.enabled":              "true",
-				"login.gateway.httpRoute.parentRefs[0].name":  "my-gateway",
-				"login.gateway.httpRoute.hostnames[0]":        "zitadel.example.local",
+				"gateway.httpRoute.enabled":                  "true",
+				"gateway.httpRoute.parentRefs[0].name":       "my-gateway",
+				"gateway.httpRoute.hostnames[0]":             "zitadel.example.local",
+				"login.enabled":                              "true",
+				"login.gateway.httpRoute.enabled":            "true",
+				"login.gateway.httpRoute.parentRefs[0].name": "my-gateway",
+				"login.gateway.httpRoute.hostnames[0]":       "zitadel.example.local",
 			},
 			zitadel: &assert.HTTPRouteAssertion{
 				ObjectMeta: assert.ObjectMetaAssertion{
 					Labels: assert.Matching[map[string]string](gomega.And(
 						gomega.HaveKeyWithValue("app.kubernetes.io/name", "zitadel"),
 						gomega.HaveKeyWithValue("app.kubernetes.io/managed-by", "Helm"),
-						gomega.HaveKeyWithValue("app.kubernetes.io/version", gomega.MatchRegexp(`^v?\d+\.\d+\.\d+`)),
+						gomega.HaveKeyWithValue("app.kubernetes.io/version", gomega.MatchRegexp(`^(v?\d+\.\d+\.\d+|[0-9a-f]{7,40})`)),
 					)),
 				},
 			},
@@ -48,7 +48,7 @@ func TestGatewayHTTPRouteMatrix(t *testing.T) {
 					Labels: assert.Matching[map[string]string](gomega.And(
 						gomega.HaveKeyWithValue("app.kubernetes.io/name", "zitadel-login"),
 						gomega.HaveKeyWithValue("app.kubernetes.io/managed-by", "Helm"),
-						gomega.HaveKeyWithValue("app.kubernetes.io/version", gomega.MatchRegexp(`^v?\d+\.\d+\.\d+`)),
+						gomega.HaveKeyWithValue("app.kubernetes.io/version", gomega.MatchRegexp(`^(v?\d+\.\d+\.\d+|[0-9a-f]{7,40})`)),
 						gomega.HaveKeyWithValue("app.kubernetes.io/component", "login"),
 					)),
 				},
@@ -122,11 +122,11 @@ func TestGatewayHTTPRouteMatrix(t *testing.T) {
 		{
 			name: "default-path",
 			setValues: map[string]string{
-				"gateway.httpRoute.enabled":                   "true",
-				"gateway.httpRoute.parentRefs[0].name":        "my-gw",
-				"login.enabled":                               "true",
-				"login.gateway.httpRoute.enabled":              "true",
-				"login.gateway.httpRoute.parentRefs[0].name":  "my-gw",
+				"gateway.httpRoute.enabled":                  "true",
+				"gateway.httpRoute.parentRefs[0].name":       "my-gw",
+				"login.enabled":                              "true",
+				"login.gateway.httpRoute.enabled":            "true",
+				"login.gateway.httpRoute.parentRefs[0].name": "my-gw",
 			},
 			zitadel: &assert.HTTPRouteAssertion{
 				Spec: assert.HTTPRouteSpecAssertion{
@@ -278,7 +278,7 @@ func TestGatewayGRPCRouteMatrix(t *testing.T) {
 					Labels: assert.Matching[map[string]string](gomega.And(
 						gomega.HaveKeyWithValue("app.kubernetes.io/name", "zitadel"),
 						gomega.HaveKeyWithValue("app.kubernetes.io/managed-by", "Helm"),
-						gomega.HaveKeyWithValue("app.kubernetes.io/version", gomega.MatchRegexp(`^v?\d+\.\d+\.\d+`)),
+						gomega.HaveKeyWithValue("app.kubernetes.io/version", gomega.MatchRegexp(`^(v?\d+\.\d+\.\d+|[0-9a-f]{7,40})`)),
 					)),
 				},
 			},
@@ -382,8 +382,8 @@ func TestGatewayHTTPRouteEmptyPathsFails(t *testing.T) {
 			SetValues: map[string]string{
 				"zitadel.configmapConfig.ExternalDomain": "zitadel.example.local",
 				"zitadel.masterkey":                      "01234567890123456789012345678901",
-				"gateway.httpRoute.enabled":               "true",
-				"gateway.httpRoute.parentRefs[0].name":    "my-gw",
+				"gateway.httpRoute.enabled":              "true",
+				"gateway.httpRoute.parentRefs[0].name":   "my-gw",
 			},
 			SetJsonValues: map[string]string{
 				"gateway.httpRoute.paths": "[]",
@@ -399,10 +399,10 @@ func TestGatewayHTTPRouteEmptyPathsFails(t *testing.T) {
 	t.Run("login-empty-paths", func(t *testing.T) {
 		options := &helm.Options{
 			SetValues: map[string]string{
-				"zitadel.configmapConfig.ExternalDomain":    "zitadel.example.local",
+				"zitadel.configmapConfig.ExternalDomain":     "zitadel.example.local",
 				"zitadel.masterkey":                          "01234567890123456789012345678901",
 				"login.enabled":                              "true",
-				"login.gateway.httpRoute.enabled":             "true",
+				"login.gateway.httpRoute.enabled":            "true",
 				"login.gateway.httpRoute.parentRefs[0].name": "my-gw",
 			},
 			SetJsonValues: map[string]string{

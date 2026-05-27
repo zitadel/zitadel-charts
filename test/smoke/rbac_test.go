@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/onsi/gomega"
-	"github.com/zitadel/zitadel-charts/test/assert"
+	"github.com/mridang/wilhelm/assert"
 	setup "github.com/zitadel/zitadel-charts/test/smoke/support"
 	"github.com/zitadel/zitadel-charts/test/support"
 )
@@ -24,7 +24,7 @@ func TestRBACLabels(t *testing.T) {
 					Labels: assert.Matching[map[string]string](gomega.And(
 						gomega.HaveKeyWithValue("app.kubernetes.io/name", "zitadel"),
 						gomega.HaveKeyWithValue("app.kubernetes.io/managed-by", "Helm"),
-						gomega.HaveKeyWithValue("app.kubernetes.io/version", gomega.MatchRegexp(`^v?\d+\.\d+\.\d+`)),
+						gomega.HaveKeyWithValue("app.kubernetes.io/version", gomega.MatchRegexp(`^(v?\d+\.\d+\.\d+|[0-9a-f]{7,40})`)),
 					)),
 				},
 			},
@@ -33,7 +33,7 @@ func TestRBACLabels(t *testing.T) {
 					Labels: assert.Matching[map[string]string](gomega.And(
 						gomega.HaveKeyWithValue("app.kubernetes.io/name", "zitadel"),
 						gomega.HaveKeyWithValue("app.kubernetes.io/managed-by", "Helm"),
-						gomega.HaveKeyWithValue("app.kubernetes.io/version", gomega.MatchRegexp(`^v?\d+\.\d+\.\d+`)),
+						gomega.HaveKeyWithValue("app.kubernetes.io/version", gomega.MatchRegexp(`^(v?\d+\.\d+\.\d+|[0-9a-f]{7,40})`)),
 					)),
 				},
 			},

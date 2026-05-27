@@ -2,6 +2,7 @@ package support
 
 import (
 	"fmt"
+	"os"
 	"path/filepath"
 	"runtime"
 	"strings"
@@ -15,6 +16,12 @@ import (
 
 	testsupport "github.com/zitadel/zitadel-charts/test/support"
 )
+
+// kubectlOptions returns a KubectlOptions scoped to env's namespace, built
+// from the KUBECONFIG environment variable set by the test cluster.
+func kubectlOptions(env *testsupport.Env) *k8s.KubectlOptions {
+	return k8s.NewKubectlOptions("", os.Getenv("KUBECONFIG"), env.Namespace)
+}
 
 // ChartPath returns the absolute path to the Zitadel Helm chart.
 func ChartPath(t *testing.T) string {
@@ -37,7 +44,7 @@ func InstallZitadel(t *testing.T, env *testsupport.Env, testName string, setValu
 
 	chartPath := ChartPath(t)
 
-	env.Logger.Logf(t, "namespace %q created; installing PostgreSQL…", env.Namespace)
+	t.Logf("namespace %q created; installing PostgreSQL…", env.Namespace)
 	WithPostgres(t, env)
 
 	uniqueDomain := fmt.Sprintf("%s.test.local", env.Namespace)
@@ -78,7 +85,7 @@ func InstallZitadel(t *testing.T, env *testsupport.Env, testName string, setValu
 	}
 
 	helmOptions := &helm.Options{
-		KubectlOptions: env.Kube,
+		KubectlOptions: kubectlOptions(env),
 		SetValues:      mergedSetValues,
 		ExtraArgs: map[string][]string{
 			"upgrade": {"--install", "--wait", "--timeout", "30m"},
@@ -112,7 +119,7 @@ func setValuesUseDSNMode(setValues map[string]string) bool {
 }
 
 func dumpSetupAndInitJobLogs(t *testing.T, env *testsupport.Env, releaseName string) {
-	namespace := env.Kube.Namespace
+	kube := kubectlOptions(env)
 	jobNames := []string{fmt.Sprintf("%s-setup", releaseName), fmt.Sprintf("%s-init", releaseName)}
 
 	for _, jobName := range jobNames {
@@ -123,32 +130,32 @@ func dumpSetupAndInitJobLogs(t *testing.T, env *testsupport.Env, releaseName str
 			for _, container := range pod.Spec.Containers {
 				logOutput, _ := k8s.RunKubectlAndGetOutputE(
 					t,
-					env.Kube,
+					kube,
 					"logs",
-					pod.Name, "-n", namespace, "-c", container.Name, "--tail=500",
+					pod.Name, "-n", env.Namespace, "-c", container.Name, "--tail=500",
 				)
-				env.Logger.Logf(t, "---- logs: pod=%s container=%s ----\n%s\n---- end logs ----", pod.Name, container.Name, logOutput)
+				t.Logf("---- logs: pod=%s container=%s ----\n%s\n---- end logs ----", pod.Name, container.Name, logOutput)
 			}
 			for _, initContainer := range pod.Spec.InitContainers {
 				logOutput, _ := k8s.RunKubectlAndGetOutputE(
 					t,
-					env.Kube,
+					kube,
 					"logs",
-					pod.Name, "-n", namespace, "-c", initContainer.Name, "--tail=500",
+					pod.Name, "-n", env.Namespace, "-c", initContainer.Name, "--tail=500",
 				)
-				env.Logger.Logf(t, "---- logs: pod=%s initContainer=%s ----\n%s\n---- end logs ----", pod.Name, initContainer.Name, logOutput)
+				t.Logf("---- logs: pod=%s initContainer=%s ----\n%s\n---- end logs ----", pod.Name, initContainer.Name, logOutput)
 			}
 		}
 	}
 }
 
 func listPods(t *testing.T, env *testsupport.Env, labelSelector string) []corev1.Pod {
-	podList, err := env.Client.CoreV1().Pods(env.Kube.Namespace).List(
+	podList, err := env.Client.CoreV1().Pods(env.Namespace).List(
 		env.Ctx,
 		metav1.ListOptions{LabelSelector: labelSelector},
 	)
 	if err != nil {
-		env.Logger.Logf(t, "warn: list pods selector=%q: %v", labelSelector, err)
+		t.Logf("warn: list pods selector=%q: %v", labelSelector, err)
 		return nil
 	}
 	return podList.Items

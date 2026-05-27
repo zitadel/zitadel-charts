@@ -26,6 +26,10 @@ func TestPostgresInsecure(t *testing.T) {
 			WithExternalDomain(domain),
 			WithExternalPort(httpsPort),
 			WithMachineUser("Admin", machineUsername),
+			WithValue("image.repository", "ghcr.io/zitadel/zitadel"),
+			WithValue("image.tag", "1f74a0959ab172c7ea00beee122e8ef062d77eef"),
+			WithValue("login.image.repository", "ghcr.io/zitadel/zitadel-login"),
+			WithValue("login.image.tag", "1f74a0959ab172c7ea00beee122e8ef062d77eef"),
 		)
 
 		t.Run("accessibility", func(t *testing.T) { CheckAccessibility(ctx, t, k, apiBaseURL) })
