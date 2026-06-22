@@ -35,7 +35,7 @@ V11 removes every imperatively-created Kubernetes resource from the chart. Earli
 
 ### Declarative Admin Authentication
 
-Administrative API access is now provided exactly like the login client: the chart registers a `SystemAPIUsers` entry named `admin-client` (role `IAM_OWNER`) and trusts an X.509 public certificate for it. Helm generates a self-signed RSA keypair on install, stores it in a `kubernetes.io/tls` Secret named `<release>-admin-service-key`, and reuses it across upgrades. The public certificate is mounted into the Zitadel container for JWT verification; the private key is never consumed by a pod — you read it out of the Secret and authenticate against the Zitadel System API with a JWT profile.
+Administrative API access is now provided exactly like the login client: the chart registers a `SystemAPIUsers` entry named `admin-client` (role `IAM_OWNER`) and trusts an X.509 public certificate for it. Helm generates a self-signed RSA keypair on install, stores it in a `kubernetes.io/tls` Secret named after the chart fullname, `<fullname>-admin-service-key` (e.g. `my-zitadel-admin-service-key`), and reuses it across upgrades. The public certificate is mounted into the Zitadel container for JWT verification; the private key is never consumed by a pod. You read it out of the Secret and authenticate against the Zitadel System API with a JWT profile.
 
 Because the keypair is a normal, Helm-templated (and therefore Argo-trackable) Secret rather than something created at runtime, there is nothing for a cleanup Job to remove. This resolves the GitOps/ArgoCD friction where Helm pre-sync hooks forced secret churn and the `post-delete` cleanup Job deadlocked against its already-deleted ServiceAccount.
 
