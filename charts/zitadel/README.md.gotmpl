@@ -31,10 +31,10 @@ All the configurations from the examples above are guaranteed to work, because t
 
 ## Upgrade From V10 to V11
 
-The debug ReplicaSet (`zitadel.debug.*`) is removed. Because the debug resource was a Helm hook, `helm upgrade` does not garbage-collect a previously-created one, so any existing `*-debug` ReplicaSet stays in the cluster (leaving an extra pod with config and secrets mounted). Delete it manually after upgrading:
+The debug ReplicaSet (`zitadel.debug.*`) is removed. Because the debug resource was a Helm hook, `helm upgrade` does not garbage-collect a previously-created one, so any existing `*-debug` ReplicaSet stays in the cluster (leaving an extra pod with config and secrets mounted). Delete it manually after upgrading, scoping the selector to your release (`app.kubernetes.io/instance=<release>`) so you don't touch debug pods from other releases in the same namespace:
 
 ```bash
-kubectl --namespace <namespace> delete replicaset --selector app.kubernetes.io/component=debug
+kubectl --namespace <namespace> delete replicaset --selector app.kubernetes.io/component=debug,app.kubernetes.io/instance=<release> --ignore-not-found=true
 ```
 
 ## Upgrade From V9 to V10
