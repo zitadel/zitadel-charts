@@ -3,7 +3,15 @@ name: 'Release Charts'
 on:
   push:
     branches:
+      # Stable releases. chart-releaser publishes whatever version sits in
+      # Chart.yaml on this branch.
       - 'main'
+      # Pre-release line for the next major (semantic-release style). Pushing a
+      # pre-release version (e.g. 11.0.0-beta.N) here publishes it without
+      # touching the stable channel on main. SemVer pre-releases are hidden from
+      # a normal `helm install` and surface only with `--devel` or an explicit
+      # `--version`, so stable users are never moved onto the beta line.
+      - 'next'
 
 jobs:
   release:
