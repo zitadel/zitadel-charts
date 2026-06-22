@@ -84,6 +84,9 @@ func TestConfigMapMatrix(t *testing.T) {
 			setValues: map[string]string{
 				"configMap.annotations.config-version": "v2",
 				"login.enabled":                        "false",
+				// With both login and the admin-client key disabled, no
+				// SystemAPIUsers entry is injected into the ConfigMap.
+				"zitadel.adminServiceKey.enabled": "false",
 			},
 			zitadel: &assert.ConfigMapAssertion{
 				ObjectMeta: assert.ObjectMetaAssertion{

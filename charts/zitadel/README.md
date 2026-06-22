@@ -24,7 +24,7 @@ For more sophisticated production-ready configurations, follow one of the follow
 
 - [Secure Postgres Example](/examples/2-postgres-secure/README.md)
 - [Referenced Secrets Example](/examples/3-referenced-secrets/README.md)
-- [Machine User Setup Example](/examples/4-machine-user/README.md)
+- [Admin API Access Example](/examples/4-machine-user/README.md)
 - [Internal TLS Example](/examples/5-internal-tls/README.md)
 
 All the configurations from the examples above are guaranteed to work, because they are directly used in automatic acceptance tests.
@@ -409,7 +409,7 @@ Kubernetes: `>= 1.30.0-0`
 | tools.wait4x.image.tag | string | `"3.6"` | The image tag to use for the wait4x image. Leave empty to require the user to set a specific version explicitly. |
 | tools.wait4x.resources | ResourceRequirements | `{}` | CPU and memory resource requests and limits for wait4x init containers. These resources apply to all init containers using the wait4x tool, such as wait-for-zitadel. Setting equal requests and limits enables the "Guaranteed" QoS class when combined with resource settings on the main container. Ref: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/ |
 | topologySpreadConstraints | []TopologySpreadConstraint | `[]` | Topology spread constraints control how pods are distributed across topology domains (e.g., zones, nodes, regions) for high availability. Unlike affinity, these constraints provide more granular control over pod distribution. Ref: https://kubernetes.io/docs/concepts/scheduling-eviction/topology-spread-constraints/ |
-| zitadel.adminServiceKey.enabled | bool | `true` | Enable the declarative admin-client system user and its key. When true and existingSecretName is empty, the chart generates a self-signed keypair as a Helm-managed (Argo-trackable) Secret named "<release>-admin-service-key" and reuses it across upgrades. |
+| zitadel.adminServiceKey.enabled | bool | `true` | Enable the declarative admin-client system user and its key. When true and existingSecretName is empty, the chart generates a self-signed keypair as a Helm-managed (Argo-trackable) Secret named "<release>-admin-service-key" and reuses it across upgrades via a Helm lookup. The lookup only works against a live cluster (helm install/upgrade); render-only pipelines that run "helm template" without cluster access (some GitOps setups) cannot read the existing Secret and would regenerate the key on every render. For those, set existingSecretName so the chart never generates a key and the admin credential stays stable. |
 | zitadel.adminServiceKey.existingSecretName | string | `""` | Name of an existing kubernetes.io/tls Secret holding the admin-client keypair (keys "tls.crt" and "tls.key"). Set this to bring your own key via External Secrets, Sealed Secrets, etc.; when set, the chart does not generate a Secret. The public cert is mounted into ZITADEL; you keep the private key. |
 | zitadel.adminServiceKey.validityDays | int | `3650` | Validity in days of the self-signed certificate generated when the chart manages the keypair. Ignored when existingSecretName is set. |
 | zitadel.autoscaling.annotations | map[string]string | `{}` | Annotations applied to the HPA object. |

@@ -1446,7 +1446,7 @@
                     "type": "object",
                     "properties": {
                         "enabled": {
-                            "description": "Enable the declarative admin-client system user and its key. When true and existingSecretName is empty, the chart generates a self-signed keypair as a Helm-managed (Argo-trackable) Secret named \"\u003crelease\u003e-admin-service-key\" and reuses it across upgrades.",
+                            "description": "Enable the declarative admin-client system user and its key. When true and existingSecretName is empty, the chart generates a self-signed keypair as a Helm-managed (Argo-trackable) Secret named \"\u003crelease\u003e-admin-service-key\" and reuses it across upgrades via a Helm lookup. The lookup only works against a live cluster (helm install/upgrade); render-only pipelines that run \"helm template\" without cluster access (some GitOps setups) cannot read the existing Secret and would regenerate the key on every render. For those, set existingSecretName so the chart never generates a key and the admin credential stays stable.",
                             "type": "boolean"
                         },
                         "existingSecretName": {
