@@ -37,6 +37,11 @@ func WithPostgres(testing *testing.T, env *testsupport.Env) {
 			"upgrade": {
 				"--install",
 				"--hide-notes",
+				// Pin the chart version: Bitnami prunes versions from its
+				// (deprecated) public registry without notice, so installing the
+				// latest can suddenly 404. 18.5.13 is the version vendored by the
+				// zitadel chart and is known to still resolve.
+				"--version", "18.5.13",
 				"--set-string", "primary.persistence.enabled=false",
 				"--set-string", "primary.pgHbaConfiguration=host all all all trust",
 				"--set-string", "primary.extendedConfiguration=max_connections = 500",

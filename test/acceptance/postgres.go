@@ -15,6 +15,11 @@ const (
 	postgresRepoName = "bitnami"
 	postgresChart    = "postgresql"
 	postgresRelease  = "db"
+	// postgresChartVersion is pinned because Bitnami prunes versions from its
+	// (deprecated) public registry without notice, so installing the latest
+	// chart can suddenly 404. 18.5.13 is the version vendored by the zitadel
+	// chart and is known to still resolve.
+	postgresChartVersion = "18.5.13"
 )
 
 // PostgresOption configures PostgreSQL installation.
@@ -95,7 +100,7 @@ func InstallPostgres(t *testing.T, k *k8s.KubectlOptions, opts ...PostgresOption
 	options := &helm.Options{
 		KubectlOptions: k,
 		SetValues:      values,
-		ExtraArgs:      map[string][]string{"install": {"--wait", "--timeout", "10m", "--hide-notes"}},
+		ExtraArgs:      map[string][]string{"install": {"--wait", "--timeout", "10m", "--hide-notes", "--version", postgresChartVersion}},
 	}
 
 	helm.Install(t, options, postgresRepoName+"/"+postgresChart, postgresRelease)
