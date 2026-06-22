@@ -29,6 +29,14 @@ For more sophisticated production-ready configurations, follow one of the follow
 
 All the configurations from the examples above are guaranteed to work, because they are directly used in automatic acceptance tests.
 
+## Upgrade From V10 to V11
+
+The debug ReplicaSet (`zitadel.debug.*`) is removed. Because the debug resource was a Helm hook, `helm upgrade` does not garbage-collect a previously-created one, so any existing `*-debug` ReplicaSet stays in the cluster (leaving an extra pod with config and secrets mounted). Delete it manually after upgrading:
+
+```bash
+kubectl --namespace <namespace> delete replicaset --selector app.kubernetes.io/component=debug
+```
+
 ## Upgrade From V9 to V10
 
 The v10 charts require [Zitadel v4.14.0](https://github.com/zitadel/zitadel/releases/tag/v4.14.0) or later. Older Zitadel versions are not supported.
