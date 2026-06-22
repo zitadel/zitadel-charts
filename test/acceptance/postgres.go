@@ -1,16 +1,21 @@
 package acceptance_test
 
 import (
-	"path/filepath"
-	"runtime"
 	"testing"
+	"time"
 
 	"github.com/gruntwork-io/terratest/modules/helm"
 	"github.com/gruntwork-io/terratest/modules/k8s"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
-const postgresRelease = "db"
+const (
+	postgresRepoURL  = "https://charts.bitnami.com/bitnami"
+	postgresRepoName = "bitnami"
+	postgresChart    = "postgresql"
+	postgresRelease  = "db"
+)
 
 // PostgresOption configures PostgreSQL installation.
 type PostgresOption func(*postgresConfig)
@@ -44,27 +49,9 @@ func WithPostgresPassword(password string) PostgresOption {
 	}
 }
 
-// vendoredPostgresChart returns the path to the PostgreSQL chart vendored in
-// the zitadel chart (charts/zitadel/charts/postgresql-*.tgz). The tests install
-// PostgreSQL from this in-repo copy rather than pulling it from Bitnami's
-// deprecated public registry, which prunes chart versions (and even individual
-// blobs of versions that previously resolved) without notice and caused
-// intermittent 404s in CI. Only the bitnamilegacy container images are fetched
-// at pod runtime.
-func vendoredPostgresChart(t *testing.T) string {
-	t.Helper()
-	_, filename, _, ok := runtime.Caller(0)
-	require.True(t, ok, "failed to determine caller info for chart path resolution")
-	repoRoot := filepath.Join(filepath.Dir(filename), "..", "..")
-	matches, err := filepath.Glob(filepath.Join(repoRoot, "charts", "zitadel", "charts", "postgresql-*.tgz"))
-	require.NoError(t, err)
-	require.NotEmpty(t, matches, "vendored postgresql chart tgz not found under charts/zitadel/charts")
-	return matches[0]
-}
-
-// InstallPostgres installs PostgreSQL via Helm into the given namespace from the
-// vendored PostgreSQL chart, using legacy images. Persistence is disabled for
-// test environments.
+// InstallPostgres installs PostgreSQL via Helm into the given namespace. It
+// uses the Bitnami PostgreSQL chart with legacy images for compatibility with
+// older Kubernetes versions. Persistence is disabled for test environments.
 func InstallPostgres(t *testing.T, k *k8s.KubectlOptions, opts ...PostgresOption) {
 	t.Helper()
 
@@ -72,6 +59,13 @@ func InstallPostgres(t *testing.T, k *k8s.KubectlOptions, opts ...PostgresOption
 	for _, opt := range opts {
 		opt(cfg)
 	}
+
+	require.EventuallyWithT(t, func(collect *assert.CollectT) {
+		err := helm.AddRepoE(t, &helm.Options{}, postgresRepoName, postgresRepoURL)
+		if !assert.NoError(collect, err) {
+			t.Logf("retrying helm add repo in a second")
+		}
+	}, 1*time.Minute, time.Second, "adding helm repo failed for a minute")
 
 	values := map[string]string{
 		"image.repository":                   "bitnamilegacy/postgresql",
@@ -104,5 +98,5 @@ func InstallPostgres(t *testing.T, k *k8s.KubectlOptions, opts ...PostgresOption
 		ExtraArgs:      map[string][]string{"install": {"--wait", "--timeout", "10m", "--hide-notes"}},
 	}
 
-	helm.Install(t, options, vendoredPostgresChart(t), postgresRelease)
+	helm.Install(t, options, postgresRepoName+"/"+postgresChart, postgresRelease)
 }

@@ -1,7 +1,7 @@
 package support
 
 import (
-	"path/filepath"
+	"fmt"
 	"testing"
 
 	"github.com/gruntwork-io/terratest/modules/helm"
@@ -10,23 +10,17 @@ import (
 	testsupport "github.com/zitadel/zitadel-charts/test/support"
 )
 
-// WithPostgres installs a lightweight PostgreSQL release named "db" into the
-// test environment's namespace. It disables persistence and authentication for
-// fast, ephemeral test environments.
-//
-// The PostgreSQL chart is installed from the copy vendored in the zitadel chart
-// (charts/zitadel/charts/postgresql-*.tgz) rather than pulled from Bitnami's
-// deprecated public registry. Bitnami prunes chart versions (and even
-// individual blobs of versions that previously resolved) without notice, which
-// caused intermittent 404s in CI. The chart content ships in-repo; only the
-// bitnamilegacy container images are fetched at pod runtime.
+// WithPostgres installs a lightweight Bitnami PostgreSQL release named "db"
+// into the test environment's namespace. It disables persistence and
+// authentication for fast, ephemeral test environments suitable for automated
+// testing scenarios.
 func WithPostgres(testing *testing.T, env *testsupport.Env) {
 	testing.Helper()
 
-	matches, err := filepath.Glob(filepath.Join(ChartPath(testing), "charts", "postgresql-*.tgz"))
-	require.NoError(testing, err)
-	require.NotEmpty(testing, matches, "vendored postgresql chart tgz not found under charts/zitadel/charts")
-	chartPath := matches[0]
+	chartRepository := "https://charts.bitnami.com/bitnami"
+
+	_, _ = helm.RunHelmCommandAndGetOutputE(testing, &helm.Options{},
+		"repo", "add", "bitnami", chartRepository)
 
 	helmOptions := &helm.Options{
 		KubectlOptions: kubectlOptions(env),
@@ -50,5 +44,6 @@ func WithPostgres(testing *testing.T, env *testsupport.Env) {
 		},
 	}
 
-	require.NoError(testing, helm.UpgradeE(testing, helmOptions, chartPath, "db"))
+	chartName := fmt.Sprintf("%s/postgresql", "bitnami")
+	require.NoError(testing, helm.UpgradeE(testing, helmOptions, chartName, "db"))
 }
