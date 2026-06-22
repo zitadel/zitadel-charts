@@ -443,6 +443,8 @@ The ZITADEL container ships the `zitadel` binary with the configuration mounted 
 kubectl exec -it deploy/my-zitadel -c zitadel -- zitadel setup cleanup --config /config/zitadel-config-yaml --masterkeyFromEnv
 ```
 
+The container name (`-c zitadel`) defaults to the chart name; if you set `nameOverride`, use that value instead.
+
 ## Contributing
 
 ### Editor Configuration
