@@ -29,6 +29,10 @@ For more sophisticated production-ready configurations, follow one of the follow
 
 All the configurations from the examples above are guaranteed to work, because they are directly used in automatic acceptance tests.
 
+## Upgrade From V10 to V11
+
+The `wait-for-zitadel` init container is removed from the Login deployment, along with the `tools.wait4x.*` values. The login container now waits for the Zitadel backend natively: its readiness probe stays unready until the backend is reachable, without restarting. If you set any `tools.wait4x.*` overrides, remove them from your values.
+
 ## Upgrade From V9 to V10
 
 The v10 charts require [Zitadel v4.14.0](https://github.com/zitadel/zitadel/releases/tag/v4.14.0) or later. Older Zitadel versions are not supported.
