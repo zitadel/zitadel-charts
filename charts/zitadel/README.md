@@ -2,7 +2,7 @@
 
 # Zitadel
 
-![Version: 10.0.2](https://img.shields.io/badge/Version-10.0.2-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: v4.14.0](https://img.shields.io/badge/AppVersion-v4.14.0-informational?style=flat-square)
+![Version: 11.0.0](https://img.shields.io/badge/Version-11.0.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: v4.14.0](https://img.shields.io/badge/AppVersion-v4.14.0-informational?style=flat-square)
 
 ## A Better Identity and Access Management Solution
 
@@ -440,7 +440,7 @@ If you see this error message in the logs of the setup job, you need to reset th
 The ZITADEL container ships the `zitadel` binary with the configuration mounted at `/config`, so you can run the cleanup directly against a running ZITADEL pod:
 
 ```bash
-kubectl exec -it deploy/my-zitadel -- zitadel setup cleanup --config /config/zitadel-config-yaml --masterkeyFromEnv
+kubectl exec -it deploy/my-zitadel -c zitadel -- zitadel setup cleanup --config /config/zitadel-config-yaml --masterkeyFromEnv
 ```
 
 ## Contributing

@@ -180,7 +180,7 @@ If you see this error message in the logs of the setup job, you need to reset th
 The ZITADEL container ships the `zitadel` binary with the configuration mounted at `/config`, so you can run the cleanup directly against a running ZITADEL pod:
 
 ```bash
-kubectl exec -it deploy/my-zitadel -- zitadel setup cleanup --config /config/zitadel-config-yaml --masterkeyFromEnv
+kubectl exec -it deploy/my-zitadel -c zitadel -- zitadel setup cleanup --config /config/zitadel-config-yaml --masterkeyFromEnv
 ```
 
 ## Contributing
