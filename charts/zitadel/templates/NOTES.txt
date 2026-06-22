@@ -18,7 +18,7 @@ as ArgoCD.
 {{- if (((((.Values.zitadel).configmapConfig).FirstInstance).Org).Machine) }}
 
 NOTE: You also set FirstInstance.Org.Machine. As of chart v11 the chart no
-longer creates a Kubernetes Secret from its generated key — administrative
-access is provided by zitadel.adminServiceKey above. Existing "{{ .Values.zitadel.configmapConfig.FirstInstance.Org.Machine.Machine.Username }}"
+longer creates a Kubernetes Secret from its generated key. Administrative
+access is provided by zitadel.adminServiceKey above. Existing "{{ dig "Machine" "Username" "iam-admin" .Values.zitadel.configmapConfig.FirstInstance.Org.Machine }}"
 secrets created by earlier chart versions remain valid and are left untouched.
 {{- end }}
