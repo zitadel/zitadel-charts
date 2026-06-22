@@ -2,17 +2,21 @@ package acceptance_test
 
 import (
 	"context"
+	"crypto"
+	"crypto/rand"
+	"crypto/rsa"
+	"crypto/sha256"
+	"crypto/x509"
+	"encoding/base64"
 	"encoding/json"
+	"encoding/pem"
 	"fmt"
-	"net/url"
-	"strings"
 	"testing"
 	"time"
 
 	"github.com/gruntwork-io/terratest/modules/k8s"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/zitadel/oidc/pkg/oidc"
 	"google.golang.org/protobuf/types/known/emptypb"
 
 	grpchelper "github.com/zitadel/zitadel-charts/test/acceptance/helpers/grpc"
@@ -20,45 +24,37 @@ import (
 )
 
 // CheckAuthenticatedAPI verifies that both HTTP and gRPC authenticated API
-// endpoints are functioning correctly using a machine user's service account
-// credentials. This check validates the complete machine-to-machine auth flow.
+// endpoints work using the declarative admin-client system user introduced in
+// chart v11. The chart registers admin-client as a SystemAPIUsers entry
+// (IAM_OWNER) and stores its keypair in a kubernetes.io/tls secret. There is no
+// imperatively-created machine key anymore.
 //
-// The function retrieves the service account key from the specified Kubernetes
-// secret, generates a JWT assertion, exchanges it for an access token via the
-// OAuth token endpoint, and then makes authenticated calls to both the HTTP
-// management API (/management/v1/languages) and gRPC management API.
+// Unlike the legacy machine-user flow (which exchanged a service-account JWT
+// for an access token at the token endpoint), a ZITADEL system user signs a JWT
+// with its private key and uses that JWT directly as the bearer token. The JWT
+// claims must be iss=sub=<system user name> and the audience must contain the
+// external API URL (scheme + host + port).
 //
 // This check validates:
-//   - Service account key provisioning in Kubernetes secrets
-//   - JWT profile assertion generation and signing
-//   - OAuth token endpoint functionality
-//   - Bearer token authentication on HTTP and gRPC endpoints
-//   - Management API availability and authorization
+//   - The admin-service-key secret is provisioned with a usable private key
+//   - System-user JWT assertion generation and RS256 signing
+//   - Bearer authentication on both the HTTP and gRPC management APIs
 //
-// The check uses eventual consistency with a 1-minute timeout to account for
-// potential startup delays in token issuance and API readiness.
-func CheckAuthenticatedAPI(ctx context.Context, t *testing.T, k *k8s.KubectlOptions, apiBaseURL, secretName, secretKey string) {
+// secretName is the tls secret holding the keypair (e.g.
+// "<release>-admin-service-key"), keyField is the data key for the PEM private
+// key ("tls.key"), and systemUserName is the SystemAPIUsers name ("admin-client").
+func CheckAuthenticatedAPI(ctx context.Context, t *testing.T, k *k8s.KubectlOptions, apiBaseURL, secretName, keyField, systemUserName string) {
 	t.Helper()
 
 	secret := k8s.GetSecret(t, k, secretName)
-	key := secret.Data[secretKey]
-	require.NotNil(t, key, "key %s in secret %s is nil", secretKey, secretName)
+	keyPEM := secret.Data[keyField]
+	require.NotEmpty(t, keyPEM, "key %s in secret %s is empty", keyField, secretName)
 
-	jwta, err := oidc.NewJWTProfileAssertionFromFileData(key, []string{apiBaseURL})
-	require.NoError(t, err)
-
-	jwt, err := oidc.GenerateJWTProfileToken(jwta)
-	require.NoError(t, err)
+	token, err := signSystemUserJWT(keyPEM, systemUserName, apiBaseURL)
+	require.NoError(t, err, "failed to sign system-user JWT")
 
 	authCtx, cancel := context.WithTimeout(ctx, 5*time.Minute)
 	defer cancel()
-
-	var token string
-	require.EventuallyWithT(t, func(collect *assert.CollectT) {
-		var tokenErr error
-		token, tokenErr = getAccessToken(authCtx, jwt, apiBaseURL)
-		assert.NoError(collect, tokenErr)
-	}, 1*time.Minute, time.Second, "getting token failed for a minute")
 
 	require.EventuallyWithT(t, func(collect *assert.CollectT) {
 		httpErr := callAuthenticatedHTTP(authCtx, token, apiBaseURL)
@@ -70,29 +66,53 @@ func CheckAuthenticatedAPI(ctx context.Context, t *testing.T, k *k8s.KubectlOpti
 	}, 1*time.Minute, time.Second, "calling authenticated endpoints failed for a minute")
 }
 
-func getAccessToken(ctx context.Context, jwt, apiBaseURL string) (string, error) {
-	form := url.Values{}
-	form.Add("grant_type", string(oidc.GrantTypeBearer))
-	form.Add("scope", fmt.Sprintf("%s %s %s urn:zitadel:iam:org:project:id:zitadel:aud", oidc.ScopeOpenID, oidc.ScopeProfile, oidc.ScopeEmail))
-	form.Add("assertion", jwt)
+// signSystemUserJWT builds and RS256-signs a ZITADEL system-user assertion. The
+// JWT is used directly as the bearer token against the management API. The
+// audience must be the external API base URL (including port), matching the
+// client_id ZITADEL derives from the request host.
+func signSystemUserJWT(keyPEM []byte, systemUserName, audience string) (string, error) {
+	block, _ := pem.Decode(keyPEM)
+	if block == nil {
+		return "", fmt.Errorf("no PEM block found in private key")
+	}
+	var key *rsa.PrivateKey
+	if k, err := x509.ParsePKCS1PrivateKey(block.Bytes); err == nil {
+		key = k
+	} else {
+		parsed, err2 := x509.ParsePKCS8PrivateKey(block.Bytes)
+		if err2 != nil {
+			return "", fmt.Errorf("parsing RSA private key: %w", err2)
+		}
+		rsaKey, ok := parsed.(*rsa.PrivateKey)
+		if !ok {
+			return "", fmt.Errorf("private key is not RSA")
+		}
+		key = rsaKey
+	}
 
-	status, body, err := httphelper.Post(ctx, fmt.Sprintf("%s/oauth/v2/token", apiBaseURL),
-		map[string]string{"Content-Type": "application/x-www-form-urlencoded"},
-		strings.NewReader(form.Encode()))
+	b64 := func(b []byte) string { return base64.RawURLEncoding.EncodeToString(b) }
+	header, err := json.Marshal(map[string]string{"alg": "RS256", "typ": "JWT"})
 	if err != nil {
 		return "", err
 	}
-	if status != 200 {
-		return "", fmt.Errorf("expected token response 200, but got %d", status)
-	}
-
-	var tokenResp struct {
-		AccessToken string `json:"access_token"`
-	}
-	if err = json.Unmarshal(body, &tokenResp); err != nil {
+	now := time.Now()
+	claims, err := json.Marshal(map[string]interface{}{
+		"iss": systemUserName,
+		"sub": systemUserName,
+		"aud": audience,
+		"iat": now.Unix(),
+		"exp": now.Add(time.Hour).Unix(),
+	})
+	if err != nil {
 		return "", err
 	}
-	return tokenResp.AccessToken, nil
+	signingInput := b64(header) + "." + b64(claims)
+	digest := sha256.Sum256([]byte(signingInput))
+	signature, err := rsa.SignPKCS1v15(rand.Reader, key, crypto.SHA256, digest[:])
+	if err != nil {
+		return "", fmt.Errorf("signing JWT: %w", err)
+	}
+	return signingInput + "." + b64(signature), nil
 }
 
 func callAuthenticatedHTTP(ctx context.Context, token, apiBaseURL string) error {

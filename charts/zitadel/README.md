@@ -2,7 +2,7 @@
 
 # Zitadel
 
-![Version: 10.0.2](https://img.shields.io/badge/Version-10.0.2-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: v4.14.0](https://img.shields.io/badge/AppVersion-v4.14.0-informational?style=flat-square)
+![Version: 11.0.0](https://img.shields.io/badge/Version-11.0.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: v4.14.0](https://img.shields.io/badge/AppVersion-v4.14.0-informational?style=flat-square)
 
 ## A Better Identity and Access Management Solution
 
@@ -28,6 +28,26 @@ For more sophisticated production-ready configurations, follow one of the follow
 - [Internal TLS Example](/examples/5-internal-tls/README.md)
 
 All the configurations from the examples above are guaranteed to work, because they are directly used in automatic acceptance tests.
+
+## Upgrade From V10 to V11
+
+V11 removes every imperatively-created Kubernetes resource from the chart. Earlier versions ran a `kubectl` sidecar in the setup job to create the IAM admin's machine key (`iam-admin`) and PAT (`iam-admin-pat`) Secrets, plus a `post-delete` cleanup Job to garbage-collect them on uninstall. Both are gone.
+
+### Declarative Admin Authentication
+
+Administrative API access is now provided exactly like the login client: the chart registers a `SystemAPIUsers` entry named `admin-client` (role `IAM_OWNER`) and trusts an X.509 public certificate for it. Helm generates a self-signed RSA keypair on install, stores it in a `kubernetes.io/tls` Secret named `<release>-admin-service-key`, and reuses it across upgrades. The public certificate is mounted into the Zitadel container for JWT verification; the private key is never consumed by a pod — you read it out of the Secret and authenticate against the Zitadel System API with a JWT profile.
+
+Because the keypair is a normal, Helm-templated (and therefore Argo-trackable) Secret rather than something created at runtime, there is nothing for a cleanup Job to remove. This resolves the GitOps/ArgoCD friction where Helm pre-sync hooks forced secret churn and the `post-delete` cleanup Job deadlocked against its already-deleted ServiceAccount.
+
+To bring your own keypair (for example from cert-manager or External Secrets), set `zitadel.adminServiceKey.existingSecretName` to the name of a `kubernetes.io/tls` Secret containing `tls.crt` and `tls.key`; the chart then generates nothing. Set `zitadel.adminServiceKey.enabled: false` to opt out entirely.
+
+The following values are removed:
+
+- `zitadel.configmapConfig.FirstInstance.Org.Machine` (the imperatively-keyed IAM machine user)
+- `cleanupJob.*` (the `post-delete` cleanup Job)
+- `setupJob.machinekeyWriter.*` and `tools.kubectl.*` (the `kubectl` sidecar image)
+
+**Existing installations keep working.** The `iam-admin` and `iam-admin-pat` Secrets created by v9/v10 carry `helm.sh/resource-policy: keep`, are not Helm-managed, and — with the cleanup Job gone — are never deleted. The underlying machine user remains valid in Zitadel, and the new `admin-client` system user is purely additive. Nothing about your existing credentials changes on `helm upgrade`.
 
 ## Upgrade From V9 to V10
 
@@ -182,13 +202,6 @@ Kubernetes: `>= 1.30.0-0`
 |-----|------|---------|-------------|
 | affinity | Affinity | `{}` | Affinity rules for pod scheduling. Use for advanced pod placement strategies like co-locating pods on the same node (pod affinity), spreading pods across zones (pod anti-affinity), or preferring certain nodes (node affinity). Ref: https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#affinity-and-anti-affinity |
 | annotations | map[string]string | `{}` | Annotations to add to the ZITADEL Deployment resource. Use this for integration with tools like ArgoCD, Flux, or external monitoring systems. |
-| cleanupJob.activeDeadlineSeconds | int | `60` | Maximum time in seconds for the cleanup job to complete. After this deadline, the job is terminated even if still running. |
-| cleanupJob.annotations | map[string]string | `{"helm.sh/hook":"post-delete","helm.sh/hook-delete-policy":"hook-succeeded","helm.sh/hook-weight":"-1"}` | Annotations for the cleanup job. The post-delete hook ensures this runs on helm uninstall, and the delete policy removes the job after completion. |
-| cleanupJob.backoffLimit | int | `3` | Number of retries before marking the cleanup job as failed. |
-| cleanupJob.enabled | bool | `true` | Enable the cleanup job to remove secrets created by the setup job. Set to false if you want to preserve secrets across reinstalls. |
-| cleanupJob.podAdditionalLabels | map[string]string | `{}` | Additional labels to add to cleanup job pods. |
-| cleanupJob.podAnnotations | map[string]string | `{}` | Additional annotations to add to cleanup job pods. |
-| cleanupJob.resources | ResourceRequirements | `{}` | Resource limits and requests for the cleanup job container. Keep minimal as this job only runs kubectl delete commands. |
 | configMap.annotations | map[string]string | `{"helm.sh/hook":"pre-install,pre-upgrade","helm.sh/hook-delete-policy":"before-hook-creation","helm.sh/hook-weight":"0"}` | Annotations for the ZITADEL ConfigMap. The default Helm hooks ensure the ConfigMap is created before the deployment and recreated on upgrades to pick up configuration changes. |
 | env | []EnvVar | `[]` | Additional environment variables for the ZITADEL container. Use this to pass configuration that isn't available through configmapConfig or secretConfig, or to inject values from other Kubernetes resources like ConfigMaps or Secrets. ZITADEL environment variables follow the pattern ZITADEL_<SECTION>_<KEY>. Ref: https://zitadel.com/docs/self-hosting/manage/configure#configure-by-environment-variables |
 | envVarsSecret | string | `""` | Name of a Kubernetes Secret containing environment variables to inject into the ZITADEL container. All key-value pairs in the secret will be available as environment variables. This is useful for managing multiple ZITADEL configuration values in a single secret, especially when using external secret management tools like External Secrets Operator or Sealed Secrets. Ref: https://zitadel.com/docs/self-hosting/manage/configure#configure-by-environment-variables |
@@ -384,9 +397,6 @@ Kubernetes: `>= 1.30.0-0`
 | setupJob.backoffLimit | int | `5` | Number of retries before marking the setup job as failed. |
 | setupJob.extraContainers | []Container | `[]` | Sidecar containers to run alongside the setup container. Useful for logging, proxies (e.g., cloud-sql-proxy), or other supporting services. |
 | setupJob.initContainers | []Container | `[]` | Init containers to run before the main setup container. Useful for waiting on additional dependencies or performing pre-setup tasks. |
-| setupJob.machinekeyWriter.image.repository | string | `""` | Override the default kubectl image repository. Leave empty to use the value from tools.kubectl.image.repository. |
-| setupJob.machinekeyWriter.image.tag | string | `""` | Override the default kubectl image tag. Leave empty to use the value from tools.kubectl.image.tag (which defaults to cluster version). |
-| setupJob.machinekeyWriter.resources | ResourceRequirements | `{}` | CPU and memory resource requests and limits for the machinekey writer container. This container only runs kubectl commands and needs minimal resources. |
 | setupJob.podAdditionalLabels | map[string]string | `{}` | Additional labels to add to setup job pods. |
 | setupJob.podAnnotations | map[string]string | `{}` | Additional annotations to add to setup job pods. |
 | setupJob.resources | ResourceRequirements | `{}` | CPU and memory resource requests and limits for the setup job container. The setup job performs more work than init, including generating keys and creating initial data. |
@@ -394,14 +404,14 @@ Kubernetes: `>= 1.30.0-0`
 | startupProbe.failureThreshold | int | `30` | Number of consecutive failures before marking startup as failed and restarting the container. With periodSeconds=1 and failureThreshold=30, the container has 30 seconds to start. |
 | startupProbe.periodSeconds | int | `1` | How often (in seconds) to perform the startup check. |
 | tolerations | []Toleration | `[]` | Tolerations allow pods to be scheduled on nodes with matching taints. Taints are used to repel pods from nodes; tolerations allow exceptions. Ref: https://kubernetes.io/docs/concepts/scheduling-eviction/taint-and-toleration/ |
-| tools.kubectl.image.pullPolicy | string | `""` | The pull policy for the kubectl image. If left empty, Kubernetes applies its default policy depending on whether the tag is mutable or fixed. |
-| tools.kubectl.image.repository | string | `"alpine/k8s"` | The name of the image repository that contains the kubectl image. The chart automatically prepends the registry (docker.io by default) for compatibility with CRI-O v1.34+ which enforces fully qualified names. |
-| tools.kubectl.image.tag | string | `""` | The image tag to use for the kubectl image. It should be left empty to automatically default to the Kubernetes cluster version |
 | tools.wait4x.image.pullPolicy | string | `""` | The pull policy for the wait4x image. If left empty, the chart defaults to the Kubernetes default pull policy for the given tag. |
 | tools.wait4x.image.repository | string | `"wait4x/wait4x"` | The name of the image repository that contains the wait4x image. The chart automatically prepends the registry (docker.io by default) for compatibility with CRI-O v1.34+ which enforces fully qualified names. |
 | tools.wait4x.image.tag | string | `"3.6"` | The image tag to use for the wait4x image. Leave empty to require the user to set a specific version explicitly. |
 | tools.wait4x.resources | ResourceRequirements | `{}` | CPU and memory resource requests and limits for wait4x init containers. These resources apply to all init containers using the wait4x tool, such as wait-for-zitadel. Setting equal requests and limits enables the "Guaranteed" QoS class when combined with resource settings on the main container. Ref: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/ |
 | topologySpreadConstraints | []TopologySpreadConstraint | `[]` | Topology spread constraints control how pods are distributed across topology domains (e.g., zones, nodes, regions) for high availability. Unlike affinity, these constraints provide more granular control over pod distribution. Ref: https://kubernetes.io/docs/concepts/scheduling-eviction/topology-spread-constraints/ |
+| zitadel.adminServiceKey.enabled | bool | `true` | Enable the declarative admin-client system user and its key. When true and existingSecretName is empty, the chart generates a self-signed keypair as a Helm-managed (Argo-trackable) Secret named "<release>-admin-service-key" and reuses it across upgrades. |
+| zitadel.adminServiceKey.existingSecretName | string | `""` | Name of an existing kubernetes.io/tls Secret holding the admin-client keypair (keys "tls.crt" and "tls.key"). Set this to bring your own key via External Secrets, Sealed Secrets, etc.; when set, the chart does not generate a Secret. The public cert is mounted into ZITADEL; you keep the private key. |
+| zitadel.adminServiceKey.validityDays | int | `3650` | Validity in days of the self-signed certificate generated when the chart manages the keypair. Ignored when existingSecretName is set. |
 | zitadel.autoscaling.annotations | map[string]string | `{}` | Annotations applied to the HPA object. |
 | zitadel.autoscaling.behavior | HorizontalPodAutoscalerBehavior | `{}` | Configures the scaling behavior for scaling up and down. See: https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale/#configurable-scaling-behavior |
 | zitadel.autoscaling.enabled | bool | `false` | If true, enables the Horizontal Pod Autoscaler for the Zitadel deployment. This will automatically override the `replicaCount` value. |
@@ -412,7 +422,7 @@ Kubernetes: `>= 1.30.0-0`
 | zitadel.autoscaling.targetMemory | string | `nil` | The target average memory utilization percentage. |
 | zitadel.configSecretKey | string | `"config-yaml"` | The key within the configSecretName secret that contains the ZITADEL configuration YAML. The default "config-yaml" matches the expected format. |
 | zitadel.configSecretName | string | `nil` | Name of an existing Kubernetes Secret containing ZITADEL configuration. Use this when you want to manage ZITADEL configuration externally (e.g., via External Secrets Operator, Sealed Secrets, or GitOps). The secret should contain YAML configuration in the same format as configmapConfig. |
-| zitadel.configmapConfig | object | `{"ExternalDomain":"","ExternalSecure":true,"FirstInstance":{"MachineKeyPath":null,"Org":{"Machine":{"Machine":{"Name":"Automatically Initialized IAM Admin","Username":"iam-admin"},"MachineKey":{"ExpirationDate":"2029-01-01T00:00:00Z","Type":1},"Pat":{"ExpirationDate":"2029-01-01T00:00:00Z"}},"Skip":null},"PatPath":null,"Skip":false},"Machine":{"Identification":{"Hostname":{"Enabled":true},"Webhook":{"Enabled":false}}},"TLS":{"Enabled":false}}` | ZITADEL runtime configuration written to a Kubernetes ConfigMap. These values are passed directly to the ZITADEL binary and control its behavior. For the complete list of available configuration options, see: https://github.com/zitadel/zitadel/blob/main/cmd/defaults.yaml |
+| zitadel.configmapConfig | object | `{"ExternalDomain":"","ExternalSecure":true,"FirstInstance":{"MachineKeyPath":null,"Org":{"Skip":null},"PatPath":null,"Skip":false},"Machine":{"Identification":{"Hostname":{"Enabled":true},"Webhook":{"Enabled":false}}},"TLS":{"Enabled":false}}` | ZITADEL runtime configuration written to a Kubernetes ConfigMap. These values are passed directly to the ZITADEL binary and control its behavior. For the complete list of available configuration options, see: https://github.com/zitadel/zitadel/blob/main/cmd/defaults.yaml |
 | zitadel.dbSslAdminCrtSecret | string | `""` | Name of a Kubernetes Secret containing the admin user's client certificate for mutual TLS (mTLS) authentication to the database. The secret must contain keys "tls.crt" (certificate) and "tls.key" (private key). Used by the init job for database setup operations that require elevated privileges. |
 | zitadel.dbSslCaCrt | string | `""` | PEM-encoded CA certificate for verifying the database server's TLS certificate. Use this when your PostgreSQL server uses a self-signed certificate or a certificate signed by a private CA. The certificate is stored in a Kubernetes Secret and mounted into ZITADEL pods at /db-ssl-ca-crt/ca.crt. Either provide the certificate inline here, or reference an existing secret using dbSslCaCrtSecret instead. |
 | zitadel.dbSslCaCrtAnnotations | map[string]string | `{"helm.sh/hook":"pre-install,pre-upgrade","helm.sh/hook-delete-policy":"before-hook-creation","helm.sh/hook-weight":"0"}` | Annotations for the dbSslCaCrt Secret when created from the inline certificate. The default Helm hooks ensure the secret exists before pods start. |

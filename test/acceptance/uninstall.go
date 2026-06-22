@@ -48,13 +48,12 @@ func CheckUninstall(ctx context.Context, t *testing.T, k *k8s.KubectlOptions, wh
 		whitelistSet[item] = true
 	}
 
-	// Machine user secrets are annotated with helm.sh/resource-policy=keep
-	// so they intentionally survive uninstall (see job_setup.yaml)
-	whitelistSet["Secret/zitadel-admin-sa"] = true
-
 	// Helm hook resources with hook-delete-policy=before-hook-creation remain
 	// after uninstall. These are deleted only when new hooks are created (upgrade).
 	// This is the chart's current design - hooks persist for debugging purposes.
+	// Note: the admin-service-key and login-service-key Secrets are Helm-managed
+	// (non-hook) and are therefore deleted by uninstall, so they must NOT appear
+	// here. As of v11 the chart creates no machine-user secret and no RBAC.
 	hookResources := []string{
 		"Secret/zitadel-test-masterkey",
 		"Secret/zitadel-test-secrets-yaml",
@@ -64,8 +63,6 @@ func CheckUninstall(ctx context.Context, t *testing.T, k *k8s.KubectlOptions, wh
 		"Job/zitadel-test-setup",
 		"ServiceAccount/zitadel-test",
 		"ServiceAccount/zitadel-test-login",
-		"Role/zitadel-test",
-		"RoleBinding/zitadel-test",
 	}
 	for _, res := range hookResources {
 		whitelistSet[res] = true

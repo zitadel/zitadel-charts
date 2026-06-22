@@ -29,6 +29,26 @@ For more sophisticated production-ready configurations, follow one of the follow
 
 All the configurations from the examples above are guaranteed to work, because they are directly used in automatic acceptance tests.
 
+## Upgrade From V10 to V11
+
+V11 removes every imperatively-created Kubernetes resource from the chart. Earlier versions ran a `kubectl` sidecar in the setup job to create the IAM admin's machine key (`iam-admin`) and PAT (`iam-admin-pat`) Secrets, plus a `post-delete` cleanup Job to garbage-collect them on uninstall. Both are gone.
+
+### Declarative Admin Authentication
+
+Administrative API access is now provided exactly like the login client: the chart registers a `SystemAPIUsers` entry named `admin-client` (role `IAM_OWNER`) and trusts an X.509 public certificate for it. Helm generates a self-signed RSA keypair on install, stores it in a `kubernetes.io/tls` Secret named `<release>-admin-service-key`, and reuses it across upgrades. The public certificate is mounted into the Zitadel container for JWT verification; the private key is never consumed by a pod — you read it out of the Secret and authenticate against the Zitadel System API with a JWT profile.
+
+Because the keypair is a normal, Helm-templated (and therefore Argo-trackable) Secret rather than something created at runtime, there is nothing for a cleanup Job to remove. This resolves the GitOps/ArgoCD friction where Helm pre-sync hooks forced secret churn and the `post-delete` cleanup Job deadlocked against its already-deleted ServiceAccount.
+
+To bring your own keypair (for example from cert-manager or External Secrets), set `zitadel.adminServiceKey.existingSecretName` to the name of a `kubernetes.io/tls` Secret containing `tls.crt` and `tls.key`; the chart then generates nothing. Set `zitadel.adminServiceKey.enabled: false` to opt out entirely.
+
+The following values are removed:
+
+- `zitadel.configmapConfig.FirstInstance.Org.Machine` (the imperatively-keyed IAM machine user)
+- `cleanupJob.*` (the `post-delete` cleanup Job)
+- `setupJob.machinekeyWriter.*` and `tools.kubectl.*` (the `kubectl` sidecar image)
+
+**Existing installations keep working.** The `iam-admin` and `iam-admin-pat` Secrets created by v9/v10 carry `helm.sh/resource-policy: keep`, are not Helm-managed, and — with the cleanup Job gone — are never deleted. The underlying machine user remains valid in Zitadel, and the new `admin-client` system user is purely additive. Nothing about your existing credentials changes on `helm upgrade`.
+
 ## Upgrade From V9 to V10
 
 The v10 charts require [Zitadel v4.14.0](https://github.com/zitadel/zitadel/releases/tag/v4.14.0) or later. Older Zitadel versions are not supported.
