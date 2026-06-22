@@ -319,26 +319,6 @@ Database SSL CA certificate Secret name
 {{- end -}}
 
 {{/*
-Returns the internal cluster endpoint URL for ZITADEL health checks.
-This is used by wait4x and other internal pod-to-pod communication.
-The URL scheme (http/https) is determined by the TLS configuration:
-- If zitadel.configmapConfig.TLS.Enabled is true, uses https://
-- Otherwise, uses http://
-The URL format is: <scheme>://<service-name>:<port>/debug/ready
-Example outputs:
-  - http://my-release-zitadel:8080/debug/ready
-  - https://my-release-zitadel:8080/debug/ready
-*/}}
-{{- define "zitadel.clusterEndpoint" -}}
-{{- if ((((.Values.zitadel).configmapConfig).TLS).Enabled) -}}
-https://{{ include "zitadel.fullname" . }}:{{ .Values.service.port }}/debug/ready
-{{- else -}}
-http://{{ include "zitadel.fullname" . }}:{{ .Values.service.port }}/debug/ready
-{{- end -}}
-{{- end -}}
-
-
-{{/*
 This helper template takes the Kubernetes cluster's version string, which
 can be complex (e.g., "v1.28.5+k3s1"), and returns a sanitized, clean
 version string in the "MAJOR.MINOR.PATCH" format. This is crucial for
@@ -438,17 +418,6 @@ Backward Compatibility Logic:
   {{- $tag := .Values.tools.kubectl.image.tag | default (include "zitadel.kubeVersion" .) -}}
   {{- printf "%s/%s:%s" $registry $repo $tag -}}
 {{- end -}}
-{{- end -}}
-
-{{/*
-Return the image for the wait4x tool.
-Uses fully qualified image names for CRI-O v1.34+ compatibility.
-*/}}
-{{- define "wait4x.image" -}}
-{{- $registry := .Values.imageRegistry | default "docker.io" -}}
-{{- $repo := .Values.tools.wait4x.image.repository | default "wait4x/wait4x" -}}
-{{- $tag := .Values.tools.wait4x.image.tag | default "3.6" -}}
-{{- printf "%s/%s:%s" $registry $repo $tag -}}
 {{- end -}}
 
 {{/*

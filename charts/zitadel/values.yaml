@@ -738,7 +738,7 @@ image:
   # ensure reproducibility and controlled upgrades.
   tag: ""
 
-# -- Global container registry override for tool images (e.g., wait4x, kubectl).
+# -- Global container registry override for tool images (e.g., kubectl).
 # When set, this registry is prepended to tool image repositories for
 # compatibility with CRI-O v1.34+ which enforces fully qualified image names.
 # If left empty, defaults to "docker.io".
@@ -1404,41 +1404,10 @@ extraManifests: []
   #       - Ingress
 
 # Configuration for helper tools used by init containers and jobs. These images
-# are used by components such as wait-for-zitadel and the setup and cleanup
-# jobs. Each tool follows the standard image configuration pattern with
-# registry, repository, tag, pull policy, and pull secrets.
+# are used by components such as the setup and cleanup jobs. Each tool follows
+# the standard image configuration pattern with registry, repository, tag, pull
+# policy, and pull secrets.
 tools:
-  # Configuration for the wait4x image used for readiness and dependency checks
-  # in init containers. Values are intentionally left empty and should be set by
-  # the user when overriding this configuration.
-  wait4x:
-    image:
-      # -- The name of the image repository that contains the wait4x image. The
-      # chart automatically prepends the registry (docker.io by default) for
-      # compatibility with CRI-O v1.34+ which enforces fully qualified names.
-      repository: "wait4x/wait4x"
-      # -- The image tag to use for the wait4x image. Leave empty to require the
-      # user to set a specific version explicitly.
-      tag: "3.6"
-      # -- The pull policy for the wait4x image. If left empty, the chart defaults
-      # to the Kubernetes default pull policy for the given tag.
-      pullPolicy: ""
-    # @schema $ref: $k8s/_definitions.json#/definitions/io.k8s.api.core.v1.ResourceRequirements
-    # -- (ResourceRequirements) CPU and memory resource requests and limits for wait4x init containers.
-    # These resources apply to all init containers using the wait4x tool,
-    # such as wait-for-zitadel. Setting equal requests and limits enables the
-    # "Guaranteed" QoS class when combined with resource settings on the main
-    # container.
-    # Ref: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
-    resources: {}
-      # Example for Guaranteed QoS class:
-      # requests:
-      #   cpu: 50m
-      #   memory: 32Mi
-      # limits:
-      #   cpu: 50m
-      #   memory: 32Mi
-
   # Configuration for the kubectl helper image used by init containers and jobs
   # for lightweight Kubernetes API operations. This image is used by the setup
   # job's machinekey containers and the cleanup job.
