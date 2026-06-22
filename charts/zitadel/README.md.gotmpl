@@ -31,6 +31,12 @@ All the configurations from the examples above are guaranteed to work, because t
 
 ## Upgrade From V10 to V11
 
+### Login waits for the backend natively
+
+The `wait-for-zitadel` init container is removed from the Login deployment, along with the `tools.wait4x.*` values. The login container now waits for the Zitadel backend natively: its readiness probe stays unready until the backend is reachable, without restarting. If you set any `tools.wait4x.*` overrides, remove them from your values.
+
+### Debug ReplicaSet removed
+
 The debug ReplicaSet (`zitadel.debug.*`) is removed. Because the debug resource was a Helm hook, `helm upgrade` does not garbage-collect a previously-created one, so any existing `*-debug` ReplicaSet stays in the cluster (leaving an extra pod with config and secrets mounted). Delete it manually after upgrading, scoping the selector to your release (`app.kubernetes.io/instance=<release>`) so you don't touch debug pods from other releases in the same namespace:
 
 ```bash

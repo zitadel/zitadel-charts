@@ -31,6 +31,12 @@ All the configurations from the examples above are guaranteed to work, because t
 
 ## Upgrade From V10 to V11
 
+### Login waits for the backend natively
+
+The `wait-for-zitadel` init container is removed from the Login deployment, along with the `tools.wait4x.*` values. The login container now waits for the Zitadel backend natively: its readiness probe stays unready until the backend is reachable, without restarting. If you set any `tools.wait4x.*` overrides, remove them from your values.
+
+### Debug ReplicaSet removed
+
 The debug ReplicaSet (`zitadel.debug.*`) is removed. Because the debug resource was a Helm hook, `helm upgrade` does not garbage-collect a previously-created one, so any existing `*-debug` ReplicaSet stays in the cluster (leaving an extra pod with config and secrets mounted). Delete it manually after upgrading, scoping the selector to your release (`app.kubernetes.io/instance=<release>`) so you don't touch debug pods from other releases in the same namespace:
 
 ```bash
@@ -224,7 +230,7 @@ Kubernetes: `>= 1.30.0-0`
 | image.repository | string | `"ghcr.io/zitadel/zitadel"` | Docker image repository for ZITADEL. The default uses GitHub Container Registry. Change this if using a private registry or mirror. |
 | image.tag | string | `""` | Image tag. Defaults to the chart's appVersion if not specified. Use a specific version tag (e.g., "v2.45.0") for production deployments to ensure reproducibility and controlled upgrades. |
 | imagePullSecrets | []LocalObjectReference | `[]` | References to secrets containing Docker registry credentials for pulling private ZITADEL images. Each entry should be the name of an existing secret of type kubernetes.io/dockerconfigjson. Example:   imagePullSecrets:     - name: my-registry-secret |
-| imageRegistry | string | `""` | Global container registry override for tool images (e.g., wait4x, kubectl). When set, this registry is prepended to tool image repositories for compatibility with CRI-O v1.34+ which enforces fully qualified image names. If left empty, defaults to "docker.io". |
+| imageRegistry | string | `""` | Global container registry override for tool images (e.g., kubectl). When set, this registry is prepended to tool image repositories for compatibility with CRI-O v1.34+ which enforces fully qualified image names. If left empty, defaults to "docker.io". |
 | ingress.annotations | map[string]string | `{}` | Annotations to apply to the Ingress resource. |
 | ingress.className | string | `""` | The name of the IngressClass resource to use for this Ingress. Ref: https://kubernetes.io/docs/concepts/services-networking/ingress/#ingress-class |
 | ingress.controller | string | `"generic"` | A chart-specific setting to enable logic for different controllers. Use "aws" to generate AWS ALB-specific annotations and resources. Use "nginx" to inject the nginx.ingress.kubernetes.io/backend-protocol annotation. |
@@ -405,10 +411,6 @@ Kubernetes: `>= 1.30.0-0`
 | tools.kubectl.image.pullPolicy | string | `""` | The pull policy for the kubectl image. If left empty, Kubernetes applies its default policy depending on whether the tag is mutable or fixed. |
 | tools.kubectl.image.repository | string | `"alpine/k8s"` | The name of the image repository that contains the kubectl image. The chart automatically prepends the registry (docker.io by default) for compatibility with CRI-O v1.34+ which enforces fully qualified names. |
 | tools.kubectl.image.tag | string | `""` | The image tag to use for the kubectl image. It should be left empty to automatically default to the Kubernetes cluster version |
-| tools.wait4x.image.pullPolicy | string | `""` | The pull policy for the wait4x image. If left empty, the chart defaults to the Kubernetes default pull policy for the given tag. |
-| tools.wait4x.image.repository | string | `"wait4x/wait4x"` | The name of the image repository that contains the wait4x image. The chart automatically prepends the registry (docker.io by default) for compatibility with CRI-O v1.34+ which enforces fully qualified names. |
-| tools.wait4x.image.tag | string | `"3.6"` | The image tag to use for the wait4x image. Leave empty to require the user to set a specific version explicitly. |
-| tools.wait4x.resources | ResourceRequirements | `{}` | CPU and memory resource requests and limits for wait4x init containers. These resources apply to all init containers using the wait4x tool, such as wait-for-zitadel. Setting equal requests and limits enables the "Guaranteed" QoS class when combined with resource settings on the main container. Ref: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/ |
 | topologySpreadConstraints | []TopologySpreadConstraint | `[]` | Topology spread constraints control how pods are distributed across topology domains (e.g., zones, nodes, regions) for high availability. Unlike affinity, these constraints provide more granular control over pod distribution. Ref: https://kubernetes.io/docs/concepts/scheduling-eviction/topology-spread-constraints/ |
 | zitadel.autoscaling.annotations | map[string]string | `{}` | Annotations applied to the HPA object. |
 | zitadel.autoscaling.behavior | HorizontalPodAutoscalerBehavior | `{}` | Configures the scaling behavior for scaling up and down. See: https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale/#configurable-scaling-behavior |

@@ -5,7 +5,6 @@ import (
 
 	"github.com/onsi/gomega"
 	corev1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/api/resource"
 
 	"github.com/mridang/wilhelm/assert"
 	setup "github.com/zitadel/zitadel-charts/test/smoke/support"
@@ -106,21 +105,6 @@ func TestDeploymentMatrix(t *testing.T) {
 								RunAsUser:    assert.SomePtr(int64(1000)),
 								FSGroup:      assert.SomePtr(int64(1000)),
 							},
-							InitContainers: assert.Some([]assert.ContainerAssertion{
-								{
-									Name: assert.Some("wait-for-zitadel"),
-									Resources: assert.ResourceRequirementsAssertion{
-										Requests: assert.Some(corev1.ResourceList{}),
-										Limits:   assert.Some(corev1.ResourceList{}),
-									},
-									SecurityContext: assert.SecurityContextAssertion{
-										RunAsNonRoot:           assert.SomePtr(true),
-										RunAsUser:              assert.SomePtr(int64(1000)),
-										ReadOnlyRootFilesystem: assert.SomePtr(true),
-										Privileged:             assert.SomePtr(false),
-									},
-								},
-							}),
 							Containers: assert.Some([]assert.ContainerAssertion{
 								{
 									Name: assert.Some("zitadel-login"),
@@ -129,39 +113,6 @@ func TestDeploymentMatrix(t *testing.T) {
 										RunAsUser:              assert.SomePtr(int64(1000)),
 										ReadOnlyRootFilesystem: assert.SomePtr(true),
 										Privileged:             assert.SomePtr(false),
-									},
-								},
-							}),
-						},
-					},
-				},
-			},
-		},
-		{
-			name: "with-wait4x-resources",
-			setValues: map[string]string{
-				"login.enabled":                          "true",
-				"tools.wait4x.resources.requests.cpu":    "50m",
-				"tools.wait4x.resources.requests.memory": "32Mi",
-				"tools.wait4x.resources.limits.cpu":      "100m",
-				"tools.wait4x.resources.limits.memory":   "64Mi",
-			},
-			login: &assert.DeploymentAssertion{
-				Spec: assert.DeploymentSpecAssertion{
-					Template: assert.PodTemplateSpecAssertion{
-						Spec: assert.PodSpecAssertion{
-							InitContainers: assert.Some([]assert.ContainerAssertion{
-								{
-									Name: assert.Some("wait-for-zitadel"),
-									Resources: assert.ResourceRequirementsAssertion{
-										Requests: assert.Some(corev1.ResourceList{
-											corev1.ResourceCPU:    resource.MustParse("50m"),
-											corev1.ResourceMemory: resource.MustParse("32Mi"),
-										}),
-										Limits: assert.Some(corev1.ResourceList{
-											corev1.ResourceCPU:    resource.MustParse("100m"),
-											corev1.ResourceMemory: resource.MustParse("64Mi"),
-										}),
 									},
 								},
 							}),
@@ -279,21 +230,6 @@ func TestDeploymentMatrix(t *testing.T) {
 									Type: assert.Some(corev1.SeccompProfileTypeRuntimeDefault),
 								},
 							},
-							InitContainers: assert.Some([]assert.ContainerAssertion{
-								{
-									Name: assert.Some("wait-for-zitadel"),
-									SecurityContext: assert.SecurityContextAssertion{
-										RunAsNonRoot:             assert.SomePtr(true),
-										RunAsUser:                assert.SomePtr(int64(3000)),
-										ReadOnlyRootFilesystem:   assert.SomePtr(true),
-										Privileged:               assert.SomePtr(false),
-										AllowPrivilegeEscalation: assert.SomePtr(false),
-										Capabilities: assert.CapabilitiesAssertion{
-											Drop: assert.Some([]corev1.Capability{"NET_RAW"}),
-										},
-									},
-								},
-							}),
 							Containers: assert.Some([]assert.ContainerAssertion{
 								{
 									Name: assert.Some("zitadel-login"),
