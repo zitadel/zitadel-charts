@@ -30,7 +30,7 @@ func generateSelfSignedTLS(t *testing.T) (certPEM, keyPEM []byte) {
 
 	template := &x509.Certificate{
 		SerialNumber: big.NewInt(1),
-		Subject:      pkix.Name{CommonName: "test-login-service"},
+		Subject:      pkix.Name{CommonName: "test-service"},
 		NotBefore:    time.Now(),
 		NotAfter:     time.Now().Add(24 * time.Hour),
 	}
@@ -42,22 +42,60 @@ func generateSelfSignedTLS(t *testing.T) (certPEM, keyPEM []byte) {
 	return certPEM, keyPEM
 }
 
+// masterkeyPresent asserts the masterkey secret holds a non-empty masterkey.
+func masterkeyPresent() *assert.SecretAssertion {
+	return &assert.SecretAssertion{
+		Data: assert.Matching[map[string][]byte](
+			gomega.HaveKeyWithValue("masterkey", gomega.Not(gomega.BeEmpty())),
+		),
+	}
+}
+
+// tlsKeypairPresent asserts a kubernetes.io/tls secret holds a non-empty
+// certificate and private key. Used for both the login-service-key and the
+// admin-service-key, which the chart generates declaratively the same way.
+func tlsKeypairPresent() *assert.SecretAssertion {
+	return &assert.SecretAssertion{
+		Data: assert.Matching[map[string][]byte](gomega.And(
+			gomega.HaveKeyWithValue("tls.crt", gomega.Not(gomega.BeEmpty())),
+			gomega.HaveKeyWithValue("tls.key", gomega.Not(gomega.BeEmpty())),
+		)),
+	}
+}
+
+// TestSecretsMatrix verifies the chart's declarative secret behaviour: the
+// masterkey, the login-service-key, and (new in v11) the admin-service-key.
+// As of v11 the chart no longer creates IAM machine-user secrets imperatively,
+// so legacy FirstInstance.Org.Machine config must NOT produce any iam-admin /
+// iam-admin-pat secret.
 func TestSecretsMatrix(t *testing.T) {
 	t.Parallel()
 
 	testCases := []struct {
-		name            string
-		setValues       map[string]string
-		preInstall      func(t *testing.T, env *support.Env)
-		masterkey       *assert.SecretAssertion
-		machineKey      *assert.SecretAssertion
-		machineKeyName  string
-		machinePat      *assert.SecretAssertion
-		machinePatName  string
-		loginServiceKey *assert.SecretAssertion
+		name             string
+		setValues        map[string]string
+		preInstall       func(t *testing.T, env *support.Env)
+		masterkey        *assert.SecretAssertion
+		adminServiceKey  *assert.SecretAssertion
+		loginServiceKey  *assert.SecretAssertion
+		absentMachineKey string // secret name expected to be ABSENT (legacy machine key)
+		absentMachinePat string // secret name expected to be ABSENT (legacy machine PAT)
 	}{
 		{
-			name: "default-all-enabled",
+			// Out of the box: masterkey + a generated admin-service-key + a
+			// generated login-service-key, all declarative secrets.
+			name:            "default",
+			setValues:       map[string]string{},
+			masterkey:       masterkeyPresent(),
+			adminServiceKey: tlsKeypairPresent(),
+			loginServiceKey: tlsKeypairPresent(),
+		},
+		{
+			// Backwards compatibility: an operator carrying the old
+			// FirstInstance.Org.Machine block forward must NOT get an
+			// imperatively-created iam-admin / iam-admin-pat secret anymore.
+			// The declarative admin-service-key is what they get instead.
+			name: "legacy-machine-config-ignored",
 			setValues: map[string]string{
 				"zitadel.configmapConfig.FirstInstance.Org.Machine.Machine.Username":          "iam-admin",
 				"zitadel.configmapConfig.FirstInstance.Org.Machine.Machine.Name":              "Admin Machine",
@@ -65,159 +103,60 @@ func TestSecretsMatrix(t *testing.T) {
 				"zitadel.configmapConfig.FirstInstance.Org.Machine.MachineKey.Type":           "1",
 				"zitadel.configmapConfig.FirstInstance.Org.Machine.Pat.ExpirationDate":        "2029-01-01T00:00:00Z",
 			},
-			masterkey: &assert.SecretAssertion{
-				Data: assert.Matching[map[string][]byte](
-					gomega.HaveKeyWithValue("masterkey", gomega.Not(gomega.BeEmpty())),
-				),
-			},
-			machineKeyName: "iam-admin",
-			machineKey: &assert.SecretAssertion{
-				ObjectMeta: assert.ObjectMetaAssertion{
-					Annotations: assert.Matching[map[string]string](
-						gomega.Not(gomega.HaveKey("kubectl.kubernetes.io/last-applied-configuration")),
-					),
-				},
-				Data: assert.Matching[map[string][]byte](
-					gomega.HaveKeyWithValue("iam-admin.json", gomega.Not(gomega.BeEmpty())),
-				),
-			},
-			machinePatName: "iam-admin-pat",
-			machinePat: &assert.SecretAssertion{
-				ObjectMeta: assert.ObjectMetaAssertion{
-					Annotations: assert.Matching[map[string]string](
-						gomega.Not(gomega.HaveKey("kubectl.kubernetes.io/last-applied-configuration")),
-					),
-				},
-				Data: assert.Matching[map[string][]byte](
-					gomega.HaveKeyWithValue("pat", gomega.Not(gomega.BeEmpty())),
-				),
-			},
-			loginServiceKey: &assert.SecretAssertion{
-				Data: assert.Matching[map[string][]byte](gomega.And(
-					gomega.HaveKeyWithValue("tls.crt", gomega.Not(gomega.BeEmpty())),
-					gomega.HaveKeyWithValue("tls.key", gomega.Not(gomega.BeEmpty())),
-				)),
-			},
+			masterkey:        masterkeyPresent(),
+			adminServiceKey:  tlsKeypairPresent(),
+			loginServiceKey:  tlsKeypairPresent(),
+			absentMachineKey: "iam-admin",
+			absentMachinePat: "iam-admin-pat",
 		},
 		{
-			name: "machine-only-no-pat",
+			// Disabling the admin key removes the generated secret entirely.
+			name: "admin-key-disabled",
 			setValues: map[string]string{
-				"zitadel.configmapConfig.FirstInstance.Org.Machine.Machine.Username":          "my-machine",
-				"zitadel.configmapConfig.FirstInstance.Org.Machine.Machine.Name":              "My Machine",
-				"zitadel.configmapConfig.FirstInstance.Org.Machine.MachineKey.ExpirationDate": "2029-01-01T00:00:00Z",
-				"zitadel.configmapConfig.FirstInstance.Org.Machine.MachineKey.Type":           "1",
+				"zitadel.adminServiceKey.enabled": "false",
 			},
-			masterkey: &assert.SecretAssertion{
-				Data: assert.Matching[map[string][]byte](
-					gomega.HaveKeyWithValue("masterkey", gomega.Not(gomega.BeEmpty())),
-				),
-			},
-			machineKeyName: "my-machine",
-			machineKey: &assert.SecretAssertion{
-				ObjectMeta: assert.ObjectMetaAssertion{
-					Annotations: assert.Matching[map[string]string](
-						gomega.Not(gomega.HaveKey("kubectl.kubernetes.io/last-applied-configuration")),
-					),
-				},
-				Data: assert.Matching[map[string][]byte](
-					gomega.HaveKeyWithValue("my-machine.json", gomega.Not(gomega.BeEmpty())),
-				),
-			},
-			loginServiceKey: &assert.SecretAssertion{
-				Data: assert.Matching[map[string][]byte](gomega.And(
-					gomega.HaveKeyWithValue("tls.crt", gomega.Not(gomega.BeEmpty())),
-					gomega.HaveKeyWithValue("tls.key", gomega.Not(gomega.BeEmpty())),
-				)),
-			},
+			masterkey:       masterkeyPresent(),
+			adminServiceKey: nil, // generated admin-service-key must be absent
+			loginServiceKey: tlsKeypairPresent(),
 		},
 		{
-			name: "custom-machine-names",
+			// Bring-your-own admin key: when existingSecretName is set the chart
+			// references it and generates nothing of its own.
+			name: "admin-key-external-secret",
 			setValues: map[string]string{
-				"zitadel.configmapConfig.FirstInstance.Org.Machine.Machine.Username":          "custom-admin",
-				"zitadel.configmapConfig.FirstInstance.Org.Machine.Machine.Name":              "Custom Admin",
-				"zitadel.configmapConfig.FirstInstance.Org.Machine.MachineKey.ExpirationDate": "2029-01-01T00:00:00Z",
-				"zitadel.configmapConfig.FirstInstance.Org.Machine.MachineKey.Type":           "1",
-				"zitadel.configmapConfig.FirstInstance.Org.Machine.Pat.ExpirationDate":        "2029-01-01T00:00:00Z",
+				"zitadel.adminServiceKey.existingSecretName": "my-admin-cert",
 			},
-			masterkey: &assert.SecretAssertion{
-				Data: assert.Matching[map[string][]byte](
-					gomega.HaveKeyWithValue("masterkey", gomega.Not(gomega.BeEmpty())),
-				),
+			preInstall: func(t *testing.T, env *support.Env) {
+				t.Helper()
+				certPEM, keyPEM := generateSelfSignedTLS(t)
+				_, err := env.Client.CoreV1().Secrets(env.Namespace).Create(
+					env.Ctx,
+					&corev1.Secret{
+						ObjectMeta: metav1.ObjectMeta{Name: "my-admin-cert"},
+						Type:       corev1.SecretTypeTLS,
+						Data:       map[string][]byte{"tls.crt": certPEM, "tls.key": keyPEM},
+					},
+					metav1.CreateOptions{},
+				)
+				require.NoError(t, err)
 			},
-			machineKeyName: "custom-admin",
-			machineKey: &assert.SecretAssertion{
-				ObjectMeta: assert.ObjectMetaAssertion{
-					Annotations: assert.Matching[map[string]string](
-						gomega.Not(gomega.HaveKey("kubectl.kubernetes.io/last-applied-configuration")),
-					),
-				},
-				Data: assert.Matching[map[string][]byte](
-					gomega.HaveKeyWithValue("custom-admin.json", gomega.Not(gomega.BeEmpty())),
-				),
-			},
-			machinePatName: "custom-admin-pat",
-			machinePat: &assert.SecretAssertion{
-				ObjectMeta: assert.ObjectMetaAssertion{
-					Annotations: assert.Matching[map[string]string](
-						gomega.Not(gomega.HaveKey("kubectl.kubernetes.io/last-applied-configuration")),
-					),
-				},
-				Data: assert.Matching[map[string][]byte](
-					gomega.HaveKeyWithValue("pat", gomega.Not(gomega.BeEmpty())),
-				),
-			},
-			loginServiceKey: &assert.SecretAssertion{
-				Data: assert.Matching[map[string][]byte](gomega.And(
-					gomega.HaveKeyWithValue("tls.crt", gomega.Not(gomega.BeEmpty())),
-					gomega.HaveKeyWithValue("tls.key", gomega.Not(gomega.BeEmpty())),
-				)),
-			},
+			masterkey:       masterkeyPresent(),
+			adminServiceKey: nil, // generated admin-service-key must be absent
+			loginServiceKey: tlsKeypairPresent(),
 		},
 		{
-			name:      "minimal-no-setup",
-			setValues: map[string]string{},
-			masterkey: &assert.SecretAssertion{
-				Data: assert.Matching[map[string][]byte](
-					gomega.HaveKeyWithValue("masterkey", gomega.Not(gomega.BeEmpty())),
-				),
-			},
-			loginServiceKey: &assert.SecretAssertion{
-				Data: assert.Matching[map[string][]byte](gomega.And(
-					gomega.HaveKeyWithValue("tls.crt", gomega.Not(gomega.BeEmpty())),
-					gomega.HaveKeyWithValue("tls.key", gomega.Not(gomega.BeEmpty())),
-				)),
-			},
-		},
-		{
-			name: "x509-login-default",
-			setValues: map[string]string{
-				"login.enabled": "true",
-			},
-			masterkey: &assert.SecretAssertion{
-				Data: assert.Matching[map[string][]byte](
-					gomega.HaveKeyWithValue("masterkey", gomega.Not(gomega.BeEmpty())),
-				),
-			},
-			loginServiceKey: &assert.SecretAssertion{
-				Data: assert.Matching[map[string][]byte](gomega.And(
-					gomega.HaveKeyWithValue("tls.crt", gomega.Not(gomega.BeEmpty())),
-					gomega.HaveKeyWithValue("tls.key", gomega.Not(gomega.BeEmpty())),
-				)),
-			},
-		},
-		{
-			name: "x509-disabled-when-login-disabled",
+			// Login disabled removes the login key; the admin key is unaffected.
+			name: "login-disabled",
 			setValues: map[string]string{
 				"login.enabled": "false",
 			},
-			masterkey: &assert.SecretAssertion{
-				Data: assert.Matching[map[string][]byte](
-					gomega.HaveKeyWithValue("masterkey", gomega.Not(gomega.BeEmpty())),
-				),
-			},
+			masterkey:       masterkeyPresent(),
+			adminServiceKey: tlsKeypairPresent(),
+			loginServiceKey: nil, // generated login-service-key must be absent
 		},
 		{
-			name: "x509-external-secret",
+			// Bring-your-own login key: generated login-service-key must be absent.
+			name: "login-external-secret",
 			setValues: map[string]string{
 				"login.enabled":                   "true",
 				"login.loginServiceKeySecretName": "my-custom-cert",
@@ -230,21 +169,15 @@ func TestSecretsMatrix(t *testing.T) {
 					&corev1.Secret{
 						ObjectMeta: metav1.ObjectMeta{Name: "my-custom-cert"},
 						Type:       corev1.SecretTypeTLS,
-						Data: map[string][]byte{
-							"tls.crt": certPEM,
-							"tls.key": keyPEM,
-						},
+						Data:       map[string][]byte{"tls.crt": certPEM, "tls.key": keyPEM},
 					},
 					metav1.CreateOptions{},
 				)
 				require.NoError(t, err)
 			},
-			masterkey: &assert.SecretAssertion{
-				Data: assert.Matching[map[string][]byte](
-					gomega.HaveKeyWithValue("masterkey", gomega.Not(gomega.BeEmpty())),
-				),
-			},
-			// loginServiceKey intentionally nil — auto-generated secret should be absent
+			masterkey:       masterkeyPresent(),
+			adminServiceKey: tlsKeypairPresent(),
+			loginServiceKey: nil, // generated login-service-key must be absent
 		},
 	}
 
@@ -263,22 +196,23 @@ func TestSecretsMatrix(t *testing.T) {
 					env.AssertPartial(t, releaseName+"-masterkey", *tc.masterkey)
 				}
 
-				if tc.machineKey != nil {
-					env.AssertPartial(t, tc.machineKeyName, *tc.machineKey)
-				} else if tc.machineKeyName != "" {
-					env.AssertNone(t, tc.machineKeyName, assert.SecretAssertion{})
-				}
-
-				if tc.machinePat != nil {
-					env.AssertPartial(t, tc.machinePatName, *tc.machinePat)
-				} else if tc.machinePatName != "" {
-					env.AssertNone(t, tc.machinePatName, assert.SecretAssertion{})
+				if tc.adminServiceKey != nil {
+					env.AssertPartial(t, releaseName+"-admin-service-key", *tc.adminServiceKey)
+				} else {
+					env.AssertNone(t, releaseName+"-admin-service-key", assert.SecretAssertion{})
 				}
 
 				if tc.loginServiceKey != nil {
 					env.AssertPartial(t, releaseName+"-login-service-key", *tc.loginServiceKey)
 				} else {
 					env.AssertNone(t, releaseName+"-login-service-key", assert.SecretAssertion{})
+				}
+
+				if tc.absentMachineKey != "" {
+					env.AssertNone(t, tc.absentMachineKey, assert.SecretAssertion{})
+				}
+				if tc.absentMachinePat != "" {
+					env.AssertNone(t, tc.absentMachinePat, assert.SecretAssertion{})
 				}
 			})
 		})

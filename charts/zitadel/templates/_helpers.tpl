@@ -85,14 +85,6 @@ Setup component labels
 {{- end }}
 
 {{/*
-Cleanup component labels
-*/}}
-{{- define "zitadel.cleanup.labels" -}}
-{{ include "zitadel.labels" . }}
-{{ include "componentSelectorLabel" "cleanup" }}
-{{- end }}
-
-{{/*
 Start component labels
 */}}
 {{- define "zitadel.start.labels" -}}
@@ -292,6 +284,19 @@ Login service key Secret name
 {{- end -}}
 
 {{/*
+Admin service key Secret name. When zitadel.adminServiceKey.existingSecretName
+is set, the operator supplies the keypair externally and the chart references it
+verbatim. Otherwise the chart generates and manages a Secret of this name.
+*/}}
+{{- define "zitadel.adminServiceKeySecretName" -}}
+{{- if .Values.zitadel.adminServiceKey.existingSecretName -}}
+{{ .Values.zitadel.adminServiceKey.existingSecretName }}
+{{- else -}}
+{{ include "zitadel.fullname" . }}-admin-service-key
+{{- end -}}
+{{- end -}}
+
+{{/*
 Database SSL CA certificate Secret name
 */}}
 {{- define "zitadel.dbSslCaCrtSecretName" -}}
@@ -373,36 +378,6 @@ initialization, especially connecting to the database, before other probes begin
 /debug/ready
 {{- end -}}
 
-{{/*
-Return the image for the machinekeyWriter (Standardized kubectl image).
-Backward Compatibility Logic:
-1. IF the legacy "setupJob.machinekeyWriter.image.repository" is set, use it (Legacy Mode).
-2. ELSE use the new "tools.kubectl.image" with Global Registry support (New Mode).
-*/}}
-{{- define "kubectl.image" -}}
-{{- /* Safely check if the legacy value exists without crashing on nil pointers */ -}}
-{{- $legacyRepo := "" -}}
-{{- if .Values.setupJob -}}
-  {{- if .Values.setupJob.machinekeyWriter -}}
-    {{- if .Values.setupJob.machinekeyWriter.image -}}
-      {{- $legacyRepo = .Values.setupJob.machinekeyWriter.image.repository -}}
-    {{- end -}}
-  {{- end -}}
-{{- end -}}
-
-{{- if $legacyRepo -}}
-  {{- /* 1. Legacy Mode: Use specific config, ignore global registry */ -}}
-  {{- $tag := .Values.setupJob.machinekeyWriter.image.tag | default (include "zitadel.kubeVersion" .) -}}
-  {{- printf "%s:%s" $legacyRepo $tag -}}
-{{- else -}}
-  {{- /* 2. New Mode: Use tools.kubectl with Global Registry */ -}}
-  {{- /* Uses fully qualified image names for CRI-O v1.34+ compatibility */ -}}
-  {{- $registry := .Values.imageRegistry | default "docker.io" -}}
-  {{- $repo := .Values.tools.kubectl.image.repository | default "alpine/k8s" -}}
-  {{- $tag := .Values.tools.kubectl.image.tag | default (include "zitadel.kubeVersion" .) -}}
-  {{- printf "%s/%s:%s" $registry $repo $tag -}}
-{{- end -}}
-{{- end -}}
 
 {{/*
 Env vars for DB-talking containers: auto-generates a bundled PostgreSQL DSN
@@ -430,16 +405,26 @@ then appends any user-supplied .Values.env entries.
 {{- end -}}
 
 {{/*
-Build the effective configmap config. When login.enabled=true, injects a
-SystemAPIUsers entry for the login-client that references the X.509 public
-certificate mounted into the ZITADEL container. User-supplied configmapConfig
-values always win.
+Build the effective configmap config. Injects SystemAPIUsers entries that
+reference X.509 public certificates mounted into the ZITADEL container:
+  - login-client (IAM_LOGIN_CLIENT) when login.enabled=true
+  - admin-client (IAM_OWNER) when zitadel.adminServiceKey.enabled=true
+The admin-client replaces the legacy imperatively-created IAM machine user:
+the operator authenticates against the System API with the private key, so no
+Secret is ever created at runtime. User-supplied configmapConfig values always
+win, so an operator may override either entry (or add their own).
 */}}
 {{- define "zitadel.mergedConfigmapConfig" -}}
 {{- $config := deepCopy .Values.zitadel.configmapConfig -}}
+{{- $sysUsers := dict -}}
 {{- if .Values.login.enabled -}}
-{{- $loginUser := dict "SystemAPIUsers" (dict "login-client" (dict "Path" "/secrets/login-client/tls.crt" "Memberships" (list (dict "MemberType" "System" "Roles" (list "IAM_LOGIN_CLIENT"))))) -}}
-{{- $config = mergeOverwrite $loginUser $config -}}
+{{- $_ := set $sysUsers "login-client" (dict "Path" "/secrets/login-client/tls.crt" "Memberships" (list (dict "MemberType" "System" "Roles" (list "IAM_LOGIN_CLIENT")))) -}}
+{{- end -}}
+{{- if .Values.zitadel.adminServiceKey.enabled -}}
+{{- $_ := set $sysUsers "admin-client" (dict "Path" "/secrets/admin-client/tls.crt" "Memberships" (list (dict "MemberType" "System" "Roles" (list "IAM_OWNER")))) -}}
+{{- end -}}
+{{- if $sysUsers -}}
+{{- $config = mergeOverwrite (dict "SystemAPIUsers" $sysUsers) $config -}}
 {{- end -}}
 {{- $config | toYaml -}}
 {{- end -}}

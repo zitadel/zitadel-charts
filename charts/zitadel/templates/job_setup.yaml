@@ -6,9 +6,6 @@
 {{- if $hasPatPath -}}
 {{- fail "Specifying .Values.zitadel.configmapConfig.FirstInstance.PatPath is not supported" -}}
 {{- end -}}
-{{- $hasMachine := (((((.Values.zitadel).configmapConfig).FirstInstance).Org).Machine) -}}
-{{- $hasMachinePat := ((((((.Values.zitadel).configmapConfig).FirstInstance).Org).Machine).Pat) -}}
-{{- $skipFirstInstance := .Values.zitadel.configmapConfig.FirstInstance.Skip -}}
 apiVersion: batch/v1
 kind: Job
 metadata:
@@ -98,12 +95,6 @@ spec:
                 secretKeyRef:
                   name: {{ include "zitadel.masterkeySecretName" . }}
                   key: masterkey
-            - name: ZITADEL_FIRSTINSTANCE_MACHINEKEYPATH
-              value: "/machinekey/sa.json"
-            {{- if and (not $skipFirstInstance) $hasMachinePat }}
-            - name: ZITADEL_FIRSTINSTANCE_PATPATH
-              value: "/machinekey/pat"
-            {{- end }}
             {{- if (or .Values.zitadel.dbSslCaCrt .Values.zitadel.dbSslCaCrtSecret) }}
             - name: ZITADEL_DATABASE_POSTGRES_USER_SSL_ROOTCERT
               value: /db-ssl-ca-crt/ca.crt
@@ -146,105 +137,11 @@ spec:
             mountPath: /db-ssl-user-crt
             readOnly: true
           {{- end }}
-          {{- if $hasMachine }}
-          - name: machinekey
-            mountPath: "/machinekey"
-          {{- end}}
           {{- with .Values.extraVolumeMounts }}
           {{- toYaml . | nindent 10 }}
           {{- end }}
           resources:
             {{- toYaml .Values.setupJob.resources | nindent 12 }}
-        {{- if and (not $skipFirstInstance) $hasMachine }}
-        - name: {{ printf "%s-machinekey" ((include "zitadel.name" .) | trunc 52 | trimSuffix "-") }}
-          securityContext:
-            {{- toYaml .Values.securityContext | nindent 14 }}
-          image: {{ include "kubectl.image" . }}
-          imagePullPolicy: '{{ default "IfNotPresent" .Values.tools.kubectl.image.pullPolicy }}'
-          command:
-            - sh
-            - -c
-            - |
-              until [ -n "$(kubectl --namespace={{ .Release.Namespace }} get pod ${POD_NAME} --output=jsonpath="{.status.containerStatuses[?(@.name=='{{ include "zitadel.name" . }}-setup')].state.terminated}")" ]; do
-                echo 'waiting for {{ include "zitadel.name" . }}-setup container to terminate';
-                sleep 5;
-              done &&
-              echo '{{ include "zitadel.name" . }}-setup container terminated' &&
-              if [ -f /machinekey/sa.json ]; then
-                kubectl --namespace={{ .Release.Namespace }} create secret generic {{ .Values.zitadel.configmapConfig.FirstInstance.Org.Machine.Machine.Username }} \
-                  --from-file={{ .Values.zitadel.configmapConfig.FirstInstance.Org.Machine.Machine.Username }}.json=/machinekey/sa.json \
-                  --dry-run=client --output=yaml | \
-                kubectl annotate --local --filename=- \
-                  helm.sh/resource-policy=keep \
-                  --output=yaml | \
-                kubectl label --local --filename=- \
-                  app.kubernetes.io/managed-by=Zitadel \
-                  app.kubernetes.io/name={{ include "zitadel.name" . }} \
-                  app.kubernetes.io/instance={{ .Release.Name }} \
-                  --output=yaml | \
-                kubectl apply --server-side --field-manager=zitadel-setup --filename=-;
-              fi;
-          env:
-            - name: POD_NAME
-              valueFrom:
-                fieldRef:
-                  fieldPath: metadata.name
-          volumeMounts:
-            - name: machinekey
-              mountPath: "/machinekey"
-              readOnly: true
-          resources:
-          {{- if .Values.setupJob.machinekeyWriter.resources }}
-            {{- toYaml .Values.setupJob.machinekeyWriter.resources | nindent 12 }}
-          {{- else }}
-            {{- toYaml .Values.setupJob.resources | nindent 12 }}
-          {{- end }}
-      {{- end }}
-      {{- if and (not $skipFirstInstance) $hasMachinePat }}
-        - name: {{ printf "%s-machine-pat" ((include "zitadel.name" .) | trunc 51 | trimSuffix "-") }}
-          securityContext:
-            {{- toYaml .Values.securityContext | nindent 14 }}
-          image: {{ include "kubectl.image" . }}
-          imagePullPolicy: '{{ default "IfNotPresent" .Values.tools.kubectl.image.pullPolicy }}'
-          command:
-            - sh
-            - -c
-            - |
-              until [ -n "$(kubectl --namespace={{ .Release.Namespace }} get pod "${POD_NAME}" --output=jsonpath="{.status.containerStatuses[?(@.name=='{{ include "zitadel.name" . }}-setup')].state.terminated}")" ]; do
-                echo 'waiting for {{ include "zitadel.name" . }}-setup container to terminate';
-                sleep 5;
-              done &&
-              echo '{{ include "zitadel.name" . }}-setup container terminated' &&
-              if [ -f /machinekey/pat ]; then
-                kubectl --namespace={{ .Release.Namespace }} create secret generic {{ .Values.zitadel.configmapConfig.FirstInstance.Org.Machine.Machine.Username }}-pat \
-                  --from-file=pat=/machinekey/pat \
-                  --dry-run=client --output=yaml | \
-                kubectl annotate --local --filename=- \
-                  helm.sh/resource-policy=keep \
-                  --output=yaml | \
-                kubectl label --local --filename=- \
-                  app.kubernetes.io/managed-by=Zitadel \
-                  app.kubernetes.io/name={{ include "zitadel.name" . }} \
-                  app.kubernetes.io/instance={{ .Release.Name }} \
-                  --output=yaml | \
-                kubectl apply --server-side --field-manager=zitadel-setup --filename=-;
-              fi;
-          env:
-            - name: POD_NAME
-              valueFrom:
-                fieldRef:
-                  fieldPath: metadata.name
-          volumeMounts:
-            - name: machinekey
-              mountPath: "/machinekey"
-              readOnly: true
-          resources:
-          {{- if .Values.setupJob.machinekeyWriter.resources }}
-            {{- toYaml .Values.setupJob.machinekeyWriter.resources | nindent 12 }}
-          {{- else }}
-            {{- toYaml .Values.setupJob.resources | nindent 12 }}
-          {{- end }}
-      {{- end }}
       volumes:
       - name: zitadel-config-yaml
         configMap:
@@ -279,10 +176,6 @@ spec:
         secret:
           secretName: {{ .Values.zitadel.dbSslUserCrtSecret }}
           defaultMode: 0440
-      {{- end }}
-      {{- if $hasMachine }}
-      - name: machinekey
-        emptyDir: { }
       {{- end }}
       {{- with .Values.extraVolumes }}
       {{- toYaml . | nindent 6 }}

@@ -13,6 +13,12 @@ import (
 const (
 	zitadelRelease   = "zitadel-test"
 	defaultMasterkey = "x123456789012345678901234567891y"
+
+	// adminServiceKeySecret is the kubernetes.io/tls secret the chart generates
+	// for the declarative admin-client system user. adminSystemUser is its
+	// SystemAPIUsers name. Together they replace the legacy iam-admin machine key.
+	adminServiceKeySecret = zitadelRelease + "-admin-service-key"
+	adminSystemUser       = "admin-client"
 )
 
 // ZitadelOption configures ZITADEL installation.
@@ -39,8 +45,6 @@ type zitadelConfig struct {
 	dbSslCaCrtSecret    string
 	dbSslAdminCrtSecret string
 	dbSslUserCrtSecret  string
-	machineUserName     string
-	machineUserUsername string
 	additionalValues    map[string]string
 }
 
@@ -108,14 +112,6 @@ func WithDBTLSSecrets(caCrtSecret, adminCrtSecret, userCrtSecret string) Zitadel
 		c.dbSslCaCrtSecret = caCrtSecret
 		c.dbSslAdminCrtSecret = adminCrtSecret
 		c.dbSslUserCrtSecret = userCrtSecret
-	}
-}
-
-// WithMachineUser configures a machine user for API access.
-func WithMachineUser(name, username string) ZitadelOption {
-	return func(c *zitadelConfig) {
-		c.machineUserName = name
-		c.machineUserUsername = username
 	}
 }
 
@@ -198,10 +194,10 @@ func InstallZitadel(t *testing.T, k *k8s.KubectlOptions, opts ...ZitadelOption) 
 	chartPath := filepath.Join(repoRoot, "charts", "zitadel")
 
 	values := map[string]string{
-		"replicaCount":       "1",
-		"login.replicaCount": "1",
-		"pdb.enabled":        "true",
-		"metrics.enabled":    "true",
+		"replicaCount":          "1",
+		"login.replicaCount":    "1",
+		"pdb.enabled":           "true",
+		"metrics.enabled":       "true",
 		"login.metrics.enabled": "true",
 	}
 
@@ -288,14 +284,6 @@ func InstallZitadel(t *testing.T, k *k8s.KubectlOptions, opts ...ZitadelOption) 
 	}
 	if cfg.dbSslUserCrtSecret != "" {
 		values["zitadel.dbSslUserCrtSecret"] = cfg.dbSslUserCrtSecret
-	}
-
-	if cfg.machineUserUsername != "" {
-		values["zitadel.configmapConfig.FirstInstance.Org.Machine.Machine.Username"] = cfg.machineUserUsername
-		values["zitadel.configmapConfig.FirstInstance.Org.Machine.Machine.Name"] = cfg.machineUserName
-		values["zitadel.configmapConfig.FirstInstance.Org.Machine.MachineKey.ExpirationDate"] = "2029-01-01T00:00:00Z"
-		values["zitadel.configmapConfig.FirstInstance.Org.Machine.MachineKey.Type"] = "1"
-		values["zitadel.configmapConfig.Log.Level"] = "debug"
 	}
 
 	for k, v := range cfg.additionalValues {

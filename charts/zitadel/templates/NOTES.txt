@@ -1,9 +1,24 @@
 Thank you for installing {{ .Chart.Name }}.
 
+{{- if .Values.zitadel.adminServiceKey.enabled }}
+
+Administrative API access uses the declarative "admin-client" system user
+(IAM_OWNER). ZITADEL trusts its public certificate; you authenticate against the
+ZITADEL System API with the matching private key using a JWT profile.
+
+Extract the private key for the admin-client:
+
+  $ kubectl -n {{ .Release.Namespace }} get secret {{ include "zitadel.adminServiceKeySecretName" . }} -o jsonpath='{.data.tls\.key}' | base64 -d
+
+The public certificate ZITADEL trusts is the "tls.crt" key in the same secret.
+No Secret is created at runtime, so this works cleanly with GitOps tooling such
+as ArgoCD.
+{{- end }}
+
 {{- if (((((.Values.zitadel).configmapConfig).FirstInstance).Org).Machine) }}
-Extract your service account key for authenticating at the ZITADEL API's:
 
-  $ kubectl -n {{ .Release.Namespace }} get secret {{ .Values.zitadel.configmapConfig.FirstInstance.Org.Machine.Machine.Username }} -o jsonpath='{ .data.{{ .Values.zitadel.configmapConfig.FirstInstance.Org.Machine.Machine.Username }}\.json }' | base64 -D
-
-
-{{- end}}
+NOTE: You also set FirstInstance.Org.Machine. As of chart v11 the chart no
+longer creates a Kubernetes Secret from its generated key. Administrative
+access is provided by zitadel.adminServiceKey above. Existing "{{ dig "Machine" "Username" "iam-admin" .Values.zitadel.configmapConfig.FirstInstance.Org.Machine }}"
+secrets created by earlier chart versions remain valid and are left untouched.
+{{- end }}

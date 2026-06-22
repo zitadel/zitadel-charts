@@ -18,14 +18,12 @@ import (
 func TestPostgresInsecure(t *testing.T) {
 	domain := "pg-insecure.127.0.0.1.sslip.io"
 	apiBaseURL := BuildAPIBaseURL(domain, httpsPort, true)
-	machineUsername := "zitadel-admin-sa"
 
 	testcluster.WithNamespace(t, func(ctx context.Context, k *k8s.KubectlOptions) {
 		InstallPostgres(t, k)
 		InstallZitadel(t, k,
 			WithExternalDomain(domain),
 			WithExternalPort(httpsPort),
-			WithMachineUser("Admin", machineUsername),
 			WithValue("image.repository", "ghcr.io/zitadel/zitadel"),
 			WithValue("image.tag", "1f74a0959ab172c7ea00beee122e8ef062d77eef"),
 			WithValue("login.image.repository", "ghcr.io/zitadel/zitadel-login"),
@@ -36,7 +34,7 @@ func TestPostgresInsecure(t *testing.T) {
 		t.Run("metrics", func(t *testing.T) { CheckMetrics(ctx, t, k, false) })
 		t.Run("login", func(t *testing.T) { CheckLogin(t, apiBaseURL) })
 		t.Run("authenticated-api", func(t *testing.T) {
-			CheckAuthenticatedAPI(ctx, t, k, apiBaseURL, machineUsername, machineUsername+".json")
+			CheckAuthenticatedAPI(ctx, t, k, apiBaseURL, adminServiceKeySecret, "tls.key", adminSystemUser)
 		})
 		t.Run("uninstall", func(t *testing.T) {
 			CheckUninstall(ctx, t, k, nil)
@@ -52,7 +50,6 @@ func TestPostgresInsecure(t *testing.T) {
 func TestPostgresDSN(t *testing.T) {
 	domain := "pg-dsn.127.0.0.1.sslip.io"
 	apiBaseURL := BuildAPIBaseURL(domain, httpsPort, true)
-	machineUsername := "zitadel-admin-sa"
 
 	testcluster.WithNamespace(t, func(ctx context.Context, k *k8s.KubectlOptions) {
 		InstallPostgres(t, k, WithPostgresDatabase("zitadel"))
@@ -60,14 +57,13 @@ func TestPostgresDSN(t *testing.T) {
 			WithExternalDomain(domain),
 			WithExternalPort(httpsPort),
 			WithDSN("host=db-postgresql port=5432 user=postgres dbname=zitadel sslmode=disable"),
-			WithMachineUser("Admin", machineUsername),
 		)
 
 		t.Run("accessibility", func(t *testing.T) { CheckAccessibility(ctx, t, k, apiBaseURL) })
 		t.Run("metrics", func(t *testing.T) { CheckMetrics(ctx, t, k, false) })
 		t.Run("login", func(t *testing.T) { CheckLogin(t, apiBaseURL) })
 		t.Run("authenticated-api", func(t *testing.T) {
-			CheckAuthenticatedAPI(ctx, t, k, apiBaseURL, machineUsername, machineUsername+".json")
+			CheckAuthenticatedAPI(ctx, t, k, apiBaseURL, adminServiceKeySecret, "tls.key", adminSystemUser)
 		})
 		t.Run("uninstall", func(t *testing.T) {
 			CheckUninstall(ctx, t, k, nil)
@@ -84,7 +80,6 @@ func TestPostgresDSN(t *testing.T) {
 func TestPostgresSecure(t *testing.T) {
 	domain := "pg-secure.127.0.0.1.sslip.io"
 	apiBaseURL := BuildAPIBaseURL(domain, httpsPort, true)
-	machineUsername := "zitadel-admin-sa"
 
 	testcluster.WithNamespace(t, func(ctx context.Context, k *k8s.KubectlOptions) {
 		ca, err := testcluster.GenerateCA("Test CA")
@@ -109,14 +104,13 @@ func TestPostgresSecure(t *testing.T) {
 			WithDBSSLMode("verify-full"),
 			WithDBCredentials("zitadel", "xyz", "postgres", "abc"),
 			WithDBTLSSecrets("postgres-cert", "postgres-cert", "zitadel-cert"),
-			WithMachineUser("Admin", machineUsername),
 		)
 
 		t.Run("accessibility", func(t *testing.T) { CheckAccessibility(ctx, t, k, apiBaseURL) })
 		t.Run("metrics", func(t *testing.T) { CheckMetrics(ctx, t, k, false) })
 		t.Run("login", func(t *testing.T) { CheckLogin(t, apiBaseURL) })
 		t.Run("authenticated-api", func(t *testing.T) {
-			CheckAuthenticatedAPI(ctx, t, k, apiBaseURL, machineUsername, machineUsername+".json")
+			CheckAuthenticatedAPI(ctx, t, k, apiBaseURL, adminServiceKeySecret, "tls.key", adminSystemUser)
 		})
 		t.Run("uninstall", func(t *testing.T) {
 			CheckUninstall(ctx, t, k, nil)
@@ -134,7 +128,6 @@ func TestPostgresSecure(t *testing.T) {
 func TestReferencedSecrets(t *testing.T) {
 	domain := "ref-secrets.127.0.0.1.sslip.io"
 	apiBaseURL := BuildAPIBaseURL(domain, httpsPort, true)
-	machineUsername := "zitadel-admin-sa"
 
 	testcluster.WithNamespace(t, func(ctx context.Context, k *k8s.KubectlOptions) {
 		testcluster.CreateOpaqueSecret(t, k, "existing-zitadel-masterkey", map[string]string{
@@ -154,14 +147,13 @@ func TestReferencedSecrets(t *testing.T) {
 			WithMasterkeySecret("existing-zitadel-masterkey"),
 			WithConfigSecret("existing-zitadel-secrets", "config.yaml"),
 			WithoutDBHost(),
-			WithMachineUser("Admin", machineUsername),
 		)
 
 		t.Run("accessibility", func(t *testing.T) { CheckAccessibility(ctx, t, k, apiBaseURL) })
 		t.Run("metrics", func(t *testing.T) { CheckMetrics(ctx, t, k, false) })
 		t.Run("login", func(t *testing.T) { CheckLogin(t, apiBaseURL) })
 		t.Run("authenticated-api", func(t *testing.T) {
-			CheckAuthenticatedAPI(ctx, t, k, apiBaseURL, machineUsername, machineUsername+".json")
+			CheckAuthenticatedAPI(ctx, t, k, apiBaseURL, adminServiceKeySecret, "tls.key", adminSystemUser)
 		})
 		t.Run("uninstall", func(t *testing.T) {
 			CheckUninstall(ctx, t, k, nil)
@@ -169,32 +161,30 @@ func TestReferencedSecrets(t *testing.T) {
 	})
 }
 
-// TestMachineUser validates the machine user provisioning feature which creates
-// a service account during ZITADEL setup. Machine users enable machine-to-
-// machine authentication via JWT profile assertions. This test configures a
-// machine user, verifies that the service account key is created as a
-// Kubernetes secret, and then uses that key to authenticate against both the
-// HTTP and gRPC management APIs. This validates the complete M2M auth flow.
+// TestAdminServiceKey validates declarative admin API access via the
+// admin-client system user (chart v11). The chart generates the admin-client
+// keypair as a tls Secret and trusts its public certificate; this test signs a
+// system-user JWT with the private key and authenticates against both the HTTP
+// and gRPC management APIs. This validates the complete machine-to-machine auth
+// flow without any imperatively-created machine-user secret.
 //
 //goland:noinspection DuplicatedCode
-func TestMachineUser(t *testing.T) {
+func TestAdminServiceKey(t *testing.T) {
 	domain := "machine.127.0.0.1.sslip.io"
 	apiBaseURL := BuildAPIBaseURL(domain, httpsPort, true)
-	machineUsername := "zitadel-admin-sa"
 
 	testcluster.WithNamespace(t, func(ctx context.Context, k *k8s.KubectlOptions) {
 		InstallPostgres(t, k)
 		InstallZitadel(t, k,
 			WithExternalDomain(domain),
 			WithExternalPort(httpsPort),
-			WithMachineUser("Admin", machineUsername),
 		)
 
 		t.Run("accessibility", func(t *testing.T) { CheckAccessibility(ctx, t, k, apiBaseURL) })
 		t.Run("metrics", func(t *testing.T) { CheckMetrics(ctx, t, k, false) })
 		t.Run("login", func(t *testing.T) { CheckLogin(t, apiBaseURL) })
 		t.Run("authenticated-api", func(t *testing.T) {
-			CheckAuthenticatedAPI(ctx, t, k, apiBaseURL, machineUsername, machineUsername+".json")
+			CheckAuthenticatedAPI(ctx, t, k, apiBaseURL, adminServiceKeySecret, "tls.key", adminSystemUser)
 		})
 		t.Run("uninstall", func(t *testing.T) {
 			CheckUninstall(ctx, t, k, nil)
@@ -212,7 +202,6 @@ func TestMachineUser(t *testing.T) {
 func TestInternalTLS(t *testing.T) {
 	domain := "internal-tls.127.0.0.1.sslip.io"
 	apiBaseURL := BuildAPIBaseURL(domain, httpsPort, true)
-	machineUsername := "zitadel-admin-sa"
 
 	testcluster.WithNamespace(t, func(ctx context.Context, k *k8s.KubectlOptions) {
 		InstallPostgres(t, k)
@@ -220,14 +209,13 @@ func TestInternalTLS(t *testing.T) {
 			WithExternalDomain(domain),
 			WithExternalPort(httpsPort),
 			WithSelfSignedCert(domain),
-			WithMachineUser("Admin", machineUsername),
 		)
 
 		t.Run("accessibility", func(t *testing.T) { CheckAccessibility(ctx, t, k, apiBaseURL) })
 		t.Run("metrics", func(t *testing.T) { CheckMetrics(ctx, t, k, true) })
 		t.Run("login", func(t *testing.T) { CheckLogin(t, apiBaseURL) })
 		t.Run("authenticated-api", func(t *testing.T) {
-			CheckAuthenticatedAPI(ctx, t, k, apiBaseURL, machineUsername, machineUsername+".json")
+			CheckAuthenticatedAPI(ctx, t, k, apiBaseURL, adminServiceKeySecret, "tls.key", adminSystemUser)
 		})
 		t.Run("uninstall", func(t *testing.T) {
 			CheckUninstall(ctx, t, k, nil)
@@ -245,7 +233,6 @@ func TestInternalTLS(t *testing.T) {
 func TestGatewayAPI(t *testing.T) {
 	domain := "gateway.127.0.0.1.sslip.io"
 	apiBaseURL := BuildAPIBaseURL(domain, httpPort, false)
-	machineUsername := "zitadel-admin-sa"
 
 	testcluster.WithNamespace(t, func(ctx context.Context, k *k8s.KubectlOptions) {
 		InstallPostgres(t, k)
@@ -254,13 +241,12 @@ func TestGatewayAPI(t *testing.T) {
 			WithExternalPort(httpPort),
 			WithExternalSecure(false),
 			WithGateway("traefik-gateway", "kube-system"),
-			WithMachineUser("Admin", machineUsername),
 		)
 
 		t.Run("accessibility", func(t *testing.T) { CheckAccessibility(ctx, t, k, apiBaseURL) })
 		t.Run("metrics", func(t *testing.T) { CheckMetrics(ctx, t, k, false) })
 		t.Run("authenticated-api", func(t *testing.T) {
-			CheckAuthenticatedAPI(ctx, t, k, apiBaseURL, machineUsername, machineUsername+".json")
+			CheckAuthenticatedAPI(ctx, t, k, apiBaseURL, adminServiceKeySecret, "tls.key", adminSystemUser)
 		})
 		t.Run("uninstall", func(t *testing.T) {
 			CheckUninstall(ctx, t, k, nil)

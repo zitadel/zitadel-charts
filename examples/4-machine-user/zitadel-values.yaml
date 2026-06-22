@@ -1,21 +1,17 @@
 zitadel:
   masterkey: x123456789012345678901234567891y
+  # Administrative API access is provided declaratively by the admin-client
+  # system user. The chart generates its keypair into the Secret
+  # "my-zitadel-admin-service-key"; read the private key (tls.key) out of it and
+  # authenticate against the ZITADEL API with a JWT profile. This is enabled by
+  # default (zitadel.adminServiceKey.enabled=true), so nothing extra is needed
+  # here. To bring your own key instead, set
+  # zitadel.adminServiceKey.existingSecretName to a kubernetes.io/tls secret.
   configmapConfig:
-    Log:
-      Level: debug
     ExternalDomain: machine.127.0.0.1.sslip.io
     ExternalPort: 443
     TLS:
       Enabled: false
-    FirstInstance:
-      Org:
-        Machine:
-          Machine:
-            Username: zitadel-admin-sa
-            Name: Admin
-          MachineKey:
-            ExpirationDate: "2029-01-01T00:00:00Z"
-            Type: 1
     Database:
       Postgres:
         Host: db-postgresql
