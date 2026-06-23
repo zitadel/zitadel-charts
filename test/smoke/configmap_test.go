@@ -52,6 +52,27 @@ func TestConfigMapMatrix(t *testing.T) {
 			},
 		},
 		{
+			// Regression for https://github.com/zitadel/zitadel-charts/issues/602:
+			// a user-supplied SystemAPIUsers list (dash form) must merge with the
+			// chart's login-client entry rather than overwriting it. Both the
+			// operator's "superuser" and the generated "login-client" must appear.
+			name: "user-systemapiusers-list-merges-login-client",
+			setValues: map[string]string{
+				"login.enabled": "true",
+				"zitadel.configmapConfig.SystemAPIUsers[0].superuser.KeyData": "BASE64DATA",
+			},
+			zitadel: &assert.ConfigMapAssertion{
+				Data: assert.Matching[map[string]string](gomega.And(
+					gomega.HaveKeyWithValue("zitadel-config-yaml",
+						gomega.ContainSubstring("login-client")),
+					gomega.HaveKeyWithValue("zitadel-config-yaml",
+						gomega.ContainSubstring("IAM_LOGIN_CLIENT")),
+					gomega.HaveKeyWithValue("zitadel-config-yaml",
+						gomega.ContainSubstring("superuser")),
+				)),
+			},
+		},
+		{
 			name: "both-enabled-with-annotations",
 			setValues: map[string]string{
 				"configMap.annotations.owner":      "platform-team",
