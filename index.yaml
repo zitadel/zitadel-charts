@@ -102,6 +102,39 @@ entries:
     version: 11.0.0-beta.1
   - apiVersion: v2
     appVersion: v4.15.3
+    created: "2026-06-23T23:13:48.201668922Z"
+    dependencies:
+    - condition: postgresql.enabled
+      name: postgresql
+      repository: https://charts.bitnami.com/bitnami
+      version: '>=16.0.0'
+    description: A Helm chart for ZITADEL
+    digest: 334aa455bfa07a7fc6d0a0284b94388efd589d67375c4c1df5433b7b44105498
+    home: https://zitadel.com
+    icon: https://zitadel.com/zitadel-logo-dark.svg
+    keywords:
+    - identity
+    - oidc
+    - oauth
+    - auth
+    - saml
+    - iam
+    - sso
+    - idp
+    kubeVersion: '>= 1.30.0-0'
+    maintainers:
+    - email: support@zitadel.com
+      name: zitadel
+      url: https://zitadel.com
+    name: zitadel
+    sources:
+    - https://github.com/zitadel/zitadel
+    type: application
+    urls:
+    - https://github.com/zitadel/zitadel-charts/releases/download/zitadel-10.0.4/zitadel-10.0.4.tgz
+    version: 10.0.4
+  - apiVersion: v2
+    appVersion: v4.15.3
     created: "2026-06-23T04:23:18.854296882Z"
     dependencies:
     - condition: postgresql.enabled
@@ -2922,4 +2955,4 @@ entries:
     urls:
     - https://github.com/zitadel/zitadel-charts/releases/download/zitadel-2.0.0/zitadel-2.0.0.tgz
     version: 2.0.0
-generated: "2026-06-23T04:23:18.854727138Z"
+generated: "2026-06-23T23:13:48.202002041Z"
