@@ -10,6 +10,12 @@ import (
 	"github.com/zitadel/zitadel-charts/test/support"
 )
 
+// validSystemUserKeyData is a base64-encoded RSA public key (PEM). ZITADEL's
+// config loader base64-decodes SystemAPIUsers KeyData, so the value must be
+// valid base64 for the setup job to start. The key itself is only parsed when
+// that system user authenticates, which this render-focused test never does.
+const validSystemUserKeyData = "LS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0tLS0KTUlJQklqQU5CZ2txaGtpRzl3MEJBUUVGQUFPQ0FROEFNSUlCQ2dLQ0FRRUFzRjdQWlhZUzV6TWFESHlVK1I3ZQovQlIyRUkzTkZNSWlLSWJrNFk2WXZQNHV1S3huTHlLMy9pM0t0ZUEzOE5Bb21rZTdnNXNkM1VJSDIrdGllTmVtCmlyQUlvUWwwZDZOMTUrYU5VTG9haFpFTjdnVVBjQWJXeW1OeUtYZ1BLMkVYc2lhbzFBcVFVQVdnb2UxYjZ2a08KdVdHSklIRVlhYUlmQjdoVlNQTjh5UTJha2xkYTdIU3kzK2ZpVHVBT3dxRlJqSW51OEROL1hHcC9YYTNIK2kySApCWVUvZ2syT3UvMHFxbDRXY0ZxbVJVQjdKRzZFZEZNSStzUG5iOEkzWTFSazV0Q1Y3TDk0bjhJdVg3MW5EUXdzCjJ6THlpRGFjQkxsWGdyZmx1ZFB1akNMelVtTDIxMlVIeDBtT0UvSm5JdTBzaU54ejEzRXhOcFljc3lkcE1mMFMKWlFJREFRQUIKLS0tLS1FTkQgUFVCTElDIEtFWS0tLS0tCg=="
+
 func TestConfigMapMatrix(t *testing.T) {
 	t.Parallel()
 
@@ -59,7 +65,7 @@ func TestConfigMapMatrix(t *testing.T) {
 			name: "user-systemapiusers-list-merges-login-client",
 			setValues: map[string]string{
 				"login.enabled": "true",
-				"zitadel.configmapConfig.SystemAPIUsers[0].superuser.KeyData": "BASE64DATA",
+				"zitadel.configmapConfig.SystemAPIUsers[0].superuser.KeyData": validSystemUserKeyData,
 			},
 			zitadel: &assert.ConfigMapAssertion{
 				Data: assert.Matching[map[string]string](gomega.And(
