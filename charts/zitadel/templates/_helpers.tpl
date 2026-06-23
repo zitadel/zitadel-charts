@@ -494,7 +494,7 @@ the login pod without credentials and never becoming ready. Folding the list
 into a map lets the entries merge instead of clobbering each other.
 See https://github.com/zitadel/zitadel-charts/issues/602.
 */}}
-{{- $existing := $config.SystemAPIUsers | default dict -}}
+{{- $existing := $config.SystemAPIUsers -}}
 {{- if kindIs "slice" $existing -}}
 {{- $asMap := dict -}}
 {{- range $entry := $existing -}}
