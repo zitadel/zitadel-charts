@@ -80,6 +80,28 @@ func TestConfigMapMatrix(t *testing.T) {
 			},
 		},
 		{
+			// Issue #602 follow-up: the list normalization runs unconditionally,
+			// so an admin-key-only install (login disabled, adminServiceKey on)
+			// must still merge the user's list with the generated admin-client
+			// rather than dropping it. login-client must be absent here.
+			name: "user-systemapiusers-list-merges-admin-client-login-disabled",
+			setValues: map[string]string{
+				"login.enabled":                   "false",
+				"zitadel.adminServiceKey.enabled": "true",
+				"zitadel.configmapConfig.SystemAPIUsers[0].superuser.KeyData": validSystemUserKeyData,
+			},
+			zitadel: &assert.ConfigMapAssertion{
+				Data: assert.Matching[map[string]string](gomega.And(
+					gomega.HaveKeyWithValue("zitadel-config-yaml",
+						gomega.ContainSubstring("admin-client")),
+					gomega.HaveKeyWithValue("zitadel-config-yaml",
+						gomega.ContainSubstring("superuser")),
+					gomega.HaveKeyWithValue("zitadel-config-yaml",
+						gomega.Not(gomega.ContainSubstring("login-client"))),
+				)),
+			},
+		},
+		{
 			name: "both-enabled-with-annotations",
 			setValues: map[string]string{
 				"configMap.annotations.owner":      "platform-team",
