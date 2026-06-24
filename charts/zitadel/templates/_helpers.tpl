@@ -424,7 +424,7 @@ list value would overwrite the chart's generated login-client and admin-client
 entries wholesale, leaving the login pod without credentials and the admin API
 unauthenticated. Folding the list into a map lets the entries merge instead.
 Run this unconditionally (not gated on login.enabled) because admin-client is
-injected independently via adminServiceKey.enabled.
+injected independently via zitadel.adminServiceKey.enabled.
 See https://github.com/zitadel/zitadel-charts/issues/602.
 */}}
 {{- $existing := $config.SystemAPIUsers -}}
