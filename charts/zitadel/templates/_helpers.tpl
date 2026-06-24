@@ -416,6 +416,25 @@ win, so an operator may override either entry (or add their own).
 */}}
 {{- define "zitadel.mergedConfigmapConfig" -}}
 {{- $config := deepCopy .Values.zitadel.configmapConfig -}}
+{{/*
+Normalize a user-supplied SystemAPIUsers list into a map before merging.
+ZITADEL accepts SystemAPIUsers either as a map (keyed by username) or as a
+list of single-key maps, but Helm's mergeOverwrite only deep-merges maps. A
+list value would overwrite the chart's generated login-client and admin-client
+entries wholesale, leaving the login pod without credentials and the admin API
+unauthenticated. Folding the list into a map lets the entries merge instead.
+Run this unconditionally (not gated on login.enabled) because admin-client is
+injected independently via zitadel.adminServiceKey.enabled.
+See https://github.com/zitadel/zitadel-charts/issues/602.
+*/}}
+{{- $existing := $config.SystemAPIUsers -}}
+{{- if kindIs "slice" $existing -}}
+{{- $asMap := dict -}}
+{{- range $entry := $existing -}}
+{{- $asMap = mergeOverwrite $asMap $entry -}}
+{{- end -}}
+{{- $_ := set $config "SystemAPIUsers" $asMap -}}
+{{- end -}}
 {{- $sysUsers := dict -}}
 {{- if .Values.login.enabled -}}
 {{- $_ := set $sysUsers "login-client" (dict "Path" "/secrets/login-client/tls.crt" "Memberships" (list (dict "MemberType" "System" "Roles" (list "IAM_LOGIN_CLIENT")))) -}}

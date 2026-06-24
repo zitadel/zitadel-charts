@@ -10,6 +10,12 @@ import (
 	"github.com/zitadel/zitadel-charts/test/support"
 )
 
+// validSystemUserKeyData is a base64-encoded RSA public key (PEM). ZITADEL's
+// config loader base64-decodes SystemAPIUsers KeyData, so the value must be
+// valid base64 for the setup job to start. The key itself is only parsed when
+// that system user authenticates, which this test never does.
+const validSystemUserKeyData = "LS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0tLS0KTUlJQklqQU5CZ2txaGtpRzl3MEJBUUVGQUFPQ0FROEFNSUlCQ2dLQ0FRRUFzRjdQWlhZUzV6TWFESHlVK1I3ZQovQlIyRUkzTkZNSWlLSWJrNFk2WXZQNHV1S3huTHlLMy9pM0t0ZUEzOE5Bb21rZTdnNXNkM1VJSDIrdGllTmVtCmlyQUlvUWwwZDZOMTUrYU5VTG9haFpFTjdnVVBjQWJXeW1OeUtYZ1BLMkVYc2lhbzFBcVFVQVdnb2UxYjZ2a08KdVdHSklIRVlhYUlmQjdoVlNQTjh5UTJha2xkYTdIU3kzK2ZpVHVBT3dxRlJqSW51OEROL1hHcC9YYTNIK2kySApCWVUvZ2syT3UvMHFxbDRXY0ZxbVJVQjdKRzZFZEZNSStzUG5iOEkzWTFSazV0Q1Y3TDk0bjhJdVg3MW5EUXdzCjJ6THlpRGFjQkxsWGdyZmx1ZFB1akNMelVtTDIxMlVIeDBtT0UvSm5JdTBzaU54ejEzRXhOcFljc3lkcE1mMFMKWlFJREFRQUIKLS0tLS1FTkQgUFVCTElDIEtFWS0tLS0tCg=="
+
 func TestConfigMapMatrix(t *testing.T) {
 	t.Parallel()
 
@@ -49,6 +55,50 @@ func TestConfigMapMatrix(t *testing.T) {
 						"helm.sh/hook-weight":        "0",
 					}),
 				},
+			},
+		},
+		{
+			// Regression for https://github.com/zitadel/zitadel-charts/issues/602:
+			// a user-supplied SystemAPIUsers list (dash form) must merge with the
+			// chart's generated entries rather than overwriting them. With both
+			// login.enabled and the admin-client key on (the default), all three of
+			// login-client, admin-client and the operator's superuser must survive.
+			name: "user-systemapiusers-list-merges-generated-entries",
+			setValues: map[string]string{
+				"login.enabled": "true",
+				"zitadel.configmapConfig.SystemAPIUsers[0].superuser.KeyData": validSystemUserKeyData,
+			},
+			zitadel: &assert.ConfigMapAssertion{
+				Data: assert.Matching[map[string]string](gomega.And(
+					gomega.HaveKeyWithValue("zitadel-config-yaml",
+						gomega.ContainSubstring("login-client")),
+					gomega.HaveKeyWithValue("zitadel-config-yaml",
+						gomega.ContainSubstring("admin-client")),
+					gomega.HaveKeyWithValue("zitadel-config-yaml",
+						gomega.ContainSubstring("superuser")),
+				)),
+			},
+		},
+		{
+			// Issue #602 follow-up: the list normalization runs unconditionally,
+			// so an admin-key-only install (login disabled, adminServiceKey on)
+			// must still merge the user's list with the generated admin-client
+			// rather than dropping it. login-client must be absent here.
+			name: "user-systemapiusers-list-merges-admin-client-login-disabled",
+			setValues: map[string]string{
+				"login.enabled":                   "false",
+				"zitadel.adminServiceKey.enabled": "true",
+				"zitadel.configmapConfig.SystemAPIUsers[0].superuser.KeyData": validSystemUserKeyData,
+			},
+			zitadel: &assert.ConfigMapAssertion{
+				Data: assert.Matching[map[string]string](gomega.And(
+					gomega.HaveKeyWithValue("zitadel-config-yaml",
+						gomega.ContainSubstring("admin-client")),
+					gomega.HaveKeyWithValue("zitadel-config-yaml",
+						gomega.ContainSubstring("superuser")),
+					gomega.HaveKeyWithValue("zitadel-config-yaml",
+						gomega.Not(gomega.ContainSubstring("login-client"))),
+				)),
 			},
 		},
 		{
