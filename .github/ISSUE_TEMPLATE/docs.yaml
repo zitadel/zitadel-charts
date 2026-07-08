@@ -1,6 +1,7 @@
 name: 📄 Documentation
 description: Create an issue for missing or wrong documentation.
 labels: ["area/docs"]
+type: task
 body:
   - type: markdown
     attributes:
