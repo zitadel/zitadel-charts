@@ -36,7 +36,7 @@ The v10 charts require [Zitadel v4.14.0](https://github.com/zitadel/zitadel/rele
 ### Login Client Authentication
 
 The login UI now authenticates to the Zitadel backend using an X.509/RSA keypair registered as a `SystemAPIUser`, replacing the Personal Access Token flow used in v9.
-Helm generates a self-signed RSA keypair on install, stores it in a `kubernetes.io/tls` Secret named `<release>-login-service-key`, and reuses it across upgrades.
+Helm generates a self-signed RSA keypair on install, stores it in a `kubernetes.io/tls` Secret named `<release-name>-login-service-key`, and reuses it across upgrades.
 The public certificate is mounted into the Zitadel container for JWT verification; the private key is mounted into the login container for JWT signing.
 No manual setup is required for new or existing installations — `helm upgrade` switches the flow automatically.
 
@@ -50,13 +50,26 @@ Existing v9 installations carry a `login-client` Secret containing the now-unuse
 
 To bring your own keypair (for example from cert-manager), set `login.loginServiceKeySecretName` to the name of a `kubernetes.io/tls` Secret containing `tls.crt` and `tls.key`. The keypair must be RSA — the login container signs JWTs using RS256.
 
+### Related documentation
+
+Deploying or upgrading the login workload does **not** by itself cut existing instances over to Login V2.
+For enabling Login V2 on an existing installation (routing, gradual vs instance-wide feature flag), see [Adopt Login V2 on an existing installation](https://zitadel.com/docs/self-hosting/manage/adopt-login-v2).
+
 ## Upgrade From V8 to V9
 
 The v9 charts default Zitadel and login versions reference [Zitadel v4](https://github.com/zitadel/zitadel/releases/tag/v4.0.0).
 
+If you are upgrading an existing ZITADEL **v3** deployment to **v4**, follow [Upgrade from ZITADEL v3 to v4](https://zitadel.com/docs/self-hosting/manage/upgrade-v3-to-v4) and technical advisory [A-10017](https://zitadel.com/docs/support/advisory/a10017) **before** or as part of moving to a chart that ships ZITADEL v4.
+Without the recommended OIDC web key staging path, JWT tokens signed with legacy keys can become invalid after the upgrade.
+
+Existing instances **keep Login V1** until you explicitly enable Login V2.
+Staying on Login V1 is fine; adopt Login V2 only if you need it (see [Adopt Login V2](https://zitadel.com/docs/self-hosting/manage/adopt-login-v2)).
+
 ### Don't Switch to the New Login Deployment
 
 Use `login.enabled: false` to omit deploying the new login.
+
+Deploying the login workload does **not** enable Login V2 for existing instances by itself.
 
 ### Switch to the New Login Deployment
 
@@ -70,9 +83,11 @@ If you use an ingress controller, you can enable the login ingress with `login.i
 > Before you change your Zitadel configuration, we highly recommend you to create a service user with a personal access token (PAT) and the IAM_OWNER role.
 > In case something breaks, you can use this PAT to revert your changes or fix the configuration so you can log in to the UI again.
 
-To actually use the new login, enable the loginV2 feature on the instance.
+To actually use the new login on an existing instance, enable the loginV2 feature (or use per-application settings first).
 Leave the base URI empty to use the default or explicitly configure it to `/ui/v2/login`.
-If you enable this feature, the login will be used for every application configured in your Zitadel instance.
+If you enable the instance feature, the login will be used for every application configured in your Zitadel instance.
+
+Step-by-step cutover (including PAT vs chart ≥ v10 system-user auth): [Adopt Login V2 on an existing installation](https://zitadel.com/docs/self-hosting/manage/adopt-login-v2).
 
 ### NGINX Ingress: Set `ingress.controller: nginx`
 
