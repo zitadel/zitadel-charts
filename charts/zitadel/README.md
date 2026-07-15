@@ -36,7 +36,7 @@ The v10 charts require [Zitadel v4.14.0](https://github.com/zitadel/zitadel/rele
 ### Login Client Authentication
 
 The login UI now authenticates to the Zitadel backend using an X.509/RSA keypair registered as a `SystemAPIUser`, replacing the Personal Access Token flow used in v9.
-Helm generates a self-signed RSA keypair on install, stores it in a `kubernetes.io/tls` Secret named `<release-name>-login-service-key`, and reuses it across upgrades.
+Helm generates a self-signed RSA keypair on install, stores it in a `kubernetes.io/tls` Secret named `<release-name>-zitadel-login-service-key` (or `<release-name>-login-service-key` if your release name already contains `zitadel`), and reuses it across upgrades.
 The public certificate is mounted into the Zitadel container for JWT verification; the private key is mounted into the login container for JWT signing.
 No manual setup is required for new or existing installations — `helm upgrade` switches the flow automatically.
 
