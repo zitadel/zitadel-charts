@@ -4,8 +4,10 @@ import (
 	"testing"
 
 	"github.com/onsi/gomega"
+	"github.com/stretchr/testify/require"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"github.com/mridang/wilhelm/assert"
 	setup "github.com/zitadel/zitadel-charts/test/smoke/support"
@@ -17,10 +19,11 @@ func TestDeploymentMatrix(t *testing.T) {
 	t.Parallel()
 
 	testCases := []struct {
-		name      string
-		setValues map[string]string
-		zitadel   *assert.DeploymentAssertion
-		login     *assert.DeploymentAssertion
+		name       string
+		setValues  map[string]string
+		preInstall func(t *testing.T, env *support.Env)
+		zitadel    *assert.DeploymentAssertion
+		login      *assert.DeploymentAssertion
 	}{
 		{
 			name: "defaults",
@@ -248,6 +251,77 @@ func TestDeploymentMatrix(t *testing.T) {
 			},
 		},
 		{
+			name: "service-key-checksum-annotations",
+			setValues: map[string]string{
+				"login.enabled": "true",
+			},
+			zitadel: &assert.DeploymentAssertion{
+				Spec: assert.DeploymentSpecAssertion{
+					Template: assert.PodTemplateSpecAssertion{
+						ObjectMeta: assert.ObjectMetaAssertion{
+							Annotations: assert.Matching[map[string]string](gomega.And(
+								gomega.HaveKey("checksum/secret-login-service-key"),
+							)),
+						},
+					},
+				},
+			},
+			login: &assert.DeploymentAssertion{
+				Spec: assert.DeploymentSpecAssertion{
+					Template: assert.PodTemplateSpecAssertion{
+						ObjectMeta: assert.ObjectMetaAssertion{
+							Annotations: assert.Matching[map[string]string](gomega.And(
+								gomega.HaveKey("checksum/secret-login-service-key"),
+							)),
+						},
+					},
+				},
+			},
+		},
+		{
+			name: "login-external-secret-no-checksum-annotation",
+			setValues: map[string]string{
+				"login.enabled":                   "true",
+				"login.loginServiceKeySecretName": "my-custom-cert",
+			},
+			preInstall: func(t *testing.T, env *support.Env) {
+				t.Helper()
+				certPEM, keyPEM := generateSelfSignedTLS(t)
+				_, err := env.Client.CoreV1().Secrets(env.Namespace).Create(
+					env.Ctx,
+					&corev1.Secret{
+						ObjectMeta: metav1.ObjectMeta{Name: "my-custom-cert"},
+						Type:       corev1.SecretTypeTLS,
+						Data:       map[string][]byte{"tls.crt": certPEM, "tls.key": keyPEM},
+					},
+					metav1.CreateOptions{},
+				)
+				require.NoError(t, err)
+			},
+			zitadel: &assert.DeploymentAssertion{
+				Spec: assert.DeploymentSpecAssertion{
+					Template: assert.PodTemplateSpecAssertion{
+						ObjectMeta: assert.ObjectMetaAssertion{
+							Annotations: assert.Matching[map[string]string](gomega.And(
+								gomega.Not(gomega.HaveKey("checksum/secret-login-service-key")),
+							)),
+						},
+					},
+				},
+			},
+			login: &assert.DeploymentAssertion{
+				Spec: assert.DeploymentSpecAssertion{
+					Template: assert.PodTemplateSpecAssertion{
+						ObjectMeta: assert.ObjectMetaAssertion{
+							Annotations: assert.Matching[map[string]string](gomega.And(
+								gomega.Not(gomega.HaveKey("checksum/secret-login-service-key")),
+							)),
+						},
+					},
+				},
+			},
+		},
+		{
 			name: "component-overrides",
 			setValues: map[string]string{
 				"login.enabled":         "true",
@@ -359,6 +433,10 @@ func TestDeploymentMatrix(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 			support.WithNamespace(t, func(env *support.Env) {
+				if tc.preInstall != nil {
+					tc.preInstall(t, env)
+				}
+
 				releaseName := setup.InstallZitadel(t, env, tc.name, tc.setValues)
 
 				if tc.zitadel != nil {
