@@ -210,6 +210,44 @@ func TestDeploymentMatrix(t *testing.T) {
 			},
 		},
 		{
+			// Regression for https://github.com/zitadel/zitadel-charts/issues/612:
+			// the login Deployment used to read the top-level podAdditionalLabels,
+			// so login.podAdditionalLabels had no effect and login pods carried the
+			// ZITADEL pods' labels. Each pod template must get only the labels for
+			// its own component.
+			name: "pod-additional-labels-per-component",
+			setValues: map[string]string{
+				"login.enabled":                   "true",
+				"podAdditionalLabels.tier":        "zitadel-tier",
+				"login.podAdditionalLabels.tier":  "login-tier",
+				"login.podAdditionalLabels.extra": "login-only",
+			},
+			zitadel: &assert.DeploymentAssertion{
+				Spec: assert.DeploymentSpecAssertion{
+					Template: assert.PodTemplateSpecAssertion{
+						ObjectMeta: assert.ObjectMetaAssertion{
+							Labels: assert.Matching[map[string]string](gomega.And(
+								gomega.HaveKeyWithValue("tier", "zitadel-tier"),
+								gomega.Not(gomega.HaveKey("extra")),
+							)),
+						},
+					},
+				},
+			},
+			login: &assert.DeploymentAssertion{
+				Spec: assert.DeploymentSpecAssertion{
+					Template: assert.PodTemplateSpecAssertion{
+						ObjectMeta: assert.ObjectMetaAssertion{
+							Labels: assert.Matching[map[string]string](gomega.And(
+								gomega.HaveKeyWithValue("tier", "login-tier"),
+								gomega.HaveKeyWithValue("extra", "login-only"),
+							)),
+						},
+					},
+				},
+			},
+		},
+		{
 			name: "component-overrides",
 			setValues: map[string]string{
 				"login.enabled":         "true",
