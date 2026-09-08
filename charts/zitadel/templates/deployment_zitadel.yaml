@@ -28,10 +28,10 @@ spec:
         checksum/configmap: {{ include (print $.Template.BasePath "/configmap_zitadel.yaml") . | sha256sum }}
         checksum/secret-db-ssl-ca-crt: {{ include (print $.Template.BasePath "/secret_db-ssl-ca-crt.yaml") . | sha256sum }}
         checksum/secret-zitadel-secrets: {{ include (print $.Template.BasePath "/secret_zitadel-secrets.yaml") . | sha256sum }}
-        {{- if .Values.login.enabled }}
+        {{- if and .Values.login.enabled (not .Values.login.loginServiceKeySecretName) }}
         checksum/secret-login-service-key: {{ include (print $.Template.BasePath "/secret_login-service-key.yaml") . | sha256sum }}
         {{- end }}
-        {{- if .Values.zitadel.adminServiceKey.enabled }}
+        {{- if and .Values.zitadel.adminServiceKey.enabled (not .Values.zitadel.adminServiceKey.existingSecretName) }}
         checksum/secret-admin-service-key: {{ include (print $.Template.BasePath "/secret_admin-service-key.yaml") . | sha256sum }}
         {{- end }}
         {{- if .Values.metrics.enabled }}
