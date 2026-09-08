@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/onsi/gomega"
+	"github.com/stretchr/testify/require"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -250,8 +251,7 @@ func TestDeploymentMatrix(t *testing.T) {
 			},
 		},
 		{
-			// Helm manages the secret, so the checksum annotation must be present on both deployments.
-			name: "login-service-key-checksum-present-when-helm-managed",
+			name: "service-key-checksum-annotations",
 			setValues: map[string]string{
 				"login.enabled": "true",
 			},
@@ -259,9 +259,9 @@ func TestDeploymentMatrix(t *testing.T) {
 				Spec: assert.DeploymentSpecAssertion{
 					Template: assert.PodTemplateSpecAssertion{
 						ObjectMeta: assert.ObjectMetaAssertion{
-							Annotations: assert.Matching[map[string]string](
+							Annotations: assert.Matching[map[string]string](gomega.And(
 								gomega.HaveKey("checksum/secret-login-service-key"),
-							),
+							)),
 						},
 					},
 				},
@@ -270,21 +270,19 @@ func TestDeploymentMatrix(t *testing.T) {
 				Spec: assert.DeploymentSpecAssertion{
 					Template: assert.PodTemplateSpecAssertion{
 						ObjectMeta: assert.ObjectMetaAssertion{
-							Annotations: assert.Matching[map[string]string](
+							Annotations: assert.Matching[map[string]string](gomega.And(
 								gomega.HaveKey("checksum/secret-login-service-key"),
-							),
+							)),
 						},
 					},
 				},
 			},
 		},
 		{
-			// External secret (e.g. cert-manager): Helm does not own the secret,
-			// so the checksum annotation must NOT appear on either deployment.
-			name: "login-service-key-checksum-absent-when-external-secret",
+			name: "login-external-secret-no-checksum-annotation",
 			setValues: map[string]string{
 				"login.enabled":                   "true",
-				"login.loginServiceKeySecretName": "my-external-secret",
+				"login.loginServiceKeySecretName": "my-custom-cert",
 			},
 			preInstall: func(t *testing.T, env *support.Env) {
 				t.Helper()
@@ -292,26 +290,21 @@ func TestDeploymentMatrix(t *testing.T) {
 				_, err := env.Client.CoreV1().Secrets(env.Namespace).Create(
 					env.Ctx,
 					&corev1.Secret{
-						ObjectMeta: metav1.ObjectMeta{Name: "my-external-secret"},
+						ObjectMeta: metav1.ObjectMeta{Name: "my-custom-cert"},
 						Type:       corev1.SecretTypeTLS,
-						Data: map[string][]byte{
-							"tls.crt": certPEM,
-							"tls.key": keyPEM,
-						},
+						Data:       map[string][]byte{"tls.crt": certPEM, "tls.key": keyPEM},
 					},
 					metav1.CreateOptions{},
 				)
-				if err != nil {
-					t.Fatalf("failed to create external secret: %v", err)
-				}
+				require.NoError(t, err)
 			},
 			zitadel: &assert.DeploymentAssertion{
 				Spec: assert.DeploymentSpecAssertion{
 					Template: assert.PodTemplateSpecAssertion{
 						ObjectMeta: assert.ObjectMetaAssertion{
-							Annotations: assert.Matching[map[string]string](
+							Annotations: assert.Matching[map[string]string](gomega.And(
 								gomega.Not(gomega.HaveKey("checksum/secret-login-service-key")),
-							),
+							)),
 						},
 					},
 				},
@@ -320,9 +313,9 @@ func TestDeploymentMatrix(t *testing.T) {
 				Spec: assert.DeploymentSpecAssertion{
 					Template: assert.PodTemplateSpecAssertion{
 						ObjectMeta: assert.ObjectMetaAssertion{
-							Annotations: assert.Matching[map[string]string](
+							Annotations: assert.Matching[map[string]string](gomega.And(
 								gomega.Not(gomega.HaveKey("checksum/secret-login-service-key")),
-							),
+							)),
 						},
 					},
 				},
@@ -443,6 +436,7 @@ func TestDeploymentMatrix(t *testing.T) {
 				if tc.preInstall != nil {
 					tc.preInstall(t, env)
 				}
+
 				releaseName := setup.InstallZitadel(t, env, tc.name, tc.setValues)
 
 				if tc.zitadel != nil {
