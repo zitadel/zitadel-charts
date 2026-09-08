@@ -35,7 +35,7 @@ spec:
         {{- end }}
       labels:
         {{- include "login.labels" . | nindent 8 }}
-        {{- with .Values.podAdditionalLabels }}
+        {{- with .Values.login.podAdditionalLabels }}
           {{- toYaml . | nindent 8 }}
         {{- end }}
     spec:
