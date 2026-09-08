@@ -700,11 +700,6 @@ image:
   # ensure reproducibility and controlled upgrades.
   tag: ""
 
-# -- Global container registry override for tool images (e.g., kubectl).
-# When set, this registry is prepended to tool image repositories for
-# compatibility with CRI-O v1.34+ which enforces fully qualified image names.
-# If left empty, defaults to "docker.io".
-imageRegistry: ""
 # @schema itemRef: $k8s/_definitions.json#/definitions/io.k8s.api.core.v1.LocalObjectReference
 # -- ([]LocalObjectReference) References to secrets containing Docker registry credentials
 # for pulling private ZITADEL images. Each entry should be the name of an existing secret
