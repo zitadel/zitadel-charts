@@ -27,7 +27,9 @@ spec:
           {{- toYaml . | nindent 8 }}
         {{- end }}
         checksum/configmap: {{ include (print $.Template.BasePath "/configmap_login.yaml") . | sha256sum }}
+        {{- if not .Values.login.loginServiceKeySecretName }}
         checksum/secret-login-service-key: {{ include (print $.Template.BasePath "/secret_login-service-key.yaml") . | sha256sum }}
+        {{- end }}
         {{- if .Values.login.metrics.enabled }}
         prometheus.io/scrape: "true"
         prometheus.io/path: "/metrics"
@@ -35,7 +37,7 @@ spec:
         {{- end }}
       labels:
         {{- include "login.labels" . | nindent 8 }}
-        {{- with .Values.podAdditionalLabels }}
+        {{- with .Values.login.podAdditionalLabels }}
           {{- toYaml . | nindent 8 }}
         {{- end }}
     spec:
