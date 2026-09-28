@@ -2,7 +2,7 @@
 
 # Zitadel
 
-![Version: 10.0.6](https://img.shields.io/badge/Version-10.0.6-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: v4.15.3](https://img.shields.io/badge/AppVersion-v4.15.3-informational?style=flat-square)
+![Version: 10.1.0](https://img.shields.io/badge/Version-10.1.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: v4.15.3](https://img.shields.io/badge/AppVersion-v4.15.3-informational?style=flat-square)
 
 ## A Better Identity and Access Management Solution
 
@@ -49,6 +49,36 @@ The following values are removed:
 Existing v9 installations carry a `login-client` Secret containing the now-unused PAT. It is harmless and can be deleted at any time.
 
 To bring your own keypair (for example from cert-manager), set `login.loginServiceKeySecretName` to the name of a `kubernetes.io/tls` Secret containing `tls.crt` and `tls.key`. The keypair must be RSA — the login container signs JWTs using RS256.
+
+### Login Session Cookie Secret
+
+Available since chart v10.1.0. It takes effect with Login UI [v4.19.2](https://github.com/zitadel/zitadel/releases/tag/v4.19.2) or later; older login images ignore the setting.
+
+Starting with v4.19.2, the Login UI signs its session cookie. The signing secret is read from the environment variable `ZITADEL_SESSION_COOKIE_SECRET`.
+Without it, the login derives the signing key from the login service key and logs a deprecation warning. Rotating the service key then signs all users out of the Login UI.
+This fallback is deprecated and will be removed in a future major release.
+
+To use a dedicated secret, create a Secret with the key `ZITADEL_SESSION_COOKIE_SECRET` and reference it with `login.sessionCookieSecretName`:
+
+```bash
+kubectl create secret generic zitadel-login-session-cookie \
+  --from-literal=ZITADEL_SESSION_COOKIE_SECRET="$(openssl rand -base64 32)"
+```
+
+```yaml
+login:
+  sessionCookieSecretName: zitadel-login-session-cookie
+```
+
+The chart never generates this secret. If `login.sessionCookieSecretName` is empty, nothing changes and the login keeps using the derived key.
+A dedicated secret is recommended if your login service key is rotated (for example by cert-manager), or if you render the chart without a live cluster (`helm template`, Argo CD) and do not pin the key with `login.loginServiceKeySecretName`.
+
+Things to know:
+
+- **One-time sign-in**: After moving the login to v4.19.2 or later, users have to sign in to the Login UI once again. This is caused by the login version, not by the chart or this setting. Switching from the derived key to a dedicated secret later does not sign anybody out.
+- **Value format**: The value is a comma-separated list. The first entry signs, all entries are accepted for verification. Every entry must be at least 32 characters long, otherwise the login pods do not become ready.
+- **Rotation**: Set `<new>,<old>` in your Secret and restart the login pods (`kubectl rollout restart deployment/<release-name>-zitadel-login`), since the chart does not track changes inside a Secret it does not own. Drop `<old>` after the longest session lifetime has passed.
+- **Precedence**: If `login.env` already contains `ZITADEL_SESSION_COOKIE_SECRET`, that entry is used and `login.sessionCookieSecretName` is ignored. A `ZITADEL_SESSION_COOKIE_SECRET=...` line in `login.customConfigmapConfig` overrides both, because the login entrypoint sources that file after the container environment is set. Do not put the secret there: a ConfigMap stores it in plaintext.
 
 ### Related documentation
 
@@ -336,6 +366,7 @@ Kubernetes: `>= 1.30.0-0`
 | login.serviceAccount.annotations | map[string]string | `{"helm.sh/hook":"pre-install,pre-upgrade","helm.sh/hook-delete-policy":"before-hook-creation","helm.sh/hook-weight":"0"}` | Annotations for the Login UI service account. The default Helm hooks ensure it exists before pods are created. Add annotations here for cloud provider integrations (e.g., AWS IAM roles, GCP Workload Identity). |
 | login.serviceAccount.create | bool | `true` | Whether to create a dedicated service account for the Login UI. Set to false to use an existing service account or the default account. |
 | login.serviceAccount.name | string | `""` | The name of the service account to use. If not set and create is true, a name is generated using the fullname template. |
+| login.sessionCookieSecretName | string | `""` | Name of an existing Kubernetes Secret holding the secret the Login UI uses to sign its session cookie. The Secret must contain the key "ZITADEL_SESSION_COOKIE_SECRET". Takes effect with Login UI v4.19.2 or later; older login images ignore it. The value is a comma-separated list: the first entry signs, all entries are accepted for verification, which allows rotation without signing users out ("new,old"). Every entry must be at least 32 characters long, otherwise the Login UI reports not ready. When empty, the chart sets nothing and the Login UI derives the signing key from the login service key (deprecated fallback). Ignored if login.env already defines ZITADEL_SESSION_COOKIE_SECRET. |
 | login.startupProbe.enabled | bool | `false` | Enable or disable the startup probe. When enabled, liveness and readiness probes are disabled until the startup probe succeeds. |
 | login.startupProbe.failureThreshold | int | `30` | Number of consecutive failures before marking startup as failed and restarting the container. |
 | login.startupProbe.periodSeconds | int | `1` | How often (in seconds) to perform the startup check. |

@@ -87,6 +87,25 @@ spec:
             - name: ZITADEL_EXTERNALDOMAIN
               value: {{ .Values.zitadel.configmapConfig.ExternalDomain | quote }}
             {{- end }}
+            {{- /* ZITADEL_SESSION_COOKIE_SECRET signs the Login UI session
+                   cookie (Login UI v4.19.2 and later, ignored by older
+                   images). The chart only references a Secret the user
+                   provides; it never generates one. Skipped when the user
+                   sets the variable in login.env, to avoid the K8s
+                   duplicate-env-name validation error. */ -}}
+            {{- $userHasSessionCookieSecret := false -}}
+            {{- range .Values.login.env -}}
+              {{- if eq .name "ZITADEL_SESSION_COOKIE_SECRET" -}}
+                {{- $userHasSessionCookieSecret = true -}}
+              {{- end -}}
+            {{- end }}
+            {{- if and .Values.login.sessionCookieSecretName (not $userHasSessionCookieSecret) }}
+            - name: ZITADEL_SESSION_COOKIE_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.login.sessionCookieSecretName | quote }}
+                  key: ZITADEL_SESSION_COOKIE_SECRET
+            {{- end }}
             {{- with .Values.login.env }}
               {{- toYaml . | nindent 12 }}
             {{- end }}

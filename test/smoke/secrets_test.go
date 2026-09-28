@@ -221,11 +221,29 @@ func TestSecretsMatrix(t *testing.T) {
 			setValues: map[string]string{
 				"login.enabled":                   "true",
 				"login.loginServiceKeySecretName": "my-custom-cert",
+				// The chart never generates the session cookie secret, it
+				// only references the one named here. The install
+				// succeeding proves the reference resolves and the login
+				// pod starts with it.
+				"login.sessionCookieSecretName": "my-session-cookie",
 			},
 			preInstall: func(t *testing.T, env *support.Env) {
 				t.Helper()
-				certPEM, keyPEM := generateSelfSignedTLS(t)
 				_, err := env.Client.CoreV1().Secrets(env.Namespace).Create(
+					env.Ctx,
+					&corev1.Secret{
+						ObjectMeta: metav1.ObjectMeta{Name: "my-session-cookie"},
+						Type:       corev1.SecretTypeOpaque,
+						StringData: map[string]string{
+							"ZITADEL_SESSION_COOKIE_SECRET": "smoke-test-session-cookie-secret-0123456789",
+						},
+					},
+					metav1.CreateOptions{},
+				)
+				require.NoError(t, err)
+
+				certPEM, keyPEM := generateSelfSignedTLS(t)
+				_, err = env.Client.CoreV1().Secrets(env.Namespace).Create(
 					env.Ctx,
 					&corev1.Secret{
 						ObjectMeta: metav1.ObjectMeta{Name: "my-custom-cert"},
