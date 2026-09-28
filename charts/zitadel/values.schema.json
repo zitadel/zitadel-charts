@@ -968,6 +968,10 @@
                         }
                     }
                 },
+                "sessionCookieSecretName": {
+                    "description": "Name of an existing Kubernetes Secret holding the secret the Login UI uses to sign its session cookie. The Secret must contain the key \"ZITADEL_SESSION_COOKIE_SECRET\". Takes effect with Login UI v4.19.2 or later; older login images ignore it. The value is a comma-separated list: the first entry signs, all entries are accepted for verification, which allows rotation without signing users out (\"new,old\"). Every entry must be at least 32 characters long, otherwise the Login UI reports not ready. When empty, the chart sets nothing and the Login UI derives the signing key from the login service key (deprecated fallback). Ignored if login.env already defines ZITADEL_SESSION_COOKIE_SECRET.",
+                    "type": "string"
+                },
                 "startupProbe": {
                     "type": "object",
                     "properties": {
