@@ -77,7 +77,7 @@ Things to know:
 
 - **One-time sign-in**: After moving the login to v4.19.2 or later, users have to sign in to the Login UI once again. This is caused by the login version, not by the chart or this setting. Switching from the derived key to a dedicated secret later does not sign anybody out.
 - **Value format**: The value is a comma-separated list. The first entry signs, all entries are accepted for verification. Every entry must be at least 32 characters long, otherwise the login pods do not become ready.
-- **Rotation**: Set `<new>,<old>` in your Secret and restart the login pods (`kubectl rollout restart deployment/<release-name>-zitadel-login`), since the chart does not track changes inside a Secret it does not own. Drop `<old>` after the longest session lifetime has passed.
+- **Rotation**: Set `<new>,<old>` in your Secret and restart the login pods (`kubectl rollout restart deployment -l app.kubernetes.io/component=login,app.kubernetes.io/instance=<release-name>`), since the chart does not track changes inside a Secret it does not own. Drop `<old>` after the longest session lifetime has passed.
 - **Precedence**: If `login.env` already contains `ZITADEL_SESSION_COOKIE_SECRET`, that entry is used and `login.sessionCookieSecretName` is ignored. A `ZITADEL_SESSION_COOKIE_SECRET=...` line in `login.customConfigmapConfig` overrides both, because the login entrypoint sources that file after the container environment is set. Do not put the secret there: a ConfigMap stores it in plaintext.
 
 ### Related documentation
