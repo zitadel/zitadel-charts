@@ -471,6 +471,11 @@ login:
     initialDelaySeconds: 0
     # -- How often (in seconds) to perform the readiness check.
     periodSeconds: 5
+    # -- Number of seconds after which the probe times out. Defaults to 1, which
+    # matches the Kubernetes default. The Login UI is a Next.js application whose
+    # health endpoints do work of their own, so it is the component most likely
+    # to need a larger value on slow nodes.
+    timeoutSeconds: 1
     # -- Number of consecutive failures before marking the pod as not ready.
     failureThreshold: 3
   # Liveness probe configuration. The liveness probe determines if a container
@@ -482,6 +487,10 @@ login:
     initialDelaySeconds: 0
     # -- How often (in seconds) to perform the liveness check.
     periodSeconds: 5
+    # -- Number of seconds after which the probe times out. Defaults to 1, which
+    # matches the Kubernetes default. A too-small value restarts a healthy
+    # container whenever the node is momentarily slow.
+    timeoutSeconds: 1
     # -- Number of consecutive failures before restarting the container.
     failureThreshold: 3
   # Startup probe configuration. The startup probe runs before liveness and
@@ -492,6 +501,9 @@ login:
     enabled: false
     # -- How often (in seconds) to perform the startup check.
     periodSeconds: 1
+    # -- Number of seconds after which the startup probe times out. Defaults to 1,
+    # which matches the Kubernetes default.
+    timeoutSeconds: 1
     # -- Number of consecutive failures before marking startup as failed and
     # restarting the container.
     failureThreshold: 30
@@ -1233,6 +1245,11 @@ readinessProbe:
   initialDelaySeconds: 0
   # -- How often (in seconds) to perform the readiness check.
   periodSeconds: 5
+  # -- Number of seconds after which the probe times out. Defaults to 1, which
+  # matches the Kubernetes default. Increase this on slow or resource-constrained
+  # nodes where a healthy ZITADEL may need longer than one second to answer
+  # /ready.
+  timeoutSeconds: 1
   # -- Number of consecutive failures before marking the pod as not ready.
   failureThreshold: 3
 
@@ -1247,6 +1264,10 @@ livenessProbe:
   initialDelaySeconds: 0
   # -- How often (in seconds) to perform the liveness check.
   periodSeconds: 5
+  # -- Number of seconds after which the probe times out. Defaults to 1, which
+  # matches the Kubernetes default. A too-small value restarts a healthy
+  # container whenever the node is momentarily slow.
+  timeoutSeconds: 1
   # -- Number of consecutive failures before restarting the container.
   failureThreshold: 3
 
@@ -1261,6 +1282,12 @@ startupProbe:
   enabled: true
   # -- How often (in seconds) to perform the startup check.
   periodSeconds: 1
+  # -- Number of seconds after which the startup probe times out. Defaults to 1,
+  # which matches the Kubernetes default. Note that with periodSeconds=1 and
+  # failureThreshold=30 the container gets 30 attempts; if each attempt may take
+  # longer than one second, raise this or raise failureThreshold so a slow but
+  # healthy first start is not killed mid-migration.
+  timeoutSeconds: 1
   # -- Number of consecutive failures before marking startup as failed and
   # restarting the container. With periodSeconds=1 and failureThreshold=30,
   # the container has 30 seconds to start.

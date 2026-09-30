@@ -461,6 +461,10 @@
                 "periodSeconds": {
                     "description": "How often (in seconds) to perform the liveness check.",
                     "type": "integer"
+                },
+                "timeoutSeconds": {
+                    "description": "Number of seconds after which the probe times out. Defaults to 1, which matches the Kubernetes default. A too-small value restarts a healthy container whenever the node is momentarily slow.",
+                    "type": "integer"
                 }
             }
         },
@@ -775,6 +779,10 @@
                         "periodSeconds": {
                             "description": "How often (in seconds) to perform the liveness check.",
                             "type": "integer"
+                        },
+                        "timeoutSeconds": {
+                            "description": "Number of seconds after which the probe times out. Defaults to 1, which matches the Kubernetes default. A too-small value restarts a healthy container whenever the node is momentarily slow.",
+                            "type": "integer"
                         }
                     }
                 },
@@ -927,6 +935,10 @@
                         "periodSeconds": {
                             "description": "How often (in seconds) to perform the readiness check.",
                             "type": "integer"
+                        },
+                        "timeoutSeconds": {
+                            "description": "Number of seconds after which the probe times out. Defaults to 1, which matches the Kubernetes default. The Login UI is a Next.js application whose health endpoints do work of their own, so it is the component most likely to need a larger value on slow nodes.",
+                            "type": "integer"
                         }
                     }
                 },
@@ -1034,6 +1046,10 @@
                         },
                         "periodSeconds": {
                             "description": "How often (in seconds) to perform the startup check.",
+                            "type": "integer"
+                        },
+                        "timeoutSeconds": {
+                            "description": "Number of seconds after which the startup probe times out. Defaults to 1, which matches the Kubernetes default.",
                             "type": "integer"
                         }
                     }
@@ -1255,6 +1271,10 @@
                 "periodSeconds": {
                     "description": "How often (in seconds) to perform the readiness check.",
                     "type": "integer"
+                },
+                "timeoutSeconds": {
+                    "description": "Number of seconds after which the probe times out. Defaults to 1, which matches the Kubernetes default. Increase this on slow or resource-constrained nodes where a healthy ZITADEL may need longer than one second to answer /ready.",
+                    "type": "integer"
                 }
             }
         },
@@ -1461,6 +1481,10 @@
                 },
                 "periodSeconds": {
                     "description": "How often (in seconds) to perform the startup check.",
+                    "type": "integer"
+                },
+                "timeoutSeconds": {
+                    "description": "Number of seconds after which the startup probe times out. Defaults to 1, which matches the Kubernetes default. Note that with periodSeconds=1 and failureThreshold=30 the container gets 30 attempts; if each attempt may take longer than one second, raise this or raise failureThreshold so a slow but healthy first start is not killed mid-migration.",
                     "type": "integer"
                 }
             }
