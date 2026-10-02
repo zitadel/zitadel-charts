@@ -282,6 +282,7 @@ Kubernetes: `>= 1.30.0-0`
 | livenessProbe.failureThreshold | int | `3` | Number of consecutive failures before restarting the container. |
 | livenessProbe.initialDelaySeconds | int | `0` | Seconds to wait before starting liveness checks after container start. |
 | livenessProbe.periodSeconds | int | `5` | How often (in seconds) to perform the liveness check. |
+| livenessProbe.terminationGracePeriodSeconds | string | `nil` | Optional probe-level override of the pod's terminationGracePeriodSeconds, applied when the container is killed after this probe fails. Null (the default) inherits the pod-level value. |
 | livenessProbe.timeoutSeconds | int | `1` | Number of seconds after which the probe times out. Defaults to 1, which matches the Kubernetes default. A too-small value restarts a healthy container whenever the node is momentarily slow. |
 | login.affinity | Affinity | `{}` | Affinity rules for pod scheduling. Use for advanced pod placement strategies like co-locating pods or spreading across zones. Ref: https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#affinity-and-anti-affinity |
 | login.annotations | map[string]string | `{}` | Annotations to add to the Login UI Deployment resource. |
@@ -324,6 +325,7 @@ Kubernetes: `>= 1.30.0-0`
 | login.livenessProbe.failureThreshold | int | `3` | Number of consecutive failures before restarting the container. |
 | login.livenessProbe.initialDelaySeconds | int | `0` | Seconds to wait before starting liveness checks after container start. |
 | login.livenessProbe.periodSeconds | int | `5` | How often (in seconds) to perform the liveness check. |
+| login.livenessProbe.terminationGracePeriodSeconds | string | `nil` | Optional probe-level override of the pod's terminationGracePeriodSeconds, applied when the container is killed after this probe fails. Null (the default) inherits the pod-level value. |
 | login.livenessProbe.timeoutSeconds | int | `1` | Number of seconds after which the probe times out. Defaults to 1, which matches the Kubernetes default. A too-small value restarts a healthy container whenever the node is momentarily slow. |
 | login.loginServiceKeySecretName | string | `""` | Name of an existing Kubernetes Secret containing the login service keypair. The secret must contain keys "tls.crt" (RSA public certificate) and "tls.key" (RSA private key). When set, the chart skips auto-generating a keypair and uses this secret instead. Useful for cert-manager or external secret operators. Note: the keypair must be RSA (the login container signs JWTs using RS256). |
 | login.metrics.enabled | bool | `false` | Enable metrics scraping annotations on Login UI pods. When true, adds prometheus.io/* annotations that enable automatic discovery by Prometheus. |
@@ -352,6 +354,7 @@ Kubernetes: `>= 1.30.0-0`
 | login.readinessProbe.failureThreshold | int | `3` | Number of consecutive failures before marking the pod as not ready. |
 | login.readinessProbe.initialDelaySeconds | int | `0` | Seconds to wait before starting readiness checks after container start. |
 | login.readinessProbe.periodSeconds | int | `5` | How often (in seconds) to perform the readiness check. |
+| login.readinessProbe.successThreshold | int | `1` | Number of consecutive successes required to mark the pod ready again after a failure. Only meaningful above 1 for readiness; Kubernetes forces it to 1 for liveness and startup probes. |
 | login.readinessProbe.timeoutSeconds | int | `1` | Number of seconds after which the probe times out. Defaults to 1, which matches the Kubernetes default. The Login UI is a Next.js application whose health endpoints do work of their own, so it is the component most likely to need a larger value on slow nodes. |
 | login.replicaCount | int | `1` | Number of Login UI pod replicas. A single replica is fine for testing, but production environments should use 3 or more for high availability during rolling updates and node failures. |
 | login.resources | ResourceRequirements | `{}` | CPU and memory resource requests and limits for the Login UI container. Ref: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/ |
@@ -373,6 +376,7 @@ Kubernetes: `>= 1.30.0-0`
 | login.startupProbe.enabled | bool | `false` | Enable or disable the startup probe. When enabled, liveness and readiness probes are disabled until the startup probe succeeds. |
 | login.startupProbe.failureThreshold | int | `30` | Number of consecutive failures before marking startup as failed and restarting the container. |
 | login.startupProbe.periodSeconds | int | `1` | How often (in seconds) to perform the startup check. |
+| login.startupProbe.terminationGracePeriodSeconds | string | `nil` | Optional probe-level override of the pod's terminationGracePeriodSeconds, applied when the container is killed after this probe fails. Null (the default) inherits the pod-level value. |
 | login.startupProbe.timeoutSeconds | int | `1` | Number of seconds after which the startup probe times out. Defaults to 1, which matches the Kubernetes default. |
 | login.tolerations | []Toleration | `[]` | Tolerations allow pods to be scheduled on nodes with matching taints. Ref: https://kubernetes.io/docs/concepts/scheduling-eviction/taint-and-toleration/ |
 | login.topologySpreadConstraints | []TopologySpreadConstraint | `[]` | Topology spread constraints control how pods are distributed across topology domains (e.g., zones, nodes) for high availability. Ref: https://kubernetes.io/docs/concepts/scheduling-eviction/topology-spread-constraints/ |
@@ -410,6 +414,7 @@ Kubernetes: `>= 1.30.0-0`
 | readinessProbe.failureThreshold | int | `3` | Number of consecutive failures before marking the pod as not ready. |
 | readinessProbe.initialDelaySeconds | int | `0` | Seconds to wait before starting readiness checks after container start. Set higher if ZITADEL needs time to initialize before accepting traffic. |
 | readinessProbe.periodSeconds | int | `5` | How often (in seconds) to perform the readiness check. |
+| readinessProbe.successThreshold | int | `1` | Number of consecutive successes required to mark the pod ready again after a failure. Only meaningful above 1 for readiness; Kubernetes forces it to 1 for liveness and startup probes. |
 | readinessProbe.timeoutSeconds | int | `1` | Number of seconds after which the probe times out. Defaults to 1, which matches the Kubernetes default. Increase this on slow or resource-constrained nodes where a healthy ZITADEL may need longer than one second to answer /ready. |
 | replicaCount | int | `1` | Number of ZITADEL pod replicas. While a single replica is fine for testing, production environments should use 3 or more to prevent downtime during rolling updates, node failures, and ensure high availability. |
 | resources | ResourceRequirements | `{}` | CPU and memory resource requests and limits for the ZITADEL container. Setting appropriate resources ensures predictable performance and prevents resource starvation. Requests affect scheduling; limits enforce caps. Ref: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/ |
@@ -444,6 +449,7 @@ Kubernetes: `>= 1.30.0-0`
 | startupProbe.enabled | bool | `true` | Enable or disable the startup probe. When enabled, liveness and readiness probes are disabled until the startup probe succeeds. |
 | startupProbe.failureThreshold | int | `30` | Number of consecutive failures before marking startup as failed and restarting the container. This is a count of attempts, not a fixed duration: with periodSeconds=1 and the default timeoutSeconds=1 the window is about 30 seconds, but raising timeoutSeconds lengthens each failed attempt and so the overall startup budget. |
 | startupProbe.periodSeconds | int | `1` | How often (in seconds) to perform the startup check. |
+| startupProbe.terminationGracePeriodSeconds | string | `nil` | Optional probe-level override of the pod's terminationGracePeriodSeconds, applied when the container is killed after this probe fails. Null (the default) inherits the pod-level value. |
 | startupProbe.timeoutSeconds | int | `1` | Number of seconds after which the startup probe times out. Defaults to 1, which matches the Kubernetes default. Note that with periodSeconds=1 and failureThreshold=30 the container gets 30 attempts; if each attempt may take longer than one second, raise this or raise failureThreshold so a slow but healthy first start is not killed mid-migration. |
 | tolerations | []Toleration | `[]` | Tolerations allow pods to be scheduled on nodes with matching taints. Taints are used to repel pods from nodes; tolerations allow exceptions. Ref: https://kubernetes.io/docs/concepts/scheduling-eviction/taint-and-toleration/ |
 | tools.kubectl.image.pullPolicy | string | `""` | The pull policy for the kubectl image. If left empty, Kubernetes applies its default policy depending on whether the tag is mutable or fixed. |
