@@ -6,6 +6,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"runtime"
+	"strconv"
 	"strings"
 	"testing"
 
@@ -34,7 +35,9 @@ func TestSchemaInSync(t *testing.T) {
 		"-o", generatedFile,
 		"--draft", "2020",
 		"--use-helm-docs",
-		"--k8s-schema-version", "v1.30.0")
+		"--k8s-schema-version", "v1.30.0",
+		"--bundle",
+		"--bundle-without-id")
 	output, err := cmd.CombinedOutput()
 	require.NoError(t, err, string(output))
 
@@ -43,6 +46,55 @@ func TestSchemaInSync(t *testing.T) {
 
 	require.JSONEq(t, string(committed), string(generated),
 		"schema out of sync; run: make schemagen")
+}
+
+// TestSchemaHasNoRemoteRefs is a regression test for
+// https://github.com/zitadel/zitadel-charts/issues/624: values.schema.json
+// referenced Kubernetes type definitions by absolute raw.githubusercontent.com
+// URLs, so Helm fetched them over the network on every install, upgrade,
+// template and lint. That broke chart installation in air-gapped or
+// egress-restricted clusters with "no route to host". The schema must be
+// self-contained: bundled definitions live in $defs, so every $ref must be a
+// local fragment reference starting with "#". Any other form -- an absolute
+// URL in any case, a protocol-relative "//host/..." URL, or a relative file
+// reference like "other.json#/..." -- would make Helm resolve an external
+// resource and is rejected here.
+func TestSchemaHasNoRemoteRefs(t *testing.T) {
+	t.Parallel()
+
+	_, file, _, ok := runtime.Caller(0)
+	require.True(t, ok, "runtime.Caller(0) failed; cannot determine test file path")
+
+	schemaFile := filepath.Join(filepath.Dir(file), "..", "charts", "zitadel", "values.schema.json")
+	data, err := os.ReadFile(schemaFile)
+	require.NoError(t, err)
+
+	var schema map[string]any
+	require.NoError(t, json.Unmarshal(data, &schema))
+
+	var external []string
+	var walk func(node any, path string)
+	walk = func(node any, path string) {
+		switch v := node.(type) {
+		case map[string]any:
+			for key, child := range v {
+				if key == "$ref" {
+					if ref, ok := child.(string); ok && !strings.HasPrefix(ref, "#") {
+						external = append(external, path+" -> "+ref)
+					}
+				}
+				walk(child, path+"/"+key)
+			}
+		case []any:
+			for i, child := range v {
+				walk(child, path+"/"+strconv.Itoa(i))
+			}
+		}
+	}
+	walk(schema, "")
+
+	assert.Empty(t, external,
+		"values.schema.json must only use local fragment ($ref \"#/...\") references; run: make schemagen")
 }
 
 // TestSchemaFullyTyped ensures all fields in the schema have proper types.
