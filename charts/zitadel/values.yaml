@@ -1310,11 +1310,12 @@ startupProbe:
   timeoutSeconds: 1  # @schema minimum:1
   # -- Number of consecutive failures before marking startup as failed and
   # restarting the container. This is a count of attempts, not a fixed duration.
-  # timeoutSeconds only caps how long a single hanging attempt waits; a probe that
-  # fails fast (connection refused, HTTP error) still fails immediately, so
-  # raising timeoutSeconds does not lengthen those attempts. Treat
-  # failureThreshold x timeoutSeconds as an upper bound on the startup window, not
-  # a guaranteed one.
+  # The startup budget depends on periodSeconds and timeoutSeconds together:
+  # attempts are spaced by periodSeconds and each hanging attempt waits up to
+  # timeoutSeconds, while a probe that fails fast (connection refused, HTTP error)
+  # returns sooner. Widen the window by raising failureThreshold, periodSeconds or
+  # timeoutSeconds rather than assuming a fixed failureThreshold x timeoutSeconds
+  # bound.
   failureThreshold: 30
   # -- Optional probe-level override of the pod's terminationGracePeriodSeconds,
   # applied when the container is killed after this probe fails. Null (the
