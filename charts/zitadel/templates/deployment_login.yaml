@@ -126,7 +126,7 @@ spec:
               scheme: {{ .Values.login.service.scheme }}
             initialDelaySeconds: {{ .Values.login.livenessProbe.initialDelaySeconds }}
             periodSeconds: {{ .Values.login.livenessProbe.periodSeconds }}
-            timeoutSeconds: {{ .Values.login.livenessProbe.timeoutSeconds }}
+            timeoutSeconds: {{ .Values.login.livenessProbe.timeoutSeconds | default 1 }}
             failureThreshold: {{ .Values.login.livenessProbe.failureThreshold }}
             {{- with .Values.login.livenessProbe.terminationGracePeriodSeconds }}
             terminationGracePeriodSeconds: {{ . }}
@@ -140,9 +140,9 @@ spec:
               scheme: {{ .Values.login.service.scheme }}
             initialDelaySeconds: {{ .Values.login.readinessProbe.initialDelaySeconds }}
             periodSeconds: {{ .Values.login.readinessProbe.periodSeconds }}
-            timeoutSeconds: {{ .Values.login.readinessProbe.timeoutSeconds }}
+            timeoutSeconds: {{ .Values.login.readinessProbe.timeoutSeconds | default 1 }}
             failureThreshold: {{ .Values.login.readinessProbe.failureThreshold }}
-            successThreshold: {{ .Values.login.readinessProbe.successThreshold }}
+            successThreshold: {{ .Values.login.readinessProbe.successThreshold | default 1 }}
           {{- end }}
           {{- if .Values.login.startupProbe.enabled }}
           startupProbe:
@@ -151,7 +151,7 @@ spec:
               port: {{ .Values.login.service.protocol }}-server
               scheme: {{ .Values.login.service.scheme }}
             periodSeconds: {{ .Values.login.startupProbe.periodSeconds }}
-            timeoutSeconds: {{ .Values.login.startupProbe.timeoutSeconds }}
+            timeoutSeconds: {{ .Values.login.startupProbe.timeoutSeconds | default 1 }}
             failureThreshold: {{ .Values.login.startupProbe.failureThreshold }}
             {{- with .Values.login.startupProbe.terminationGracePeriodSeconds }}
             terminationGracePeriodSeconds: {{ . }}
