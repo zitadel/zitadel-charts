@@ -126,6 +126,7 @@ spec:
               scheme: {{ .Values.login.service.scheme }}
             initialDelaySeconds: {{ .Values.login.livenessProbe.initialDelaySeconds }}
             periodSeconds: {{ .Values.login.livenessProbe.periodSeconds }}
+            timeoutSeconds: {{ .Values.login.livenessProbe.timeoutSeconds }}
             failureThreshold: {{ .Values.login.livenessProbe.failureThreshold }}
           {{- end }}
           {{- if .Values.login.readinessProbe.enabled }}
@@ -136,6 +137,7 @@ spec:
               scheme: {{ .Values.login.service.scheme }}
             initialDelaySeconds: {{ .Values.login.readinessProbe.initialDelaySeconds }}
             periodSeconds: {{ .Values.login.readinessProbe.periodSeconds }}
+            timeoutSeconds: {{ .Values.login.readinessProbe.timeoutSeconds }}
             failureThreshold: {{ .Values.login.readinessProbe.failureThreshold }}
           {{- end }}
           {{- if .Values.login.startupProbe.enabled }}
@@ -145,6 +147,7 @@ spec:
               port: {{ .Values.login.service.protocol }}-server
               scheme: {{ .Values.login.service.scheme }}
             periodSeconds: {{ .Values.login.startupProbe.periodSeconds }}
+            timeoutSeconds: {{ .Values.login.startupProbe.timeoutSeconds }}
             failureThreshold: {{ .Values.login.startupProbe.failureThreshold }}
           {{- end }}
           volumeMounts:
