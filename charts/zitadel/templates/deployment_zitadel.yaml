@@ -143,6 +143,9 @@ spec:
             periodSeconds: {{ .Values.livenessProbe.periodSeconds }}
             timeoutSeconds: {{ .Values.livenessProbe.timeoutSeconds }}
             failureThreshold: {{ .Values.livenessProbe.failureThreshold }}
+            {{- with .Values.livenessProbe.terminationGracePeriodSeconds }}
+            terminationGracePeriodSeconds: {{ . }}
+            {{- end }}
           {{- end }}
           {{- if .Values.readinessProbe.enabled }}
           readinessProbe:
@@ -163,6 +166,7 @@ spec:
             periodSeconds: {{ .Values.readinessProbe.periodSeconds }}
             timeoutSeconds: {{ .Values.readinessProbe.timeoutSeconds }}
             failureThreshold: {{ .Values.readinessProbe.failureThreshold }}
+            successThreshold: {{ .Values.readinessProbe.successThreshold }}
           {{- end }}
           {{- if .Values.startupProbe.enabled }}
           startupProbe:
@@ -182,6 +186,9 @@ spec:
             periodSeconds: {{ .Values.startupProbe.periodSeconds }}
             timeoutSeconds: {{ .Values.startupProbe.timeoutSeconds }}
             failureThreshold: {{ .Values.startupProbe.failureThreshold }}
+            {{- with .Values.startupProbe.terminationGracePeriodSeconds }}
+            terminationGracePeriodSeconds: {{ . }}
+            {{- end }}
           {{- end }}
           volumeMounts:
           - name: zitadel-config-yaml

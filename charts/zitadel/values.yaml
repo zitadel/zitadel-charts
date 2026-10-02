@@ -440,6 +440,10 @@ login:
     timeoutSeconds: 1  # @schema minimum:1
     # -- Number of consecutive failures before marking the pod as not ready.
     failureThreshold: 3
+    # -- Number of consecutive successes required to mark the pod ready again
+    # after a failure. Only meaningful above 1 for readiness; Kubernetes forces
+    # it to 1 for liveness and startup probes.
+    successThreshold: 1  # @schema minimum:1
   # Liveness probe configuration. The liveness probe determines if a container
   # is still running. Failed probes cause the container to be restarted.
   livenessProbe:
@@ -455,6 +459,10 @@ login:
     timeoutSeconds: 1  # @schema minimum:1
     # -- Number of consecutive failures before restarting the container.
     failureThreshold: 3
+    # -- Optional probe-level override of the pod's terminationGracePeriodSeconds,
+    # applied when the container is killed after this probe fails. Null (the
+    # default) inherits the pod-level value.
+    terminationGracePeriodSeconds: null  # @schema type:[null,integer];minimum:1
   # Startup probe configuration. The startup probe runs before liveness and
   # readiness probes, allowing slow-starting containers to initialize.
   startupProbe:
@@ -469,6 +477,10 @@ login:
     # -- Number of consecutive failures before marking startup as failed and
     # restarting the container.
     failureThreshold: 30
+    # -- Optional probe-level override of the pod's terminationGracePeriodSeconds,
+    # applied when the container is killed after this probe fails. Null (the
+    # default) inherits the pod-level value.
+    terminationGracePeriodSeconds: null  # @schema type:[null,integer];minimum:1
   # Kubernetes Service configuration for the Login UI.
   service:
     # -- Service type. Use "ClusterIP" for internal access, "NodePort" for node-level
@@ -1159,6 +1171,10 @@ readinessProbe:
   timeoutSeconds: 1  # @schema minimum:1
   # -- Number of consecutive failures before marking the pod as not ready.
   failureThreshold: 3
+  # -- Number of consecutive successes required to mark the pod ready again after
+  # a failure. Only meaningful above 1 for readiness; Kubernetes forces it to 1
+  # for liveness and startup probes.
+  successThreshold: 1  # @schema minimum:1
 
 # Liveness probe configuration for ZITADEL. The liveness probe determines if
 # a container is still running properly. Failed probes cause the container to
@@ -1177,6 +1193,10 @@ livenessProbe:
   timeoutSeconds: 1  # @schema minimum:1
   # -- Number of consecutive failures before restarting the container.
   failureThreshold: 3
+  # -- Optional probe-level override of the pod's terminationGracePeriodSeconds,
+  # applied when the container is killed after this probe fails. Null (the
+  # default) inherits the pod-level value.
+  terminationGracePeriodSeconds: null  # @schema type:[null,integer];minimum:1
 
 # Startup probe configuration for ZITADEL. The startup probe runs before
 # liveness and readiness probes begin, allowing slow-starting containers to
@@ -1201,6 +1221,10 @@ startupProbe:
   # seconds, but raising timeoutSeconds lengthens each failed attempt and so the
   # overall startup budget.
   failureThreshold: 30
+  # -- Optional probe-level override of the pod's terminationGracePeriodSeconds,
+  # applied when the container is killed after this probe fails. Null (the
+  # default) inherits the pod-level value.
+  terminationGracePeriodSeconds: null  # @schema type:[null,integer];minimum:1
 
 # Metrics configuration for ZITADEL monitoring. When enabled, ZITADEL exposes
 # Prometheus-compatible metrics at /debug/metrics on the main service port.

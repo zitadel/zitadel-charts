@@ -128,6 +128,9 @@ spec:
             periodSeconds: {{ .Values.login.livenessProbe.periodSeconds }}
             timeoutSeconds: {{ .Values.login.livenessProbe.timeoutSeconds }}
             failureThreshold: {{ .Values.login.livenessProbe.failureThreshold }}
+            {{- with .Values.login.livenessProbe.terminationGracePeriodSeconds }}
+            terminationGracePeriodSeconds: {{ . }}
+            {{- end }}
           {{- end }}
           {{- if .Values.login.readinessProbe.enabled }}
           readinessProbe:
@@ -139,6 +142,7 @@ spec:
             periodSeconds: {{ .Values.login.readinessProbe.periodSeconds }}
             timeoutSeconds: {{ .Values.login.readinessProbe.timeoutSeconds }}
             failureThreshold: {{ .Values.login.readinessProbe.failureThreshold }}
+            successThreshold: {{ .Values.login.readinessProbe.successThreshold }}
           {{- end }}
           {{- if .Values.login.startupProbe.enabled }}
           startupProbe:
@@ -149,6 +153,9 @@ spec:
             periodSeconds: {{ .Values.login.startupProbe.periodSeconds }}
             timeoutSeconds: {{ .Values.login.startupProbe.timeoutSeconds }}
             failureThreshold: {{ .Values.login.startupProbe.failureThreshold }}
+            {{- with .Values.login.startupProbe.terminationGracePeriodSeconds }}
+            terminationGracePeriodSeconds: {{ . }}
+            {{- end }}
           {{- end }}
           volumeMounts:
           - name: login-config-dotenv
