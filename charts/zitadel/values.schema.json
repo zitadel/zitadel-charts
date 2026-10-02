@@ -1443,7 +1443,7 @@
                     "type": "boolean"
                 },
                 "failureThreshold": {
-                    "description": "Number of consecutive failures before marking startup as failed and restarting the container. This is a count of attempts, not a fixed duration: with periodSeconds=1 and the default timeoutSeconds=1 the window is about 30 seconds, but raising timeoutSeconds lengthens each failed attempt and so the overall startup budget.",
+                    "description": "Number of consecutive failures before marking startup as failed and restarting the container. This is a count of attempts, not a fixed duration. timeoutSeconds only caps how long a single hanging attempt waits; a probe that fails fast (connection refused, HTTP error) still fails immediately, so raising timeoutSeconds does not lengthen those attempts. Treat failureThreshold x timeoutSeconds as an upper bound on the startup window, not a guaranteed one.",
                     "type": "integer"
                 },
                 "periodSeconds": {
