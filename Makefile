@@ -12,7 +12,7 @@ docgen:
 
 .PHONY: schemagen
 schemagen:
-	helm schema -f charts/zitadel/values.yaml -o charts/zitadel/values.schema.json --draft 2020 --use-helm-docs --k8s-schema-version v1.30.0
+	helm schema -f charts/zitadel/values.yaml -o charts/zitadel/values.schema.json --draft 2020 --use-helm-docs --k8s-schema-version v1.30.0 --bundle --bundle-without-id
 
 # Validate Helm chart manifests using kubeconform. This renders the Helm chart
 # templates into Kubernetes YAML manifests and validates them against the K8s
