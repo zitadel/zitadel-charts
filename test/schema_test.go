@@ -54,8 +54,11 @@ func TestSchemaInSync(t *testing.T) {
 // URLs, so Helm fetched them over the network on every install, upgrade,
 // template and lint. That broke chart installation in air-gapped or
 // egress-restricted clusters with "no route to host". The schema must be
-// self-contained, so no $ref may point at a remote (http/https) location;
-// Kubernetes definitions are bundled into $defs instead.
+// self-contained: bundled definitions live in $defs, so every $ref must be a
+// local fragment reference starting with "#". Any other form -- an absolute
+// URL in any case, a protocol-relative "//host/..." URL, or a relative file
+// reference like "other.json#/..." -- would make Helm resolve an external
+// resource and is rejected here.
 func TestSchemaHasNoRemoteRefs(t *testing.T) {
 	t.Parallel()
 
@@ -69,15 +72,15 @@ func TestSchemaHasNoRemoteRefs(t *testing.T) {
 	var schema map[string]any
 	require.NoError(t, json.Unmarshal(data, &schema))
 
-	var remote []string
+	var external []string
 	var walk func(node any, path string)
 	walk = func(node any, path string) {
 		switch v := node.(type) {
 		case map[string]any:
 			for key, child := range v {
 				if key == "$ref" {
-					if ref, ok := child.(string); ok && strings.HasPrefix(ref, "http") {
-						remote = append(remote, path+" -> "+ref)
+					if ref, ok := child.(string); ok && !strings.HasPrefix(ref, "#") {
+						external = append(external, path+" -> "+ref)
 					}
 				}
 				walk(child, path+"/"+key)
@@ -90,8 +93,8 @@ func TestSchemaHasNoRemoteRefs(t *testing.T) {
 	}
 	walk(schema, "")
 
-	assert.Empty(t, remote,
-		"values.schema.json must not reference remote schemas; run: make schemagen")
+	assert.Empty(t, external,
+		"values.schema.json must only use local fragment ($ref \"#/...\") references; run: make schemagen")
 }
 
 // TestSchemaFullyTyped ensures all fields in the schema have proper types.
