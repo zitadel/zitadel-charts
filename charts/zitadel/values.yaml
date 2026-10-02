@@ -1196,8 +1196,10 @@ startupProbe:
   # healthy first start is not killed mid-migration.
   timeoutSeconds: 1  # @schema minimum:1
   # -- Number of consecutive failures before marking startup as failed and
-  # restarting the container. With periodSeconds=1 and failureThreshold=30,
-  # the container has 30 seconds to start.
+  # restarting the container. This is a count of attempts, not a fixed duration:
+  # with periodSeconds=1 and the default timeoutSeconds=1 the window is about 30
+  # seconds, but raising timeoutSeconds lengthens each failed attempt and so the
+  # overall startup budget.
   failureThreshold: 30
 
 # Metrics configuration for ZITADEL monitoring. When enabled, ZITADEL exposes
