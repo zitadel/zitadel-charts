@@ -1481,7 +1481,7 @@
                     "type": "boolean"
                 },
                 "failureThreshold": {
-                    "description": "Number of consecutive failures before marking startup as failed and restarting the container. With periodSeconds=1 and failureThreshold=30, the container has 30 seconds to start.",
+                    "description": "Number of consecutive failures before marking startup as failed and restarting the container. This is a count of attempts, not a fixed duration: with periodSeconds=1 and the default timeoutSeconds=1 the window is about 30 seconds, but raising timeoutSeconds lengthens each failed attempt and so the overall startup budget.",
                     "type": "integer"
                 },
                 "periodSeconds": {
