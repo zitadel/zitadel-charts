@@ -471,8 +471,17 @@ login:
     initialDelaySeconds: 0
     # -- How often (in seconds) to perform the readiness check.
     periodSeconds: 5
+    # -- Number of seconds after which the probe times out. Defaults to 1, which
+    # matches the Kubernetes default. The Login UI is a Next.js application whose
+    # health endpoints do work of their own, so it is the component most likely
+    # to need a larger value on slow nodes.
+    timeoutSeconds: 1  # @schema minimum:1
     # -- Number of consecutive failures before marking the pod as not ready.
     failureThreshold: 3
+    # -- Number of consecutive successes required to mark the pod ready again
+    # after a failure. Only meaningful above 1 for readiness; Kubernetes forces
+    # it to 1 for liveness and startup probes.
+    successThreshold: 1  # @schema minimum:1
   # Liveness probe configuration. The liveness probe determines if a container
   # is still running. Failed probes cause the container to be restarted.
   livenessProbe:
@@ -482,8 +491,16 @@ login:
     initialDelaySeconds: 0
     # -- How often (in seconds) to perform the liveness check.
     periodSeconds: 5
+    # -- Number of seconds after which the probe times out. Defaults to 1, which
+    # matches the Kubernetes default. A too-small value restarts a healthy
+    # container whenever the node is momentarily slow.
+    timeoutSeconds: 1  # @schema minimum:1
     # -- Number of consecutive failures before restarting the container.
     failureThreshold: 3
+    # -- Optional probe-level override of the pod's terminationGracePeriodSeconds,
+    # applied when the container is killed after this probe fails. Null (the
+    # default) inherits the pod-level value.
+    terminationGracePeriodSeconds: null  # @schema type:[null,integer];minimum:1
   # Startup probe configuration. The startup probe runs before liveness and
   # readiness probes, allowing slow-starting containers to initialize.
   startupProbe:
@@ -492,9 +509,16 @@ login:
     enabled: false
     # -- How often (in seconds) to perform the startup check.
     periodSeconds: 1
+    # -- Number of seconds after which the startup probe times out. Defaults to 1,
+    # which matches the Kubernetes default.
+    timeoutSeconds: 1  # @schema minimum:1
     # -- Number of consecutive failures before marking startup as failed and
     # restarting the container.
     failureThreshold: 30
+    # -- Optional probe-level override of the pod's terminationGracePeriodSeconds,
+    # applied when the container is killed after this probe fails. Null (the
+    # default) inherits the pod-level value.
+    terminationGracePeriodSeconds: null  # @schema type:[null,integer];minimum:1
   # Kubernetes Service configuration for the Login UI.
   service:
     # -- Service type. Use "ClusterIP" for internal access, "NodePort" for node-level
@@ -1233,8 +1257,17 @@ readinessProbe:
   initialDelaySeconds: 0
   # -- How often (in seconds) to perform the readiness check.
   periodSeconds: 5
+  # -- Number of seconds after which the probe times out. Defaults to 1, which
+  # matches the Kubernetes default. Increase this on slow or resource-constrained
+  # nodes where a healthy ZITADEL may need longer than one second to answer
+  # /ready.
+  timeoutSeconds: 1  # @schema minimum:1
   # -- Number of consecutive failures before marking the pod as not ready.
   failureThreshold: 3
+  # -- Number of consecutive successes required to mark the pod ready again after
+  # a failure. Only meaningful above 1 for readiness; Kubernetes forces it to 1
+  # for liveness and startup probes.
+  successThreshold: 1  # @schema minimum:1
 
 # Liveness probe configuration for ZITADEL. The liveness probe determines if
 # a container is still running properly. Failed probes cause the container to
@@ -1247,8 +1280,16 @@ livenessProbe:
   initialDelaySeconds: 0
   # -- How often (in seconds) to perform the liveness check.
   periodSeconds: 5
+  # -- Number of seconds after which the probe times out. Defaults to 1, which
+  # matches the Kubernetes default. A too-small value restarts a healthy
+  # container whenever the node is momentarily slow.
+  timeoutSeconds: 1  # @schema minimum:1
   # -- Number of consecutive failures before restarting the container.
   failureThreshold: 3
+  # -- Optional probe-level override of the pod's terminationGracePeriodSeconds,
+  # applied when the container is killed after this probe fails. Null (the
+  # default) inherits the pod-level value.
+  terminationGracePeriodSeconds: null  # @schema type:[null,integer];minimum:1
 
 # Startup probe configuration for ZITADEL. The startup probe runs before
 # liveness and readiness probes begin, allowing slow-starting containers to
@@ -1261,10 +1302,25 @@ startupProbe:
   enabled: true
   # -- How often (in seconds) to perform the startup check.
   periodSeconds: 1
+  # -- Number of seconds after which the startup probe times out. Defaults to 1,
+  # which matches the Kubernetes default. Note that with periodSeconds=1 and
+  # failureThreshold=30 the container gets 30 attempts; if each attempt may take
+  # longer than one second, raise this or raise failureThreshold so a slow but
+  # healthy first start is not killed mid-migration.
+  timeoutSeconds: 1  # @schema minimum:1
   # -- Number of consecutive failures before marking startup as failed and
-  # restarting the container. With periodSeconds=1 and failureThreshold=30,
-  # the container has 30 seconds to start.
+  # restarting the container. This is a count of attempts, not a fixed duration.
+  # The startup budget depends on periodSeconds and timeoutSeconds together:
+  # attempts are spaced by periodSeconds and each hanging attempt waits up to
+  # timeoutSeconds, while a probe that fails fast (connection refused, HTTP error)
+  # returns sooner. Widen the window by raising failureThreshold, periodSeconds or
+  # timeoutSeconds rather than assuming a fixed failureThreshold x timeoutSeconds
+  # bound.
   failureThreshold: 30
+  # -- Optional probe-level override of the pod's terminationGracePeriodSeconds,
+  # applied when the container is killed after this probe fails. Null (the
+  # default) inherits the pod-level value.
+  terminationGracePeriodSeconds: null  # @schema type:[null,integer];minimum:1
 
 # Metrics configuration for ZITADEL monitoring. When enabled, ZITADEL exposes
 # Prometheus-compatible metrics at /debug/metrics on the main service port.
