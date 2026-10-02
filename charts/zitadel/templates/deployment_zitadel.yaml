@@ -141,7 +141,11 @@ spec:
               {{- end }}
             initialDelaySeconds: {{ .Values.livenessProbe.initialDelaySeconds }}
             periodSeconds: {{ .Values.livenessProbe.periodSeconds }}
+            timeoutSeconds: {{ .Values.livenessProbe.timeoutSeconds | default 1 }}
             failureThreshold: {{ .Values.livenessProbe.failureThreshold }}
+            {{- with .Values.livenessProbe.terminationGracePeriodSeconds }}
+            terminationGracePeriodSeconds: {{ . }}
+            {{- end }}
           {{- end }}
           {{- if .Values.readinessProbe.enabled }}
           readinessProbe:
@@ -160,7 +164,9 @@ spec:
               {{- end }}
             initialDelaySeconds: {{ .Values.readinessProbe.initialDelaySeconds }}
             periodSeconds: {{ .Values.readinessProbe.periodSeconds }}
+            timeoutSeconds: {{ .Values.readinessProbe.timeoutSeconds | default 1 }}
             failureThreshold: {{ .Values.readinessProbe.failureThreshold }}
+            successThreshold: {{ .Values.readinessProbe.successThreshold | default 1 }}
           {{- end }}
           {{- if .Values.startupProbe.enabled }}
           startupProbe:
@@ -178,7 +184,11 @@ spec:
               scheme: {{ .Values.service.scheme }}
               {{- end }}
             periodSeconds: {{ .Values.startupProbe.periodSeconds }}
+            timeoutSeconds: {{ .Values.startupProbe.timeoutSeconds | default 1 }}
             failureThreshold: {{ .Values.startupProbe.failureThreshold }}
+            {{- with .Values.startupProbe.terminationGracePeriodSeconds }}
+            terminationGracePeriodSeconds: {{ . }}
+            {{- end }}
           {{- end }}
           volumeMounts:
           - name: zitadel-config-yaml
