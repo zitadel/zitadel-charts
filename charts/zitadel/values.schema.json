@@ -443,6 +443,11 @@
                 }
             }
         },
+        "lifecycle": {
+            "description": "Lifecycle hooks for the ZITADEL container. ZITADEL stops accepting connections as soon as it receives SIGTERM, so during rolling updates and node drains, requests routed to a terminating pod before its endpoint removal has propagated are refused. A preStop sleep keeps the pod serving until it is out of rotation. The ZITADEL image has no shell, so use the sleep action rather than an exec command. The sleep counts towards the pod's termination grace period (30 seconds by default). Ref: https://kubernetes.io/docs/concepts/containers/container-lifecycle-hooks/",
+            "$ref": "#/$defs/_definitions.json/definitions/io.k8s.api.core.v1.Lifecycle",
+            "type": "object"
+        },
         "livenessProbe": {
             "type": "object",
             "properties": {

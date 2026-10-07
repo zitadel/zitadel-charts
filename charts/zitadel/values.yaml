@@ -1047,6 +1047,21 @@ resources: {}
   #   cpu: 2000m
   #   memory: 2Gi
 
+# @schema $ref: $k8s/_definitions.json#/definitions/io.k8s.api.core.v1.Lifecycle
+# -- (Lifecycle) Lifecycle hooks for the ZITADEL container. ZITADEL stops
+# accepting connections as soon as it receives SIGTERM, so during rolling
+# updates and node drains, requests routed to a terminating pod before its
+# endpoint removal has propagated are refused. A preStop sleep keeps the pod
+# serving until it is out of rotation. The ZITADEL image has no shell, so use
+# the sleep action rather than an exec command. The sleep counts towards the
+# pod's termination grace period (30 seconds by default).
+# Ref: https://kubernetes.io/docs/concepts/containers/container-lifecycle-hooks/
+lifecycle: {}
+  # Example configuration for graceful shutdown:
+  # preStop:
+  #   sleep:
+  #     seconds: 15
+
 # -- (map[string]string) Node labels for pod assignment. Pods will only be scheduled
 # on nodes that have all the specified labels. Use this to target specific node pools
 # (e.g., high-memory nodes, nodes in specific zones).
