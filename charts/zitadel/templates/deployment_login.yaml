@@ -169,6 +169,10 @@ spec:
           {{- end }}
           resources:
             {{- toYaml .Values.login.resources | nindent 14 }}
+          {{- with .Values.login.lifecycle }}
+          lifecycle:
+            {{- toYaml . | nindent 14 }}
+          {{- end }}
       initContainers:
         # This initContainer acts as a dependency check, ensuring the Login UI pod
         # does not start until the main Zitadel API is fully initialized and ready

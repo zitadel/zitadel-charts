@@ -230,6 +230,10 @@ spec:
           {{- end }}
           resources:
             {{- toYaml .Values.resources | nindent 14 }}
+          {{- with .Values.lifecycle }}
+          lifecycle:
+            {{- toYaml . | nindent 14 }}
+          {{- end }}
       {{- with .Values.zitadel.initContainers }}
       initContainers:
         {{- toYaml . | nindent 8 }}
