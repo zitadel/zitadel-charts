@@ -169,6 +169,10 @@ spec:
           {{- end }}
           resources:
             {{- toYaml .Values.login.resources | nindent 14 }}
+          {{- with .Values.login.lifecycle }}
+          lifecycle:
+            {{- toYaml . | nindent 14 }}
+          {{- end }}
       # The chart ships no wait-for-zitadel init container: the login container
       # waits for the backend natively (its readiness probe stays unready, HTTP
       # 503, until the backend is reachable, without restarting). The block below

@@ -2,7 +2,7 @@
 
 # Zitadel
 
-![Version: 11.0.0-beta.10](https://img.shields.io/badge/Version-11.0.0--beta.10-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: v4.19.2](https://img.shields.io/badge/AppVersion-v4.19.2-informational?style=flat-square)
+![Version: 11.0.0-beta.11](https://img.shields.io/badge/Version-11.0.0--beta.11-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: v4.19.2](https://img.shields.io/badge/AppVersion-v4.19.2-informational?style=flat-square)
 
 ## A Better Identity and Access Management Solution
 
@@ -290,6 +290,7 @@ Kubernetes: `>= 1.30.0-0`
 | initJob.podAdditionalLabels | map[string]string | `{}` | Additional labels to add to init job pods. |
 | initJob.podAnnotations | map[string]string | `{}` | Additional annotations to add to init job pods. |
 | initJob.resources | ResourceRequirements | `{}` | CPU and memory resource requests and limits for the init job container. The init job typically requires minimal resources as it only runs SQL commands against the database. |
+| lifecycle | Lifecycle | `{}` | Lifecycle hooks for the ZITADEL container. ZITADEL stops accepting connections as soon as it receives SIGTERM, so during rolling updates and node drains, requests routed to a terminating pod before its endpoint removal has propagated are refused. A preStop sleep keeps the pod serving until it is out of rotation. The ZITADEL image has no shell, so use the sleep action rather than an exec command. The sleep counts towards the pod's termination grace period (30 seconds by default). Ref: https://kubernetes.io/docs/concepts/containers/container-lifecycle-hooks/ |
 | livenessProbe.enabled | bool | `true` | Enable or disable the liveness probe. |
 | livenessProbe.failureThreshold | int | `3` | Number of consecutive failures before restarting the container. |
 | livenessProbe.initialDelaySeconds | int | `0` | Seconds to wait before starting liveness checks after container start. |
@@ -333,6 +334,7 @@ Kubernetes: `>= 1.30.0-0`
 | login.ingress.hosts | list | `[{"paths":[{"path":"/ui/v2/login","pathType":"Prefix"}]}]` | A list of host rules for the Ingress. The default path targets the login UI. |
 | login.ingress.tls | []IngressTLS | `[]` | TLS configuration for the Ingress. Secure the login UI with HTTPS by referencing a secret containing the TLS certificate and key. |
 | login.initContainers | []Container | `[]` | Init containers to run before the Login UI container starts. Useful for waiting on dependencies or performing setup tasks. |
+| login.lifecycle | Lifecycle | `{}` | Lifecycle hooks for the Login container. Like ZITADEL, a terminating Login pod can still receive requests that were routed to it before its endpoint removal had propagated during rolling updates and node drains. A preStop sleep keeps the pod serving until it is out of rotation. Prefer the native sleep action, which needs no shell in the container image. The sleep counts towards the pod's termination grace period (30 seconds by default). Ref: https://kubernetes.io/docs/concepts/containers/container-lifecycle-hooks/ |
 | login.livenessProbe.enabled | bool | `true` | Enable or disable the liveness probe. |
 | login.livenessProbe.failureThreshold | int | `3` | Number of consecutive failures before restarting the container. |
 | login.livenessProbe.initialDelaySeconds | int | `0` | Seconds to wait before starting liveness checks after container start. |
