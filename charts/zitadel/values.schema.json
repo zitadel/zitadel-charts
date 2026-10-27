@@ -1465,6 +1465,10 @@
                     "description": "Number of retries before marking the setup job as failed.",
                     "type": "integer"
                 },
+                "enabled": {
+                    "description": "Enable or disable the setup job. Set to false on secondary regions that share a database with a primary that already runs setup (migrations + FirstInstance). FirstInstance.Skip alone does not skip migrations or omit this Job.",
+                    "type": "boolean"
+                },
                 "extraContainers": {
                     "description": "([]Container) Sidecar containers to run alongside the setup container. Useful for logging, proxies (e.g., cloud-sql-proxy), or other supporting services.",
                     "type": "array",

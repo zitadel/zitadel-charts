@@ -1218,6 +1218,10 @@ cleanupJob:
 # ZITADEL itself. It creates the first organization, admin user, machine users,
 # and generates authentication credentials stored as Kubernetes Secrets.
 setupJob:
+  # -- Enable or disable the setup job. Set to false on secondary regions that share
+  # a database with a primary that already runs setup (migrations + FirstInstance).
+  # FirstInstance.Skip alone does not skip migrations or omit this Job.
+  enabled: true
   # -- (map[string]string) Annotations for the setup job. The Helm hooks ensure this job
   # runs after the init job (weight "2" > "1") and before the main deployment.
   annotations:
