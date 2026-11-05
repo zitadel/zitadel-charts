@@ -35,7 +35,7 @@ jobs:
         name: Install Python (The Chart Testing CLI Depends On It)
         uses: 'actions/setup-python@v6.0.0'
         with:
-          python-version: 3.11.4
+          python-version: '3.11'
         if: steps.list-changed-test.outputs.any_changed == 'true'
 
       - id: 'set-up-chart-testing'
