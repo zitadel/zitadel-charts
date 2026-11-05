@@ -1466,7 +1466,7 @@
                     "type": "integer"
                 },
                 "enabled": {
-                    "description": "Enable or disable the setup job. Set to false on secondary regions that share a database with a primary that already runs setup (migrations + FirstInstance). FirstInstance.Skip alone does not skip migrations or omit this Job.",
+                    "description": "Enable or disable the setup job. When several Helm releases, for example one per region, share a single database, let exactly one release run setup (migrations and FirstInstance) and set this to false, together with initJob.enabled, on the others. Roll the other releases only after the setup job of that release has completed. ExternalDomain, ExternalPort and ExternalSecure are applied only when setup runs, so set them on the release that owns setup. FirstInstance.Skip alone does not skip migrations or omit this Job.",
                     "type": "boolean"
                 },
                 "extraContainers": {
