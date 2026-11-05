@@ -2,7 +2,7 @@
 
 # Zitadel
 
-![Version: 11.0.0-beta.11](https://img.shields.io/badge/Version-11.0.0--beta.11-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: v4.19.2](https://img.shields.io/badge/AppVersion-v4.19.2-informational?style=flat-square)
+![Version: 11.0.0-beta.12](https://img.shields.io/badge/Version-11.0.0--beta.12-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: v4.19.2](https://img.shields.io/badge/AppVersion-v4.19.2-informational?style=flat-square)
 
 ## A Better Identity and Access Management Solution
 
@@ -452,6 +452,7 @@ Kubernetes: `>= 1.30.0-0`
 | setupJob.additionalArgs | []string | `["--init-projections=true"]` | Additional command-line arguments to pass to the ZITADEL setup command. The default enables projection initialization for better startup performance. |
 | setupJob.annotations | map[string]string | `{"helm.sh/hook":"pre-install,pre-upgrade","helm.sh/hook-delete-policy":"before-hook-creation","helm.sh/hook-weight":"2"}` | Annotations for the setup job. The Helm hooks ensure this job runs after the init job (weight "2" > "1") and before the main deployment. |
 | setupJob.backoffLimit | int | `5` | Number of retries before marking the setup job as failed. |
+| setupJob.enabled | bool | `true` | Enable or disable the setup job. When several Helm releases, for example one per region, share a single database, let exactly one release run setup (migrations and FirstInstance) and set this to false, together with initJob.enabled, on the others. Roll the other releases only after the setup job of that release has completed. ExternalDomain, ExternalPort and ExternalSecure are applied only when setup runs, so set them on the release that owns setup. FirstInstance.Skip alone does not skip migrations or omit this Job. |
 | setupJob.extraContainers | []Container | `[]` | Sidecar containers to run alongside the setup container. Useful for logging, proxies (e.g., cloud-sql-proxy), or other supporting services. |
 | setupJob.initContainers | []Container | `[]` | Init containers to run before the main setup container. Useful for waiting on additional dependencies or performing pre-setup tasks. |
 | setupJob.podAdditionalLabels | map[string]string | `{}` | Additional labels to add to setup job pods. |
